@@ -1,0 +1,51 @@
+import { ColumnDef } from '@tanstack/react-table'
+import { Client } from './types'
+import { Button } from '@/components/ui/button'
+
+interface CreateColumnsProps {
+  onView: (client: Client) => void
+  onEdit: (client: Client) => void
+  onDelete: (client: Client) => void
+}
+
+export function createColumns({ onView, onEdit, onDelete }: CreateColumnsProps): ColumnDef<Client>[] {
+  return [
+    {
+      accessorKey: 'id',
+      header: 'ID',
+    },
+    {
+      accessorKey: 'name',
+      header: 'Nom',
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+    },
+    {
+      accessorKey: 'phone_1',
+      header: 'Téléphone 1',
+    },
+    {
+      accessorKey: 'phone_2',
+      header: 'Téléphone 2',
+    },
+    {
+      accessorKey: 'address',
+      header: 'Adresse',
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => onView(row.original)}>Voir</Button>
+          <Button size="sm" variant="outline" onClick={() => onEdit(row.original)}>Éditer</Button>
+          <Button size="sm" variant="destructive" onClick={() => onDelete(row.original)}>Supprimer</Button>
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+  ]
+} 
