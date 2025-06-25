@@ -14,6 +14,14 @@ export const API_CONFIG = {
     VEHICLE_MODELS: '/vehicle-models',
     VEHICLES: '/vehicles',
     ASSIGNMENT_TYPES: '/assignment-types',
+    ASSIGNMENTS: '/assignments',
+    RECEIPTS: '/receipts',
+    // Endpoints pour l'édition des assignations
+    SHOCK_POINTS: '/shock-points',
+    SUPPLIES: '/supplies',
+    WORKFORCE_TYPES: '/workforce-types',
+    OTHER_COST_TYPES: '/other-cost-types',
+    CALCULATIONS: '/assignments/calculate',
   },
 } as const
 
@@ -33,5 +41,13 @@ export interface ApiConfig {
     VEHICLE_MODELS: string
     VEHICLES: string
     ASSIGNMENT_TYPES: string
+    ASSIGNMENTS: string
+    RECEIPTS: string
+    // Endpoints pour l'édition des assignations
+    SHOCK_POINTS: string
+    SUPPLIES: string
+    WORKFORCE_TYPES: string
+    OTHER_COST_TYPES: string
+    CALCULATIONS: string
   }
 } 

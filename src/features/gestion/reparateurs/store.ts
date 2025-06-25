@@ -28,8 +28,9 @@ export const useReparateursStore = create<ReparateursState>((set, get) => ({
     try {
       const res = await api.getReparateurs(filters, token)
       set({ reparateurs: res.data, total: res.meta.total, loading: false })
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors du chargement', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -38,8 +39,9 @@ export const useReparateursStore = create<ReparateursState>((set, get) => ({
     try {
       const reparateur = await api.getReparateurById(id, token)
       set({ selectedReparateur: reparateur, loading: false })
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors du chargement', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -48,8 +50,9 @@ export const useReparateursStore = create<ReparateursState>((set, get) => ({
     try {
       await api.createReparateur(reparateur, token)
       await get().fetchReparateurs(undefined, token)
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors de la création', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -58,8 +61,9 @@ export const useReparateursStore = create<ReparateursState>((set, get) => ({
     try {
       await api.updateReparateur(id, reparateur, token)
       await get().fetchReparateurs(undefined, token)
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors de la modification', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la modification'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -68,8 +72,9 @@ export const useReparateursStore = create<ReparateursState>((set, get) => ({
     try {
       await api.deleteReparateur(id, token)
       await get().fetchReparateurs(undefined, token)
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors de la suppression', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
+      set({ error: errorMessage, loading: false })
     }
   },
 

@@ -1,0 +1,139 @@
+import { useState, useCallback } from 'react'
+import { toast } from 'sonner'
+import axiosInstance from '@/lib/axios'
+import { API_CONFIG } from '@/config/api'
+
+interface CalculationResult {
+  shocks: unknown[]
+  other_costs: unknown[]
+  total_amount: number
+}
+
+interface Shock {
+  uid: string
+  shock_point_id: number
+  shock_works: unknown[]
+  paint_type_id: number
+  hourly_rate_id: number
+  workforces: unknown[]
+  comment: string
+}
+
+interface OtherCost {
+  other_cost_type_id: number
+  amount: number
+}
+
+export function useCalculations() {
+  const [calculationResults, setCalculationResults] = useState<{ [key: number]: CalculationResult }>({})
+  const [loadingCalculation, setLoadingCalculation] = useState(false)
+
+  // Calculer globalement tous les points de choc
+  const calculateAll = useCallback(async (shocks: Shock[], otherCosts: OtherCost[]) => {
+    if (shocks.length === 0) {
+      toast.error('Ajoutez au moins un point de choc avant de calculer')
+      return false
+    }
+
+    setLoadingCalculation(true)
+
+    try {
+      const payload = {
+        fournitures: [],
+        shocks: shocks.map(shock => ({
+          shock_point_id: shock.shock_point_id,
+          shock_works: shock.shock_works.map((work: any) => ({
+            supply_id: work.supply_id,
+            disassembly: work.disassembly,
+            replacement: work.replacement,
+            repair: work.repair,
+            paint: work.paint,
+            control: work.control,
+            comment: work.comment,
+            obsolescence_rate: work.obsolescence_rate,
+            recovery_rate: work.recovery_rate,
+            amount: work.amount
+          })),
+          paint_type_id: shock.paint_type_id,
+          hourly_rate_id: shock.hourly_rate_id,
+          workforces: shock.workforces.map((workforce: any) => ({
+            workforce_type_id: workforce.workforce_type_id,
+            nb_hours: workforce.nb_hours,
+            discount: workforce.discount
+          }))
+        })),
+        other_costs: otherCosts.map(cost => ({
+          other_cost_type_id: Number(cost.other_cost_type_id),
+          amount: Number(cost.amount)
+        }))
+      }
+
+      const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATIONS}`, payload)
+      
+      // Mettre à jour les résultats de calcul
+      const newResults: { [key: number]: CalculationResult } = {}
+      if (response.data.data.shocks && response.data.data.shocks.length > 0) {
+        response.data.data.shocks.forEach((apiShock: any, index: number) => {
+          newResults[index] = response.data.data
+        })
+      }
+      
+      setCalculationResults(newResults)
+      
+      toast.success(`Calcul global effectué pour ${Object.keys(newResults).length} point(s) de choc`)
+      return true
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erreur lors du calcul global:', error)
+      toast.error('Erreur lors du calcul global')
+      return false
+    } finally {
+      setLoadingCalculation(false)
+    }
+  }, [])
+
+  // Supprimer un calcul
+  const removeCalculation = useCallback((index: number) => {
+    setCalculationResults(prev => {
+      const newResults = { ...prev }
+      delete newResults[index]
+      return newResults
+    })
+  }, [])
+
+  // Mettre à jour un calcul
+  const updateCalculation = useCallback((index: number, result: CalculationResult) => {
+    setCalculationResults(prev => ({
+      ...prev,
+      [index]: result
+    }))
+  }, [])
+
+  // Nettoyer tous les calculs
+  const clearAllCalculations = useCallback(() => {
+    setCalculationResults({})
+  }, [])
+
+  // Obtenir le nombre de calculs effectués
+  const getCalculatedCount = useCallback(() => {
+    return Object.keys(calculationResults).length
+  }, [calculationResults])
+
+  // Calculer le montant total de tous les calculs
+  const getTotalAmount = useCallback(() => {
+    return Object.values(calculationResults).reduce((total, result) => {
+      return total + (result.total_amount || 0)
+    }, 0)
+  }, [calculationResults])
+
+  return {
+    calculationResults,
+    loadingCalculation,
+    calculateAll,
+    removeCalculation,
+    updateCalculation,
+    clearAllCalculations,
+    getCalculatedCount,
+    getTotalAmount
+  }
+} 

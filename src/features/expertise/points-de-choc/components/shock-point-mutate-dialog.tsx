@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ShockPointCreate, ShockPointUpdate } from '@/types/shock-points'
-import { useShockPointsStore } from '@/stores/shockPoints'
+import { useShockPointsStore } from '@/stores/shock-points'
 
 interface ShockPointMutateDialogProps {
   id?: number | null

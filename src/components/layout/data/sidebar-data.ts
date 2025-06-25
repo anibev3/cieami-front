@@ -17,6 +17,7 @@ import {
   IconShield,
   IconCategory,
   IconCar,
+  IconFolder,
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -286,6 +287,17 @@ export const sidebarData: SidebarData = {
           url: '/help-center',
           icon: IconHelp,
         },
+      ],
+    },
+    {
+      title: 'Gestion des dossiers',
+      items: [
+        {
+          title: 'Dossiers',
+          url: '/assignments',
+          icon: IconFolder,
+        },
+        
       ],
     },
     {

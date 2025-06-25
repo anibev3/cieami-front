@@ -32,6 +32,7 @@ import { Route as AuthenticatedTasksIndexImport } from './routes/_authenticated/
 import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedHelpCenterIndexImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexImport } from './routes/_authenticated/chats/index'
+import { Route as AuthenticatedAssignmentsIndexImport } from './routes/_authenticated/assignments/index'
 import { Route as AuthenticatedAppsIndexImport } from './routes/_authenticated/apps/index'
 import { Route as ClerkAuthenticatedUserManagementImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpImport } from './routes/clerk/(auth)/sign-up'
@@ -65,6 +66,8 @@ import { Route as AuthenticatedExpertiseTypeMainOeuvreImport } from './routes/_a
 import { Route as AuthenticatedExpertisePointsDeChocImport } from './routes/_authenticated/expertise/points-de-choc'
 import { Route as AuthenticatedExpertiseFournituresImport } from './routes/_authenticated/expertise/fournitures'
 import { Route as AuthenticatedExpertiseConclusionsTechniquesImport } from './routes/_authenticated/expertise/conclusions-techniques'
+import { Route as AuthenticatedAssignmentsCreateImport } from './routes/_authenticated/assignments/create'
+import { Route as AuthenticatedAssignmentsIdImport } from './routes/_authenticated/assignments/$id'
 import { Route as AuthenticatedAdministrationVehiclesImport } from './routes/_authenticated/administration/vehicles'
 import { Route as AuthenticatedAdministrationVehicleStatesImport } from './routes/_authenticated/administration/vehicle-states'
 import { Route as AuthenticatedAdministrationVehicleModelsImport } from './routes/_authenticated/administration/vehicle-models'
@@ -79,6 +82,9 @@ import { Route as AuthenticatedAdministrationDocumentsImport } from './routes/_a
 import { Route as AuthenticatedAdministrationColorsImport } from './routes/_authenticated/administration/colors'
 import { Route as AuthenticatedAdministrationBrandsImport } from './routes/_authenticated/administration/brands'
 import { Route as AuthenticatedAdministrationAssignmentTypesImport } from './routes/_authenticated/administration/assignment-types'
+import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
+import { Route as AuthenticatedAssignmentsEditeReportIdImport } from './routes/_authenticated/assignments/edite-report/$id'
+import { Route as AuthenticatedAssignmentsDetailsIdImport } from './routes/_authenticated/assignments/details/$id'
 
 // Create/Update Routes
 
@@ -209,6 +215,13 @@ const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexImport.update({
   path: '/chats/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+
+const AuthenticatedAssignmentsIndexRoute =
+  AuthenticatedAssignmentsIndexImport.update({
+    id: '/assignments/',
+    path: '/assignments/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexImport.update({
   id: '/apps/',
@@ -439,6 +452,21 @@ const AuthenticatedExpertiseConclusionsTechniquesRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedAssignmentsCreateRoute =
+  AuthenticatedAssignmentsCreateImport.update({
+    id: '/assignments/create',
+    path: '/assignments/create',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAssignmentsIdRoute = AuthenticatedAssignmentsIdImport.update(
+  {
+    id: '/assignments/$id',
+    path: '/assignments/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any,
+)
+
 const AuthenticatedAdministrationVehiclesRoute =
   AuthenticatedAdministrationVehiclesImport.update({
     id: '/administration/vehicles',
@@ -534,6 +562,27 @@ const AuthenticatedAdministrationAssignmentTypesRoute =
   AuthenticatedAdministrationAssignmentTypesImport.update({
     id: '/administration/assignment-types',
     path: '/administration/assignment-types',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAssignmentsRealizeIdRoute =
+  AuthenticatedAssignmentsRealizeIdImport.update({
+    id: '/assignments/realize/$id',
+    path: '/assignments/realize/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAssignmentsEditeReportIdRoute =
+  AuthenticatedAssignmentsEditeReportIdImport.update({
+    id: '/assignments/edite-report/$id',
+    path: '/assignments/edite-report/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAssignmentsDetailsIdRoute =
+  AuthenticatedAssignmentsDetailsIdImport.update({
+    id: '/assignments/details/$id',
+    path: '/assignments/details/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -749,6 +798,20 @@ declare module '@tanstack/react-router' {
       path: '/administration/vehicles'
       fullPath: '/administration/vehicles'
       preLoaderRoute: typeof AuthenticatedAdministrationVehiclesImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/assignments/$id': {
+      id: '/_authenticated/assignments/$id'
+      path: '/assignments/$id'
+      fullPath: '/assignments/$id'
+      preLoaderRoute: typeof AuthenticatedAssignmentsIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/assignments/create': {
+      id: '/_authenticated/assignments/create'
+      path: '/assignments/create'
+      fullPath: '/assignments/create'
+      preLoaderRoute: typeof AuthenticatedAssignmentsCreateImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/expertise/conclusions-techniques': {
@@ -982,6 +1045,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppsIndexImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/assignments/': {
+      id: '/_authenticated/assignments/'
+      path: '/assignments'
+      fullPath: '/assignments'
+      preLoaderRoute: typeof AuthenticatedAssignmentsIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/chats/': {
       id: '/_authenticated/chats/'
       path: '/chats'
@@ -1015,6 +1085,27 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof AuthenticatedUsersIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/assignments/details/$id': {
+      id: '/_authenticated/assignments/details/$id'
+      path: '/assignments/details/$id'
+      fullPath: '/assignments/details/$id'
+      preLoaderRoute: typeof AuthenticatedAssignmentsDetailsIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/assignments/edite-report/$id': {
+      id: '/_authenticated/assignments/edite-report/$id'
+      path: '/assignments/edite-report/$id'
+      fullPath: '/assignments/edite-report/$id'
+      preLoaderRoute: typeof AuthenticatedAssignmentsEditeReportIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/assignments/realize/$id': {
+      id: '/_authenticated/assignments/realize/$id'
+      path: '/assignments/realize/$id'
+      fullPath: '/assignments/realize/$id'
+      preLoaderRoute: typeof AuthenticatedAssignmentsRealizeIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
   }
@@ -1062,6 +1153,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdministrationVehicleModelsRoute: typeof AuthenticatedAdministrationVehicleModelsRoute
   AuthenticatedAdministrationVehicleStatesRoute: typeof AuthenticatedAdministrationVehicleStatesRoute
   AuthenticatedAdministrationVehiclesRoute: typeof AuthenticatedAdministrationVehiclesRoute
+  AuthenticatedAssignmentsIdRoute: typeof AuthenticatedAssignmentsIdRoute
+  AuthenticatedAssignmentsCreateRoute: typeof AuthenticatedAssignmentsCreateRoute
   AuthenticatedExpertiseConclusionsTechniquesRoute: typeof AuthenticatedExpertiseConclusionsTechniquesRoute
   AuthenticatedExpertiseFournituresRoute: typeof AuthenticatedExpertiseFournituresRoute
   AuthenticatedExpertisePointsDeChocRoute: typeof AuthenticatedExpertisePointsDeChocRoute
@@ -1088,10 +1181,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReparationTarifsProduitsPeintureRoute: typeof AuthenticatedReparationTarifsProduitsPeintureRoute
   AuthenticatedReparationTypesPeintureRoute: typeof AuthenticatedReparationTypesPeintureRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
+  AuthenticatedAssignmentsIndexRoute: typeof AuthenticatedAssignmentsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
+  AuthenticatedAssignmentsDetailsIdRoute: typeof AuthenticatedAssignmentsDetailsIdRoute
+  AuthenticatedAssignmentsEditeReportIdRoute: typeof AuthenticatedAssignmentsEditeReportIdRoute
+  AuthenticatedAssignmentsRealizeIdRoute: typeof AuthenticatedAssignmentsRealizeIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1123,6 +1220,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAdministrationVehicleStatesRoute,
   AuthenticatedAdministrationVehiclesRoute:
     AuthenticatedAdministrationVehiclesRoute,
+  AuthenticatedAssignmentsIdRoute: AuthenticatedAssignmentsIdRoute,
+  AuthenticatedAssignmentsCreateRoute: AuthenticatedAssignmentsCreateRoute,
   AuthenticatedExpertiseConclusionsTechniquesRoute:
     AuthenticatedExpertiseConclusionsTechniquesRoute,
   AuthenticatedExpertiseFournituresRoute:
@@ -1162,10 +1261,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReparationTypesPeintureRoute:
     AuthenticatedReparationTypesPeintureRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
+  AuthenticatedAssignmentsIndexRoute: AuthenticatedAssignmentsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
+  AuthenticatedAssignmentsDetailsIdRoute:
+    AuthenticatedAssignmentsDetailsIdRoute,
+  AuthenticatedAssignmentsEditeReportIdRoute:
+    AuthenticatedAssignmentsEditeReportIdRoute,
+  AuthenticatedAssignmentsRealizeIdRoute:
+    AuthenticatedAssignmentsRealizeIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1244,6 +1350,8 @@ export interface FileRoutesByFullPath {
   '/administration/vehicle-models': typeof AuthenticatedAdministrationVehicleModelsRoute
   '/administration/vehicle-states': typeof AuthenticatedAdministrationVehicleStatesRoute
   '/administration/vehicles': typeof AuthenticatedAdministrationVehiclesRoute
+  '/assignments/$id': typeof AuthenticatedAssignmentsIdRoute
+  '/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
   '/expertise/conclusions-techniques': typeof AuthenticatedExpertiseConclusionsTechniquesRoute
   '/expertise/fournitures': typeof AuthenticatedExpertiseFournituresRoute
   '/expertise/points-de-choc': typeof AuthenticatedExpertisePointsDeChocRoute
@@ -1277,11 +1385,15 @@ export interface FileRoutesByFullPath {
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
+  '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
+  '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
+  '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -1311,6 +1423,8 @@ export interface FileRoutesByTo {
   '/administration/vehicle-models': typeof AuthenticatedAdministrationVehicleModelsRoute
   '/administration/vehicle-states': typeof AuthenticatedAdministrationVehicleStatesRoute
   '/administration/vehicles': typeof AuthenticatedAdministrationVehiclesRoute
+  '/assignments/$id': typeof AuthenticatedAssignmentsIdRoute
+  '/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
   '/expertise/conclusions-techniques': typeof AuthenticatedExpertiseConclusionsTechniquesRoute
   '/expertise/fournitures': typeof AuthenticatedExpertiseFournituresRoute
   '/expertise/points-de-choc': typeof AuthenticatedExpertisePointsDeChocRoute
@@ -1344,11 +1458,15 @@ export interface FileRoutesByTo {
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
+  '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
+  '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
+  '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
 }
 
 export interface FileRoutesById {
@@ -1383,6 +1501,8 @@ export interface FileRoutesById {
   '/_authenticated/administration/vehicle-models': typeof AuthenticatedAdministrationVehicleModelsRoute
   '/_authenticated/administration/vehicle-states': typeof AuthenticatedAdministrationVehicleStatesRoute
   '/_authenticated/administration/vehicles': typeof AuthenticatedAdministrationVehiclesRoute
+  '/_authenticated/assignments/$id': typeof AuthenticatedAssignmentsIdRoute
+  '/_authenticated/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
   '/_authenticated/expertise/conclusions-techniques': typeof AuthenticatedExpertiseConclusionsTechniquesRoute
   '/_authenticated/expertise/fournitures': typeof AuthenticatedExpertiseFournituresRoute
   '/_authenticated/expertise/points-de-choc': typeof AuthenticatedExpertisePointsDeChocRoute
@@ -1416,11 +1536,15 @@ export interface FileRoutesById {
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
+  '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
+  '/_authenticated/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
+  '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
 }
 
 export interface FileRouteTypes {
@@ -1455,6 +1579,8 @@ export interface FileRouteTypes {
     | '/administration/vehicle-models'
     | '/administration/vehicle-states'
     | '/administration/vehicles'
+    | '/assignments/$id'
+    | '/assignments/create'
     | '/expertise/conclusions-techniques'
     | '/expertise/fournitures'
     | '/expertise/points-de-choc'
@@ -1488,11 +1614,15 @@ export interface FileRouteTypes {
     | '/clerk/sign-up'
     | '/clerk/user-management'
     | '/apps'
+    | '/assignments'
     | '/chats'
     | '/help-center'
     | '/settings/'
     | '/tasks'
     | '/users'
+    | '/assignments/details/$id'
+    | '/assignments/edite-report/$id'
+    | '/assignments/realize/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/clerk'
@@ -1521,6 +1651,8 @@ export interface FileRouteTypes {
     | '/administration/vehicle-models'
     | '/administration/vehicle-states'
     | '/administration/vehicles'
+    | '/assignments/$id'
+    | '/assignments/create'
     | '/expertise/conclusions-techniques'
     | '/expertise/fournitures'
     | '/expertise/points-de-choc'
@@ -1554,11 +1686,15 @@ export interface FileRouteTypes {
     | '/clerk/sign-up'
     | '/clerk/user-management'
     | '/apps'
+    | '/assignments'
     | '/chats'
     | '/help-center'
     | '/settings'
     | '/tasks'
     | '/users'
+    | '/assignments/details/$id'
+    | '/assignments/edite-report/$id'
+    | '/assignments/realize/$id'
   id:
     | '__root__'
     | '/_authenticated'
@@ -1591,6 +1727,8 @@ export interface FileRouteTypes {
     | '/_authenticated/administration/vehicle-models'
     | '/_authenticated/administration/vehicle-states'
     | '/_authenticated/administration/vehicles'
+    | '/_authenticated/assignments/$id'
+    | '/_authenticated/assignments/create'
     | '/_authenticated/expertise/conclusions-techniques'
     | '/_authenticated/expertise/fournitures'
     | '/_authenticated/expertise/points-de-choc'
@@ -1624,11 +1762,15 @@ export interface FileRouteTypes {
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
     | '/_authenticated/apps/'
+    | '/_authenticated/assignments/'
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
+    | '/_authenticated/assignments/details/$id'
+    | '/_authenticated/assignments/edite-report/$id'
+    | '/_authenticated/assignments/realize/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -1705,6 +1847,8 @@ export const routeTree = rootRoute
         "/_authenticated/administration/vehicle-models",
         "/_authenticated/administration/vehicle-states",
         "/_authenticated/administration/vehicles",
+        "/_authenticated/assignments/$id",
+        "/_authenticated/assignments/create",
         "/_authenticated/expertise/conclusions-techniques",
         "/_authenticated/expertise/fournitures",
         "/_authenticated/expertise/points-de-choc",
@@ -1731,10 +1875,14 @@ export const routeTree = rootRoute
         "/_authenticated/reparation/tarifs-produits-peinture",
         "/_authenticated/reparation/types-peinture",
         "/_authenticated/apps/",
+        "/_authenticated/assignments/",
         "/_authenticated/chats/",
         "/_authenticated/help-center/",
         "/_authenticated/tasks/",
-        "/_authenticated/users/"
+        "/_authenticated/users/",
+        "/_authenticated/assignments/details/$id",
+        "/_authenticated/assignments/edite-report/$id",
+        "/_authenticated/assignments/realize/$id"
       ]
     },
     "/clerk": {
@@ -1858,6 +2006,14 @@ export const routeTree = rootRoute
     },
     "/_authenticated/administration/vehicles": {
       "filePath": "_authenticated/administration/vehicles.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/$id": {
+      "filePath": "_authenticated/assignments/$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/create": {
+      "filePath": "_authenticated/assignments/create.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/expertise/conclusions-techniques": {
@@ -1992,6 +2148,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/apps/index.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/assignments/": {
+      "filePath": "_authenticated/assignments/index.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/chats/": {
       "filePath": "_authenticated/chats/index.tsx",
       "parent": "/_authenticated"
@@ -2010,6 +2170,18 @@ export const routeTree = rootRoute
     },
     "/_authenticated/users/": {
       "filePath": "_authenticated/users/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/details/$id": {
+      "filePath": "_authenticated/assignments/details/$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/edite-report/$id": {
+      "filePath": "_authenticated/assignments/edite-report/$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/realize/$id": {
+      "filePath": "_authenticated/assignments/realize.$id.tsx",
       "parent": "/_authenticated"
     }
   }

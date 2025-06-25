@@ -1,0 +1,82 @@
+import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
+import axiosInstance from '@/lib/axios'
+import { API_CONFIG } from '@/config/api'
+
+interface ShockPoint {
+  id: number
+  label: string
+  code: string
+}
+
+interface Supply {
+  id: number
+  label: string
+  code: string
+  price: number
+}
+
+interface WorkforceType {
+  id: number
+  label: string
+  code: string
+  hourly_rate: number
+}
+
+interface OtherCostType {
+  id: number
+  label: string
+  code: string
+}
+
+export function useEditData() {
+  const [loading, setLoading] = useState(false)
+  const [shockPoints, setShockPoints] = useState<ShockPoint[]>([])
+  const [supplies, setSupplies] = useState<Supply[]>([])
+  const [workforceTypes, setWorkforceTypes] = useState<WorkforceType[]>([])
+  const [otherCostTypes, setOtherCostTypes] = useState<OtherCostType[]>([])
+
+  // Charger toutes les données de référence
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true)
+      
+      // Charger les points de choc
+      const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}`)
+      setShockPoints(shockPointsResponse.data.data)
+      
+      // Charger les fournitures
+      const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}`)
+      setSupplies(suppliesResponse.data.data)
+      
+      // Charger les types de main d'œuvre
+      const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}`)
+      setWorkforceTypes(workforceTypesResponse.data.data)
+      
+      // Charger les types de coûts autres
+      const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}`)
+      setOtherCostTypes(otherCostTypesResponse.data.data)
+      
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erreur lors du chargement des données:', error)
+      toast.error('Erreur lors du chargement des données')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Charger les données au montage
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  return {
+    loading,
+    shockPoints,
+    supplies,
+    workforceTypes,
+    otherCostTypes,
+    reloadData: loadData
+  }
+} 
