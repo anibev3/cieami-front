@@ -7,6 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Header } from '@/components/layout/header'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Main } from '@/components/layout/main'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { 
   ArrowLeft, 
@@ -36,6 +40,7 @@ import {
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
+import { Search } from '@/components/search'
 
 interface AssignmentDetail {
   id: number
@@ -278,6 +283,16 @@ export default function AssignmentDetailPage() {
   }
 
   return (
+        <>
+      <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main>
     <div className="w-full space-y-6">
       {/* En-tête */}
       <div className="flex items-center justify-between">
@@ -739,6 +754,8 @@ export default function AssignmentDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+        </div>
+        </Main>
+        </>
   )
 } 

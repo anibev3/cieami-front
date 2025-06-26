@@ -84,6 +84,7 @@ import { Route as AuthenticatedAdministrationBrandsImport } from './routes/_auth
 import { Route as AuthenticatedAdministrationAssignmentTypesImport } from './routes/_authenticated/administration/assignment-types'
 import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
 import { Route as AuthenticatedAssignmentsEditeReportIdImport } from './routes/_authenticated/assignments/edite-report/$id'
+import { Route as AuthenticatedAssignmentsEditReportIdImport } from './routes/_authenticated/assignments/edit-report.$id'
 import { Route as AuthenticatedAssignmentsDetailsIdImport } from './routes/_authenticated/assignments/details/$id'
 
 // Create/Update Routes
@@ -576,6 +577,13 @@ const AuthenticatedAssignmentsEditeReportIdRoute =
   AuthenticatedAssignmentsEditeReportIdImport.update({
     id: '/assignments/edite-report/$id',
     path: '/assignments/edite-report/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAssignmentsEditReportIdRoute =
+  AuthenticatedAssignmentsEditReportIdImport.update({
+    id: '/assignments/edit-report/$id',
+    path: '/assignments/edit-report/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1094,6 +1102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssignmentsDetailsIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/assignments/edit-report/$id': {
+      id: '/_authenticated/assignments/edit-report/$id'
+      path: '/assignments/edit-report/$id'
+      fullPath: '/assignments/edit-report/$id'
+      preLoaderRoute: typeof AuthenticatedAssignmentsEditReportIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/assignments/edite-report/$id': {
       id: '/_authenticated/assignments/edite-report/$id'
       path: '/assignments/edite-report/$id'
@@ -1187,6 +1202,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedAssignmentsDetailsIdRoute: typeof AuthenticatedAssignmentsDetailsIdRoute
+  AuthenticatedAssignmentsEditReportIdRoute: typeof AuthenticatedAssignmentsEditReportIdRoute
   AuthenticatedAssignmentsEditeReportIdRoute: typeof AuthenticatedAssignmentsEditeReportIdRoute
   AuthenticatedAssignmentsRealizeIdRoute: typeof AuthenticatedAssignmentsRealizeIdRoute
 }
@@ -1268,6 +1284,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedAssignmentsDetailsIdRoute:
     AuthenticatedAssignmentsDetailsIdRoute,
+  AuthenticatedAssignmentsEditReportIdRoute:
+    AuthenticatedAssignmentsEditReportIdRoute,
   AuthenticatedAssignmentsEditeReportIdRoute:
     AuthenticatedAssignmentsEditeReportIdRoute,
   AuthenticatedAssignmentsRealizeIdRoute:
@@ -1392,6 +1410,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
+  '/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
 }
@@ -1465,6 +1484,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
+  '/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
 }
@@ -1543,6 +1563,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
+  '/_authenticated/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
   '/_authenticated/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
 }
@@ -1621,6 +1642,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/users'
     | '/assignments/details/$id'
+    | '/assignments/edit-report/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -1693,6 +1715,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/users'
     | '/assignments/details/$id'
+    | '/assignments/edit-report/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
   id:
@@ -1769,6 +1792,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
     | '/_authenticated/assignments/details/$id'
+    | '/_authenticated/assignments/edit-report/$id'
     | '/_authenticated/assignments/edite-report/$id'
     | '/_authenticated/assignments/realize/$id'
   fileRoutesById: FileRoutesById
@@ -1881,6 +1905,7 @@ export const routeTree = rootRoute
         "/_authenticated/tasks/",
         "/_authenticated/users/",
         "/_authenticated/assignments/details/$id",
+        "/_authenticated/assignments/edit-report/$id",
         "/_authenticated/assignments/edite-report/$id",
         "/_authenticated/assignments/realize/$id"
       ]
@@ -2174,6 +2199,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/assignments/details/$id": {
       "filePath": "_authenticated/assignments/details/$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/edit-report/$id": {
+      "filePath": "_authenticated/assignments/edit-report.$id.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/assignments/edite-report/$id": {

@@ -8,8 +8,7 @@ import {
   AssignmentFilters,
   StatusGroup,
   StatusTab,
-  Receipt,
-  ReceiptCreate
+  Receipt
 } from '@/types/assignments'
 import { toast } from 'sonner'
 
@@ -45,10 +44,10 @@ interface AssignmentsActions {
   
   // Actions pour les quittances
   fetchReceipts: (assignmentId: number) => Promise<Receipt[]>
-  createReceipt: (receiptData: ReceiptCreate) => Promise<void>
-  createMultipleReceipts: (assignmentId: number, receipts: Omit<ReceiptCreate, 'assignment_id'>[]) => Promise<void>
-  updateReceipt: (assignmentId: number, receiptId: number, receiptData: Partial<ReceiptCreate>) => Promise<void>
-  deleteReceipt: (assignmentId: number, receiptId: number) => Promise<void>
+  createReceipt: (assignmentId: number, receiptData: { receipt_type_id: number; amount: number }) => Promise<void>
+  createMultipleReceipts: (assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]) => Promise<void>
+  updateReceipt: (receiptId: number, receiptData: { receipt_type_id: number; amount: number }) => Promise<void>
+  deleteReceipt: (receiptId: number) => Promise<void>
   
   // Actions utilitaires
   setCurrentAssignment: (assignment: Assignment | null) => void
@@ -281,9 +280,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     }
   },
 
-  createReceipt: async (receiptData) => {
+  createReceipt: async (assignmentId, receiptData) => {
     try {
-      await receiptService.createReceipt(receiptData)
+      await receiptService.createReceipt(assignmentId, receiptData)
       toast.success('Quittance créée avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création de la quittance'
@@ -303,9 +302,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     }
   },
 
-  updateReceipt: async (assignmentId, receiptId, receiptData) => {
+  updateReceipt: async (receiptId, receiptData) => {
     try {
-      await receiptService.updateReceipt(assignmentId, receiptId, receiptData)
+      await receiptService.updateReceipt(receiptId, receiptData)
       toast.success('Quittance mise à jour avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour de la quittance'
@@ -314,9 +313,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     }
   },
 
-  deleteReceipt: async (assignmentId, receiptId) => {
+  deleteReceipt: async (receiptId) => {
     try {
-      await receiptService.deleteReceipt(assignmentId, receiptId)
+      await receiptService.deleteReceipt(receiptId)
       toast.success('Quittance supprimée avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression de la quittance'

@@ -15,12 +15,16 @@ export const API_CONFIG = {
     VEHICLES: '/vehicles',
     ASSIGNMENT_TYPES: '/assignment-types',
     ASSIGNMENTS: '/assignments',
+    ASSIGNMENTS_EDIT: '/assignments/edit',
     RECEIPTS: '/receipts',
+    RECEIPT_TYPES: '/receipt-types',
     // Endpoints pour l'édition des assignations
     SHOCK_POINTS: '/shock-points',
     SUPPLIES: '/supplies',
     WORKFORCE_TYPES: '/workforce-types',
     OTHER_COST_TYPES: '/other-cost-types',
+    PAINT_TYPES: '/paint-types',
+    HOURLY_RATES: '/hourly-rates',
     CALCULATIONS: '/assignments/calculate',
   },
 } as const
@@ -43,11 +47,14 @@ export interface ApiConfig {
     ASSIGNMENT_TYPES: string
     ASSIGNMENTS: string
     RECEIPTS: string
+    RECEIPT_TYPES: string
     // Endpoints pour l'édition des assignations
     SHOCK_POINTS: string
     SUPPLIES: string
     WORKFORCE_TYPES: string
     OTHER_COST_TYPES: string
+    PAINT_TYPES: string
+    HOURLY_RATES: string
     CALCULATIONS: string
   }
 } 

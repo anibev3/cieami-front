@@ -7,6 +7,10 @@ import { AssignmentsDataTable } from './components/assignments-data-table'
   import { useAssignmentsStore, getAllStatusTabs } from '@/stores/assignments'
 import { Plus, Search, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { Header } from '@/components/layout/header'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Main } from '@/components/layout/main'
 
 export default function AssignmentsPage() {
   const navigate = useNavigate()
@@ -60,6 +64,15 @@ export default function AssignmentsPage() {
   }
 
   return (
+        <>
+      <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+            <Main>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -136,6 +149,8 @@ export default function AssignmentsPage() {
           </div>
         )}
       </div>
-    </div>
+        </div>
+        </Main>
+        </>
   )
 } 

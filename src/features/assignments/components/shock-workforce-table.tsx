@@ -2,7 +2,7 @@
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, Calculator } from 'lucide-react'
 
 interface WorkforceType {
   id: number
@@ -12,14 +12,23 @@ interface WorkforceType {
 }
 
 interface Workforce {
+  uid?: string
+  id?: number
   workforce_type_id: number
-  workforce_type_label: string
+  workforce_type_label?: string
   nb_hours: number
-  work_fee: string
+  work_fee?: string | number
   discount: number
-  amount_excluding_tax: number
-  amount_tax: number
-  amount: number
+  // Calculated amounts from API
+  amount_excluding_tax?: number
+  amount_tax?: number
+  amount?: number
+  rate?: number
+  amount_ht?: number
+  amount_tva?: number
+  amount_ttc?: number
+  hourly_rate_id?: string | number
+  paint_type_id?: string | number
 }
 
 export function ShockWorkforceTable({
@@ -35,61 +44,141 @@ export function ShockWorkforceTable({
   onAdd: () => void
   onRemove: (index: number) => void
 }) {
-  // Calculs totaux (exemple, à adapter)
-  const totalHours = workforces.reduce((sum, w) => sum + (w.nb_hours || 0), 0)
+  // Fonction de formatage des montants
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'XOF',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount || 0)
+  }
+
+  // Calculer les totaux
+  const totals = workforces.reduce((acc, workforce) => {
+    return {
+      hours: acc.hours + (workforce.nb_hours || 0),
+      ht: acc.ht + (workforce.amount_excluding_tax || 0),
+      tva: acc.tva + (workforce.amount_tax || 0),
+      ttc: acc.ttc + (workforce.amount || 0),
+    }
+  }, { hours: 0, ht: 0, tva: 0, ttc: 0 })
 
   return (
-    <div className="border rounded-lg bg-white mt-6">
-      <div className="flex justify-between items-center px-4 pt-4">
-        <h4 className="font-semibold text-base">Main d'œuvre</h4>
-        <Button size="sm" variant="outline" onClick={onAdd}>
-          <Plus className="mr-2 h-4 w-4" />
-          Ajouter une ligne
-        </Button>
+    <div className="space-y-4">
+      {/* Header with actions */}
+      <div className="flex justify-between items-center">
+        <h4 className="font-semibold text-lg flex items-center gap-2">
+          <Calculator className="h-5 w-5 text-green-600" />
+          Main d'œuvre
+        </h4>
+        <div className="flex gap-2">
+          <Button onClick={onAdd} className="text-white">
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une ligne
+          </Button>
+        </div>
       </div>
-      <div className="overflow-x-auto p-4">
-        <table className="min-w-full border-separate border-spacing-y-2">
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full border text-xs">
           <thead>
-            <tr className="bg-muted text-xs">
-              <th className="px-2 py-1 text-left">Désignation</th>
-              <th>Tps(H)</th>
-              <th>Remise (%)</th>
-              <th>Tx horr (FCFA)</th>
-              <th>Montant HT</th>
-              <th>Montant TVA</th>
-              <th>Montant TTC</th>
-              <th></th>
+            <tr className="bg-gray-50 border-b">
+              <th className="border px-3 py-2 text-left font-medium">
+                Désignation
+              </th>
+              <th className="border px-2 py-2 text-center font-medium">
+                Tps(H)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium">
+                Remise (%)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium">
+                Tx horr (FCFA)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-green-600">
+                Montant HT
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-blue-600">
+                Montant TVA
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-purple-600">
+                Montant TTC
+              </th>
+              <th className="border px-2 py-2 text-center font-medium">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {workforces.length === 0 && (
               <tr>
-                <td colSpan={8} className="text-center text-muted-foreground py-4">Aucune ligne</td>
+                <td colSpan={8} className="text-center text-muted-foreground py-8">
+                  Aucune ligne de main d'œuvre
+                </td>
               </tr>
             )}
-            {workforces.map((w, i) => (
-              <tr key={i} className="bg-white border-b align-top">
-                <td className="px-2 py-1">
-                  <Select value={w.workforce_type_id ? w.workforce_type_id.toString() : ''} onValueChange={v => onUpdate(i, 'workforce_type_id', Number(v))}>
-                    <SelectTrigger className="w-36">
-                      <SelectValue placeholder="Désignation" />
+            {workforces.map((row, i) => (
+              <tr key={row.uid || row.id || i} className="hover:bg-gray-50 transition-colors">
+                <td className="border px-3 py-2">
+                  <Select 
+                    value={row.workforce_type_id ? row.workforce_type_id.toString() : ''} 
+                    onValueChange={v => onUpdate(i, 'workforce_type_id', Number(v))}
+                  >
+                    <SelectTrigger className={`w-full border rounded p-1 ${!row.workforce_type_id ? 'border-red-300 bg-red-50' : ''}`}>
+                      <SelectValue placeholder={!row.workforce_type_id ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
                     </SelectTrigger>
                     <SelectContent>
-                      {workforceTypes.map(type => (
-                        <SelectItem key={type.id} value={type.id.toString()}>{type.label}</SelectItem>
+                      {workforceTypes.map(w => (
+                        <SelectItem key={w.id} value={w.id.toString()}>{w.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </td>
-                <td><Input className="w-16" type="number" value={w.nb_hours} onChange={e => onUpdate(i, 'nb_hours', Number(e.target.value))} /></td>
-                <td><Input className="w-16" type="number" value={w.discount} onChange={e => onUpdate(i, 'discount', Number(e.target.value))} /></td>
-                <td><Input className="w-20" type="number" value={w.work_fee} onChange={e => onUpdate(i, 'work_fee', e.target.value)} /></td>
-                <td className="text-muted-foreground">—</td>
-                <td className="text-muted-foreground">—</td>
-                <td className="text-muted-foreground">—</td>
-                <td>
-                  <Button size="icon" variant="ghost" onClick={() => onRemove(i)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                <td className="border px-2 py-2 text-center">
+                  <Input
+                    type="number"
+                    className="w-16 border rounded p-1 text-center"
+                    value={row.nb_hours}
+                    onChange={e => onUpdate(i, 'nb_hours', Number(e.target.value))}
+                  />
+                </td>
+                <td className="border px-2 py-2 text-center">
+                  <Input
+                    type="number"
+                    className="w-16 border rounded p-1 text-center"
+                    value={row.discount}
+                    onChange={e => onUpdate(i, 'discount', Number(e.target.value))}
+                  />
+                </td>
+                <td className="border px-2 py-2 text-center">
+                  <div className="text-gray-600 font-medium">
+                    {formatCurrency(Number(row.work_fee || 0))}
+                  </div>
+                </td>
+                <td className="border px-2 py-2 text-center">
+                  <div className="text-green-600 font-medium">
+                    {formatCurrency(row.amount_excluding_tax || 0)}
+                  </div>
+                </td>
+                <td className="border px-2 py-2 text-center">
+                  <div className="text-blue-600 font-medium">
+                    {formatCurrency(row.amount_tax || 0)}
+                  </div>
+                </td>
+                <td className="border px-2 py-2 text-center">
+                  <div className="text-purple-600 font-bold">
+                    {formatCurrency(row.amount || 0)}
+                  </div>
+                </td>
+                <td className="border px-2 py-2 text-center">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => onRemove(i)}
+                    className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </td>
               </tr>
@@ -97,161 +186,32 @@ export function ShockWorkforceTable({
           </tbody>
         </table>
       </div>
-      {/* Totaux (exemple, à adapter selon calculs) */}
-      <div className="flex justify-end gap-8 px-4 pb-2 text-xs text-muted-foreground">
-        <div>Total Heures : {totalHours}</div>
-        <div>Total HT : 0 CFA</div>
-        <div>Total TVA : 0 CFA</div>
-        <div>Total TTC : 0 CFA</div>
-        <div>Récap : {workforces.length} ligne(s)</div>
+
+      {/* Récapitulatif moderne */}
+      <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
+        <div className="grid grid-cols-5 gap-4 text-sm">
+          <div className="text-center">
+            <div className="text-gray-600 font-medium">Total Heures</div>
+            <div className="text-xl font-bold text-gray-800">{totals.hours}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-green-600 font-medium">Total HT</div>
+            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.ht)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-blue-600 font-medium">Total TVA</div>
+            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.tva)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-purple-600 font-medium">Total TTC</div>
+            <div className="text-lg font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-gray-600 font-medium">Récap</div>
+            <div className="text-lg font-bold text-gray-800">{workforces.length} ligne(s)</div>
+          </div>
+        </div>
       </div>
     </div>
   )
 } 
-
-
-// // ... existing code ...
-//   return (
-// -    <div className="border rounded-lg bg-white mt-6">
-// -      <div className="flex justify-between items-center px-4 pt-4">
-// -        <h4 className="font-semibold text-base">Main d'œuvre</h4>
-// -        <Button size="sm" variant="outline" onClick={onAdd}>
-// -          <Plus className="mr-2 h-4 w-4" />
-// -          Ajouter une ligne
-// -        </Button>
-// -      </div>
-// -      <div className="overflow-x-auto p-4">
-// -        <table className="min-w-full border-separate border-spacing-y-2">
-// -          <thead>
-// -            <tr className="bg-muted text-xs">
-// -              <th className="px-2 py-1 text-left">Désignation</th>
-// -              <th>Tps(H)</th>
-// -              <th>Remise (%)</th>
-// -              <th>Tx horr (FCFA)</th>
-// -              <th>Montant HT</th>
-// -              <th>Montant TVA</th>
-// -              <th>Montant TTC</th>
-// -              <th></th>
-// -            </tr>
-// -          </thead>
-// -          <tbody>
-// -            {workforces.length === 0 && (
-// -              <tr>
-// -                <td colSpan={8} className="text-center text-muted-foreground py-4">Aucune ligne</td>
-// -              </tr>
-// -            )}
-// -            {workforces.map((w, i) => (
-// -              <tr key={i} className="bg-white border-b align-top">
-// -                <td className="px-2 py-1">
-// -                  <Select value={w.workforce_type_id ? w.workforce_type_id.toString() : ''} onValueChange={v => onUpdate(i, 'workforce_type_id', Number(v))}>
-// -                    <SelectTrigger className="w-36">
-// -                      <SelectValue placeholder="Désignation" />
-// -                    </SelectTrigger>
-// -                    <SelectContent>
-// -                      {workforceTypes.map(type => (
-// -                        <SelectItem key={type.id} value={type.id.toString()}>{type.label}</SelectItem>
-// -                      ))}
-// -                    </SelectContent>
-// -                  </Select>
-// -                </td>
-// -                <td><Input className="w-16" type="number" value={w.nb_hours} onChange={e => onUpdate(i, 'nb_hours', Number(e.target.value))} /></td>
-// -                <td><Input className="w-16" type="number" value={w.discount} onChange={e => onUpdate(i, 'discount', Number(e.target.value))} /></td>
-// -                <td><Input className="w-20" type="number" value={w.work_fee} onChange={e => onUpdate(i, 'work_fee', e.target.value)} /></td>
-// -                <td className="text-muted-foreground">—</td>
-// -                <td className="text-muted-foreground">—</td>
-// -                <td className="text-muted-foreground">—</td>
-// -                <td>
-// -                  <Button size="icon" variant="ghost" onClick={() => onRemove(i)}>
-// -                    <Trash2 className="h-4 w-4 text-destructive" />
-// -                  </Button>
-// -                </td>
-// -              </tr>
-// -            ))}
-// -          </tbody>
-// -        </table>
-// -      </div>
-// -      {/* Totaux (exemple, à adapter selon calculs) */}
-// -      <div className="flex justify-end gap-8 px-4 pb-2 text-xs text-muted-foreground">
-// -        <div>Total Heures : {totalHours}</div>
-// -        <div>Total HT : 0 CFA</div>
-// -        <div>Total TVA : 0 CFA</div>
-// -        <div>Total TTC : 0 CFA</div>
-// -        <div>Récap : {workforces.length} ligne(s)</div>
-// -      </div>
-// -    </div>
-// +    <div className="border rounded-xl bg-white shadow-sm mt-6">
-// +      <div className="flex items-center justify-between px-6 pt-6 pb-2">
-// +        <h4 className="font-semibold text-lg">Main d'œuvre</h4>
-// +        <Button
-// +          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg h-10 px-6 flex items-center gap-2"
-// +          onClick={onAdd}
-// +        >
-// +          <Plus className="h-5 w-5" />
-// +          Ajouter une ligne
-// +        </Button>
-// +      </div>
-// +      <div className="overflow-x-auto px-6 pb-2">
-// +        <table className="min-w-full text-[15px]">
-// +          <thead>
-// +            <tr className="border-b border-gray-200">
-// +              <th className="py-2 px-2 text-left font-semibold">Désignation</th>
-// +              <th className="text-center font-semibold">Tps(H)</th>
-// +              <th className="text-center font-semibold">Remise (%)</th>
-// +              <th className="text-center font-semibold">Tx horr (FCFA)</th>
-// +              <th className="text-right font-semibold">Montant HT</th>
-// +              <th className="text-right font-semibold">Montant TVA</th>
-// +              <th className="text-right font-semibold">Montant TTC</th>
-// +              <th></th>
-// +            </tr>
-// +          </thead>
-// +          <tbody>
-// +            {workforces.length === 0 && (
-// +              <tr>
-// +                <td colSpan={8} className="text-center text-gray-400 py-6">Aucune ligne</td>
-// +              </tr>
-// +            )}
-// +            {workforces.map((w, i) => (
-// +              <tr key={i} className="border-b border-gray-100 hover:bg-gray-50 group">
-// +                <td className="px-2 py-1">
-// +                  <Select value={w.workforce_type_id ? w.workforce_type_id.toString() : ''} onValueChange={v => onUpdate(i, 'workforce_type_id', Number(v))}>
-// +                    <SelectTrigger className="w-44 h-9 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-200">
-// +                      <SelectValue placeholder="Désignation" />
-// +                    </SelectTrigger>
-// +                    <SelectContent>
-// +                      {workforceTypes.map(type => (
-// +                        <SelectItem key={type.id} value={type.id.toString()}>{type.label}</SelectItem>
-// +                      ))}
-// +                    </SelectContent>
-// +                  </Select>
-// +                </td>
-// +                <td className="text-center"><Input className="w-16 h-8 bg-gray-50 border border-gray-200 rounded-md text-center" type="number" value={w.nb_hours} onChange={e => onUpdate(i, 'nb_hours', Number(e.target.value))} /></td>
-// +                <td className="text-center"><Input className="w-16 h-8 bg-gray-50 border border-gray-200 rounded-md text-center" type="number" value={w.discount} onChange={e => onUpdate(i, 'discount', Number(e.target.value))} /></td>
-// +                <td className="text-center"><Input className="w-20 h-8 bg-gray-50 border border-gray-200 rounded-md text-center" type="number" value={w.work_fee} onChange={e => onUpdate(i, 'work_fee', e.target.value)} /></td>
-// +                <td className="text-right text-gray-400">0 F CFA</td>
-// +                <td className="text-right text-gray-400">0 F CFA</td>
-// +                <td className="text-right text-gray-400">0 F CFA</td>
-// +                <td className="text-right">
-// +                  <button
-// +                    className="rounded-full p-2 hover:bg-red-50 hover:text-red-600 transition"
-// +                    onClick={() => onRemove(i)}
-// +                    title="Supprimer"
-// +                  >
-// +                    <Trash2 className="h-5 w-5" />
-// +                  </button>
-// +                </td>
-// +              </tr>
-// +            ))}
-// +          </tbody>
-// +        </table>
-// +      </div>
-// +      {/* Totaux (ligne en bas, fond gris très clair, texte bold) */}
-// +      <div className="flex flex-wrap items-center justify-end gap-8 px-6 py-3 bg-gray-50 text-sm font-semibold rounded-b-xl border-t border-gray-100">
-// +        <div>Total Heures : {totalHours}</div>
-// +        <div>Total HT : 0 F CFA</div>
-// +        <div>Total TVA : 0 F CFA</div>
-// +        <div>Total TTC : 0 F CFA</div>
-// +        <div>Récap : {workforces.length} ligne(s)</div>
-// +      </div>
-// +    </div>
-//   )
-// // ... existing code ...

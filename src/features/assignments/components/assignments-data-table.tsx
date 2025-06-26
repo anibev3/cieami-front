@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Assignment, Receipt } from '@/types/assignments'
+import { Assignment } from '@/types/assignments'
 import { createColumns } from '../columns'
 import { AssignmentMutateDialog } from './assignment-mutate-dialog'
 import { ViewAssignmentDialog } from './view-assignment-dialog'
@@ -29,6 +29,17 @@ import { toast } from 'sonner'
 
 interface AssignmentsDataTableProps {
   data: Assignment[]
+}
+
+// Type local pour les quittances du modal
+interface ModalReceipt {
+  id?: number
+  amount: number
+  receipt_type_id: number
+  receipt_type_label?: string
+  comment?: string
+  date?: string
+  isNew?: boolean
 }
 
 export function AssignmentsDataTable({ data }: AssignmentsDataTableProps) {
@@ -43,10 +54,8 @@ export function AssignmentsDataTable({ data }: AssignmentsDataTableProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null)
-  const [selectedAssignmentAmount, setSelectedAssignmentAmount] = useState(0)
-  const [selectedExistingReceipts, setSelectedExistingReceipts] = useState<Receipt[]>([])
   
-  const { deleteAssignment, fetchReceipts } = useAssignmentsStore()
+  const { deleteAssignment } = useAssignmentsStore()
 
   const handleViewDetail = (assignmentId: number) => {
     navigate({ to: `/assignments/${assignmentId}` })
@@ -70,36 +79,20 @@ export function AssignmentsDataTable({ data }: AssignmentsDataTableProps) {
     }
   }
 
-  const handleOpenReceiptModal = async (assignmentId: number, amount: number) => {
+  const handleOpenReceiptModal = async (assignmentId: number, _amount: number) => {
+    console.log('handleOpenReceiptModal appelé avec:', { assignmentId })
     setSelectedAssignmentId(assignmentId)
-    setSelectedAssignmentAmount(amount)
-
-    try {
-      // Récupérer les quittances existantes pour cette assignation
-      const receipts = await fetchReceipts(assignmentId)
-      setSelectedExistingReceipts(receipts)
-    } catch (error) {
-      console.error(error)
-      setSelectedExistingReceipts([])
-    }
-
     setIsReceiptModalOpen(true)
   }
 
-  const handleReceiptSave = (receipts: Receipt[]) => {
-    toast.success(`${receipts.length} quittance(s) ajoutée(s) avec succès.`)
+  const handleReceiptSave = (_receipts: ModalReceipt[]) => {
+    toast.success('Quittances sauvegardées avec succès')
     setIsReceiptModalOpen(false)
   }
 
   const handleReceiptClose = () => {
     setIsReceiptModalOpen(false)
     setSelectedAssignmentId(null)
-    setSelectedAssignmentAmount(0)
-    setSelectedExistingReceipts([])
-  }
-
-  const handleReceiptUpdated = () => {
-    toast.success('Données mises à jour')
   }
 
   const columns = createColumns({
@@ -195,11 +188,8 @@ export function AssignmentsDataTable({ data }: AssignmentsDataTableProps) {
       <ReceiptModal
         isOpen={isReceiptModalOpen}
         assignmentId={selectedAssignmentId || 0}
-        assignmentAmount={selectedAssignmentAmount}
-        existingReceipts={selectedExistingReceipts}
         onSave={handleReceiptSave}
         onClose={handleReceiptClose}
-        onUpdated={handleReceiptUpdated}
       />
     </>
   )

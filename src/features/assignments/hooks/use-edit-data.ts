@@ -29,12 +29,26 @@ interface OtherCostType {
   code: string
 }
 
+interface PaintType {
+  id: number
+  label: string
+  code: string
+}
+
+interface HourlyRate {
+  id: number
+  label: string
+  value: string
+}
+
 export function useEditData() {
   const [loading, setLoading] = useState(false)
   const [shockPoints, setShockPoints] = useState<ShockPoint[]>([])
   const [supplies, setSupplies] = useState<Supply[]>([])
   const [workforceTypes, setWorkforceTypes] = useState<WorkforceType[]>([])
   const [otherCostTypes, setOtherCostTypes] = useState<OtherCostType[]>([])
+  const [paintTypes, setPaintTypes] = useState<PaintType[]>([])
+  const [hourlyRates, setHourlyRates] = useState<HourlyRate[]>([])
 
   // Charger toutes les données de référence
   const loadData = useCallback(async () => {
@@ -57,6 +71,14 @@ export function useEditData() {
       const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}`)
       setOtherCostTypes(otherCostTypesResponse.data.data)
       
+      // Charger les types de peinture
+      const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}`)
+      setPaintTypes(paintTypesResponse.data.data)
+      
+      // Charger les taux horaires
+      const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}`)
+      setHourlyRates(hourlyRatesResponse.data.data)
+      
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Erreur lors du chargement des données:', error)
@@ -77,6 +99,8 @@ export function useEditData() {
     supplies,
     workforceTypes,
     otherCostTypes,
+    paintTypes,
+    hourlyRates,
     reloadData: loadData
   }
 } 

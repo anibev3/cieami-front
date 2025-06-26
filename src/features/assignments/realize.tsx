@@ -32,17 +32,16 @@ import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Header } from '@/components/layout/header'
+import { Search } from '@/components/search'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Main } from '@/components/layout/main'
 import { 
   ArrowLeft, 
   Save, 
   Loader2, 
-  Search, 
+  Search as SearchIcon, 
   Eye, 
   Calendar as CalendarIcon2, 
   MapPin, 
@@ -287,6 +286,16 @@ export default function RealizeAssignmentPage() {
   }
 
   return (
+    <>
+    <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main>
     <div className="container mx-auto py-6 space-y-6">
       {/* En-tête */}
       <div className="flex items-center justify-between">
@@ -609,7 +618,7 @@ export default function RealizeAssignmentPage() {
           <div className="space-y-4">
             {/* Barre de recherche */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Rechercher dans les détails..."
                 value={searchTerm}
@@ -642,6 +651,8 @@ export default function RealizeAssignmentPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+        </div>
+      </Main>
+      </>
   )
 } 

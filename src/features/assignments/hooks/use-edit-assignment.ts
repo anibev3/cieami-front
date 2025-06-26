@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -61,17 +62,17 @@ export function useEditAssignment(assignmentId: number) {
   }, [assignmentId])
 
   // Sauvegarder l'assignation
-  const saveAssignment = useCallback(async (payload: unknown, redirectToReport = false) => {
+  const saveAssignment = useCallback(async (payload: unknown, _redirectToReport = false) => {
     setSaving(true)
     try {
-      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`, payload)
+      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDIT}/${assignmentId}`, payload)
       setHasUnsavedChanges(false)
       toast.success('L\'assignation a été éditée avec succès')
       
       // Redirection conditionnelle
-      if (redirectToReport) {
-        navigate({ to: `/assignments/report/${assignmentId}` })
-      }
+      // if (redirectToReport) {
+      //   navigate({ to: `/assignments/report/${assignmentId}` })
+      // }
       
       return true
     } catch (error) {

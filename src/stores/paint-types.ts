@@ -75,7 +75,7 @@ export const usePaintTypesStore = create<PaintTypesState & PaintTypesActions>((s
         },
         loading: false,
       })
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors du chargement des types de peinture' })
     }
   },
@@ -85,7 +85,7 @@ export const usePaintTypesStore = create<PaintTypesState & PaintTypesActions>((s
       set({ loading: true, error: null })
       const response = await paintTypesService.getById(id)
       set({ currentPaintType: response.data, loading: false })
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors du chargement du type de peinture' })
     }
   },
@@ -101,7 +101,7 @@ export const usePaintTypesStore = create<PaintTypesState & PaintTypesActions>((s
       set({ loading: false })
       toast.success('Type de peinture créé avec succès')
       return true
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors de la création du type de peinture' })
       return false
     }
@@ -119,7 +119,7 @@ export const usePaintTypesStore = create<PaintTypesState & PaintTypesActions>((s
       set({ loading: false })
       toast.success('Type de peinture mis à jour avec succès')
       return true
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors de la mise à jour du type de peinture' })
       return false
     }
@@ -136,7 +136,7 @@ export const usePaintTypesStore = create<PaintTypesState & PaintTypesActions>((s
       set({ loading: false })
       toast.success('Type de peinture supprimé avec succès')
       return true
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors de la suppression du type de peinture' })
       return false
     }

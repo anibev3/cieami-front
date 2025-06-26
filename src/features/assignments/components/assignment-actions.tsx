@@ -75,7 +75,7 @@ export function AssignmentActions({
         },
         {
           key: 'receipts',
-          label: 'Gérer les quittances',
+          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
           onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
           show: true,
@@ -101,6 +101,14 @@ export function AssignmentActions({
           destructive: false
         },
         {
+          key: 'receipts',
+          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+          icon: Receipt,
+          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          show: true,
+          destructive: false
+        },
+        {
           key: 'realize-opened',
           label: 'Réaliser le dossier',
           icon: CheckCircle,
@@ -120,6 +128,14 @@ export function AssignmentActions({
           destructive: false
         },
         {
+          key: 'receipts',
+          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+          icon: Receipt,
+          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          show: true,
+          destructive: false
+        },
+        {
           key: 'write-report',
           label: 'Rédiger le rapport',
           icon: FileText,
@@ -131,8 +147,16 @@ export function AssignmentActions({
       // Statuts édités - lecture et documents
       'edited': [
         {
+          key: 'edit-report',
+          label: 'Modifier la rédaction',
+          icon: Edit,
+          onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+          show: true,
+          destructive: false
+        },
+        {
           key: 'receipts',
-          label: 'Gérer les quittances',
+          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
           onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
           show: true,
@@ -172,6 +196,14 @@ export function AssignmentActions({
       // Statuts fermés - lecture seule
       'closed': [
         {
+          key: 'receipts',
+          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+          icon: Receipt,
+          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          show: true,
+          destructive: false
+        },
+        {
           key: 'download-sheet',
           label: 'Télécharger la fiche',
           icon: Download,
@@ -194,6 +226,14 @@ export function AssignmentActions({
       ],
       // Statuts payés - lecture seule
       'paid': [
+        {
+          key: 'receipts',
+          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+          icon: Receipt,
+          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          show: true,
+          destructive: false
+        },
         {
           key: 'download-sheet',
           label: 'Télécharger la fiche',

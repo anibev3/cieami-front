@@ -75,9 +75,8 @@ export const useHourlyRatesStore = create<HourlyRatesState & HourlyRatesActions>
         },
         loading: false,
       })
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors du chargement des horaires' })
-      console.error('Error fetching hourly rates:', error)
     }
   },
 
@@ -86,9 +85,8 @@ export const useHourlyRatesStore = create<HourlyRatesState & HourlyRatesActions>
       set({ loading: true, error: null })
       const response = await hourlyRatesService.getById(id)
       set({ currentHourlyRate: response.data, loading: false })
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors du chargement de l\'horaire' })
-      console.error('Error fetching hourly rate:', error)
     }
   },
 
@@ -103,9 +101,8 @@ export const useHourlyRatesStore = create<HourlyRatesState & HourlyRatesActions>
       set({ loading: false })
       toast.success('Horaire créé avec succès')
       return true
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors de la création de l\'horaire' })
-      console.error('Error creating hourly rate:', error)
       return false
     }
   },
@@ -122,9 +119,8 @@ export const useHourlyRatesStore = create<HourlyRatesState & HourlyRatesActions>
       set({ loading: false })
       toast.success('Horaire mis à jour avec succès')
       return true
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors de la mise à jour de l\'horaire' })
-      console.error('Error updating hourly rate:', error)
       return false
     }
   },
@@ -140,9 +136,8 @@ export const useHourlyRatesStore = create<HourlyRatesState & HourlyRatesActions>
       set({ loading: false })
       toast.success('Horaire supprimé avec succès')
       return true
-    } catch (error) {
+    } catch (_error) {
       set({ loading: false, error: 'Erreur lors de la suppression de l\'horaire' })
-      console.error('Error deleting hourly rate:', error)
       return false
     }
   },
