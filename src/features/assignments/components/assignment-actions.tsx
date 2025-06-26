@@ -69,7 +69,7 @@ export function AssignmentActions({
           key: 'edit',
           label: 'Modifier',
           icon: Edit,
-          onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+          onClick: () => navigate({ to: `/assignments/edite-report/${assignment.id}` }),
           show: true,
           destructive: false
         },

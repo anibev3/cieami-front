@@ -84,6 +84,7 @@ import { Route as AuthenticatedAdministrationAssignmentTypesImport } from './rou
 import { Route as AuthenticatedGestionClientIdImport } from './routes/_authenticated/gestion/client.$id'
 import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
 import { Route as AuthenticatedAssignmentsEditeReportIdImport } from './routes/_authenticated/assignments/edite-report/$id'
+import { Route as AuthenticatedAssignmentsEditIdImport } from './routes/_authenticated/assignments/edit/$id'
 import { Route as AuthenticatedAssignmentsEditReportIdImport } from './routes/_authenticated/assignments/edit-report.$id'
 import { Route as AuthenticatedAssignmentsDetailsIdImport } from './routes/_authenticated/assignments/details/$id'
 
@@ -577,6 +578,13 @@ const AuthenticatedAssignmentsEditeReportIdRoute =
   AuthenticatedAssignmentsEditeReportIdImport.update({
     id: '/assignments/edite-report/$id',
     path: '/assignments/edite-report/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAssignmentsEditIdRoute =
+  AuthenticatedAssignmentsEditIdImport.update({
+    id: '/assignments/edit/$id',
+    path: '/assignments/edit/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1102,6 +1110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssignmentsEditReportIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/assignments/edit/$id': {
+      id: '/_authenticated/assignments/edit/$id'
+      path: '/assignments/edit/$id'
+      fullPath: '/assignments/edit/$id'
+      preLoaderRoute: typeof AuthenticatedAssignmentsEditIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/assignments/edite-report/$id': {
       id: '/_authenticated/assignments/edite-report/$id'
       path: '/assignments/edite-report/$id'
@@ -1202,6 +1217,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedAssignmentsDetailsIdRoute: typeof AuthenticatedAssignmentsDetailsIdRoute
   AuthenticatedAssignmentsEditReportIdRoute: typeof AuthenticatedAssignmentsEditReportIdRoute
+  AuthenticatedAssignmentsEditIdRoute: typeof AuthenticatedAssignmentsEditIdRoute
   AuthenticatedAssignmentsEditeReportIdRoute: typeof AuthenticatedAssignmentsEditeReportIdRoute
   AuthenticatedAssignmentsRealizeIdRoute: typeof AuthenticatedAssignmentsRealizeIdRoute
   AuthenticatedGestionClientIdRoute: typeof AuthenticatedGestionClientIdRoute
@@ -1285,6 +1301,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAssignmentsDetailsIdRoute,
   AuthenticatedAssignmentsEditReportIdRoute:
     AuthenticatedAssignmentsEditReportIdRoute,
+  AuthenticatedAssignmentsEditIdRoute: AuthenticatedAssignmentsEditIdRoute,
   AuthenticatedAssignmentsEditeReportIdRoute:
     AuthenticatedAssignmentsEditeReportIdRoute,
   AuthenticatedAssignmentsRealizeIdRoute:
@@ -1410,6 +1427,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersIndexRoute
   '/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
   '/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
+  '/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
@@ -1484,6 +1502,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersIndexRoute
   '/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
   '/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
+  '/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
@@ -1563,6 +1582,7 @@ export interface FileRoutesById {
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/assignments/details/$id': typeof AuthenticatedAssignmentsDetailsIdRoute
   '/_authenticated/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
+  '/_authenticated/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/_authenticated/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/_authenticated/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
@@ -1642,6 +1662,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/assignments/details/$id'
     | '/assignments/edit-report/$id'
+    | '/assignments/edit/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
     | '/gestion/client/$id'
@@ -1715,6 +1736,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/assignments/details/$id'
     | '/assignments/edit-report/$id'
+    | '/assignments/edit/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
     | '/gestion/client/$id'
@@ -1792,6 +1814,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users/'
     | '/_authenticated/assignments/details/$id'
     | '/_authenticated/assignments/edit-report/$id'
+    | '/_authenticated/assignments/edit/$id'
     | '/_authenticated/assignments/edite-report/$id'
     | '/_authenticated/assignments/realize/$id'
     | '/_authenticated/gestion/client/$id'
@@ -1905,6 +1928,7 @@ export const routeTree = rootRoute
         "/_authenticated/users/",
         "/_authenticated/assignments/details/$id",
         "/_authenticated/assignments/edit-report/$id",
+        "/_authenticated/assignments/edit/$id",
         "/_authenticated/assignments/edite-report/$id",
         "/_authenticated/assignments/realize/$id",
         "/_authenticated/gestion/client/$id"
@@ -2199,6 +2223,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/assignments/edit-report/$id": {
       "filePath": "_authenticated/assignments/edit-report.$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/edit/$id": {
+      "filePath": "_authenticated/assignments/edit/$id.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/assignments/edite-report/$id": {
