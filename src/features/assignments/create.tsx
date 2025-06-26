@@ -54,6 +54,7 @@ import { Entity as EntityType, DocumentTransmitted } from '@/types/administratio
 import { ExpertiseType } from '@/types/expertise-types'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
+import { useClientsStore } from '../gestion/clients/store'
 
 // Types pour les experts
 interface Expert {
@@ -168,6 +169,7 @@ export default function CreateAssignmentPage() {
   
   const { createAssignment } = useAssignmentsStore()
   const { users, fetchUsers } = useUsersStore()
+  const { clients, fetchClients } = useClientsStore()
   const { vehicles, fetchVehicles } = useVehiclesStore()
   const { assignmentTypes, fetchAssignmentTypes } = useAssignmentTypesStore()
   const { entities, fetchEntities } = useEntitiesStore()
@@ -282,12 +284,13 @@ export default function CreateAssignmentPage() {
   // Charger les données de base (utilisateurs, véhicules, etc.)
   useEffect(() => {
     fetchUsers()
+    fetchClients()
     fetchVehicles()
     fetchAssignmentTypes()
     fetchEntities()
     fetchExpertiseTypes()
     fetchDocuments()
-  }, [fetchUsers, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments])
+  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments])
 
   // Validations par étape
   const stepValidations = {
@@ -627,9 +630,9 @@ export default function CreateAssignmentPage() {
                                     </FormControl>
                                     <SelectContent>
                                       <ScrollArea className="h-[200px]">
-                                        {users.map((user) => (
-                                          <SelectItem key={user.id} value={user.id.toString()}>
-                                            {user.name}
+                                        {clients.map((client) => (
+                                          <SelectItem key={client.id} value={client.id.toString()}>
+                                            {client.name}
                                           </SelectItem>
                                         ))}
                                       </ScrollArea>

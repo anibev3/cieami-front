@@ -1,10 +1,4 @@
-# Shadcn Admin Dashboard
-
-Admin Dashboard UI crafted with Shadcn and Vite. Built with responsiveness and accessibility in mind.
-
-![alt text](public/images/shadcn-admin.png)
-
-I've been creating dashboard UIs at work and for my personal projects. I always wanted to make a reusable collection of dashboard UI for future projects; and here it is now. While I've created a few custom components, some of the code is directly adapted from ShadcnUI examples.
+# Expert Auto
 
 > This is not a starter project (template) though. I'll probably make one in the future.
 
@@ -32,15 +26,9 @@ I've been creating dashboard UIs at work and for my personal projects. I always 
 
 **Icons:** [Tabler Icons](https://tabler.io/icons)
 
-**Auth (partial):** [Clerk](https://go.clerk.com/GttUAaK)
-
 ## Run Locally
 
 Clone the project
-
-```bash
-  git clone https://github.com/satnaing/shadcn-admin.git
-```
 
 Go to the project directory
 
@@ -60,19 +48,9 @@ Start the server
   pnpm run dev
 ```
 
-## Sponsoring this project ❤️
-
-If you find this project helpful or use this in your own work, consider [sponsoring me](https://github.com/sponsors/satnaing) to support development and maintenance. You can [buy me a coffee](https://buymeacoffee.com/satnaing) as well. Don’t worry, every penny helps. Thank you! 🙏
-
-For questions or sponsorship inquiries, feel free to reach out at [contact@satnaing.dev](mailto:contact@satnaing.dev).
-
-### Current Sponsor
-
-- [Clerk](https://go.clerk.com/GttUAaK) - for backing the implementation of Clerk in this project
-
 ## Author
 
-Crafted with 🤍 by [@satnaing](https://github.com/satnaing)
+Crafted with 🤍 by [@satnaing](https://github.com/anibev3)
 
 ## License
 
