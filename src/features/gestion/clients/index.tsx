@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -10,10 +11,10 @@ import { useClientsStore } from './store'
 import { Client } from './types'
 
 export default function ClientsPage() {
+  const navigate = useNavigate()
   const { fetchClients } = useClientsStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [isViewOpen, setIsViewOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
@@ -27,8 +28,7 @@ export default function ClientsPage() {
   }
 
   const handleView = (client: Client) => {
-    setSelectedClient(client)
-    setIsViewOpen(true)
+    navigate({ to: `/gestion/client/${client.id}` })
   }
 
   const handleEdit = (client: Client) => {
@@ -71,12 +71,12 @@ export default function ClientsPage() {
       <ClientsDialogs
         isCreateOpen={isCreateOpen}
         isEditOpen={isEditOpen}
-        isViewOpen={isViewOpen}
+        isViewOpen={false}
         isDeleteOpen={isDeleteOpen}
         selectedClient={selectedClient}
         onCloseCreate={() => setIsCreateOpen(false)}
         onCloseEdit={() => setIsEditOpen(false)}
-        onCloseView={() => setIsViewOpen(false)}
+        onCloseView={() => {}}
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>

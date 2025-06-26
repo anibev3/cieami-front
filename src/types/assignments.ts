@@ -1,6 +1,289 @@
 export interface Assignment {
   id: number
   reference: string
+  policy_number: string
+  claim_number: string
+  claim_starts_at: string
+  claim_ends_at: string
+  expertise_date: string
+  expertise_place: string | null
+  received_at: string
+  insurer_id: number
+  repairer_id: number
+  administrator: string | null
+  circumstance: string
+  damage_declared: string
+  observation: string | null
+  point_noted: string
+  seen_before_work_date: string | null
+  seen_during_work_date: string | null
+  seen_after_work_date: string | null
+  contact_date: string | null
+  assured_value: number | null
+  salvage_value: number | null
+  new_value: number | null
+  depreciation_rate: number | null
+  market_value: number | null
+  work_duration: number | null
+  expert_remark: string | null
+  shock_amount_excluding_tax: string
+  shock_amount_tax: string
+  shock_amount: string
+  other_cost_amount_excluding_tax: string
+  other_cost_amount_tax: string
+  other_cost_amount: string
+  receipt_amount_excluding_tax: string | null
+  receipt_amount_tax: string | null
+  receipt_amount: string | null
+  total_amount_excluding_tax: string
+  total_amount_tax: string
+  total_amount: string
+  printed_at: string | null
+  insurer: {
+    id: number
+    code: string
+    name: string
+    email: string
+    telephone: string | null
+    address: string | null
+    created_at: string
+    updated_at: string
+  }
+  repairer: {
+    id: number
+    code: string
+    name: string
+    email: string
+    telephone: string | null
+    address: string | null
+    created_at: string
+    updated_at: string
+  }
+  vehicle: {
+    id: number
+    license_plate: string
+    usage: string
+    type: string
+    option: string
+    mileage: string
+    serial_number: string
+    first_entry_into_circulation_date: string | null
+    technical_visit_date: string | null
+    fiscal_power: number
+    energy: string
+    nb_seats: number
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }
+  assignment_type: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    created_at: string
+    updated_at: string
+  }
+  expertise_type: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    created_at: string
+    updated_at: string
+  }
+  document_transmitted: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    created_at: string
+    updated_at: string
+  }
+  technical_conclusion: {
+    id: number
+    code: string
+    label: string
+    description: string
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  } | null
+  general_state: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    created_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      created_at: string
+      updated_at: string
+    }
+    updated_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      created_at: string
+      updated_at: string
+    }
+    deleted_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      created_at: string
+      updated_at: string
+    } | null
+    created_at: string
+    updated_at: string
+  } | null
+  shocks: Array<{
+    id: number
+    obsolescence_amount_excluding_tax: string | null
+    obsolescence_amount_tax: string | null
+    obsolescence_amount: string | null
+    recovery_amount_excluding_tax: string | null
+    recovery_amount_tax: string | null
+    recovery_amount: string | null
+    new_amount_excluding_tax: string | null
+    new_amount_tax: string | null
+    new_amount: string | null
+    workforce_amount_excluding_tax: string
+    workforce_amount_tax: string
+    workforce_amount: string
+    amount_excluding_tax: string
+    amount_tax: string
+    amount: string
+    workforces: Array<{
+      id: number
+      nb_hours: string
+      work_fee: string
+      discount: string
+      amount_excluding_tax: string
+      amount_tax: string
+      amount: string
+      workforce_type_label: string
+      workforce_type: {
+        id: number
+        code: string
+        label: string
+        description: string
+        deleted_at: string | null
+        created_at: string
+        updated_at: string
+      }
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }>
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }>
+  other_costs: Array<{
+    id: number
+    amount_excluding_tax: string
+    amount_tax: string
+    amount: string
+    other_cost_type_label: string
+    other_cost_type: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }>
+  receipts: Array<{
+    id: number
+    amount_excluding_tax: string
+    amount_tax: string
+    amount: string
+    receipt_type: {
+      id: number
+      code: string
+      label: string
+      description: string
+      created_at: string
+      updated_at: string
+    }
+    created_at: string
+    updated_at: string
+  }>
+  client: {
+    id: number
+    name: string
+    email: string
+    phone_1: string | null
+    phone_2: string | null
+    address: string
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }
   status: {
     id: number
     code: string
@@ -10,52 +293,121 @@ export interface Assignment {
     created_at: string
     updated_at: string
   }
-  client: {
+  experts: Array<{
     id: number
-    name: string
+    date: string | null
+    observation: string | null
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
+  }>
+  created_by: {
+    id: number
+    hash_id: string
     email: string
-    phone: string
-    address: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
     created_at: string
     updated_at: string
   }
-  vehicle: {
+  updated_by: {
     id: number
-    license_plate: string
-    brand: {
-      id: number
-      code: string
-      label: string
-      description: string
-    }
-    vehicle_model: {
-      id: number
-      code: string
-      label: string
-      description: string
-    }
-    color: {
-      id: number
-      code: string
-      label: string
-      description: string
-    }
-  }
-  assignment_type: {
-    id: number
-    code: string
-    label: string
-    description: string
-  }
-  expert: {
-    id: number
-    name: string
+    hash_id: string
     email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
   }
-  amount: number
-  receipts?: Receipt[]
+  deleted_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
+  } | null
+  realized_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
+  } | null
+  edited_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
+  } | null
+  closed_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
+  } | null
+  cancelled_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
+  } | null
+  expertise_sheet: string
+  expertise_report: string
   created_at: string
   updated_at: string
+  deleted_at: string | null
+  closed_at: string | null
+  cancelled_at: string | null
+  edited_at: string | null
+  realized_at: string | null
 }
 
 export interface Receipt {

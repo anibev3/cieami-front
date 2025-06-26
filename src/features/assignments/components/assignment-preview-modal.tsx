@@ -27,24 +27,30 @@ import {
   AlertCircle,
   ExternalLink,
   Download,
-  Printer
+  Printer,
+  Eye,
+  Users
 } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import { formatCurrency } from '@/utils/format-currency'
 import { useNavigate } from '@tanstack/react-router'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
 
 interface AssignmentPreviewModalProps {
   assignment: Assignment | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onViewDetail: (assignmentId: number) => void
+  onOpenReceiptModal: (assignmentId: number, totalAmount: number) => void
 }
 
 export function AssignmentPreviewModal({
   assignment,
   open,
   onOpenChange,
-  onViewDetail
+  onViewDetail,
+  onOpenReceiptModal
 }: AssignmentPreviewModalProps) {
   const navigate = useNavigate()
 
@@ -94,12 +100,12 @@ export function AssignmentPreviewModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-7xl w-[95vw] max-h-[90vh] overflow-hidden">
         <DialogHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-                <FileText className="h-6 w-6 text-primary" />
+                <Eye className="h-6 w-6 text-primary" />
                 Dossier {assignment.reference}
               </DialogTitle>
               <DialogDescription className="text-base mt-2">
@@ -152,50 +158,60 @@ export function AssignmentPreviewModal({
               <TabsContent value="overview" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Informations générales */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Informations générales
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Référence</span>
-                        <span className="font-semibold">{assignment.reference}</span>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <FileText className="h-5 w-5" />
+                        <span>Informations générales</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Référence</Label>
+                        <p className="font-medium">{assignment.reference}</p>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Type</span>
-                        <span className="font-semibold">{assignment.assignment_type.label}</span>
+                      <div className="space-y-2">
+                        <Label>Type</Label>
+                        <p className="font-semibold">{assignment.assignment_type.label}</p>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Montant</span>
-                        <span className="font-semibold text-green-600">{formatCurrency(assignment.amount)}</span>
+                      <div className="space-y-2">
+                        <Label>Montant</Label>
+                        <p className="font-semibold text-green-600">{formatCurrency(parseFloat(assignment.total_amount) || 0)}</p>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Créé le</span>
-                        <span className="font-semibold">{formatDate(assignment.created_at)}</span>
+                      <div className="space-y-2">
+                        <Label>Créé le</Label>
+                        <p className="text-sm">{formatDate(assignment.created_at)}</p>
                       </div>
-                    </div>
-                  </div>
+                      <div className="space-y-2">
+                        <Label>Dernière modification</Label>
+                        <p className="text-sm">{formatDate(assignment.updated_at)}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
                   {/* Quittances */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Receipt className="h-5 w-5" />
-                      Quittances
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Total reçu</span>
-                        <span className="font-semibold">
-                          {formatCurrency(assignment.receipts?.reduce((sum, receipt) => sum + receipt.amount, 0) || 0)}
-                        </span>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <Receipt className="h-5 w-5" />
+                        <span>Quittances</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between">
+                          <Label>Total reçu</Label>
+                          <span className="font-semibold">
+                            {formatCurrency(assignment.receipts?.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0) || 0)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <Label>Nombre</Label>
+                          <span className="font-semibold">{assignment.receipts?.length || 0} quittance(s)</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Nombre</span>
-                        <span className="font-semibold">{assignment.receipts?.length || 0} quittance(s)</span>
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
 
@@ -203,143 +219,160 @@ export function AssignmentPreviewModal({
               <TabsContent value="parties" className="space-y-6 mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Client */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      Client
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="font-medium">{assignment.client.name}</p>
-                        <p className="text-sm text-muted-foreground">{assignment.client.email}</p>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <User className="h-5 w-5" />
+                        <span>Client</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Nom</Label>
+                          <p className="font-medium">{assignment.client.name}</p>
+                        </div>
+                        <div>
+                          <Label>Email</Label>
+                          <p className="text-sm">{assignment.client.email}</p>
+                        </div>
+                        {assignment.client.phone_1 && (
+                          <div>
+                            <Label>Téléphone</Label>
+                            <p className="text-sm text-muted-foreground">{assignment.client.phone_1}</p>
+                          </div>
+                        )}
+                        {assignment.client.address && (
+                          <div>
+                            <Label>Adresse</Label>
+                            <p className="text-sm text-muted-foreground">{assignment.client.address}</p>
+                          </div>
+                        )}
                       </div>
-                      {assignment.client.phone && (
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
-                          <p className="text-sm">{assignment.client.phone}</p>
-                        </div>
-                      )}
-                      {assignment.client.address && (
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Adresse</p>
-                          <p className="text-sm">{assignment.client.address}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
 
                   {/* Assureur */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Building className="h-5 w-5" />
-                      Assureur
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="font-medium">{assignment.insurer?.name || 'Non renseigné'}</p>
-                        <p className="text-sm text-muted-foreground">{assignment.insurer?.email || ''}</p>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <Building className="h-5 w-5" />
+                        <span>Assureur</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Nom</Label>
+                          <p className="font-medium">{assignment.insurer?.name || 'Non renseigné'}</p>
+                        </div>
+                        <div>
+                          <Label>Email</Label>
+                          <p className="text-sm">{assignment.insurer?.email || ''}</p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
 
                   {/* Réparateur */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Wrench className="h-5 w-5" />
-                      Réparateur
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="font-medium">{assignment.repairer?.name || 'Non renseigné'}</p>
-                        <p className="text-sm text-muted-foreground">{assignment.repairer?.email || ''}</p>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <Wrench className="h-5 w-5" />
+                        <span>Réparateur</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Nom</Label>
+                          <p className="font-medium">{assignment.repairer?.name || 'Non renseigné'}</p>
+                        </div>
+                        <div>
+                          <Label>Email</Label>
+                          <p className="text-sm">{assignment.repairer?.email || ''}</p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
 
               {/* Véhicule */}
               <TabsContent value="vehicle" className="space-y-6 mt-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Car className="h-5 w-5" />
-                    Informations du véhicule
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Plaque</p>
-                      <p className="font-semibold text-lg">{assignment.vehicle.license_plate}</p>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Car className="h-5 w-5" />
+                      <span>Informations du véhicule</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label>Plaque</Label>
+                        <p className="font-semibold text-lg">{assignment.vehicle.license_plate}</p>
+                      </div>
+                      <div>
+                        <Label>Usage</Label>
+                        <p className="font-semibold">{assignment.vehicle.usage || 'Non renseigné'}</p>
+                      </div>
+                      <div>
+                        <Label>Type</Label>
+                        <p className="font-semibold">{assignment.vehicle.type || 'Non renseigné'}</p>
+                      </div>
+                      <div>
+                        <Label>Énergie</Label>
+                        <p className="font-semibold">{assignment.vehicle.energy || 'Non renseigné'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Marque</p>
-                      <p className="font-semibold">{assignment.vehicle.brand?.label || 'Non renseigné'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Modèle</p>
-                      <p className="font-semibold">{assignment.vehicle.vehicle_model?.label || 'Non renseigné'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Couleur</p>
-                      <p className="font-semibold">{assignment.vehicle.color?.label || 'Non renseigné'}</p>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* Financier */}
               <TabsContent value="financial" className="space-y-6 mt-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Informations financières
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <DollarSign className="h-5 w-5" />
+                      <span>Informations financières</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
                       <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Montant total</span>
-                        <span className="font-semibold text-lg text-green-600">{formatCurrency(assignment.amount)}</span>
+                        <Label>Montant total</Label>
+                        <p className="font-semibold text-lg text-green-600">{formatCurrency(parseFloat(assignment.total_amount) || 0)}</p>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Total reçu</span>
-                        <span className="font-semibold">
-                          {formatCurrency(assignment.receipts?.reduce((sum, receipt) => sum + receipt.amount, 0) || 0)}
-                        </span>
+                        <Label>Total reçu</Label>
+                        <p className="font-semibold">
+                          {formatCurrency(assignment.receipts?.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0) || 0)}
+                        </p>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Reste à payer</span>
-                        <span className="font-semibold text-orange-600">
-                          {formatCurrency(assignment.amount - (assignment.receipts?.reduce((sum, receipt) => sum + receipt.amount, 0) || 0))}
-                        </span>
+                        <Label>Reste à payer</Label>
+                        <p className="font-semibold text-orange-600">
+                          {formatCurrency(parseFloat(assignment.total_amount) - (assignment.receipts?.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0) || 0))}
+                        </p>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <h4 className="font-medium">Détail des quittances</h4>
-                      {assignment.receipts && assignment.receipts.length > 0 ? (
-                        <div className="space-y-2">
-                          {assignment.receipts.map((receipt, index) => (
-                            <div key={receipt.id} className="flex justify-between text-sm">
-                              <span>{receipt.type}</span>
-                              <span className="font-medium">{formatCurrency(receipt.amount)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Aucune quittance enregistrée</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* Documents */}
               <TabsContent value="documents" className="space-y-6 mt-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Documents disponibles
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border rounded-lg">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <FileText className="h-5 w-5" />
+                      <span>Documents disponibles</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
                       <div className="flex items-center gap-3">
                         <FileText className="h-8 w-8 text-blue-500" />
                         <div className="flex-1">
@@ -350,8 +383,6 @@ export function AssignmentPreviewModal({
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
-                    <div className="p-4 border rounded-lg">
                       <div className="flex items-center gap-3">
                         <FileText className="h-8 w-8 text-green-500" />
                         <div className="flex-1">
@@ -363,11 +394,25 @@ export function AssignmentPreviewModal({
                         </Button>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </ScrollArea>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end space-x-2 mt-6">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Fermer
+            </Button>
+            <Button 
+              onClick={() => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0'))}
+              className="flex items-center space-x-2"
+            >
+              <Receipt className="h-4 w-4" />
+              <span>Gérer les quittances</span>
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

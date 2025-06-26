@@ -77,7 +77,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -104,7 +104,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -131,7 +131,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -158,7 +158,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -199,7 +199,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -230,7 +230,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, assignment.amount),
+          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },

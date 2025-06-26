@@ -245,8 +245,20 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       filtered = filtered.filter(assignment =>
         assignment.reference.toLowerCase().includes(query) ||
         assignment.client.name.toLowerCase().includes(query) ||
+        assignment.client.email.toLowerCase().includes(query) ||
         assignment.vehicle.license_plate.toLowerCase().includes(query) ||
-        assignment.status.label.toLowerCase().includes(query)
+        assignment.insurer.name.toLowerCase().includes(query) ||
+        assignment.insurer.code.toLowerCase().includes(query) ||
+        assignment.repairer.name.toLowerCase().includes(query) ||
+        assignment.repairer.code.toLowerCase().includes(query) ||
+        assignment.assignment_type.label.toLowerCase().includes(query) ||
+        assignment.assignment_type.code.toLowerCase().includes(query) ||
+        assignment.expertise_type.label.toLowerCase().includes(query) ||
+        assignment.expertise_type.code.toLowerCase().includes(query) ||
+        assignment.policy_number.toLowerCase().includes(query) ||
+        assignment.claim_number.toLowerCase().includes(query) ||
+        assignment.status.label.toLowerCase().includes(query) ||
+        assignment.status.code.toLowerCase().includes(query)
       )
     }
 

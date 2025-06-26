@@ -28,8 +28,9 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
     try {
       const res = await api.getClients(filters, token)
       set({ clients: res.data, total: res.meta.total, loading: false })
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors du chargement', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -38,8 +39,9 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
     try {
       const client = await api.getClientById(id, token)
       set({ selectedClient: client, loading: false })
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors du chargement', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -48,8 +50,9 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
     try {
       await api.createClient(client, token)
       await get().fetchClients(undefined, token)
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors de la création', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -58,8 +61,9 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
     try {
       await api.updateClient(id, client, token)
       await get().fetchClients(undefined, token)
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors de la modification', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la modification'
+      set({ error: errorMessage, loading: false })
     }
   },
 
@@ -68,8 +72,9 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
     try {
       await api.deleteClient(id, token)
       await get().fetchClients(undefined, token)
-    } catch (error: any) {
-      set({ error: error.message || 'Erreur lors de la suppression', loading: false })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
+      set({ error: errorMessage, loading: false })
     }
   },
 

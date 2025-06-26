@@ -24,7 +24,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Tooltip,
@@ -32,7 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { ArrowLeft, Save, Loader2, FileText, Package, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, Check, Calendar, MapPin, User, Car, Building, FileType, Info, X, Search, Edit } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit } from 'lucide-react'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
@@ -53,7 +52,6 @@ import { Vehicle } from '@/types/vehicles'
 import { User as UserType } from '@/types/administration'
 import { Entity as EntityType, DocumentTransmitted } from '@/types/administration'
 import { ExpertiseType } from '@/types/expertise-types'
-import { DatePicker } from '@/components/ui/date-picker'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 
@@ -360,7 +358,7 @@ export default function CreateAssignmentPage() {
       // Pré-remplir le kilométrage avec la valeur du véhicule
       const mileage = parseFloat(vehicle.mileage)
       if (!isNaN(mileage)) {
-        form.setValue('vehicle_mileage', mileage)
+        form.setValue('vehicle_mileage', mileage.toString())
       }
     }
   }

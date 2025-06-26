@@ -2,7 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Assignment } from '@/types/assignments'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Receipt, Car, User, FileText, ExternalLink } from 'lucide-react'
+import { Receipt, ExternalLink, Car, User, FileText, Calendar } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import { formatCurrency } from '@/utils/format-currency'
 import { AssignmentActions } from './components/assignment-actions'
@@ -55,10 +55,26 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
         <div className="flex items-center space-x-2">
           <Car className="h-4 w-4 text-muted-foreground" />
           <div>
-            <div className="font-medium">{vehicle.license_plate}</div>
-            <div className="text-sm text-muted-foreground">
-              {/* {vehicle.brand.label} {vehicle.vehicle_model.label} */}
-            </div>
+            <p className="font-medium">{vehicle.license_plate}</p>
+            <p className="text-sm text-muted-foreground">
+              {vehicle.type} {vehicle.option}
+            </p>
+          </div>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: 'insurer',
+    header: 'Assureur',
+    cell: ({ row }) => {
+      const insurer = row.getValue('insurer') as Assignment['insurer']
+      return (
+        <div className="flex items-center justify-center space-x-2">
+          {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
+          <div>
+            <div className="font-medium">{insurer.name}</div>
+            {/* <div className="text-sm text-muted-foreground">{insurer.code}</div> */}
           </div>
         </div>
       )
@@ -81,33 +97,72 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     },
   },
   {
-    accessorKey: 'expert',
-    header: 'Expert',
+    accessorKey: 'expertise_type',
+    header: 'Type d\'expertise',
     cell: ({ row }) => {
-      const expert = row.getValue('expert') as Assignment['expert']
+      const expertiseType = row.getValue('expertise_type') as Assignment['expertise_type']
       return (
         <div>
-          {expert ? (
-            <>
-              <div className="font-medium">{expert.name}</div>
-              <div className="text-sm text-muted-foreground">{expert.email}</div>
-            </>
-          ) : (
-            <div className="text-sm text-muted-foreground">Non assigné</div>
-          )}
+          <div className="font-medium">{expertiseType.label}</div>
+          <div className="text-sm text-muted-foreground">{expertiseType.code}</div>
         </div>
       )
     },
   },
   {
-    accessorKey: 'amount',
-    header: 'Montant',
+    accessorKey: 'total_amount',
+    header: 'Montant total',
     cell: ({ row }) => {
-      const amount = row.getValue('amount') as number
+      const totalAmount = row.getValue('total_amount') as number
       return (
-        <div className="font-medium text-green-600">
-          {formatCurrency(amount)}
+        <div className="flex items-center space-x-2">
+          {/* <DollarSign className="h-4 w-4 text-green-600" /> */}
+          <div className="font-medium text-green-600">
+            {formatCurrency(totalAmount || 0)}
+          </div>
         </div>
+      )
+    },
+  },
+  {
+    accessorKey: 'shock_amount',
+    header: 'Montant choc',
+    cell: ({ row }) => {
+      const shockAmount = row.getValue('shock_amount') as number
+      return (
+        <div className="font-medium text-blue-600">
+          {formatCurrency(shockAmount || 0)}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: 'other_cost_amount',
+    header: 'Autres coûts',
+    cell: ({ row }) => {
+      const otherCostAmount = row.getValue('other_cost_amount') as number
+      return (
+        <div className="font-medium text-orange-600">
+          {formatCurrency(otherCostAmount || 0)}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: 'receipt_amount',
+    header: 'Quittances',
+    cell: ({ row }) => {
+      const assignment = row.original
+      return (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0'))}
+          className="flex items-center space-x-2"
+        >
+          <Receipt className="h-4 w-4" />
+          <span>Quittances</span>
+        </Button>
       )
     },
   },
@@ -147,27 +202,16 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     },
   },
   {
-    accessorKey: 'receipts',
-    header: 'Quittances',
+    accessorKey: 'expertise_date',
+    header: 'Date expertise',
     cell: ({ row }) => {
-      const receipts = row.getValue('receipts') as Assignment['receipts'] || []
-      const totalReceipts = receipts.reduce((sum, receipt) => sum + receipt.amount, 0)
-      const assignment = row.original
-      
+      const expertiseDate = row.getValue('expertise_date') as string
       return (
         <div className="flex items-center space-x-2">
-          <div className="text-sm">
-            <div className="font-medium">{formatCurrency(totalReceipts)}</div>
-            <div className="text-muted-foreground">{receipts.length} quittance(s)</div>
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <div className="text-sm text-muted-foreground">
+            {expertiseDate ? formatDate(expertiseDate) : 'Non définie'}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onOpenReceiptModal(assignment.id, assignment.amount)}
-            className="h-8 w-8 p-0"
-          >
-            <Receipt className="h-4 w-4" />
-          </Button>
         </div>
       )
     },

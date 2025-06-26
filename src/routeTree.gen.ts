@@ -53,7 +53,6 @@ import { Route as AuthenticatedGestionReparateursImport } from './routes/_authen
 import { Route as AuthenticatedGestionPhotosImport } from './routes/_authenticated/gestion/photos'
 import { Route as AuthenticatedGestionDocumentsidImport } from './routes/_authenticated/gestion/documents_$id'
 import { Route as AuthenticatedGestionDocumentsImport } from './routes/_authenticated/gestion/documents'
-import { Route as AuthenticatedGestionClientsidImport } from './routes/_authenticated/gestion/clients_$id'
 import { Route as AuthenticatedGestionClientsImport } from './routes/_authenticated/gestion/clients'
 import { Route as AuthenticatedGestionAssureursidImport } from './routes/_authenticated/gestion/assureurs_$id'
 import { Route as AuthenticatedGestionAssureursImport } from './routes/_authenticated/gestion/assureurs'
@@ -82,6 +81,7 @@ import { Route as AuthenticatedAdministrationDocumentsImport } from './routes/_a
 import { Route as AuthenticatedAdministrationColorsImport } from './routes/_authenticated/administration/colors'
 import { Route as AuthenticatedAdministrationBrandsImport } from './routes/_authenticated/administration/brands'
 import { Route as AuthenticatedAdministrationAssignmentTypesImport } from './routes/_authenticated/administration/assignment-types'
+import { Route as AuthenticatedGestionClientIdImport } from './routes/_authenticated/gestion/client.$id'
 import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
 import { Route as AuthenticatedAssignmentsEditeReportIdImport } from './routes/_authenticated/assignments/edite-report/$id'
 import { Route as AuthenticatedAssignmentsEditReportIdImport } from './routes/_authenticated/assignments/edit-report.$id'
@@ -362,13 +362,6 @@ const AuthenticatedGestionDocumentsRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
-const AuthenticatedGestionClientsidRoute =
-  AuthenticatedGestionClientsidImport.update({
-    id: '/gestion/clients_$id',
-    path: '/gestion/clients_$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-
 const AuthenticatedGestionClientsRoute =
   AuthenticatedGestionClientsImport.update({
     id: '/gestion/clients',
@@ -563,6 +556,13 @@ const AuthenticatedAdministrationAssignmentTypesRoute =
   AuthenticatedAdministrationAssignmentTypesImport.update({
     id: '/administration/assignment-types',
     path: '/administration/assignment-types',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedGestionClientIdRoute =
+  AuthenticatedGestionClientIdImport.update({
+    id: '/gestion/client/$id',
+    path: '/gestion/client/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -906,13 +906,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGestionClientsImport
       parentRoute: typeof AuthenticatedRouteImport
     }
-    '/_authenticated/gestion/clients_$id': {
-      id: '/_authenticated/gestion/clients_$id'
-      path: '/gestion/clients_$id'
-      fullPath: '/gestion/clients_$id'
-      preLoaderRoute: typeof AuthenticatedGestionClientsidImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
     '/_authenticated/gestion/documents': {
       id: '/_authenticated/gestion/documents'
       path: '/gestion/documents'
@@ -1123,6 +1116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssignmentsRealizeIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/gestion/client/$id': {
+      id: '/_authenticated/gestion/client/$id'
+      path: '/gestion/client/$id'
+      fullPath: '/gestion/client/$id'
+      preLoaderRoute: typeof AuthenticatedGestionClientIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
   }
 }
 
@@ -1182,7 +1182,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestionAssureursRoute: typeof AuthenticatedGestionAssureursRoute
   AuthenticatedGestionAssureursidRoute: typeof AuthenticatedGestionAssureursidRoute
   AuthenticatedGestionClientsRoute: typeof AuthenticatedGestionClientsRoute
-  AuthenticatedGestionClientsidRoute: typeof AuthenticatedGestionClientsidRoute
   AuthenticatedGestionDocumentsRoute: typeof AuthenticatedGestionDocumentsRoute
   AuthenticatedGestionDocumentsidRoute: typeof AuthenticatedGestionDocumentsidRoute
   AuthenticatedGestionPhotosRoute: typeof AuthenticatedGestionPhotosRoute
@@ -1205,6 +1204,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsEditReportIdRoute: typeof AuthenticatedAssignmentsEditReportIdRoute
   AuthenticatedAssignmentsEditeReportIdRoute: typeof AuthenticatedAssignmentsEditeReportIdRoute
   AuthenticatedAssignmentsRealizeIdRoute: typeof AuthenticatedAssignmentsRealizeIdRoute
+  AuthenticatedGestionClientIdRoute: typeof AuthenticatedGestionClientIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1255,7 +1255,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGestionAssureursRoute: AuthenticatedGestionAssureursRoute,
   AuthenticatedGestionAssureursidRoute: AuthenticatedGestionAssureursidRoute,
   AuthenticatedGestionClientsRoute: AuthenticatedGestionClientsRoute,
-  AuthenticatedGestionClientsidRoute: AuthenticatedGestionClientsidRoute,
   AuthenticatedGestionDocumentsRoute: AuthenticatedGestionDocumentsRoute,
   AuthenticatedGestionDocumentsidRoute: AuthenticatedGestionDocumentsidRoute,
   AuthenticatedGestionPhotosRoute: AuthenticatedGestionPhotosRoute,
@@ -1290,6 +1289,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAssignmentsEditeReportIdRoute,
   AuthenticatedAssignmentsRealizeIdRoute:
     AuthenticatedAssignmentsRealizeIdRoute,
+  AuthenticatedGestionClientIdRoute: AuthenticatedGestionClientIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1382,7 +1382,6 @@ export interface FileRoutesByFullPath {
   '/gestion/assureurs': typeof AuthenticatedGestionAssureursRoute
   '/gestion/assureurs_$id': typeof AuthenticatedGestionAssureursidRoute
   '/gestion/clients': typeof AuthenticatedGestionClientsRoute
-  '/gestion/clients_$id': typeof AuthenticatedGestionClientsidRoute
   '/gestion/documents': typeof AuthenticatedGestionDocumentsRoute
   '/gestion/documents_$id': typeof AuthenticatedGestionDocumentsidRoute
   '/gestion/photos': typeof AuthenticatedGestionPhotosRoute
@@ -1413,6 +1412,7 @@ export interface FileRoutesByFullPath {
   '/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
+  '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -1456,7 +1456,6 @@ export interface FileRoutesByTo {
   '/gestion/assureurs': typeof AuthenticatedGestionAssureursRoute
   '/gestion/assureurs_$id': typeof AuthenticatedGestionAssureursidRoute
   '/gestion/clients': typeof AuthenticatedGestionClientsRoute
-  '/gestion/clients_$id': typeof AuthenticatedGestionClientsidRoute
   '/gestion/documents': typeof AuthenticatedGestionDocumentsRoute
   '/gestion/documents_$id': typeof AuthenticatedGestionDocumentsidRoute
   '/gestion/photos': typeof AuthenticatedGestionPhotosRoute
@@ -1487,6 +1486,7 @@ export interface FileRoutesByTo {
   '/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
+  '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
 }
 
 export interface FileRoutesById {
@@ -1535,7 +1535,6 @@ export interface FileRoutesById {
   '/_authenticated/gestion/assureurs': typeof AuthenticatedGestionAssureursRoute
   '/_authenticated/gestion/assureurs_$id': typeof AuthenticatedGestionAssureursidRoute
   '/_authenticated/gestion/clients': typeof AuthenticatedGestionClientsRoute
-  '/_authenticated/gestion/clients_$id': typeof AuthenticatedGestionClientsidRoute
   '/_authenticated/gestion/documents': typeof AuthenticatedGestionDocumentsRoute
   '/_authenticated/gestion/documents_$id': typeof AuthenticatedGestionDocumentsidRoute
   '/_authenticated/gestion/photos': typeof AuthenticatedGestionPhotosRoute
@@ -1566,6 +1565,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments/edit-report/$id': typeof AuthenticatedAssignmentsEditReportIdRoute
   '/_authenticated/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
+  '/_authenticated/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
 }
 
 export interface FileRouteTypes {
@@ -1614,7 +1614,6 @@ export interface FileRouteTypes {
     | '/gestion/assureurs'
     | '/gestion/assureurs_$id'
     | '/gestion/clients'
-    | '/gestion/clients_$id'
     | '/gestion/documents'
     | '/gestion/documents_$id'
     | '/gestion/photos'
@@ -1645,6 +1644,7 @@ export interface FileRouteTypes {
     | '/assignments/edit-report/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
+    | '/gestion/client/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/clerk'
@@ -1687,7 +1687,6 @@ export interface FileRouteTypes {
     | '/gestion/assureurs'
     | '/gestion/assureurs_$id'
     | '/gestion/clients'
-    | '/gestion/clients_$id'
     | '/gestion/documents'
     | '/gestion/documents_$id'
     | '/gestion/photos'
@@ -1718,6 +1717,7 @@ export interface FileRouteTypes {
     | '/assignments/edit-report/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
+    | '/gestion/client/$id'
   id:
     | '__root__'
     | '/_authenticated'
@@ -1764,7 +1764,6 @@ export interface FileRouteTypes {
     | '/_authenticated/gestion/assureurs'
     | '/_authenticated/gestion/assureurs_$id'
     | '/_authenticated/gestion/clients'
-    | '/_authenticated/gestion/clients_$id'
     | '/_authenticated/gestion/documents'
     | '/_authenticated/gestion/documents_$id'
     | '/_authenticated/gestion/photos'
@@ -1795,6 +1794,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments/edit-report/$id'
     | '/_authenticated/assignments/edite-report/$id'
     | '/_authenticated/assignments/realize/$id'
+    | '/_authenticated/gestion/client/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -1885,7 +1885,6 @@ export const routeTree = rootRoute
         "/_authenticated/gestion/assureurs",
         "/_authenticated/gestion/assureurs_$id",
         "/_authenticated/gestion/clients",
-        "/_authenticated/gestion/clients_$id",
         "/_authenticated/gestion/documents",
         "/_authenticated/gestion/documents_$id",
         "/_authenticated/gestion/photos",
@@ -1907,7 +1906,8 @@ export const routeTree = rootRoute
         "/_authenticated/assignments/details/$id",
         "/_authenticated/assignments/edit-report/$id",
         "/_authenticated/assignments/edite-report/$id",
-        "/_authenticated/assignments/realize/$id"
+        "/_authenticated/assignments/realize/$id",
+        "/_authenticated/gestion/client/$id"
       ]
     },
     "/clerk": {
@@ -2089,10 +2089,6 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/gestion/clients.tsx",
       "parent": "/_authenticated"
     },
-    "/_authenticated/gestion/clients_$id": {
-      "filePath": "_authenticated/gestion/clients_$id.tsx",
-      "parent": "/_authenticated"
-    },
     "/_authenticated/gestion/documents": {
       "filePath": "_authenticated/gestion/documents.tsx",
       "parent": "/_authenticated"
@@ -2211,6 +2207,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/assignments/realize/$id": {
       "filePath": "_authenticated/assignments/realize.$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/gestion/client/$id": {
+      "filePath": "_authenticated/gestion/client.$id.tsx",
       "parent": "/_authenticated"
     }
   }
