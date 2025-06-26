@@ -21,7 +21,7 @@ export default function SignIn2() {
             >
               <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
             </svg>
-            Shadcn Admin
+            Expert Auto
           </div>
 
           <img
@@ -35,38 +35,37 @@ export default function SignIn2() {
           <div className='relative z-20 mt-auto'>
             <blockquote className='space-y-2'>
               <p className='text-lg'>
-                &ldquo;This template has saved me countless hours of work and
-                helped me deliver stunning designs to my clients faster than ever
-                before.&rdquo;
+                &ldquo; L'expertise automobile est essentielle pour garantir la sécurité et la fiabilité des véhicules. 
+                Faites confiance à nos experts pour une évaluation précise et professionnelle. &rdquo;
               </p>
-              <footer className='text-sm'>John Doe</footer>
+              <footer className='text-sm'>EXPERT AUTO CIV</footer>
             </blockquote>
           </div>
         </div>
         <div className='lg:p-8'>
           <div className='mx-auto flex w-full flex-col justify-center space-y-2 sm:w-[350px]'>
             <div className='flex flex-col space-y-2 text-left'>
-              <h1 className='text-2xl font-semibold tracking-tight'>Login</h1>
+              <h1 className='text-2xl font-semibold tracking-tight'>Connexion</h1>
               <p className='text-muted-foreground text-sm'>
-                Enter your email and password below <br />
-                to log into your account
+                Entrez votre email et votre mot de passe ci-dessous <br />
+                pour vous connecter à votre compte
               </p>
             </div>
             <UserAuthForm />
             <p className='text-muted-foreground px-8 text-center text-sm'>
-              By clicking login, you agree to our{' '}
+              En cliquant sur connexion, vous acceptez nos{' '}
               <a
                 href='/terms'
                 className='hover:text-primary underline underline-offset-4'
               >
-                Terms of Service
+                Conditions d'utilisation
               </a>{' '}
-              and{' '}
+              et{' '}
               <a
                 href='/privacy'
                 className='hover:text-primary underline underline-offset-4'
               >
-                Privacy Policy
+                Politique de confidentialité
               </a>
               .
             </p>
