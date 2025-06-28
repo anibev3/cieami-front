@@ -33,6 +33,7 @@ export interface Shock {
   hourly_rate_id: number
   workforces: Workforce[]
   comment: string
+  with_tax: boolean
 }
 
 export function useShockManagement() {
@@ -49,7 +50,8 @@ export function useShockManagement() {
       paint_type_id: 1,
       hourly_rate_id: 1,
       workforces: [],
-      comment: ''
+      comment: '',
+      with_tax: false
     }
     
     setShocks(prev => [newShock, ...prev])

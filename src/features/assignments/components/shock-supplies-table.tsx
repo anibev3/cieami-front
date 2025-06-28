@@ -3,7 +3,9 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Trash2, Plus, Calculator } from 'lucide-react'
+import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import React from 'react'
 
 interface Supply {
   id: number
@@ -42,26 +44,81 @@ export function ShockSuppliesTable({
   shockWorks,
   onUpdate,
   onAdd,
-  onRemove
+  onRemove,
+  onValidateRow
 }: {
   supplies: Supply[]
   shockWorks: ShockWork[]
   onUpdate: (index: number, field: keyof ShockWork, value: any) => void
   onAdd: () => void
   onRemove: (index: number) => void
+  onValidateRow: (index: number) => Promise<void>
 }) {
+  // État local pour gérer les modifications et la validation
+  const [localShockWorks, setLocalShockWorks] = useState<ShockWork[]>(shockWorks)
+  const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set())
+  const [validatingRows, setValidatingRows] = useState<Set<number>>(new Set())
+
+  // Mettre à jour les données locales quand les props changent
+  useEffect(() => {
+    setLocalShockWorks(shockWorks)
+  }, [shockWorks])
+
+  // Fonction de mise à jour locale
+  const updateLocalShockWork = (index: number, field: keyof ShockWork, value: any) => {
+    const updated = [...localShockWorks]
+    updated[index] = { ...updated[index], [field]: value }
+    setLocalShockWorks(updated)
+    setModifiedRows(prev => new Set([...prev, index]))
+  }
+
+  // Fonction de validation d'une ligne
+  const handleValidateRow = async (index: number) => {
+    setValidatingRows(prev => new Set([...prev, index]))
+    try {
+      // Appliquer les modifications locales
+      const shockWork = localShockWorks[index]
+      Object.entries(shockWork).forEach(([field, value]) => {
+        if (field !== 'uid') {
+          onUpdate(index, field as keyof ShockWork, value)
+        }
+      })
+      
+      // Appeler la validation
+      await onValidateRow(index)
+      
+      // Marquer comme non modifié
+      setModifiedRows(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erreur lors de la validation:', error)
+    } finally {
+      setValidatingRows(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
+    }
+  }
+
   // Fonction de formatage des montants
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount || 0)
+    // return new Intl.NumberFormat('fr-FR', {
+    //   style: 'currency',
+    //   currency: 'XOF',
+    //   minimumFractionDigits: 0,
+    //   maximumFractionDigits: 0,
+    // }).format(amount || 0)
+
+    return (amount / 1000).toFixed(3) || '0.000'
   }
 
   // Calculer les totaux
-  const totals = shockWorks.reduce((acc, work) => {
+  const totals = localShockWorks.reduce((acc, work) => {
     return {
       obsolescence: acc.obsolescence + (work.obsolescence_amount || 0),
       recovery: acc.recovery + (work.recovery_amount || 0),
@@ -137,19 +194,19 @@ export function ShockSuppliesTable({
             </tr>
           </thead>
           <tbody>
-            {shockWorks.length === 0 && (
+            {localShockWorks.length === 0 && (
               <tr>
-                <td colSpan={13} className="text-center text-muted-foreground py-8">
+                <td colSpan={14} className="text-center text-muted-foreground py-8">
                   Aucune fourniture ajoutée
                 </td>
               </tr>
             )}
-            {shockWorks.map((row, i) => (
-              <tr key={row.uid} className="hover:bg-gray-50 transition-colors">
+            {localShockWorks.map((row, i) => (
+              <tr key={row.uid} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
                 <td className="border px-3 py-2">
                   <Select 
                     value={row.supply_id ? row.supply_id.toString() : ''} 
-                    onValueChange={v => onUpdate(i, 'supply_id', Number(v))}
+                    onValueChange={v => updateLocalShockWork(i, 'supply_id', Number(v))}
                   >
                     <SelectTrigger className={`w-full border rounded p-1 ${!row.supply_id ? 'border-red-300 bg-red-50' : ''}`}>
                       <SelectValue placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."} />
@@ -164,41 +221,41 @@ export function ShockSuppliesTable({
                 <td className="border px-2 py-2 text-center">
                   <Checkbox 
                     checked={row.disassembly} 
-                    onCheckedChange={v => onUpdate(i, 'disassembly', v)} 
+                    onCheckedChange={v => updateLocalShockWork(i, 'disassembly', v)} 
                   />
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <Checkbox 
                     checked={row.replacement} 
-                    onCheckedChange={v => onUpdate(i, 'replacement', v)} 
+                    onCheckedChange={v => updateLocalShockWork(i, 'replacement', v)} 
                   />
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <Checkbox 
                     checked={row.repair} 
-                    onCheckedChange={v => onUpdate(i, 'repair', v)} 
+                    onCheckedChange={v => updateLocalShockWork(i, 'repair', v)} 
                   />
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <Checkbox 
                     checked={row.paint} 
-                    onCheckedChange={v => onUpdate(i, 'paint', v)} 
+                    onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
                   />
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <Input
                     type="number"
-                    className="w-16 border rounded p-1 text-center"
+                    className="w-full border rounded p-1 text-center"
                     value={row.obsolescence_rate}
-                    onChange={e => onUpdate(i, 'obsolescence_rate', Number(e.target.value))}
+                    onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
                   />
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <Input
                     type="number"
-                    className="w-16 border rounded p-1 text-center"
+                    className="w-full border rounded p-1 text-center"
                     value={row.recovery_rate}
-                    onChange={e => onUpdate(i, 'recovery_rate', Number(e.target.value))}
+                    onChange={e => updateLocalShockWork(i, 'recovery_rate', Number(e.target.value))}
                   />
                 </td>
                 <td className="border px-2 py-2 text-center">
@@ -206,7 +263,7 @@ export function ShockSuppliesTable({
                     type="number"
                     className="w-20 border rounded p-1 text-center"
                     value={row.amount}
-                    onChange={e => onUpdate(i, 'amount', Number(e.target.value))}
+                    onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
                   />
                 </td>
                 <td className="border px-2 py-2">
@@ -215,7 +272,7 @@ export function ShockSuppliesTable({
                     className="w-32 border rounded p-1"
                     value={row.comment}
                     placeholder="Commentaire..."
-                    onChange={e => onUpdate(i, 'comment', e.target.value)}
+                    onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
                 </td>
                 <td className="border px-2 py-2 text-center">
@@ -243,14 +300,33 @@ export function ShockSuppliesTable({
                   </div>
                 </td>
                 <td className="border px-2 py-2 text-center">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => onRemove(i)}
-                    className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center justify-center gap-1">
+                    {modifiedRows.has(i) && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleValidateRow(i)}
+                        disabled={validatingRows.has(i)}
+                        className="h-6 w-6 hover:bg-green-50 hover:text-green-600"
+                        title="Valider les modifications"
+                      >
+                        {validatingRows.has(i) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => onRemove(i)}
+                      className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
+                      title="Supprimer la ligne"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -263,7 +339,7 @@ export function ShockSuppliesTable({
         <div className="grid grid-cols-6 gap-4 text-sm">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
-            <div className="text-xl font-bold text-gray-800">{shockWorks.length}</div>
+            <div className="text-xl font-bold text-gray-800">{localShockWorks.length}</div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Vetusté</div>

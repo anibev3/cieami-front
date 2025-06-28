@@ -17,6 +17,7 @@ interface Shock {
   hourly_rate_id: number
   workforces: unknown[]
   comment: string
+  with_tax: boolean
 }
 
 interface OtherCost {
@@ -60,7 +61,8 @@ export function useCalculations() {
             workforce_type_id: workforce.workforce_type_id,
             nb_hours: workforce.nb_hours,
             discount: workforce.discount
-          }))
+          })),
+          with_tax: shock.with_tax
         })),
         other_costs: otherCosts.map(cost => ({
           other_cost_type_id: Number(cost.other_cost_type_id),

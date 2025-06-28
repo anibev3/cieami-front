@@ -264,6 +264,7 @@ export default function ReportEditPage() {
         })),
         paint_type_id: shock.paint_type_id,
         hourly_rate_id: shock.hourly_rate_id,
+        with_tax: shock.with_tax,
         workforces: shock.workforces.map((workforce: any) => ({
           workforce_type_id: workforce.workforce_type_id,
           nb_hours: workforce.nb_hours,
@@ -366,6 +367,7 @@ export default function ReportEditPage() {
         })),
         paint_type_id: shock.paint_type_id,
         hourly_rate_id: shock.hourly_rate_id,
+        with_tax: shock.with_tax,
         workforces: shock.workforces.map((workforce: any) => ({
           workforce_type_id: workforce.workforce_type_id,
           nb_hours: workforce.nb_hours,
@@ -451,6 +453,7 @@ export default function ReportEditPage() {
           })),
           paint_type_id: shock.paint_type_id,
           hourly_rate_id: shock.hourly_rate_id,
+          with_tax: shock.with_tax,
           workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
             workforce_type_id: workforce.workforce_type_id,
             nb_hours: workforce.nb_hours,
@@ -524,7 +527,9 @@ export default function ReportEditPage() {
     
     // Vérifier s'il y a des données valides avant de déclencher le calcul
     const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
-                        updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
+      updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
+    
+    
     
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
@@ -612,6 +617,106 @@ export default function ReportEditPage() {
       }, 4000)
     }
   }, [removeOtherCost, otherCosts, calculateAllShocks])
+
+  // Fonction de calcul d'un seul point de choc
+  const calculateSingleShock = useCallback(async (shockIndex: number) => {
+    const shock = shocks[shockIndex]
+    if (!shock || !shock.shock_point_id || shock.shock_point_id === 0) {
+      return
+    }
+
+    // Vérifier s'il y a des données valides dans ce choc
+    const hasValidData = shock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
+                        shock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
+    
+    if (!hasValidData) {
+      return
+    }
+
+    // Marquer ce point de choc comme en cours de calcul
+    setCalculatingShocks(prev => new Set([...prev, shockIndex]))
+
+    try {
+      // Préparer le payload pour ce choc uniquement
+      const validShock = {
+        shock_point_id: shock.shock_point_id,
+        shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
+          supply_id: work.supply_id,
+          disassembly: work.disassembly,
+          replacement: work.replacement,
+          repair: work.repair,
+          paint: work.paint,
+          control: work.control,
+          comment: work.comment,
+          obsolescence_rate: work.obsolescence_rate,
+          recovery_rate: work.recovery_rate,
+          amount: work.amount || 0
+        })),
+        paint_type_id: shock.paint_type_id,
+        hourly_rate_id: shock.hourly_rate_id,
+        with_tax: shock.with_tax,
+        workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
+          workforce_type_id: workforce.workforce_type_id,
+          nb_hours: workforce.nb_hours,
+          discount: workforce.discount
+        }))
+      }
+
+      // Vérifier que le choc a des données valides
+      if ((validShock.shock_works.length === 0 && validShock.workforces.length === 0) || !validShock.paint_type_id || !validShock.hourly_rate_id) {
+        return
+      }
+
+      const payload = {
+        shocks: [validShock],
+        other_costs: [] // Pas d'autres coûts pour le calcul d'un seul choc
+      }
+
+      const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATIONS}`, payload)
+      
+      if (response.data.status === 200) {
+        const calculatedData = response.data.data
+        
+        // Mettre à jour seulement ce point de choc avec les montants calculés
+        const calculatedShock = calculatedData.shocks[0]
+        if (calculatedShock) {
+          // Mettre à jour les fournitures avec les montants calculés
+          const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
+            ...work,
+            ...calculatedShock.shock_works[index]
+          }))
+
+          // Mettre à jour la main d'œuvre avec les montants calculés
+          const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
+            ...workforce,
+            ...calculatedShock.workforces[index]
+          }))
+
+          // Mettre à jour le point de choc
+          const updatedShock = {
+            ...shock,
+            shock_works: updatedShockWorks,
+            workforces: updatedWorkforces
+          }
+
+          updateShock(shockIndex, updatedShock)
+        }
+        
+        setHasUnsavedChanges(true)
+        toast.success('Calcul effectué avec succès')
+      }
+    } catch (error) {
+      console.error('Erreur lors du calcul:', error)
+      toast.error('Erreur lors du calcul')
+    } finally {
+      // Retirer ce point de choc du calcul en cours
+      setCalculatingShocks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(shockIndex)
+        return newSet
+      })
+    }
+  }, [shocks, updateShock, setHasUnsavedChanges])
 
   if (loading || loadingData) {
     return (
@@ -781,12 +886,22 @@ export default function ReportEditPage() {
                           }, 4000)
                         }
                       }}
+                      onValidateRow={async (workIndex) => {
+                        // Déclencher le calcul pour ce choc uniquement
+                        await calculateSingleShock(index)
+                      }}
                     />
+
 
                     {/* Main d'œuvre */}
                     <ShockWorkforceTable
                       workforceTypes={workforceTypes}
                       workforces={s.workforces}
+                      paintTypes={paintTypes}
+                      hourlyRates={hourlyRates}
+                      paintTypeId={s.paint_type_id}
+                      hourlyRateId={s.hourly_rate_id}
+                      withTax={s.with_tax}
                       onUpdate={(i, field, value) => updateWorkforce(index, i, field, value)}
                       onAdd={() => {
                         const newWorkforce = {
@@ -802,8 +917,6 @@ export default function ReportEditPage() {
                         }
                         const updatedShock = { ...s, workforces: [...s.workforces, newWorkforce] }
                         updateShock(index, updatedShock)
-                        // Ne pas déclencher le calcul automatiquement lors de l'ajout d'une ligne vide
-                        // Le calcul se déclenchera quand l'utilisateur sélectionnera un type de main d'œuvre
                       }}
                       onRemove={(i) => {
                         const updatedShock = { ...s }
@@ -819,6 +932,22 @@ export default function ReportEditPage() {
                             calculateAllShocks()
                           }, 4000)
                         }
+                      }}
+                      onPaintTypeChange={(value) => {
+                        const updatedShock = { ...s, paint_type_id: value }
+                        updateShockWithGlobalCalculation(index, updatedShock)
+                      }}
+                      onHourlyRateChange={(value) => {
+                        const updatedShock = { ...s, hourly_rate_id: value }
+                        updateShockWithGlobalCalculation(index, updatedShock)
+                      }}
+                      onWithTaxChange={(value) => {
+                        const updatedShock = { ...s, with_tax: value }
+                        updateShockWithGlobalCalculation(index, updatedShock)
+                      }}
+                      onValidateRow={async (workforceIndex) => {
+                        // Déclencher le calcul pour ce choc uniquement
+                        await calculateSingleShock(index)
                       }}
                     />
 
