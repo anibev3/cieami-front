@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Textarea } from '@/components/ui/textarea'
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
@@ -57,6 +55,7 @@ import {
 import { ShockSuppliesTable } from './components/shock-supplies-table'
 import { ShockWorkforceTable } from './components/shock-workforce-table'
 import type { Shock } from './hooks/use-shock-management'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface ShockPoint {
   id: number
@@ -783,6 +782,7 @@ export default function ReportEditPage() {
                         }
                       }}
                     />
+
                     {/* Main d'œuvre */}
                     <ShockWorkforceTable
                       workforceTypes={workforceTypes}
@@ -822,67 +822,9 @@ export default function ReportEditPage() {
                       }}
                     />
 
-                    {/* Autres informations */}
-                    <div className="mt-6 border rounded bg-gray-50 p-4 space-y-4">
-                      <h3 className="mb-2 text-lg font-medium">
-                        Autres informations
-                      </h3>
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                          <Label className="text-sm font-medium">Type de peinture</Label>
-                          <Select 
-                            value={s.paint_type_id ? s.paint_type_id.toString() : ''} 
-                            onValueChange={(value) => {
-                              const updatedShock = { ...s, paint_type_id: Number(value) }
-                              updateShockWithGlobalCalculation(index, updatedShock)
-                            }}
-                          >
-                            <SelectTrigger className={`w-full border rounded p-2 ${!s.paint_type_id ? 'border-red-300 bg-red-50' : ''}`}>
-                              <SelectValue placeholder={!s.paint_type_id ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {paintTypes.map((type) => (
-                                <SelectItem key={type.id} value={type.id.toString()}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">Taux horaire</Label>
-                          <Select 
-                            value={s.hourly_rate_id ? s.hourly_rate_id.toString() : ''} 
-                            onValueChange={(value) => {
-                              const updatedShock = { ...s, hourly_rate_id: Number(value) }
-                              updateShockWithGlobalCalculation(index, updatedShock)
-                            }}
-                          >
-                            <SelectTrigger className={`w-full border rounded p-2 ${!s.hourly_rate_id ? 'border-red-300 bg-red-50' : ''}`}>
-                              <SelectValue placeholder={!s.hourly_rate_id ? "⚠️ Sélectionner un taux" : "Sélectionner..."} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {hourlyRates.map((rate) => (
-                                <SelectItem key={rate.id} value={rate.id.toString()}>
-                                  {rate.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Commentaire */}
-                    <div>
-                      <Label>Commentaire</Label>
-                      <Textarea
-                        value={s.comment}
-                        onChange={(e) => updateShock(index, { ...s, comment: e.target.value })}
-                        placeholder="Commentaire sur ce point de choc..."
-                        rows={3}
-                      />
-                    </div>
+
+  
                     {/* Résultat du calcul */}
                     {calculationResults[index] && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -902,7 +844,7 @@ export default function ReportEditPage() {
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="text-green-600">Montant total :</span>
-                            <p className="font-semibold">{calculationResults[index].total_amount?.toLocaleString('fr-FR')} €</p>
+                            <p className="font-semibold">{calculationResults[index].total_amount?.toLocaleString('fr-FR')} F CFA</p>
                           </div>
                           <div>
                             <span className="text-green-600">Fournitures :</span>
@@ -1348,7 +1290,7 @@ function GlobalRecap({
           </div>
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Total</p>
-            <p className="text-2xl font-bold text-blue-600">{grandTotal.toLocaleString('fr-FR')} €</p>
+            <p className="text-2xl font-bold text-blue-600">{grandTotal.toLocaleString('fr-FR')} F CFA</p>  
           </div>
         </div>
         
@@ -1360,16 +1302,16 @@ function GlobalRecap({
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Montant des chocs :</span>
-                <span className="font-semibold">{totalShockAmount.toLocaleString('fr-FR')} €</span>
+                <span className="font-semibold">{totalShockAmount.toLocaleString('fr-FR')} F CFA</span>
               </div>
               <div className="flex justify-between">
                 <span>Coûts autres :</span>
-                <span className="font-semibold">{totalOtherCosts.toLocaleString('fr-FR')} €</span>
+                <span className="font-semibold">{totalOtherCosts.toLocaleString('fr-FR')} F CFA</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
                 <span>Total général :</span>
-                <span className="text-blue-600">{grandTotal.toLocaleString('fr-FR')} €</span>
+                  <span className="text-blue-600">{grandTotal.toLocaleString('fr-FR')} F CFA</span>
               </div>
             </div>
           </div>

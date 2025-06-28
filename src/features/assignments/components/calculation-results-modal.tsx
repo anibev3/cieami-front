@@ -80,7 +80,7 @@ export function CalculationResultsModal({
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold text-blue-600">
-                    {totalShockAmount.toLocaleString('fr-FR')} €
+                    {totalShockAmount.toLocaleString('fr-FR')} F CFA
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {shock?.shock_works?.length || 0} article(s)
@@ -97,7 +97,7 @@ export function CalculationResultsModal({
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold text-green-600">
-                    {totalWorkforceAmount.toLocaleString('fr-FR')} €
+                    {totalWorkforceAmount.toLocaleString('fr-FR')} F CFA
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {shock?.workforces?.length || 0} type(s)
@@ -114,7 +114,7 @@ export function CalculationResultsModal({
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold text-orange-600">
-                    {totalOtherCosts.toLocaleString('fr-FR')} €
+                    {totalOtherCosts.toLocaleString('fr-FR')} F CFA
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {calculationResult.other_costs?.length || 0} coût(s)
@@ -132,7 +132,7 @@ export function CalculationResultsModal({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold text-blue-600">
-                  {calculationResult.total_amount?.toLocaleString('fr-FR')} €
+                  {calculationResult.total_amount?.toLocaleString('fr-FR')} F CFA
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Montant total HT du dossier
@@ -157,7 +157,7 @@ export function CalculationResultsModal({
                             <p className="text-sm text-muted-foreground">{work.supply_code}</p>
                           </div>
                           <Badge variant="outline">
-                            {work.amount?.toLocaleString('fr-FR')} €
+                            {work.amount?.toLocaleString('fr-FR')} F CFA
                           </Badge>
                         </div>
                         
@@ -213,11 +213,11 @@ export function CalculationResultsModal({
                           <div>
                             <p className="font-semibold">{workforce.workforce_type_label || `Type ${index + 1}`}</p>
                             <p className="text-sm text-muted-foreground">
-                              {workforce.nb_hours} heure(s) × {workforce.work_fee} €/h
+                              {workforce.nb_hours} heure(s) × {workforce.work_fee} F CFA/h  
                             </p>
                           </div>
                           <Badge variant="outline">
-                            {workforce.amount?.toLocaleString('fr-FR')} €
+                            {workforce.amount?.toLocaleString('fr-FR')} F CFA
                           </Badge>
                         </div>
                         
@@ -225,13 +225,13 @@ export function CalculationResultsModal({
                           <div>
                             <span className="text-muted-foreground">HT :</span>
                             <span className="ml-1 font-semibold">
-                              {workforce.amount_excluding_tax?.toLocaleString('fr-FR')} €
+                              {workforce.amount_excluding_tax?.toLocaleString('fr-FR')} F CFA
                             </span>
                           </div>
                           <div>
                             <span className="text-muted-foreground">TVA :</span>
                             <span className="ml-1 font-semibold">
-                              {workforce.amount_tax?.toLocaleString('fr-FR')} €
+                              {workforce.amount_tax?.toLocaleString('fr-FR')} F CFA
                             </span>
                           </div>
                           <div>
@@ -267,7 +267,7 @@ export function CalculationResultsModal({
                             <p className="text-sm text-muted-foreground">{cost.other_cost_type_code}</p>
                           </div>
                           <Badge variant="outline">
-                            {cost.amount?.toLocaleString('fr-FR')} €
+                              {cost.amount?.toLocaleString('fr-FR')} F CFA
                           </Badge>
                         </div>
                       </div>

@@ -384,7 +384,7 @@ export default function RealizeAssignmentPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Montant</p>
-                  <p className="font-semibold text-lg">{assignment.amount?.toLocaleString('fr-FR')} €</p>
+                  <p className="font-semibold text-lg">{assignment.amount?.toLocaleString('fr-FR')} F CFA</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Numéro de police</p>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,7 +19,6 @@ import {
   Trash2, 
   CheckCircle,
   Clock,
-  DollarSign
 } from 'lucide-react'
 
 interface CalculationResult {
@@ -90,7 +90,7 @@ export function CalculationHistorySheet({
                     <div>
                       <span className="text-muted-foreground">Montant total :</span>
                       <p className="font-semibold text-lg">
-                        {calculationData.total_amount?.toLocaleString('fr-FR')} €
+                        {calculationData.total_amount?.toLocaleString('fr-FR')} F CFA
                       </p>
                     </div>
                     <div>
@@ -158,7 +158,7 @@ export function CalculationHistorySheet({
               <span className="font-semibold text-lg text-blue-600">
                 {Object.values(currentCalculations)
                   .reduce((total, calc) => total + (calc.total_amount || 0), 0)
-                  .toLocaleString('fr-FR')} €
+                  .toLocaleString('fr-FR')} F CFA
               </span>
             </div>
           </div>

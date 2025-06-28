@@ -123,7 +123,7 @@ export function ShockSuppliesTable({
                 Commentaire
               </th>
               <th className="border px-2 py-2 text-center font-medium text-blue-600">
-                Obsolescence
+                Vetusté
               </th>
               <th className="border px-2 py-2 text-center font-medium text-green-600">
                 Récupération
@@ -266,7 +266,7 @@ export function ShockSuppliesTable({
             <div className="text-xl font-bold text-gray-800">{shockWorks.length}</div>
           </div>
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Obsolescence</div>
+            <div className="text-blue-600 font-medium">Vetusté</div>
             <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
             <div className="text-xs text-gray-500">HT: {formatCurrency(totals.obsolescence_ht)}</div>
           </div>

@@ -18,6 +18,12 @@ import {
   IconCategory,
   IconCar,
   IconFolder,
+  IconCalculator,
+  IconCreditCard,
+  IconBuildingBank,
+  IconReceipt,
+  IconCheck,
+  IconWallet,
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -169,6 +175,63 @@ export const sidebarData: SidebarData = {
           title: 'Tarification Honoraire',
           url: '/reparation/tarification-honoraire',
           icon: IconFileText,
+        },
+      ],
+    },
+    {
+      title: 'Comptabilité',
+      items: [
+        {
+          title: 'Paiements',
+          url: '/comptabilite/payments',
+          icon: IconCreditCard,
+        },
+        {
+          title: 'Chèques',
+          url: '/comptabilite/checks',
+          icon: IconCheck,
+        },
+        {
+          title: 'Configuration',
+          icon: IconCalculator,
+          items: [
+            {
+              title: 'Types de paiement',
+              url: '/comptabilite/payment-types',
+              icon: IconWallet,
+            },
+            {
+              title: 'Méthodes de paiement',
+              url: '/comptabilite/payment-methods',
+              icon: IconCreditCard,
+            },
+            {
+              title: 'Banques',
+              url: '/comptabilite/banks',
+              icon: IconBuildingBank,
+            },
+          ],
+        },
+        {
+          title: 'Rapports',
+          icon: IconReceipt,
+          items: [
+            {
+              title: 'Rapport des paiements',
+              url: '/comptabilite/reports/payments',
+              icon: IconReceipt,
+            },
+            {
+              title: 'Rapport des chèques',
+              url: '/comptabilite/reports/checks',
+              icon: IconCheck,
+            },
+            {
+              title: 'État de trésorerie',
+              url: '/comptabilite/reports/treasury',
+              icon: IconCalculator,
+            },
+          ],
         },
       ],
     },

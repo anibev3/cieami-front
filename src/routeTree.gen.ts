@@ -27,10 +27,12 @@ import { Route as authForgotPasswordImport } from './routes/(auth)/forgot-passwo
 import { Route as ClerkAuthenticatedRouteImport } from './routes/clerk/_authenticated/route'
 import { Route as ClerkauthRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedComptabiliteRouteImport } from './routes/_authenticated/comptabilite/route'
 import { Route as AuthenticatedUsersIndexImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedHelpCenterIndexImport } from './routes/_authenticated/help-center/index'
+import { Route as AuthenticatedComptabiliteIndexImport } from './routes/_authenticated/comptabilite/index'
 import { Route as AuthenticatedChatsIndexImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedAssignmentsIndexImport } from './routes/_authenticated/assignments/index'
 import { Route as AuthenticatedAppsIndexImport } from './routes/_authenticated/apps/index'
@@ -65,6 +67,11 @@ import { Route as AuthenticatedExpertiseTypeMainOeuvreImport } from './routes/_a
 import { Route as AuthenticatedExpertisePointsDeChocImport } from './routes/_authenticated/expertise/points-de-choc'
 import { Route as AuthenticatedExpertiseFournituresImport } from './routes/_authenticated/expertise/fournitures'
 import { Route as AuthenticatedExpertiseConclusionsTechniquesImport } from './routes/_authenticated/expertise/conclusions-techniques'
+import { Route as AuthenticatedComptabilitePaymentsImport } from './routes/_authenticated/comptabilite/payments'
+import { Route as AuthenticatedComptabilitePaymentTypesImport } from './routes/_authenticated/comptabilite/payment-types'
+import { Route as AuthenticatedComptabilitePaymentMethodsImport } from './routes/_authenticated/comptabilite/payment-methods'
+import { Route as AuthenticatedComptabiliteChecksImport } from './routes/_authenticated/comptabilite/checks'
+import { Route as AuthenticatedComptabiliteBanksImport } from './routes/_authenticated/comptabilite/banks'
 import { Route as AuthenticatedAssignmentsCreateImport } from './routes/_authenticated/assignments/create'
 import { Route as AuthenticatedAssignmentsIdImport } from './routes/_authenticated/assignments/$id'
 import { Route as AuthenticatedAdministrationVehiclesImport } from './routes/_authenticated/administration/vehicles'
@@ -82,11 +89,18 @@ import { Route as AuthenticatedAdministrationColorsImport } from './routes/_auth
 import { Route as AuthenticatedAdministrationBrandsImport } from './routes/_authenticated/administration/brands'
 import { Route as AuthenticatedAdministrationAssignmentTypesImport } from './routes/_authenticated/administration/assignment-types'
 import { Route as AuthenticatedGestionClientIdImport } from './routes/_authenticated/gestion/client.$id'
+import { Route as AuthenticatedComptabiliteReportsTreasuryImport } from './routes/_authenticated/comptabilite/reports/treasury'
+import { Route as AuthenticatedComptabiliteReportsPaymentsImport } from './routes/_authenticated/comptabilite/reports/payments'
+import { Route as AuthenticatedComptabiliteReportsChecksImport } from './routes/_authenticated/comptabilite/reports/checks'
+import { Route as AuthenticatedComptabilitePaymentCreateImport } from './routes/_authenticated/comptabilite/payment/create'
+import { Route as AuthenticatedComptabiliteCheckCreateImport } from './routes/_authenticated/comptabilite/check/create'
 import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
 import { Route as AuthenticatedAssignmentsEditeReportIdImport } from './routes/_authenticated/assignments/edite-report/$id'
 import { Route as AuthenticatedAssignmentsEditIdImport } from './routes/_authenticated/assignments/edit/$id'
 import { Route as AuthenticatedAssignmentsEditReportIdImport } from './routes/_authenticated/assignments/edit-report.$id'
 import { Route as AuthenticatedAssignmentsDetailsIdImport } from './routes/_authenticated/assignments/details/$id'
+import { Route as AuthenticatedComptabilitePaymentEditIdImport } from './routes/_authenticated/comptabilite/payment/edit.$id'
+import { Route as AuthenticatedComptabiliteCheckEditIdImport } from './routes/_authenticated/comptabilite/check/edit.$id'
 
 // Create/Update Routes
 
@@ -185,6 +199,13 @@ const AuthenticatedSettingsRouteRoute = AuthenticatedSettingsRouteImport.update(
   } as any,
 )
 
+const AuthenticatedComptabiliteRouteRoute =
+  AuthenticatedComptabiliteRouteImport.update({
+    id: '/comptabilite',
+    path: '/comptabilite',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexImport.update({
   id: '/users/',
   path: '/users/',
@@ -210,6 +231,13 @@ const AuthenticatedHelpCenterIndexRoute =
     id: '/help-center/',
     path: '/help-center/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteIndexRoute =
+  AuthenticatedComptabiliteIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
   } as any)
 
 const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexImport.update({
@@ -447,6 +475,41 @@ const AuthenticatedExpertiseConclusionsTechniquesRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedComptabilitePaymentsRoute =
+  AuthenticatedComptabilitePaymentsImport.update({
+    id: '/payments',
+    path: '/payments',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabilitePaymentTypesRoute =
+  AuthenticatedComptabilitePaymentTypesImport.update({
+    id: '/payment-types',
+    path: '/payment-types',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabilitePaymentMethodsRoute =
+  AuthenticatedComptabilitePaymentMethodsImport.update({
+    id: '/payment-methods',
+    path: '/payment-methods',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteChecksRoute =
+  AuthenticatedComptabiliteChecksImport.update({
+    id: '/checks',
+    path: '/checks',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteBanksRoute =
+  AuthenticatedComptabiliteBanksImport.update({
+    id: '/banks',
+    path: '/banks',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
 const AuthenticatedAssignmentsCreateRoute =
   AuthenticatedAssignmentsCreateImport.update({
     id: '/assignments/create',
@@ -567,6 +630,41 @@ const AuthenticatedGestionClientIdRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedComptabiliteReportsTreasuryRoute =
+  AuthenticatedComptabiliteReportsTreasuryImport.update({
+    id: '/reports/treasury',
+    path: '/reports/treasury',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteReportsPaymentsRoute =
+  AuthenticatedComptabiliteReportsPaymentsImport.update({
+    id: '/reports/payments',
+    path: '/reports/payments',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteReportsChecksRoute =
+  AuthenticatedComptabiliteReportsChecksImport.update({
+    id: '/reports/checks',
+    path: '/reports/checks',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabilitePaymentCreateRoute =
+  AuthenticatedComptabilitePaymentCreateImport.update({
+    id: '/payment/create',
+    path: '/payment/create',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteCheckCreateRoute =
+  AuthenticatedComptabiliteCheckCreateImport.update({
+    id: '/check/create',
+    path: '/check/create',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
 const AuthenticatedAssignmentsRealizeIdRoute =
   AuthenticatedAssignmentsRealizeIdImport.update({
     id: '/assignments/realize/$id',
@@ -602,6 +700,20 @@ const AuthenticatedAssignmentsDetailsIdRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedComptabilitePaymentEditIdRoute =
+  AuthenticatedComptabilitePaymentEditIdImport.update({
+    id: '/payment/edit/$id',
+    path: '/payment/edit/$id',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteCheckEditIdRoute =
+  AuthenticatedComptabiliteCheckEditIdImport.update({
+    id: '/check/edit/$id',
+    path: '/check/edit/$id',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -619,6 +731,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/clerk'
       preLoaderRoute: typeof ClerkRouteImport
       parentRoute: typeof rootRoute
+    }
+    '/_authenticated/comptabilite': {
+      id: '/_authenticated/comptabilite'
+      path: '/comptabilite'
+      fullPath: '/comptabilite'
+      preLoaderRoute: typeof AuthenticatedComptabiliteRouteImport
+      parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -829,6 +948,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/assignments/create'
       preLoaderRoute: typeof AuthenticatedAssignmentsCreateImport
       parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/comptabilite/banks': {
+      id: '/_authenticated/comptabilite/banks'
+      path: '/banks'
+      fullPath: '/comptabilite/banks'
+      preLoaderRoute: typeof AuthenticatedComptabiliteBanksImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/checks': {
+      id: '/_authenticated/comptabilite/checks'
+      path: '/checks'
+      fullPath: '/comptabilite/checks'
+      preLoaderRoute: typeof AuthenticatedComptabiliteChecksImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/payment-methods': {
+      id: '/_authenticated/comptabilite/payment-methods'
+      path: '/payment-methods'
+      fullPath: '/comptabilite/payment-methods'
+      preLoaderRoute: typeof AuthenticatedComptabilitePaymentMethodsImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/payment-types': {
+      id: '/_authenticated/comptabilite/payment-types'
+      path: '/payment-types'
+      fullPath: '/comptabilite/payment-types'
+      preLoaderRoute: typeof AuthenticatedComptabilitePaymentTypesImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/payments': {
+      id: '/_authenticated/comptabilite/payments'
+      path: '/payments'
+      fullPath: '/comptabilite/payments'
+      preLoaderRoute: typeof AuthenticatedComptabilitePaymentsImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
     }
     '/_authenticated/expertise/conclusions-techniques': {
       id: '/_authenticated/expertise/conclusions-techniques'
@@ -1068,6 +1222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatsIndexImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/comptabilite/': {
+      id: '/_authenticated/comptabilite/'
+      path: '/'
+      fullPath: '/comptabilite/'
+      preLoaderRoute: typeof AuthenticatedComptabiliteIndexImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
       path: '/help-center'
@@ -1131,6 +1292,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssignmentsRealizeIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/comptabilite/check/create': {
+      id: '/_authenticated/comptabilite/check/create'
+      path: '/check/create'
+      fullPath: '/comptabilite/check/create'
+      preLoaderRoute: typeof AuthenticatedComptabiliteCheckCreateImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/payment/create': {
+      id: '/_authenticated/comptabilite/payment/create'
+      path: '/payment/create'
+      fullPath: '/comptabilite/payment/create'
+      preLoaderRoute: typeof AuthenticatedComptabilitePaymentCreateImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/reports/checks': {
+      id: '/_authenticated/comptabilite/reports/checks'
+      path: '/reports/checks'
+      fullPath: '/comptabilite/reports/checks'
+      preLoaderRoute: typeof AuthenticatedComptabiliteReportsChecksImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/reports/payments': {
+      id: '/_authenticated/comptabilite/reports/payments'
+      path: '/reports/payments'
+      fullPath: '/comptabilite/reports/payments'
+      preLoaderRoute: typeof AuthenticatedComptabiliteReportsPaymentsImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/reports/treasury': {
+      id: '/_authenticated/comptabilite/reports/treasury'
+      path: '/reports/treasury'
+      fullPath: '/comptabilite/reports/treasury'
+      preLoaderRoute: typeof AuthenticatedComptabiliteReportsTreasuryImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
     '/_authenticated/gestion/client/$id': {
       id: '/_authenticated/gestion/client/$id'
       path: '/gestion/client/$id'
@@ -1138,10 +1334,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGestionClientIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/comptabilite/check/edit/$id': {
+      id: '/_authenticated/comptabilite/check/edit/$id'
+      path: '/check/edit/$id'
+      fullPath: '/comptabilite/check/edit/$id'
+      preLoaderRoute: typeof AuthenticatedComptabiliteCheckEditIdImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/payment/edit/$id': {
+      id: '/_authenticated/comptabilite/payment/edit/$id'
+      path: '/payment/edit/$id'
+      fullPath: '/comptabilite/payment/edit/$id'
+      preLoaderRoute: typeof AuthenticatedComptabilitePaymentEditIdImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
   }
 }
 
 // Create and export the route tree
+
+interface AuthenticatedComptabiliteRouteRouteChildren {
+  AuthenticatedComptabiliteBanksRoute: typeof AuthenticatedComptabiliteBanksRoute
+  AuthenticatedComptabiliteChecksRoute: typeof AuthenticatedComptabiliteChecksRoute
+  AuthenticatedComptabilitePaymentMethodsRoute: typeof AuthenticatedComptabilitePaymentMethodsRoute
+  AuthenticatedComptabilitePaymentTypesRoute: typeof AuthenticatedComptabilitePaymentTypesRoute
+  AuthenticatedComptabilitePaymentsRoute: typeof AuthenticatedComptabilitePaymentsRoute
+  AuthenticatedComptabiliteIndexRoute: typeof AuthenticatedComptabiliteIndexRoute
+  AuthenticatedComptabiliteCheckCreateRoute: typeof AuthenticatedComptabiliteCheckCreateRoute
+  AuthenticatedComptabilitePaymentCreateRoute: typeof AuthenticatedComptabilitePaymentCreateRoute
+  AuthenticatedComptabiliteReportsChecksRoute: typeof AuthenticatedComptabiliteReportsChecksRoute
+  AuthenticatedComptabiliteReportsPaymentsRoute: typeof AuthenticatedComptabiliteReportsPaymentsRoute
+  AuthenticatedComptabiliteReportsTreasuryRoute: typeof AuthenticatedComptabiliteReportsTreasuryRoute
+  AuthenticatedComptabiliteCheckEditIdRoute: typeof AuthenticatedComptabiliteCheckEditIdRoute
+  AuthenticatedComptabilitePaymentEditIdRoute: typeof AuthenticatedComptabilitePaymentEditIdRoute
+}
+
+const AuthenticatedComptabiliteRouteRouteChildren: AuthenticatedComptabiliteRouteRouteChildren =
+  {
+    AuthenticatedComptabiliteBanksRoute: AuthenticatedComptabiliteBanksRoute,
+    AuthenticatedComptabiliteChecksRoute: AuthenticatedComptabiliteChecksRoute,
+    AuthenticatedComptabilitePaymentMethodsRoute:
+      AuthenticatedComptabilitePaymentMethodsRoute,
+    AuthenticatedComptabilitePaymentTypesRoute:
+      AuthenticatedComptabilitePaymentTypesRoute,
+    AuthenticatedComptabilitePaymentsRoute:
+      AuthenticatedComptabilitePaymentsRoute,
+    AuthenticatedComptabiliteIndexRoute: AuthenticatedComptabiliteIndexRoute,
+    AuthenticatedComptabiliteCheckCreateRoute:
+      AuthenticatedComptabiliteCheckCreateRoute,
+    AuthenticatedComptabilitePaymentCreateRoute:
+      AuthenticatedComptabilitePaymentCreateRoute,
+    AuthenticatedComptabiliteReportsChecksRoute:
+      AuthenticatedComptabiliteReportsChecksRoute,
+    AuthenticatedComptabiliteReportsPaymentsRoute:
+      AuthenticatedComptabiliteReportsPaymentsRoute,
+    AuthenticatedComptabiliteReportsTreasuryRoute:
+      AuthenticatedComptabiliteReportsTreasuryRoute,
+    AuthenticatedComptabiliteCheckEditIdRoute:
+      AuthenticatedComptabiliteCheckEditIdRoute,
+    AuthenticatedComptabilitePaymentEditIdRoute:
+      AuthenticatedComptabilitePaymentEditIdRoute,
+  }
+
+const AuthenticatedComptabiliteRouteRouteWithChildren =
+  AuthenticatedComptabiliteRouteRoute._addFileChildren(
+    AuthenticatedComptabiliteRouteRouteChildren,
+  )
 
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
@@ -1167,6 +1425,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedComptabiliteRouteRoute: typeof AuthenticatedComptabiliteRouteRouteWithChildren
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAdministrationAssignmentTypesRoute: typeof AuthenticatedAdministrationAssignmentTypesRoute
@@ -1224,6 +1483,8 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedComptabiliteRouteRoute:
+    AuthenticatedComptabiliteRouteRouteWithChildren,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAdministrationAssignmentTypesRoute:
@@ -1358,6 +1619,7 @@ const ClerkRouteRouteWithChildren = ClerkRouteRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '': typeof AuthenticatedRouteRouteWithChildren
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/comptabilite': typeof AuthenticatedComptabiliteRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/': typeof ClerkauthRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
@@ -1387,6 +1649,11 @@ export interface FileRoutesByFullPath {
   '/administration/vehicles': typeof AuthenticatedAdministrationVehiclesRoute
   '/assignments/$id': typeof AuthenticatedAssignmentsIdRoute
   '/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
+  '/comptabilite/banks': typeof AuthenticatedComptabiliteBanksRoute
+  '/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRoute
+  '/comptabilite/payment-methods': typeof AuthenticatedComptabilitePaymentMethodsRoute
+  '/comptabilite/payment-types': typeof AuthenticatedComptabilitePaymentTypesRoute
+  '/comptabilite/payments': typeof AuthenticatedComptabilitePaymentsRoute
   '/expertise/conclusions-techniques': typeof AuthenticatedExpertiseConclusionsTechniquesRoute
   '/expertise/fournitures': typeof AuthenticatedExpertiseFournituresRoute
   '/expertise/points-de-choc': typeof AuthenticatedExpertisePointsDeChocRoute
@@ -1421,6 +1688,7 @@ export interface FileRoutesByFullPath {
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
+  '/comptabilite/': typeof AuthenticatedComptabiliteIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -1430,7 +1698,14 @@ export interface FileRoutesByFullPath {
   '/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
+  '/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
+  '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
+  '/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
+  '/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
+  '/comptabilite/reports/treasury': typeof AuthenticatedComptabiliteReportsTreasuryRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
+  '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
+  '/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -1462,6 +1737,11 @@ export interface FileRoutesByTo {
   '/administration/vehicles': typeof AuthenticatedAdministrationVehiclesRoute
   '/assignments/$id': typeof AuthenticatedAssignmentsIdRoute
   '/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
+  '/comptabilite/banks': typeof AuthenticatedComptabiliteBanksRoute
+  '/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRoute
+  '/comptabilite/payment-methods': typeof AuthenticatedComptabilitePaymentMethodsRoute
+  '/comptabilite/payment-types': typeof AuthenticatedComptabilitePaymentTypesRoute
+  '/comptabilite/payments': typeof AuthenticatedComptabilitePaymentsRoute
   '/expertise/conclusions-techniques': typeof AuthenticatedExpertiseConclusionsTechniquesRoute
   '/expertise/fournitures': typeof AuthenticatedExpertiseFournituresRoute
   '/expertise/points-de-choc': typeof AuthenticatedExpertisePointsDeChocRoute
@@ -1496,6 +1776,7 @@ export interface FileRoutesByTo {
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
+  '/comptabilite': typeof AuthenticatedComptabiliteIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -1505,13 +1786,21 @@ export interface FileRoutesByTo {
   '/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
+  '/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
+  '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
+  '/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
+  '/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
+  '/comptabilite/reports/treasury': typeof AuthenticatedComptabiliteReportsTreasuryRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
+  '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
+  '/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/clerk': typeof ClerkRouteRouteWithChildren
+  '/_authenticated/comptabilite': typeof AuthenticatedComptabiliteRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
   '/clerk/_authenticated': typeof ClerkAuthenticatedRouteRouteWithChildren
@@ -1542,6 +1831,11 @@ export interface FileRoutesById {
   '/_authenticated/administration/vehicles': typeof AuthenticatedAdministrationVehiclesRoute
   '/_authenticated/assignments/$id': typeof AuthenticatedAssignmentsIdRoute
   '/_authenticated/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
+  '/_authenticated/comptabilite/banks': typeof AuthenticatedComptabiliteBanksRoute
+  '/_authenticated/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRoute
+  '/_authenticated/comptabilite/payment-methods': typeof AuthenticatedComptabilitePaymentMethodsRoute
+  '/_authenticated/comptabilite/payment-types': typeof AuthenticatedComptabilitePaymentTypesRoute
+  '/_authenticated/comptabilite/payments': typeof AuthenticatedComptabilitePaymentsRoute
   '/_authenticated/expertise/conclusions-techniques': typeof AuthenticatedExpertiseConclusionsTechniquesRoute
   '/_authenticated/expertise/fournitures': typeof AuthenticatedExpertiseFournituresRoute
   '/_authenticated/expertise/points-de-choc': typeof AuthenticatedExpertisePointsDeChocRoute
@@ -1576,6 +1870,7 @@ export interface FileRoutesById {
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
+  '/_authenticated/comptabilite/': typeof AuthenticatedComptabiliteIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -1585,7 +1880,14 @@ export interface FileRoutesById {
   '/_authenticated/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/_authenticated/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
+  '/_authenticated/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
+  '/_authenticated/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
+  '/_authenticated/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
+  '/_authenticated/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
+  '/_authenticated/comptabilite/reports/treasury': typeof AuthenticatedComptabiliteReportsTreasuryRoute
   '/_authenticated/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
+  '/_authenticated/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
+  '/_authenticated/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
 }
 
 export interface FileRouteTypes {
@@ -1593,6 +1895,7 @@ export interface FileRouteTypes {
   fullPaths:
     | ''
     | '/clerk'
+    | '/comptabilite'
     | '/settings'
     | '/clerk/'
     | '/forgot-password'
@@ -1622,6 +1925,11 @@ export interface FileRouteTypes {
     | '/administration/vehicles'
     | '/assignments/$id'
     | '/assignments/create'
+    | '/comptabilite/banks'
+    | '/comptabilite/checks'
+    | '/comptabilite/payment-methods'
+    | '/comptabilite/payment-types'
+    | '/comptabilite/payments'
     | '/expertise/conclusions-techniques'
     | '/expertise/fournitures'
     | '/expertise/points-de-choc'
@@ -1656,6 +1964,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/assignments'
     | '/chats'
+    | '/comptabilite/'
     | '/help-center'
     | '/settings/'
     | '/tasks'
@@ -1665,7 +1974,14 @@ export interface FileRouteTypes {
     | '/assignments/edit/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
+    | '/comptabilite/check/create'
+    | '/comptabilite/payment/create'
+    | '/comptabilite/reports/checks'
+    | '/comptabilite/reports/payments'
+    | '/comptabilite/reports/treasury'
     | '/gestion/client/$id'
+    | '/comptabilite/check/edit/$id'
+    | '/comptabilite/payment/edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/clerk'
@@ -1696,6 +2012,11 @@ export interface FileRouteTypes {
     | '/administration/vehicles'
     | '/assignments/$id'
     | '/assignments/create'
+    | '/comptabilite/banks'
+    | '/comptabilite/checks'
+    | '/comptabilite/payment-methods'
+    | '/comptabilite/payment-types'
+    | '/comptabilite/payments'
     | '/expertise/conclusions-techniques'
     | '/expertise/fournitures'
     | '/expertise/points-de-choc'
@@ -1730,6 +2051,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/assignments'
     | '/chats'
+    | '/comptabilite'
     | '/help-center'
     | '/settings'
     | '/tasks'
@@ -1739,11 +2061,19 @@ export interface FileRouteTypes {
     | '/assignments/edit/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/realize/$id'
+    | '/comptabilite/check/create'
+    | '/comptabilite/payment/create'
+    | '/comptabilite/reports/checks'
+    | '/comptabilite/reports/payments'
+    | '/comptabilite/reports/treasury'
     | '/gestion/client/$id'
+    | '/comptabilite/check/edit/$id'
+    | '/comptabilite/payment/edit/$id'
   id:
     | '__root__'
     | '/_authenticated'
     | '/clerk'
+    | '/_authenticated/comptabilite'
     | '/_authenticated/settings'
     | '/clerk/(auth)'
     | '/clerk/_authenticated'
@@ -1774,6 +2104,11 @@ export interface FileRouteTypes {
     | '/_authenticated/administration/vehicles'
     | '/_authenticated/assignments/$id'
     | '/_authenticated/assignments/create'
+    | '/_authenticated/comptabilite/banks'
+    | '/_authenticated/comptabilite/checks'
+    | '/_authenticated/comptabilite/payment-methods'
+    | '/_authenticated/comptabilite/payment-types'
+    | '/_authenticated/comptabilite/payments'
     | '/_authenticated/expertise/conclusions-techniques'
     | '/_authenticated/expertise/fournitures'
     | '/_authenticated/expertise/points-de-choc'
@@ -1808,6 +2143,7 @@ export interface FileRouteTypes {
     | '/_authenticated/apps/'
     | '/_authenticated/assignments/'
     | '/_authenticated/chats/'
+    | '/_authenticated/comptabilite/'
     | '/_authenticated/help-center/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
@@ -1817,7 +2153,14 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments/edit/$id'
     | '/_authenticated/assignments/edite-report/$id'
     | '/_authenticated/assignments/realize/$id'
+    | '/_authenticated/comptabilite/check/create'
+    | '/_authenticated/comptabilite/payment/create'
+    | '/_authenticated/comptabilite/reports/checks'
+    | '/_authenticated/comptabilite/reports/payments'
+    | '/_authenticated/comptabilite/reports/treasury'
     | '/_authenticated/gestion/client/$id'
+    | '/_authenticated/comptabilite/check/edit/$id'
+    | '/_authenticated/comptabilite/payment/edit/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -1878,6 +2221,7 @@ export const routeTree = rootRoute
     "/_authenticated": {
       "filePath": "_authenticated/route.tsx",
       "children": [
+        "/_authenticated/comptabilite",
         "/_authenticated/settings",
         "/_authenticated/",
         "/_authenticated/administration/assignment-types",
@@ -1939,6 +2283,25 @@ export const routeTree = rootRoute
       "children": [
         "/clerk/(auth)",
         "/clerk/_authenticated"
+      ]
+    },
+    "/_authenticated/comptabilite": {
+      "filePath": "_authenticated/comptabilite/route.tsx",
+      "parent": "/_authenticated",
+      "children": [
+        "/_authenticated/comptabilite/banks",
+        "/_authenticated/comptabilite/checks",
+        "/_authenticated/comptabilite/payment-methods",
+        "/_authenticated/comptabilite/payment-types",
+        "/_authenticated/comptabilite/payments",
+        "/_authenticated/comptabilite/",
+        "/_authenticated/comptabilite/check/create",
+        "/_authenticated/comptabilite/payment/create",
+        "/_authenticated/comptabilite/reports/checks",
+        "/_authenticated/comptabilite/reports/payments",
+        "/_authenticated/comptabilite/reports/treasury",
+        "/_authenticated/comptabilite/check/edit/$id",
+        "/_authenticated/comptabilite/payment/edit/$id"
       ]
     },
     "/_authenticated/settings": {
@@ -2064,6 +2427,26 @@ export const routeTree = rootRoute
     "/_authenticated/assignments/create": {
       "filePath": "_authenticated/assignments/create.tsx",
       "parent": "/_authenticated"
+    },
+    "/_authenticated/comptabilite/banks": {
+      "filePath": "_authenticated/comptabilite/banks.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/checks": {
+      "filePath": "_authenticated/comptabilite/checks.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/payment-methods": {
+      "filePath": "_authenticated/comptabilite/payment-methods.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/payment-types": {
+      "filePath": "_authenticated/comptabilite/payment-types.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/payments": {
+      "filePath": "_authenticated/comptabilite/payments.tsx",
+      "parent": "/_authenticated/comptabilite"
     },
     "/_authenticated/expertise/conclusions-techniques": {
       "filePath": "_authenticated/expertise/conclusions-techniques.tsx",
@@ -2201,6 +2584,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/chats/index.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/comptabilite/": {
+      "filePath": "_authenticated/comptabilite/index.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
     "/_authenticated/help-center/": {
       "filePath": "_authenticated/help-center/index.tsx",
       "parent": "/_authenticated"
@@ -2237,9 +2624,37 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/assignments/realize.$id.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/comptabilite/check/create": {
+      "filePath": "_authenticated/comptabilite/check/create.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/payment/create": {
+      "filePath": "_authenticated/comptabilite/payment/create.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/reports/checks": {
+      "filePath": "_authenticated/comptabilite/reports/checks.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/reports/payments": {
+      "filePath": "_authenticated/comptabilite/reports/payments.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/reports/treasury": {
+      "filePath": "_authenticated/comptabilite/reports/treasury.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
     "/_authenticated/gestion/client/$id": {
       "filePath": "_authenticated/gestion/client.$id.tsx",
       "parent": "/_authenticated"
+    },
+    "/_authenticated/comptabilite/check/edit/$id": {
+      "filePath": "_authenticated/comptabilite/check/edit.$id.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/payment/edit/$id": {
+      "filePath": "_authenticated/comptabilite/payment/edit.$id.tsx",
+      "parent": "/_authenticated/comptabilite"
     }
   }
 }

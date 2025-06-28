@@ -259,13 +259,13 @@ export function ReceiptModal({
                   <div>
                     <Label className="text-sm text-muted-foreground">Montant du dossier</Label>
                     <p className="text-2xl font-bold text-blue-600">
-                      {assignmentAmount.toLocaleString('fr-FR')} €
+                      {assignmentAmount.toLocaleString('fr-FR')} F CFA
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm text-muted-foreground">Montant restant</Label>
                     <p className={`text-2xl font-bold ${remainingAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {remainingAmount.toLocaleString('fr-FR')} €
+                      {remainingAmount.toLocaleString('fr-FR')} F CFA
                     </p>
                   </div>
                 </div>
@@ -373,12 +373,12 @@ export function ReceiptModal({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Total des quittances</p>
-                      <p className="text-xl font-bold">{totalReceipts.toLocaleString('fr-FR')} €</p>
+                      <p className="text-xl font-bold">{totalReceipts.toLocaleString('fr-FR')} F CFA</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Montant restant</p>
                       <p className={`text-xl font-bold ${remainingAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {remainingAmount.toLocaleString('fr-FR')} €
+                        {remainingAmount.toLocaleString('fr-FR')} F CFA
                       </p>
                     </div>
                   </div>
