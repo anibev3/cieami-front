@@ -36,7 +36,7 @@ export default function UserAccountDisplay() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Statut du compte */}
       <Card>
         <CardHeader>

@@ -223,9 +223,9 @@ export default function AssignmentsPage() {
                             >
                               <span>{getStatusIcon(tab.value)}</span>
                               <span>{tab.label}</span>
-                              <Badge variant="secondary" className="text-xs">
+                              {/* <Badge variant="secondary" className="text-xs">
                                 {statusCounts[tab.value] || 0}
-                              </Badge>
+                              </Badge> */}
                             </Label>
                           </div>
                         ))}

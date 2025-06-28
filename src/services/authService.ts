@@ -46,7 +46,7 @@ class AuthService {
    */
   isAuthenticated(): boolean {
     if (typeof window !== 'undefined') {
-      return !!localStorage.getItem('auth_token')
+      return !!localStorage.getItem('expert_0001_auth_token')
     }
     return false
   }

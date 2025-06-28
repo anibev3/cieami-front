@@ -16,7 +16,7 @@ export const authTest = {
    */
   getToken: () => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token')
+      return localStorage.getItem('expert_0001_auth_token')
     }
     return null
   },
@@ -34,7 +34,7 @@ export const authTest = {
    */
   simulateLogout: () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token')
+      localStorage.removeItem('expert_0001_auth_token')
       // Forcer le rechargement pour tester la protection
       window.location.reload()
     }

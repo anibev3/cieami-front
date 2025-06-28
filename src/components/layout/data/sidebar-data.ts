@@ -4,7 +4,6 @@ import {
   IconChecklist,
   IconHelp,
   IconLayoutDashboard,
-  IconNotification,
   IconPackages,
   IconPalette,
   IconSettings,
@@ -69,6 +68,11 @@ export const sidebarData: SidebarData = {
           title: 'Dossiers',
           url: '/assignments',
           icon: IconFolder,
+        },
+        {
+          title: 'Coût de fourniture',
+          url: '/assignments/cost-of-supply',
+          icon: IconCheck,
         },
       ],
     },
@@ -370,16 +374,16 @@ export const sidebarData: SidebarData = {
       title: 'Paramètres',
       items: [
         {
-          title: 'Settings',
+          title: 'Préférences',
           icon: IconSettings,
           items: [
             {
-              title: 'Profile',
+              title: 'Profil',
               url: '/settings',
               icon: IconUserCog,
             },
             {
-              title: 'Account',
+              title: 'Compte',
               url: '/settings/account',
               icon: IconTool,
             },
@@ -388,16 +392,16 @@ export const sidebarData: SidebarData = {
               url: '/settings/appearance',
               icon: IconPalette,
             },
-            {
-              title: 'Notifications',
-              url: '/settings/notifications',
-              icon: IconNotification,
-            },
-            {
-              title: 'Display',
-              url: '/settings/display',
-              icon: IconBrowserCheck,
-            },
+            // {
+            //   title: 'Notifications',
+            //   url: '/settings/notifications',
+            //   icon: IconNotification,
+            // },
+            // {
+            //   title: 'Display',
+            //   url: '/settings/display',
+            //   icon: IconBrowserCheck,
+            // },
           ],
         },
         {

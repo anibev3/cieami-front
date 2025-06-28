@@ -19,7 +19,7 @@ export default function UserProfileDisplay() {
   const initials = `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* En-tête du profil */}
       <Card>
         <CardHeader className="text-center">

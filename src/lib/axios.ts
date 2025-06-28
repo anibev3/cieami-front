@@ -16,7 +16,7 @@ const axiosInstance: AxiosInstance = axios.create({
 // Fonction pour obtenir le token depuis le localStorage
 const getAuthToken = (): string | null => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('auth_token')
+    return localStorage.getItem('expert_0001_auth_token')
   }
   return null
 }
@@ -24,14 +24,15 @@ const getAuthToken = (): string | null => {
 // Fonction pour sauvegarder le token
 const setAuthToken = (token: string): void => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('auth_token', token)
+    localStorage.setItem('expert_0001_auth_token', token)
   }
 }
 
 // Fonction pour supprimer le token
 const removeAuthToken = (): void => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('auth_token')
+    localStorage.removeItem('expert_0001_auth_token')
+    localStorage.removeItem('expert_0001_auth_storage')
   }
 }
 

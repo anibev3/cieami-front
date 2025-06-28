@@ -29,10 +29,10 @@ export default function Settings() {
       <Main fixed>
         <div className='space-y-0.5'>
           <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
-            Settings
+            Préférences
           </h1>
           <p className='text-muted-foreground'>
-            Manage your account settings and set e-mail preferences.
+            Gérez vos préférences et paramètres.
           </p>
         </div>
         <Separator className='my-4 lg:my-6' />
@@ -51,28 +51,28 @@ export default function Settings() {
 
 const sidebarNavItems = [
   {
-    title: 'Profile',
+    title: 'Profil',
     icon: <IconUser size={18} />,
     href: '/settings',
   },
   {
-    title: 'Account',
+    title: 'Compte',
     icon: <IconTool size={18} />,
     href: '/settings/account',
   },
   {
-    title: 'Appearance',
+    title: 'Apparence',
     icon: <IconPalette size={18} />,
     href: '/settings/appearance',
   },
-  {
-    title: 'Notifications',
-    icon: <IconNotification size={18} />,
-    href: '/settings/notifications',
-  },
-  {
-    title: 'Display',
-    icon: <IconBrowserCheck size={18} />,
-    href: '/settings/display',
-  },
+  // {
+  //   title: 'Notifications',
+  //   icon: <IconNotification size={18} />,
+  //   href: '/settings/notifications',
+  // },
+  // {
+  //   title: 'Display',
+  //   icon: <IconBrowserCheck size={18} />,
+  //   href: '/settings/display',
+  // },
 ]

@@ -251,8 +251,8 @@ export default function PaymentTypesPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <ScrollArea className="h-[600px]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ScrollArea className="h-[600px] w-full overflow-y-auto scroll-smooth">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 faded-bottom h-full w-full overflow-y-auto scroll-smooth">
                 {filteredPaymentTypes.map((paymentType) => (
                   <Card key={paymentType.id} className="hover:shadow-lg transition-shadow shadow-none">
                     <CardHeader className="pb-3">
