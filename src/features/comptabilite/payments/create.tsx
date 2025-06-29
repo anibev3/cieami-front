@@ -29,8 +29,28 @@ export default function CreatePaymentPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await createPayment(formData)
-      toast.success('Paiement créé avec succès')
+      const result = await createPayment(formData)
+      
+      // Afficher un toast de succès avec les détails du paiement créé
+      toast.success(
+        <div className="space-y-2">
+          <div className="font-semibold">Paiement créé avec succès !</div>
+          <div className="text-sm space-y-1">
+            <div><span className="font-medium">Référence :</span> {result.reference}</div>
+            <div><span className="font-medium">Montant :</span> {Number(result.amount).toLocaleString('fr-FR')} F CFA</div>
+            <div><span className="font-medium">Date :</span> {new Date(result.date).toLocaleDateString('fr-FR')}</div>
+          </div>
+        </div>,
+        {
+          duration: 5000,
+          action: {
+            label: 'Voir la liste',
+            onClick: () => navigate({ to: '/comptabilite/payments' })
+          }
+        }
+      )
+      
+      // Rediriger vers la liste des paiements
       navigate({ to: '/comptabilite/payments' })
     } catch (_error) {
       // Error handled by store
@@ -108,6 +128,7 @@ export default function CreatePaymentPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="assignment_id">Dossier *</Label>
+                
                 <AssignmentSelect
                   value={formData.assignment_id}
                   onValueChange={(value) => setFormData({ ...formData, assignment_id: value })}
@@ -163,6 +184,8 @@ export default function CreatePaymentPage() {
                 />
               </div>
 
+              
+              {formData.payment_type_id != '1' && (
               <div className="space-y-2">
                 <Label htmlFor="payment_method_id">Méthode de paiement *</Label>
                 <PaymentMethodSelect
@@ -170,7 +193,8 @@ export default function CreatePaymentPage() {
                   onValueChange={(value) => setFormData({ ...formData, payment_method_id: value })}
                   placeholder="Sélectionnez une méthode de paiement"
                 />
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

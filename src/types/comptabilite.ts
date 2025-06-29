@@ -20,6 +20,7 @@ export interface User {
   telephone: string | null
   photo_url: string
   pending_verification: boolean
+  signature: string | null
   created_at: string | null
   updated_at: string | null
 }
@@ -288,11 +289,12 @@ export interface PaymentResponse {
 // Chèques
 export interface Check {
   id: number
-  payment_id: string
-  bank_id: string
+  reference: string
   date: string
   amount: string
-  photo_url: string | null
+  photo: string | null
+  payment: Payment | null
+  bank: Bank | null
   status: Status
   created_by: User
   updated_by: User

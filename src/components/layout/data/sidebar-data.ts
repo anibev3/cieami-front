@@ -74,6 +74,23 @@ export const sidebarData: SidebarData = {
           url: '/assignments/cost-of-supply',
           icon: IconCheck,
         },
+        {
+          title: 'Gestion des photos',
+          icon: IconPalette,
+          items: [
+            {
+              title: 'Photos',
+              url: '/gestion/photos',
+              icon: IconPalette,
+            },
+            {
+              title: 'Types de photos',
+              url: '/gestion/photo-types',
+              icon: IconPalette,
+            },
+
+          ],
+        },
       ],
     },
     {

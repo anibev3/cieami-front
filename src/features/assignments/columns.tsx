@@ -1,10 +1,20 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { Assignment } from '@/types/assignments'
 import { Badge } from '@/components/ui/badge'
-import { ExternalLink, AlertTriangle, Clock } from 'lucide-react'
+import { ExternalLink, AlertTriangle, Clock, Info, Calendar, TrendingUp, AlertCircle } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import { AssignmentActions } from './components/assignment-actions'
 import { AssignmentStatusEnum } from '@/types/global-types'
+import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
 
 interface ColumnsProps {
   onDelete: (assignment: Assignment) => void
@@ -25,6 +35,169 @@ function getTimeLeft(expireAt: string | null) {
   return { expired: false, days, hours, minutes }
 }
 
+// Composant Modal pour les détails du délai
+function DelayDetailsModal({ 
+  isOpen, 
+  onClose, 
+  label, 
+  expireAt, 
+  status, 
+  percent 
+}: {
+  isOpen: boolean
+  onClose: () => void
+  label: string
+  expireAt: string | null
+  status: string | null
+  percent: number | null
+}) {
+  if (!expireAt) return null
+
+  const timeLeft = getTimeLeft(expireAt)
+  if (!timeLeft) return null
+
+  const isExpired = timeLeft.expired
+  const isUrgent = timeLeft.expired || (timeLeft.days === 0 && timeLeft.hours < 24)
+  const isInProgress = status === 'in_progress'
+
+  const getStatusColor = () => {
+    if (isExpired) return 'text-red-600'
+    if (isUrgent) return 'text-orange-600'
+    if (isInProgress) return 'text-blue-600'
+    return 'text-gray-600'
+  }
+
+  const getStatusIcon = () => {
+    if (isExpired) return <AlertCircle className="h-5 w-5 text-red-600" />
+    if (isUrgent) return <AlertTriangle className="h-5 w-5 text-orange-600" />
+    if (isInProgress) return <TrendingUp className="h-5 w-5 text-blue-600" />
+    return <Clock className="h-5 w-5 text-gray-600" />
+  }
+
+  const getStatusText = () => {
+    if (isExpired) return 'Expiré'
+    if (isUrgent) return 'Urgent'
+    if (isInProgress) return 'En cours'
+    return 'En attente'
+  }
+
+  const getProgressColor = () => {
+    if (label === "Édition") {
+      if (percent && percent >= 0 && percent <= 50) return 'bg-green-500'
+      if (percent && percent > 50 && percent <= 90) return 'bg-yellow-500'
+      if (percent && percent > 90) return 'bg-red-500'
+    }
+    return 'bg-blue-500'
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {getStatusIcon()}
+            Détails du délai - {label}
+          </DialogTitle>
+          <DialogDescription>
+            Informations détaillées sur la progression et les échéances
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Statut général */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium">Statut</p>
+              <p className={`text-sm ${getStatusColor()}`}>{getStatusText()}</p>
+            </div>
+            <Badge variant={isExpired ? 'destructive' : isUrgent ? 'secondary' : 'outline'}>
+              {isExpired ? 'Expiré' : isUrgent ? 'Urgent' : 'Normal'}
+            </Badge>
+          </div>
+
+          {/* Progression */}
+          {percent !== null && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Progression</span>
+                <span className="text-sm font-bold">{percent}%</span>
+              </div>
+              <Progress value={percent} className="h-2" />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>0%</span>
+                <span>100%</span>
+              </div>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Délai restant */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">Délai restant</span>
+            </div>
+            
+            {isExpired ? (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800 font-medium">Délai expiré</p>
+                <p className="text-sm text-red-600">
+                  Le délai a expiré le {formatDate(expireAt)}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-600">{timeLeft.days}</p>
+                  <p className="text-xs text-blue-600">Jours</p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-600">{timeLeft.hours}</p>
+                  <p className="text-xs text-blue-600">Heures</p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-600">{timeLeft.minutes}</p>
+                  <p className="text-xs text-blue-600">Minutes</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Date d'expiration */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">Date d'expiration</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {formatDate(expireAt)}
+            </p>
+          </div>
+
+          {/* Recommandations */}
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2">Recommandations</h4>
+            {isExpired ? (
+              <p className="text-sm text-blue-800">
+                Le délai est expiré. Une action immédiate est requise pour éviter les conséquences.
+              </p>
+            ) : isUrgent ? (
+              <p className="text-sm text-blue-800">
+                Le délai approche de sa fin. Il est recommandé de finaliser rapidement cette étape.
+              </p>
+            ) : (
+              <p className="text-sm text-blue-800">
+                Le délai est dans les normes. Continuez à travailler normalement.
+              </p>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // Composant pour afficher le compte à rebours
 function CountdownBadge({ label, expireAt, status, percent }: { 
   label: string
@@ -32,7 +205,8 @@ function CountdownBadge({ label, expireAt, status, percent }: {
   status: string | null
   percent: number | null
 }) {
-
+  const [showModal, setShowModal] = useState(false)
+  
   if (!expireAt) return null
   
   const timeLeft = getTimeLeft(expireAt)
@@ -41,47 +215,131 @@ function CountdownBadge({ label, expireAt, status, percent }: {
   const isUrgent = timeLeft.expired || (timeLeft.days === 0 && timeLeft.hours < 24)
   const isInProgress = status === 'in_progress'
 
+  // Fonction pour déterminer la couleur selon le pourcentage (uniquement pour "Édition")
+  const getColorByPercentage = (label: string, percent: number | null) => {
+    if (label !== "Édition" || percent === null) return null
+    
+    if (percent >= 0 && percent <= 50) {
+      return 'green' // Vert pour 0-50%
+    } else if (percent > 50 && percent <= 90) {
+      return 'warning' // Warning pour 50-90%
+    } else if (percent > 90) {
+      return 'danger' // Danger pour 90%+
+    }
+    return null
+  }
+
+  const percentageColor = getColorByPercentage(label, percent)
+
   if (timeLeft.expired) {
     return (
-      <div className="flex flex-col items-center gap-1">
-        <Badge variant="destructive" className="flex items-center gap-1 bg-red-100 text-red-800 border-red-300 text-xs">
-          <AlertTriangle className="h-3 w-3" />
-          {label} expiré
-        </Badge>
-        {percent !== null && (
-          <span className="text-xs text-red-600 font-medium">{percent}%</span>
-        )}
-      </div>
-    ) 
+      <>
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex items-center gap-1">
+            <Badge variant="destructive" className="flex items-center gap-1 bg-red-100 text-red-800 border-red-300 text-xs">
+              <AlertTriangle className="h-3 w-3" />
+              {label} expiré
+            </Badge>
+            <button
+              onClick={() => setShowModal(true)}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <Info className="h-3 w-3 text-gray-500 hover:text-gray-700" />
+            </button>
+          </div>
+          {percent !== null && (
+            <span className="text-xs text-red-600 font-medium">{percent}%</span>
+          )}
+        </div>
+        <DelayDetailsModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          label={label}
+          expireAt={expireAt}
+          status={status}
+          percent={percent}
+        />
+      </>
+    )
+  }
+
+  // Déterminer la classe CSS selon la couleur du pourcentage
+  const getBadgeClassName = () => {
+    if (percentageColor === 'green') {
+      return 'flex items-center gap-1 bg-green-100 text-green-800 border-green-300 text-xs'
+    } else if (percentageColor === 'warning') {
+      return 'flex items-center gap-1 bg-yellow-100 text-yellow-800 border-yellow-300 text-xs'
+    } else if (percentageColor === 'danger') {
+      return 'flex items-center gap-1 bg-red-100 text-red-800 border-red-300 text-xs animate-pulse'
+    }
+    
+    // Couleurs par défaut si pas de couleur spécifique au pourcentage
+    if (isUrgent) {
+      return 'flex items-center gap-1 bg-red-100 text-red-800 border-red-300 text-xs animate-pulse'
+    } else if (isInProgress) {
+      return 'flex items-center gap-1 bg-blue-100 text-blue-800 border-blue-300 text-xs'
+    } else {
+      return 'flex items-center gap-1 bg-gray-100 text-gray-800 border-gray-300 text-xs'
+    }
+  }
+
+  // Déterminer la couleur du texte du pourcentage
+  const getPercentageTextColor = () => {
+    if (percentageColor === 'green') {
+      return 'text-green-600'
+    } else if (percentageColor === 'warning') {
+      return 'text-yellow-600'
+    } else if (percentageColor === 'danger') {
+      return 'text-red-600'
+    }
+    
+    // Couleurs par défaut
+    if (isUrgent) {
+      return 'text-red-600'
+    } else if (isInProgress) {
+      return 'text-blue-600'
+    } else {
+      return 'text-gray-600'
+    }
   }
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <Badge
-        variant={isUrgent ? 'destructive' : 'outline'}
-        className={
-          isUrgent
-            ? 'flex items-center gap-1 bg-red-100 text-red-800 border-red-300 text-xs animate-pulse'
-            : isInProgress
-            ? 'flex items-center gap-1 bg-blue-100 text-blue-800 border-blue-300 text-xs'
-            : 'flex items-center gap-1 bg-gray-100 text-gray-800 border-gray-300 text-xs'
-        }
-      >
-        {isUrgent && <AlertTriangle className="h-3 w-3" />}
-        {!isUrgent && <Clock className="h-3 w-3" />}
-        {timeLeft.days > 0 && `${timeLeft.days}j`}
-        {timeLeft.days === 0 && timeLeft.hours > 0 && `${timeLeft.hours}h`}
-        {timeLeft.days === 0 && timeLeft.hours === 0 && `${timeLeft.minutes}min`}
-        {timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && '<1min'}
-      </Badge>
-      {percent !== null && (
-        <span className={`text-xs font-medium ${
-          isUrgent ? 'text-red-600' : isInProgress ? 'text-blue-600' : 'text-gray-600'
-        }`}>
-          {percent}%
-        </span>
-      )}
-    </div>
+    <>
+      <div className="flex flex-col items-center gap-1">
+        <div className="flex items-center gap-1">
+          <Badge
+            variant={isUrgent ? 'destructive' : 'outline'}
+            className={getBadgeClassName()}
+          >
+            {isUrgent && <AlertTriangle className="h-3 w-3" />}
+            {!isUrgent && <Clock className="h-3 w-3" />}
+            {timeLeft.days > 0 && `${timeLeft.days}j`}
+            {timeLeft.days === 0 && timeLeft.hours > 0 && `${timeLeft.hours}h`}
+            {timeLeft.days === 0 && timeLeft.hours === 0 && `${timeLeft.minutes}min`}
+            {timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && '<1min'}
+          </Badge>
+          <button
+            onClick={() => setShowModal(true)}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <Info className="h-3 w-3 text-gray-500 hover:text-gray-700" />
+          </button>
+        </div>
+        {percent !== null && (
+          <span className={`text-xs font-medium ${getPercentageTextColor()}`}>
+            {percent}%
+          </span>
+        )}
+      </div>
+      <DelayDetailsModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        label={label}
+        expireAt={expireAt}
+        status={status}
+        percent={percent}
+      />
+    </>
   )
 }
 

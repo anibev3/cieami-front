@@ -53,6 +53,7 @@ import { Route as AuthenticatedReparationCarrosseriesImport } from './routes/_au
 import { Route as AuthenticatedGestionReparateursidImport } from './routes/_authenticated/gestion/reparateurs_$id'
 import { Route as AuthenticatedGestionReparateursImport } from './routes/_authenticated/gestion/reparateurs'
 import { Route as AuthenticatedGestionPhotosImport } from './routes/_authenticated/gestion/photos'
+import { Route as AuthenticatedGestionPhotoTypesImport } from './routes/_authenticated/gestion/photo-types'
 import { Route as AuthenticatedGestionDocumentsidImport } from './routes/_authenticated/gestion/documents_$id'
 import { Route as AuthenticatedGestionDocumentsImport } from './routes/_authenticated/gestion/documents'
 import { Route as AuthenticatedGestionClientsImport } from './routes/_authenticated/gestion/clients'
@@ -377,6 +378,13 @@ const AuthenticatedGestionPhotosRoute = AuthenticatedGestionPhotosImport.update(
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any,
 )
+
+const AuthenticatedGestionPhotoTypesRoute =
+  AuthenticatedGestionPhotoTypesImport.update({
+    id: '/gestion/photo-types',
+    path: '/gestion/photo-types',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 const AuthenticatedGestionDocumentsidRoute =
   AuthenticatedGestionDocumentsidImport.update({
@@ -1090,6 +1098,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGestionDocumentsidImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/gestion/photo-types': {
+      id: '/_authenticated/gestion/photo-types'
+      path: '/gestion/photo-types'
+      fullPath: '/gestion/photo-types'
+      preLoaderRoute: typeof AuthenticatedGestionPhotoTypesImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/gestion/photos': {
       id: '/_authenticated/gestion/photos'
       path: '/gestion/photos'
@@ -1473,6 +1488,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestionClientsRoute: typeof AuthenticatedGestionClientsRoute
   AuthenticatedGestionDocumentsRoute: typeof AuthenticatedGestionDocumentsRoute
   AuthenticatedGestionDocumentsidRoute: typeof AuthenticatedGestionDocumentsidRoute
+  AuthenticatedGestionPhotoTypesRoute: typeof AuthenticatedGestionPhotoTypesRoute
   AuthenticatedGestionPhotosRoute: typeof AuthenticatedGestionPhotosRoute
   AuthenticatedGestionReparateursRoute: typeof AuthenticatedGestionReparateursRoute
   AuthenticatedGestionReparateursidRoute: typeof AuthenticatedGestionReparateursidRoute
@@ -1550,6 +1566,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGestionClientsRoute: AuthenticatedGestionClientsRoute,
   AuthenticatedGestionDocumentsRoute: AuthenticatedGestionDocumentsRoute,
   AuthenticatedGestionDocumentsidRoute: AuthenticatedGestionDocumentsidRoute,
+  AuthenticatedGestionPhotoTypesRoute: AuthenticatedGestionPhotoTypesRoute,
   AuthenticatedGestionPhotosRoute: AuthenticatedGestionPhotosRoute,
   AuthenticatedGestionReparateursRoute: AuthenticatedGestionReparateursRoute,
   AuthenticatedGestionReparateursidRoute:
@@ -1686,6 +1703,7 @@ export interface FileRoutesByFullPath {
   '/gestion/clients': typeof AuthenticatedGestionClientsRoute
   '/gestion/documents': typeof AuthenticatedGestionDocumentsRoute
   '/gestion/documents_$id': typeof AuthenticatedGestionDocumentsidRoute
+  '/gestion/photo-types': typeof AuthenticatedGestionPhotoTypesRoute
   '/gestion/photos': typeof AuthenticatedGestionPhotosRoute
   '/gestion/reparateurs': typeof AuthenticatedGestionReparateursRoute
   '/gestion/reparateurs_$id': typeof AuthenticatedGestionReparateursidRoute
@@ -1775,6 +1793,7 @@ export interface FileRoutesByTo {
   '/gestion/clients': typeof AuthenticatedGestionClientsRoute
   '/gestion/documents': typeof AuthenticatedGestionDocumentsRoute
   '/gestion/documents_$id': typeof AuthenticatedGestionDocumentsidRoute
+  '/gestion/photo-types': typeof AuthenticatedGestionPhotoTypesRoute
   '/gestion/photos': typeof AuthenticatedGestionPhotosRoute
   '/gestion/reparateurs': typeof AuthenticatedGestionReparateursRoute
   '/gestion/reparateurs_$id': typeof AuthenticatedGestionReparateursidRoute
@@ -1870,6 +1889,7 @@ export interface FileRoutesById {
   '/_authenticated/gestion/clients': typeof AuthenticatedGestionClientsRoute
   '/_authenticated/gestion/documents': typeof AuthenticatedGestionDocumentsRoute
   '/_authenticated/gestion/documents_$id': typeof AuthenticatedGestionDocumentsidRoute
+  '/_authenticated/gestion/photo-types': typeof AuthenticatedGestionPhotoTypesRoute
   '/_authenticated/gestion/photos': typeof AuthenticatedGestionPhotosRoute
   '/_authenticated/gestion/reparateurs': typeof AuthenticatedGestionReparateursRoute
   '/_authenticated/gestion/reparateurs_$id': typeof AuthenticatedGestionReparateursidRoute
@@ -1965,6 +1985,7 @@ export interface FileRouteTypes {
     | '/gestion/clients'
     | '/gestion/documents'
     | '/gestion/documents_$id'
+    | '/gestion/photo-types'
     | '/gestion/photos'
     | '/gestion/reparateurs'
     | '/gestion/reparateurs_$id'
@@ -2053,6 +2074,7 @@ export interface FileRouteTypes {
     | '/gestion/clients'
     | '/gestion/documents'
     | '/gestion/documents_$id'
+    | '/gestion/photo-types'
     | '/gestion/photos'
     | '/gestion/reparateurs'
     | '/gestion/reparateurs_$id'
@@ -2146,6 +2168,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gestion/clients'
     | '/_authenticated/gestion/documents'
     | '/_authenticated/gestion/documents_$id'
+    | '/_authenticated/gestion/photo-types'
     | '/_authenticated/gestion/photos'
     | '/_authenticated/gestion/reparateurs'
     | '/_authenticated/gestion/reparateurs_$id'
@@ -2278,6 +2301,7 @@ export const routeTree = rootRoute
         "/_authenticated/gestion/clients",
         "/_authenticated/gestion/documents",
         "/_authenticated/gestion/documents_$id",
+        "/_authenticated/gestion/photo-types",
         "/_authenticated/gestion/photos",
         "/_authenticated/gestion/reparateurs",
         "/_authenticated/gestion/reparateurs_$id",
@@ -2527,6 +2551,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/gestion/documents_$id": {
       "filePath": "_authenticated/gestion/documents_$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/gestion/photo-types": {
+      "filePath": "_authenticated/gestion/photo-types.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/gestion/photos": {

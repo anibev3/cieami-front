@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Search, Plus, Edit, Trash2, CheckSquare, Eye, EyeOff, Activity } from 'lucide-react'
+import { Search, Plus, Edit, Trash2, CheckSquare, Eye, EyeOff, Activity, Image } from 'lucide-react'
 
 export default function ChecksPage() {
   const navigate = useNavigate()
@@ -23,8 +23,9 @@ export default function ChecksPage() {
   }, [fetchChecks])
 
   const filteredChecks = checks.filter(check =>
-    check?.payment_id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-    check?.bank_id?.toLowerCase().includes(searchTerm?.toLowerCase())
+    check?.reference?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    check?.bank?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    check?.payment?.reference?.toLowerCase().includes(searchTerm?.toLowerCase())
   )
 
   const handleDelete = async (id: number) => {
@@ -116,10 +117,10 @@ export default function ChecksPage() {
       {/* Checks Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredChecks.map((check) => (
-          <Card key={check.id} className="hover:shadow-lg transition-shadow">
+          <Card key={check.id} className="hover:shadow-lg transition-shadow shadow-none">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Chèque #{check.id}</CardTitle>
+                <CardTitle className="text-lg">{check.reference.slice(0, 10)}...</CardTitle>
                 <div className="flex items-center space-x-2">
                   {check.status.code === 'active' ? (
                     <Badge variant="default" className="bg-green-100 text-green-800">
@@ -135,14 +136,14 @@ export default function ChecksPage() {
                 </div>
               </div>
               <CardDescription>
-                Paiement: {check.payment_id} | Banque: {check.bank_id}
+                {check.payment ? `Paiement: ${check.payment.reference}` : 'Aucun paiement'} | {check.bank ? `Banque: ${check.bank.name}` : 'Aucune banque'}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="font-medium">Montant:</span> {parseFloat(check.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                    <span className="font-medium">Montant:</span> {parseFloat(check.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
                   </div>
                   <div>
                     <span className="font-medium">Date:</span> {new Date(check.date).toLocaleDateString()}
@@ -150,8 +151,18 @@ export default function ChecksPage() {
                   <div>
                     <span className="font-medium">Statut:</span> {check.status.label}
                   </div>
-                  <div>
-                    <span className="font-medium">Photo:</span> {check.photo_url ? 'Oui' : 'Non'}
+                  <div className="flex items-center gap-1">
+                    <span className="font-medium">Photo:</span> 
+                    {check.photo ? (
+                      <Badge variant="outline" className="text-xs">
+                        <Image className="mr-1 h-3 w-3" />
+                        Disponible
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Aucune
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-2">
@@ -176,7 +187,7 @@ export default function ChecksPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Cette action ne peut pas être annulée. Cela supprimera définitivement le chèque #{check.id}.
+                            Cette action ne peut pas être annulée. Cela supprimera définitivement le chèque {check.reference}.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

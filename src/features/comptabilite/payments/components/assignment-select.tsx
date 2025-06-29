@@ -34,9 +34,10 @@ export function AssignmentSelect({
   const { assignments, loading, fetchAssignments } = useAssignmentsStore()
 
   // Filtrer les dossiers avec le statut "edited"
-  const editedAssignments = assignments.filter(
-    assignment => assignment.status.code === 'edited'
-  )
+  const editedAssignments = assignments
+  //   .filter(
+  //   assignment => assignment.status.code === 'edited'
+  // )
 
   useEffect(() => {
     if (assignments.length === 0) {

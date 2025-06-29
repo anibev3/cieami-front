@@ -99,7 +99,8 @@ export interface CreateUserData {
   last_name: string
   telephone: string
   entity_id: number
-  role_name: string
+  role: string
+  code: string
 }
 
 export interface UpdateUserData {
@@ -109,7 +110,7 @@ export interface UpdateUserData {
   last_name?: string
   telephone?: string
   entity_id?: number
-  role_name?: string
+  role?: string
 }
 
 export interface UserFilters {

@@ -12,7 +12,7 @@ interface PaymentState {
   
   // Actions
   fetchPayments: () => Promise<void>
-  createPayment: (data: CreatePaymentData) => Promise<void>
+  createPayment: (data: CreatePaymentData) => Promise<Payment>
   updatePayment: (id: number, data: UpdatePaymentData) => Promise<void>
   deletePayment: (id: number) => Promise<void>
   setSelectedPayment: (payment: Payment | null) => void
@@ -39,7 +39,7 @@ export const usePaymentStore = create<PaymentState>((set) => ({
     }
   },
 
-  createPayment: async (data: CreatePaymentData) => {
+  createPayment: async (data: CreatePaymentData): Promise<Payment> => {
     try {
       set({ loading: true })
       const newPayment = await paymentService.create(data)
@@ -47,7 +47,7 @@ export const usePaymentStore = create<PaymentState>((set) => ({
         payments: [...state.payments, newPayment], 
         loading: false 
       }))
-      toast.success('Paiement créé avec succès')
+      return newPayment
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ loading: false })

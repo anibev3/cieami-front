@@ -159,16 +159,16 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="font-medium">Montant:</span> {parseFloat(payment.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                    <span className="font-medium">Montant:</span> {parseFloat(payment.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
                   </div>
                   <div>
                     <span className="font-medium">Date:</span> {new Date(payment.date).toLocaleDateString()}
                   </div>
                   <div>
-                    <span className="font-medium">Type:</span> {payment.payment_type.label}
+                    <span className="font-medium">Type:</span> {payment?.payment_type?.label}
                   </div>
                   <div>
-                    <span className="font-medium">Méthode:</span> {payment.payment_method.label}
+                    <span className="font-medium">Méthode:</span> {payment?.payment_method?.label}
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-2">

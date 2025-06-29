@@ -112,7 +112,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
         <div className="flex items-center space-x-2">
           <Building className="h-4 w-4 text-muted-foreground" />
           <Badge variant="outline">
-            {entity.name}
+            {entity?.name || ''}
           </Badge>
         </div>
       )
@@ -127,7 +127,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
         <div className="flex items-center space-x-2">
           <Shield className="h-4 w-4 text-muted-foreground" />
           <Badge variant="secondary">
-            {role.label}
+            {role?.label || ''}
           </Badge>
         </div>
       )

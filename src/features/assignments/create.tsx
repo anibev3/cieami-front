@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 import { useState, useEffect } from 'react'
@@ -106,7 +107,7 @@ interface AssignmentCreatePayload {
   repairer_id: number
   assignment_type_id: number
   expertise_type_id: number
-  document_transmitted_id: number
+  document_transmitted_id: any[]
   policy_number: string | null
   claim_number: string | null
   claim_starts_at: string | null
@@ -139,7 +140,7 @@ const assignmentSchema = z.object({
   repairer_id: z.string().min(1, 'Le réparateur est requis'),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
-  document_transmitted_ids: z.array(z.string()).min(1, 'Au moins un document transmis est requis'),
+  document_transmitted_id: z.array(z.string()).min(1, 'Au moins un document transmis est requis'),
   policy_number: z.string().optional(),
   claim_number: z.string().optional(),
   claim_starts_at: z.string().optional(),
@@ -266,7 +267,7 @@ export default function CreateAssignmentPage() {
       repairer_id: '',
       assignment_type_id: '',
       expertise_type_id: '',
-      document_transmitted_ids: [],
+      document_transmitted_id: [],
       policy_number: '',
       claim_number: '',
       claim_starts_at: '',
@@ -300,7 +301,7 @@ export default function CreateAssignmentPage() {
             repairer_id: assignment.repairer_id?.toString() || '',
             assignment_type_id: assignment.assignment_type_id?.toString() || '',
             expertise_type_id: assignment.expertise_type_id?.toString() || '',
-            document_transmitted_ids: assignment.document_transmitted_ids?.map((id: number) => id.toString()) || [],
+            document_transmitted_id: assignment.document_transmitted_id?.map((id: number) => id.toString()) || [],
             policy_number: assignment.policy_number || '',
             claim_number: assignment.claim_number || '',
             claim_starts_at: assignment.claim_starts_at || '',
@@ -394,7 +395,7 @@ export default function CreateAssignmentPage() {
       const values = form.getValues()
       const hasAssignmentType = values.assignment_type_id && values.assignment_type_id.toString().length > 0
       const hasExpertiseType = values.expertise_type_id && values.expertise_type_id.toString().length > 0
-      const hasDocuments = values.document_transmitted_ids && values.document_transmitted_ids.length > 0
+      const hasDocuments = values.document_transmitted_id && values.document_transmitted_id.length > 0
       
       return hasAssignmentType && hasExpertiseType && hasDocuments
     },
@@ -571,8 +572,7 @@ export default function CreateAssignmentPage() {
         repairer_id: parseInt(values.repairer_id),
         assignment_type_id: parseInt(values.assignment_type_id),
         expertise_type_id: parseInt(values.expertise_type_id),
-        // document_transmitted_ids: values.document_transmitted_ids.map(id => parseInt(id)),
-        document_transmitted_id: values.document_transmitted_ids[0],
+        document_transmitted_id: values.document_transmitted_id.map(id => parseInt(id)),
         policy_number: values.policy_number || null,
         claim_number: values.claim_number || null,
         claim_starts_at: values.claim_starts_at || null,
@@ -787,7 +787,7 @@ export default function CreateAssignmentPage() {
                       const isCompleted = section.id === 1 ? 
                         (form.watch('client_id') && form.watch('vehicle_id') && form.watch('insurer_id') && form.watch('repairer_id')) :
                         section.id === 2 ?
-                        (form.watch('assignment_type_id') && form.watch('expertise_type_id') && form.watch('document_transmitted_ids')?.length > 0) :
+                        (form.watch('assignment_type_id') && form.watch('expertise_type_id') && form.watch('document_transmitted_id')?.length > 0) :
                         section.id === 3 ?
                         (form.watch('received_at') && form.watch('experts')?.length > 0) :
                         true
@@ -1355,7 +1355,7 @@ export default function CreateAssignmentPage() {
                         <div className="space-y-4">
                           <FormField
                             control={form.control}
-                            name="document_transmitted_ids"
+                            name="document_transmitted_id"
                             render={({ field }) => (
                               <FormItem>
                                 {/* <FormLabel>Documents transmis</FormLabel> */}

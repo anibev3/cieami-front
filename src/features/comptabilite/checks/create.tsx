@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Plus, CreditCard, Building2, Calendar, Euro } from 'lucide-react'
+import { ArrowLeft, Plus, CreditCard, Building2, Calendar, Euro, Upload, X, Image, FileImage } from 'lucide-react'
 import { PaymentSelect } from './components/payment-select'
 import { BankSelect } from './components/bank-select'
 import { DatePicker } from '../payments/components/date-picker'
@@ -22,6 +22,57 @@ export default function CreateCheckPage() {
     date: new Date().toISOString().split('T')[0],
     amount: 0
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+
+  const handleFileSelect = (file: File) => {
+    // Vérifier le type de fichier
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image valide')
+      return
+    }
+
+    // Vérifier la taille (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('L\'image ne doit pas dépasser 5MB')
+      return
+    }
+
+    setSelectedFile(file)
+    
+    // Créer l'URL de prévisualisation
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      handleFileSelect(files[0])
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const removeFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    setSelectedFile(null)
+    setPreviewUrl(null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +83,11 @@ export default function CreateCheckPage() {
     }
 
     try {
-      await createCheck(formData)
+      const checkData = {
+        ...formData,
+        photo: selectedFile || undefined
+      }
+      await createCheck(checkData)
       toast.success('Chèque créé avec succès')
       navigate({ to: '/comptabilite/checks' })
     } catch (_error) {
@@ -145,6 +200,91 @@ export default function CreateCheckPage() {
                   placeholder="Sélectionnez une date..."
                 />
               </div>
+            </div>
+
+            {/* Photo Upload */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Image className="h-4 w-4" />
+                Photo du chèque
+              </Label>
+              
+              {!previewUrl ? (
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    isDragOver 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                >
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <div className="space-y-2">
+                    <p className="text-lg font-medium text-gray-900">
+                      Glissez-déposez votre image ici
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      ou cliquez pour sélectionner un fichier
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      PNG, JPG, JPEG jusqu'à 5MB
+                    </p>
+                  </div>
+                  
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleFileSelect(file)
+                    }}
+                    className="hidden"
+                    id="photo-upload"
+                  />
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => document.getElementById('photo-upload')?.click()}
+                  >
+                    <FileImage className="mr-2 h-4 w-4" />
+                    Sélectionner une image
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <img
+                          src={previewUrl}
+                          alt="Prévisualisation du chèque"
+                          className="w-20 h-20 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeFile}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{selectedFile?.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {(selectedFile?.size || 0 / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {selectedFile?.type}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Form Actions */}

@@ -26,6 +26,9 @@ export const API_CONFIG = {
     PAINT_TYPES: '/paint-types',
     HOURLY_RATES: '/hourly-rates',
     CALCULATIONS: '/assignments/calculate',
+    // Endpoints pour la gestion
+    PHOTO_TYPES: '/photo-types',
+    PHOTOS: '/photos',
   },
 } as const
 
@@ -56,5 +59,8 @@ export interface ApiConfig {
     PAINT_TYPES: string
     HOURLY_RATES: string
     CALCULATIONS: string
+    // Endpoints pour la gestion
+    PHOTO_TYPES: string
+    PHOTOS: string
   }
 } 

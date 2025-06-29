@@ -40,12 +40,14 @@ import {
   Users,
   Zap as Lightning,
   Calculator,
-  FileCheck
+  FileCheck,
+  Camera
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { Search } from '@/components/search'
 import { CountdownAlert } from '@/components/countdown-alert'
+import { AssignmentPhotos } from './detail/components/AssignmentPhotos'
 
 interface AssignmentDetail {
   id: number
@@ -287,6 +289,12 @@ export default function AssignmentDetailPage() {
       label: 'Véhicule',
       icon: Car,
       description: 'Informations du véhicule'
+    },
+    {
+      id: 'photos',
+      label: 'Photos',
+      icon: Camera,
+      description: 'Photos de l\'assignation'
     },
     {
       id: 'shocks',
@@ -584,6 +592,14 @@ export default function AssignmentDetailPage() {
           </div>
         )
 
+      case 'photos':
+        return (
+          <AssignmentPhotos 
+            assignmentId={assignment.id.toString()} 
+            assignmentReference={assignment.reference} 
+          />
+        )
+
       case 'shocks':
         return (
           <div className="space-y-6">
@@ -829,7 +845,7 @@ export default function AssignmentDetailPage() {
               {assignment.edition_status && (
                 <div className="flex flex-col items-center">
                   <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1">
-                    Édition : {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
+                    Délai de redaction: {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
                   </Badge>
                   {assignment.edition_time_expire_at && (
                     <span className="text-xs text-blue-700 font-medium">
@@ -847,7 +863,7 @@ export default function AssignmentDetailPage() {
               {assignment.recovery_status && (
                 <div className="flex flex-col items-center">
                   <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300">
-                    Récupération : {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
+                    Délai de recouvrement: {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
                   </Badge>
                   {assignment.recovery_time_expire_at && (
                     <span className="text-xs text-yellow-700 font-medium">
@@ -931,10 +947,10 @@ export default function AssignmentDetailPage() {
               )}
               {/* Décompte dynamique (alerte si proche de l'expiration) */}
               {assignment.edition_time_expire_at && (
-                <CountdownAlert label="Édition" expireAt={assignment.edition_time_expire_at} />
+                <CountdownAlert label="Redaction" expireAt={assignment.edition_time_expire_at} />
               )}
               {assignment.recovery_time_expire_at && (
-                <CountdownAlert label="Récupération" expireAt={assignment.recovery_time_expire_at} />
+                <CountdownAlert label="Recouvrement" expireAt={assignment.recovery_time_expire_at} />
               )}
             </CardContent>
           </Card>

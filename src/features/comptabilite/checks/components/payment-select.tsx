@@ -60,7 +60,7 @@ export function PaymentSelect({
             <div className="flex flex-col items-start text-left">
               <span className="font-medium">{selectedPayment.reference}</span>
               <span className="text-xs text-muted-foreground">
-                {parseFloat(selectedPayment.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })} - {selectedPayment.payment_method.label}
+                {parseFloat(selectedPayment.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })} - {selectedPayment.payment_method?.label || 'Méthode non définie'}
               </span>
             </div>
           ) : (
@@ -85,7 +85,7 @@ export function PaymentSelect({
                 {payments.map((payment) => (
                   <CommandItem
                     key={payment.id}
-                    value={`${payment.reference} ${payment.payment_method.label} ${payment.assignment.reference}`}
+                    value={`${payment.reference} ${payment.payment_method?.label || 'Méthode non définie'} ${payment.assignment.reference}`}
                     onSelect={() => {
                       onValueChange(payment.id.toString())
                       setOpen(false)
@@ -100,7 +100,7 @@ export function PaymentSelect({
                     <div className="flex flex-col">
                       <span className="font-medium">{payment.reference}</span>
                       <span className="text-xs text-muted-foreground">
-                        {parseFloat(payment.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })} - {payment.payment_method.label}
+                        {parseFloat(payment.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })} - {payment.payment_method?.label || 'Méthode non définie'}
                       </span>
                     </div>
                   </CommandItem>

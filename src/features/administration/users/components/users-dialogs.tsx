@@ -56,7 +56,8 @@ export function UsersDialogs({
     last_name: '',
     telephone: '',
     entity_id: 0,
-    role_name: '',
+    role: '',
+    code: '',
   })
 
   const [editForm, setEditForm] = useState<UpdateUserData>({})
@@ -76,7 +77,8 @@ export function UsersDialogs({
         last_name: '',
         telephone: '',
         entity_id: 0,
-        role_name: '',
+        role: '',
+        code: '',
       })
     }
   }, [isCreateOpen])
@@ -90,7 +92,7 @@ export function UsersDialogs({
         last_name: selectedUser.last_name,
         telephone: selectedUser.telephone,
         entity_id: selectedUser.entity.id,
-        role_name: selectedUser.role.name,
+        role: selectedUser.role.name,
       })
     }
   }, [isEditOpen, selectedUser])
@@ -98,7 +100,7 @@ export function UsersDialogs({
   // Handlers pour la création
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!createForm.entity_id || !createForm.role_name) {
+    if (!createForm.entity_id || !createForm.role) {
       toast.error('Veuillez sélectionner une entité et un rôle')
       return
     }
@@ -147,11 +149,11 @@ export function UsersDialogs({
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Identifiant *</Label>
+                <Label htmlFor="code">Code *</Label>
                 <Input
-                  id="username"
-                  value={createForm.username}
-                  onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
+                  id="code"
+                  value={createForm.code}
+                  onChange={(e) => setCreateForm({ ...createForm, code: e.target.value })}
                   required
                 />
               </div>
@@ -202,7 +204,7 @@ export function UsersDialogs({
                 onValueChange={(value) => setCreateForm({ ...createForm, entity_id: Number(value) })}
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Sélectionner une entité" />
                 </SelectTrigger>
                 <SelectContent>
@@ -217,11 +219,11 @@ export function UsersDialogs({
             <div className="space-y-2">
               <Label htmlFor="role">Rôle *</Label>
               <Select
-                value={createForm.role_name}
-                onValueChange={(value) => setCreateForm({ ...createForm, role_name: value })}
+                value={createForm.role}
+                onValueChange={(value) => setCreateForm({ ...createForm, role: value })}
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Sélectionner un rôle" />
                 </SelectTrigger>
                 <SelectContent>
@@ -253,15 +255,8 @@ export function UsersDialogs({
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-username">Identifiant</Label>
-                <Input
-                  id="edit-username"
-                  value={editForm.username || ''}
-                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                />
-              </div>
+            <div className="grid  gap-4">
+
               <div className="space-y-2">
                 <Label htmlFor="edit-email">Email</Label>
                 <Input
@@ -319,8 +314,8 @@ export function UsersDialogs({
             <div className="space-y-2">
               <Label htmlFor="edit-role">Rôle</Label>
               <Select
-                value={editForm.role_name || ''}
-                onValueChange={(value) => setEditForm({ ...editForm, role_name: value })}
+                value={editForm.role || ''}
+                onValueChange={(value) => setEditForm({ ...editForm, role: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un rôle" />
