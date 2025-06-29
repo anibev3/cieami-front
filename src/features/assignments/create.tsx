@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -31,7 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
@@ -46,8 +45,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Vehicle } from '@/types/vehicles'
 import { User as UserType } from '@/types/administration'
 import { Entity as EntityType, DocumentTransmitted } from '@/types/administration'
@@ -55,6 +57,9 @@ import { ExpertiseType } from '@/types/expertise-types'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { useClientsStore } from '../gestion/clients/store'
+import { useVehicleModelsStore } from '@/stores/vehicle-models'
+import { useColorsStore } from '@/stores/colors'
+import { useBodyworksStore } from '@/stores/bodyworks'
 
 // Types pour les experts
 interface Expert {
@@ -71,6 +76,25 @@ interface AssignmentType {
   description: string
   created_at: string
   updated_at: string
+}
+
+// Types pour les modèles et couleurs
+interface VehicleModel {
+  id: number
+  label: string
+  code: string
+}
+
+interface Color {
+  id: number
+  label: string
+  code: string
+}
+
+interface Bodywork {
+  id: number
+  label: string
+  code: string
 }
 
 // Type local pour le payload de création d'assignation
@@ -115,7 +139,7 @@ const assignmentSchema = z.object({
   repairer_id: z.string().min(1, 'Le réparateur est requis'),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
-  document_transmitted_id: z.string().min(1, 'Le document transmis est requis'),
+  document_transmitted_ids: z.array(z.string()).min(1, 'Au moins un document transmis est requis'),
   policy_number: z.string().optional(),
   claim_number: z.string().optional(),
   claim_starts_at: z.string().optional(),
@@ -154,6 +178,59 @@ export default function CreateAssignmentPage() {
   const [showExpertiseTypeModal, setShowExpertiseTypeModal] = useState(false)
   const [showDocumentModal, setShowDocumentModal] = useState(false)
   
+  // États pour les modals de création
+  const [showCreateClientModal, setShowCreateClientModal] = useState(false)
+  const [showCreateVehicleModal, setShowCreateVehicleModal] = useState(false)
+  const [showCreateInsurerModal, setShowCreateInsurerModal] = useState(false)
+  const [showCreateRepairerModal, setShowCreateRepairerModal] = useState(false)
+  const [showCreateDocumentModal, setShowCreateDocumentModal] = useState(false)
+  
+  // États pour les formulaires de création rapide
+  const [createClientForm, setCreateClientForm] = useState({
+    name: '',
+    email: '',
+    phone_1: '',
+    phone_2: '',
+    address: '',
+  })
+  
+  const [createVehicleForm, setCreateVehicleForm] = useState({
+    license_plate: '',
+    usage: '',
+    type: '',
+    option: '',
+    mileage: '',
+    serial_number: '',
+    fiscal_power: 0,
+    energy: '',
+    nb_seats: 0,
+    vehicle_model_id: '',
+    color_id: '',
+    bodywork_id: '',
+  })
+  
+  const [createInsurerForm, setCreateInsurerForm] = useState({
+    name: '',
+    code: '',
+    email: '',
+    telephone: '',
+    address: '',
+  })
+  
+  const [createRepairerForm, setCreateRepairerForm] = useState({
+    name: '',
+    code: '',
+    email: '',
+    telephone: '',
+    address: '',
+  })
+  
+  const [createDocumentForm, setCreateDocumentForm] = useState({
+    code: '',
+    label: '',
+    description: '',
+  })
+  
   // États pour les entités sélectionnées
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [selectedClient, setSelectedClient] = useState<UserType | null>(null)
@@ -161,7 +238,7 @@ export default function CreateAssignmentPage() {
   const [selectedRepairer, setSelectedRepairer] = useState<EntityType | null>(null)
   const [selectedAssignmentType, setSelectedAssignmentType] = useState<AssignmentType | null>(null)
   const [selectedExpertiseType, setSelectedExpertiseType] = useState<ExpertiseType | null>(null)
-  const [selectedDocument, setSelectedDocument] = useState<DocumentTransmitted | null>(null)
+  const [selectedDocuments, setSelectedDocuments] = useState<DocumentTransmitted[]>([])
   
   // Mode édition
   const isEditMode = !!id
@@ -169,12 +246,15 @@ export default function CreateAssignmentPage() {
   
   const { createAssignment } = useAssignmentsStore()
   const { users, fetchUsers } = useUsersStore()
-  const { clients, fetchClients } = useClientsStore()
-  const { vehicles, fetchVehicles } = useVehiclesStore()
+  const { clients, fetchClients, createClient } = useClientsStore()
+  const { vehicles, fetchVehicles, createVehicle } = useVehiclesStore()
   const { assignmentTypes, fetchAssignmentTypes } = useAssignmentTypesStore()
-  const { entities, fetchEntities } = useEntitiesStore()
+  const { entities, fetchEntities, createEntity } = useEntitiesStore()
   const { expertiseTypes, fetchExpertiseTypes } = useExpertiseTypesStore()
-  const { documents, fetchDocuments } = useDocumentsStore()
+  const { documents, fetchDocuments, createDocument } = useDocumentsStore()
+  const { vehicleModels, fetchVehicleModels } = useVehicleModelsStore()
+  const { colors, fetchColors } = useColorsStore()
+  const { bodyworks, fetchBodyworks } = useBodyworksStore()
 
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(assignmentSchema),
@@ -186,7 +266,7 @@ export default function CreateAssignmentPage() {
       repairer_id: '',
       assignment_type_id: '',
       expertise_type_id: '',
-      document_transmitted_id: '',
+      document_transmitted_ids: [],
       policy_number: '',
       claim_number: '',
       claim_starts_at: '',
@@ -220,7 +300,7 @@ export default function CreateAssignmentPage() {
             repairer_id: assignment.repairer_id?.toString() || '',
             assignment_type_id: assignment.assignment_type_id?.toString() || '',
             expertise_type_id: assignment.expertise_type_id?.toString() || '',
-            document_transmitted_id: assignment.document_transmitted_id?.toString() || '',
+            document_transmitted_ids: assignment.document_transmitted_ids?.map((id: number) => id.toString()) || [],
             policy_number: assignment.policy_number || '',
             claim_number: assignment.claim_number || '',
             claim_starts_at: assignment.claim_starts_at || '',
@@ -258,8 +338,8 @@ export default function CreateAssignmentPage() {
           if (assignment.expertise_type) {
             setSelectedExpertiseType(assignment.expertise_type)
           }
-          if (assignment.document_transmitted) {
-            setSelectedDocument(assignment.document_transmitted)
+          if (assignment.documents_transmitted) {
+            setSelectedDocuments(assignment.documents_transmitted)
           }
 
           // Mettre à jour la liste des experts
@@ -290,7 +370,10 @@ export default function CreateAssignmentPage() {
     fetchEntities()
     fetchExpertiseTypes()
     fetchDocuments()
-  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments])
+    fetchVehicleModels()
+    fetchColors()
+    fetchBodyworks()
+  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks])
 
   // Validations par étape
   const stepValidations = {
@@ -311,9 +394,9 @@ export default function CreateAssignmentPage() {
       const values = form.getValues()
       const hasAssignmentType = values.assignment_type_id && values.assignment_type_id.toString().length > 0
       const hasExpertiseType = values.expertise_type_id && values.expertise_type_id.toString().length > 0
-      const hasDocument = values.document_transmitted_id && values.document_transmitted_id.toString().length > 0
+      const hasDocuments = values.document_transmitted_ids && values.document_transmitted_ids.length > 0
       
-      return hasAssignmentType && hasExpertiseType && hasDocument
+      return hasAssignmentType && hasExpertiseType && hasDocuments
     },
     3: () => {
       const values = form.getValues()
@@ -442,17 +525,15 @@ export default function CreateAssignmentPage() {
     setShowExpertiseTypeModal(true)
   }
 
-  // Fonction pour gérer la sélection du document transmis
-  const handleDocumentSelection = (documentId: string) => {
-    const document = documents.find(d => d.id.toString() === documentId)
-    if (document) {
-      setSelectedDocument(document)
-    }
+  // Fonction pour gérer la sélection des documents transmis
+  const handleDocumentSelection = (documentIds: string[]) => {
+    const selectedDocs = documents.filter(d => documentIds.includes(d.id.toString()))
+    setSelectedDocuments(selectedDocs)
   }
 
   // Fonction pour ouvrir le modal des détails du document transmis
   const openDocumentDetails = (document: DocumentTransmitted) => {
-    setSelectedDocument(document)
+    setSelectedDocuments([document])
     setShowDocumentModal(true)
   }
 
@@ -490,7 +571,8 @@ export default function CreateAssignmentPage() {
         repairer_id: parseInt(values.repairer_id),
         assignment_type_id: parseInt(values.assignment_type_id),
         expertise_type_id: parseInt(values.expertise_type_id),
-        document_transmitted_id: parseInt(values.document_transmitted_id),
+        // document_transmitted_ids: values.document_transmitted_ids.map(id => parseInt(id)),
+        document_transmitted_id: values.document_transmitted_ids[0],
         policy_number: values.policy_number || null,
         claim_number: values.claim_number || null,
         claim_starts_at: values.claim_starts_at || null,
@@ -537,331 +619,411 @@ export default function CreateAssignmentPage() {
     navigate({ to: '/assignments' })
   }
 
+  // Handlers pour les formulaires de création rapide
+  const handleCreateClient = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createClientForm.name || !createClientForm.email) {
+      toast.error('Nom et email obligatoires')
+      return
+    }
+    try {
+      await createClient(createClientForm)
+      toast.success('Client créé avec succès')
+      setShowCreateClientModal(false)
+      setCreateClientForm({ name: '', email: '', phone_1: '', phone_2: '', address: '' })
+      fetchClients() // Recharger la liste
+    } catch (error) {
+      toast.error('Erreur lors de la création du client')
+    }
+  }
+
+  const handleCreateVehicle = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createVehicleForm.license_plate || !createVehicleForm.vehicle_model_id || !createVehicleForm.color_id || !createVehicleForm.bodywork_id) {
+      toast.error('Plaque d\'immatriculation, modèle, couleur et carrosserie obligatoires')
+      return
+    }
+    try {
+      await createVehicle({
+        ...createVehicleForm,
+        fiscal_power: Number(createVehicleForm.fiscal_power),
+        nb_seats: Number(createVehicleForm.nb_seats),
+        bodywork_id: createVehicleForm.bodywork_id,
+      })
+      toast.success('Véhicule créé avec succès')
+      setShowCreateVehicleModal(false)
+      setCreateVehicleForm({
+        license_plate: '', usage: '', type: '', option: '', mileage: '',
+        serial_number: '', fiscal_power: 0, energy: '', nb_seats: 0,
+        vehicle_model_id: '', color_id: '', bodywork_id: '',
+      })
+      fetchVehicles() // Recharger la liste
+    } catch (error) {
+      toast.error('Erreur lors de la création du véhicule')
+    }
+  }
+
+  const handleCreateInsurer = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createInsurerForm.name || !createInsurerForm.code) {
+      toast.error('Nom et code obligatoires')
+      return
+    }
+    try {
+      await createEntity({
+        ...createInsurerForm,
+        entity_type_code: 'insurer', // Code pour assureur
+      })
+      toast.success('Assureur créé avec succès')
+      setShowCreateInsurerModal(false)
+      setCreateInsurerForm({ name: '', code: '', email: '', telephone: '', address: '' })
+      fetchEntities() // Recharger la liste
+    } catch (error) {
+      toast.error('Erreur lors de la création de l\'assureur')
+    }
+  }
+
+  const handleCreateRepairer = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createRepairerForm.name || !createRepairerForm.code) {
+      toast.error('Nom et code obligatoires')
+      return
+    }
+    try {
+      await createEntity({
+        ...createRepairerForm,
+        entity_type_code: 'repairer', // Code pour réparateur
+      })
+      toast.success('Réparateur créé avec succès')
+      setShowCreateRepairerModal(false)
+      setCreateRepairerForm({ name: '', code: '', email: '', telephone: '', address: '' })
+      fetchEntities() // Recharger la liste
+    } catch (error) {
+      toast.error('Erreur lors de la création du réparateur')
+    }
+  }
+
+  const handleCreateDocument = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createDocumentForm.code || !createDocumentForm.label) {
+      toast.error('Code et label obligatoires')
+      return
+    }
+    try {
+      await createDocument(createDocumentForm)
+      toast.success('Document créé avec succès')
+      setShowCreateDocumentModal(false)
+      setCreateDocumentForm({ code: '', label: '', description: '' })
+      fetchDocuments() // Recharger la liste
+    } catch (error) {
+      toast.error('Erreur lors de la création du document')
+    }
+  }
+
   return (
-    <div className="w-full flex flex-col gap-4">
-      {/* En-tête */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={handleCancel}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="text-2xl font-bold tracking-tight">
-            {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
-          </h2>
-        </div>
-      </div>
-
-      {/* Barre de progression améliorée */}
-      <div className="w-full rounded-lg bg-muted/50 p-6">
-        <div className="relative flex items-center justify-between">
-          {/* Ligne de progression */}
-          <div className="absolute left-0 top-1/2 h-2 w-full rounded-full bg-muted/50 -translate-y-1/2">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }}
-            />
-          </div>
-
-          {/* Étapes */}
-          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((i) => (
-            <div key={i} className="relative z-10 flex flex-col items-center gap-3">
-              <div
-                className={`h-14 w-14 flex items-center justify-center rounded-full shadow-lg transition-all duration-500 ${
-                  step >= i
-                    ? 'bg-primary text-primary-foreground scale-110 ring-4 ring-primary/20'
-                    : 'bg-background text-muted-foreground border-2 border-muted'
-                }`}
-              >
-                {i === 1 && <FileText className="h-7 w-7" />}
-                {i === 2 && <FileType className="h-7 w-7" />}
-                {i === 3 && <User className="h-7 w-7" />}
-                {i === 4 && <ClipboardCheck className="h-7 w-7" />}
-              </div>
-              <span
-                className={`text-sm font-medium transition-colors duration-300 ${
-                  step >= i ? 'text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {getStepTitle(i)}
-              </span>
+    <div className="min-h-screen bg-gray-50/50">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-gray-200/60">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" onClick={handleCancel} className="shrink-0">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                {isEditMode ? 'Modifiez les informations du dossier' : 'Créez un nouveau dossier d\'expertise'}
+              </p>
             </div>
-          ))}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={handleCancel}>
+              Annuler
+            </Button>
+            <Button 
+              type="submit" 
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={loading}
+              className=" text-white"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enregistrement...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isEditMode ? 'Mettre à jour' : 'Créer le dossier'}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-      <Card className="w-full border-none shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl">{getStepTitle(step)}</CardTitle>
-          <CardDescription className="text-base">{getStepDescription(step)}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {/* Étape 1 : Informations générales */}
-            {step === 1 && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                      {/* Client et Véhicule */}
-                  <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <User className="h-5 w-5" />
-                          Client et Véhicule
-                        </h3>
+          <div className="flex gap-6 p-6">
+            {/* Sidebar */}
+            <div className="w-80 shrink-0">
+              <div className="sticky top-24 space-y-4">
+                {/* Progress Overview */}
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg font-semibold">Progression</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[
+                      { id: 1, title: 'Informations générales', icon: FileText, color: 'text-blue-600' },
+                      { id: 2, title: 'Types et documents', icon: FileType, color: 'text-green-600' },
+                      { id: 3, title: 'Informations client', icon: User, color: 'text-purple-600' },
+                      { id: 4, title: 'Validation', icon: ClipboardCheck, color: 'text-orange-600' }
+                    ].map((section) => {
+                      const Icon = section.icon
+                      const isCompleted = section.id === 1 ? 
+                        (form.watch('client_id') && form.watch('vehicle_id') && form.watch('insurer_id') && form.watch('repairer_id')) :
+                        section.id === 2 ?
+                        (form.watch('assignment_type_id') && form.watch('expertise_type_id') && form.watch('document_transmitted_ids')?.length > 0) :
+                        section.id === 3 ?
+                        (form.watch('received_at') && form.watch('experts')?.length > 0) :
+                        true
+                      
+                      return (
+                        <div key={section.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50/50 border border-gray-200/40">
+                          <div className={`p-2 rounded-lg bg-white shadow-sm ${section.color}`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {section.title}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {isCompleted ? 'Complété' : 'À remplir'}
+                            </p>
+                          </div>
+                          {isCompleted && (
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </CardContent>
+                </Card>
+
+                             {/* Navigation */}
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg font-semibold">Navigation</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={prevStep}
+                        disabled={step === 1}
+                        className="flex-1"
+                      >
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Retour
+                      </Button>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={nextStep}
+                        disabled={!canProceed || step === totalSteps}
+                        className="flex-1"
+                      >
+                        Suivant
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="text-center text-sm text-gray-500">
+                      Étape {step} sur {totalSteps}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Actions */}
+                {/* <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg font-semibold">Actions rapides</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => setShowCreateClientModal(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nouveau client
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => setShowCreateVehicleModal(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nouveau véhicule
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => setShowCreateInsurerModal(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nouvel assureur
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => setShowCreateRepairerModal(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nouveau réparateur
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-start"
+                      onClick={() => setShowCreateDocumentModal(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nouveau document
+                    </Button>
+                  </CardContent>
+                </Card> */}
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 space-y-6">
+              {/* Section 1: Informations générales */}
+              <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Informations générales
+                  </CardTitle>
+                  <CardDescription>
+                    Renseignez les informations du client, véhicule, assureur et réparateur.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Client et Véhicule */}
                     <div className="space-y-4">
-                          <FormField
-                            control={form.control}
-                            name="client_id"
-                            render={({ field }) => (
-                              <FormItem>
+                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                        <User className="h-5 w-5 text-blue-500" />
+                        Client et Véhicule
+                      </h3>
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="client_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Client</FormLabel>
-                                <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleClientSelection(value)
-                                    }} 
-                                    value={field.value}
+                                <Button variant="outline" size="icon" onClick={() => setShowCreateClientModal(true)} className="shrink-0 w-6 h-6">
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Select 
+                                  onValueChange={(value) => {
+                                    field.onChange(value)
+                                    handleClientSelection(value)
+                                  }} 
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Sélectionner un client" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <ScrollArea className="h-[200px]">
+                                      {clients.map((client) => (
+                                        <SelectItem key={client.id} value={client.id.toString()}>
+                                          {client.name}
+                                        </SelectItem>
+                                      ))}
+                                    </ScrollArea>
+                                  </SelectContent>
+                                </Select>
+                                {selectedClient && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openClientDetails(selectedClient)}
+                                    className="shrink-0"
                                   >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un client" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {clients.map((client) => (
-                                          <SelectItem key={client.id} value={client.id.toString()}>
-                                            {client.name}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
-                                  {selectedClient && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openClientDetails(selectedClient)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                      </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                    <Info className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                          <FormField
-                            control={form.control}
-                            name="vehicle_id"
-                            render={({ field }) => (
-                              <FormItem>
+                        <FormField
+                          control={form.control}
+                          name="vehicle_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Véhicule</FormLabel>
-                                <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleVehicleSelection(value)
-                                    }} 
-                                    value={field.value}
+                                <Button variant="outline" size="icon" onClick={() => setShowCreateVehicleModal(true)} className="shrink-0 w-6 h-6">
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="flex gap-2">
+                                <Select 
+                                  onValueChange={(value) => {
+                                    field.onChange(value)
+                                    handleVehicleSelection(value)
+                                  }} 
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Sélectionner un véhicule" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <ScrollArea className="h-[200px]">
+                                      {vehicles.map((vehicle) => (
+                                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                                          {vehicle.brand.label} {vehicle.vehicle_model.label} - {vehicle.license_plate}
+                                        </SelectItem>
+                                      ))}
+                                    </ScrollArea>
+                                  </SelectContent>
+                                </Select>
+                                {selectedVehicle && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openVehicleDetails(selectedVehicle)}
+                                    className="shrink-0"
                                   >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un véhicule" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {vehicles.map((vehicle) => (
-                                          <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                                            {vehicle.brand.label} {vehicle.vehicle_model.label} - {vehicle.license_plate}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
-                                  {selectedVehicle && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openVehicleDetails(selectedVehicle)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                      </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="vehicle_mileage"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Kilométrage du véhicule</FormLabel>
-                                <FormControl>
-                        <Input
-                                    type="number"
-                                    placeholder="Kilométrage"
-                                    value={field.value || ''}
-                                    onChange={(e) => {
-                                      const value = e.target.value
-                                      if (value === '') {
-                                        field.onChange(null)
-                                      } else {
-                                        const numValue = parseFloat(value)
-                                        field.onChange(isNaN(numValue) ? null : numValue)
-                                      }
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                    </div>
-                  </div>
-
-                      {/* Assureur et Réparateur */}
-                  <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <Building className="h-5 w-5" />
-                          Assureur et Réparateur
-                        </h3>
-                    <div className="space-y-4">
-                          <FormField
-                            control={form.control}
-                            name="insurer_id"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Assureur</FormLabel>
-                                <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleInsurerSelection(value)
-                                    }} 
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un assureur" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {entities.filter(e => e.entity_type.code === 'insurer').map((entity) => (
-                                          <SelectItem key={entity.id} value={entity.id.toString()}>
-                                            {entity.name}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
-                                  {selectedInsurer && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openInsurerDetails(selectedInsurer)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                      </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="repairer_id"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Réparateur</FormLabel>
-                                <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleRepairerSelection(value)
-                                    }} 
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un réparateur" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {entities.filter(e => e.entity_type.code === 'repairer').map((entity) => (
-                                          <SelectItem key={entity.id} value={entity.id.toString()}>
-                                            {entity.name}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
-                                  {selectedRepairer && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openRepairerDetails(selectedRepairer)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                      </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="received_at"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Date de réception</FormLabel>
-                                <FormControl>
-                        <Input
-                                    type="date"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Informations complémentaires */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Informations complémentaires</h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="policy_number"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Numéro de police</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Numéro de police" value={field.value || ''} onChange={field.onChange} />
-                              </FormControl>
+                                    <Info className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -869,27 +1031,130 @@ export default function CreateAssignmentPage() {
 
                         <FormField
                           control={form.control}
-                          name="claim_number"
+                          name="vehicle_mileage"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Numéro de sinistre</FormLabel>
+                              <FormLabel>Kilométrage du véhicule</FormLabel>
                               <FormControl>
-                                <Input placeholder="Numéro de sinistre" value={field.value || ''} onChange={field.onChange} />
+                                <Input
+                                  // type="number"
+                                  placeholder="Kilométrage"
+                                  value={field.value || ''}
+                                  // onChange={(e) => {
+                                  //   const value = e.target.value
+                                  //   if (value === '') {
+                                  //     field.onChange(null)
+                                  //   } else {
+                                  //     const numValue = parseFloat(value)
+                                  //     field.onChange(isNaN(numValue) ? null : numValue)
+                                  //   }
+                                  // }}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-
-                        <FormField
-                          control={form.control}
-                          name="claim_starts_at"
-                          render={({ field }) => (
+                      </div>
+                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
+                        <Info className="h-5 w-5 text-gray-500" />
+                        Informations complémentaires
+                      </h3>
+                      <div className="space-y-4">
+                        <FormField control={form.control} name="policy_number" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Numéro de police</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Numéro de police" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="claim_number" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Numéro de sinistre</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Numéro de sinistre" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField control={form.control} name="claim_starts_at" render={({ field }) => (
                             <FormItem>
                               <FormLabel>Début du sinistre</FormLabel>
                               <FormControl>
-                                <Input type="date" value={field.value || ''} onChange={field.onChange} />
+                                <Input type="date" {...field} />
                               </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="claim_ends_at" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Fin du sinistre</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assureur et Réparateur + Date de réception */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                        <Building className="h-5 w-5 text-green-500" />
+                        Assureur et Réparateur
+                      </h3>
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="insurer_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="flex items-center gap-2 justify-between">
+                                <FormLabel>Assureur</FormLabel>
+                                <Button variant="outline" size="icon" onClick={() => setShowCreateInsurerModal(true)} className="shrink-0 w-6 h-6">
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="flex gap-2">
+                                <Select 
+                                  onValueChange={(value) => {
+                                    field.onChange(value)
+                                    handleInsurerSelection(value)
+                                  }} 
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Sélectionner un assureur" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <ScrollArea className="h-[200px]">
+                                      {entities.filter(e => e.entity_type.code === 'insurer').map((entity) => (
+                                        <SelectItem key={entity.id} value={entity.id.toString()}>
+                                          {entity.name}
+                                        </SelectItem>
+                                      ))}
+                                    </ScrollArea>
+                                  </SelectContent>
+                                </Select>
+                                {selectedInsurer && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openInsurerDetails(selectedInsurer)}
+                                    className="shrink-0"
+                                  >
+                                    <Info className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -897,28 +1162,89 @@ export default function CreateAssignmentPage() {
 
                         <FormField
                           control={form.control}
-                          name="claim_ends_at"
+                          name="repairer_id"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Fin du sinistre</FormLabel>
-                              <FormControl>
-                                <Input type="date" value={field.value || ''} onChange={field.onChange} />
-                              </FormControl>
+                              <div className="flex items-center gap-2 justify-between">
+                                <FormLabel>Réparateur</FormLabel>
+                                <Button variant="outline" size="icon" onClick={() => setShowCreateRepairerModal(true)} className="shrink-0 w-6 h-6">
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="flex gap-2">
+                                <Select 
+                                  onValueChange={(value) => {
+                                    field.onChange(value)
+                                    handleRepairerSelection(value)
+                                  }} 
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Sélectionner un réparateur" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <ScrollArea className="h-[200px]">
+                                      {entities.filter(e => e.entity_type.code === 'repairer').map((entity) => (
+                                        <SelectItem key={entity.id} value={entity.id.toString()}>
+                                          {entity.name}
+                                        </SelectItem>
+                                      ))}
+                                    </ScrollArea>
+                                  </SelectContent>
+                                </Select>
+                                {selectedRepairer && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openRepairerDetails(selectedRepairer)}
+                                    className="shrink-0"
+                                  >
+                                    <Info className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
+                      </div>
+                      <FormField control={form.control} name="received_at" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date de réception</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                </CardContent>
+              </Card>
 
-                {/* Étape 2 : Type d'assignation */}
-            {step === 2 && (
-              <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Type d'assignation</h3>
+              {/* Section 2: Types et Documents */}
+              {step >= 2 && (
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <FileType className="h-5 w-5 text-green-600" />
+                      Types et Documents
+                    </CardTitle>
+                    <CardDescription>
+                      Sélectionnez les types d'assignation et d'expertise, ainsi que les documents transmis
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Types */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                          <FileText className="h-5 w-5 text-purple-500" />
+                          Types
+                        </h3>
                         <div className="space-y-4">
                           <FormField
                             control={form.control}
@@ -937,20 +1263,20 @@ export default function CreateAssignmentPage() {
                                     <FormControl>
                                       <SelectTrigger className="flex-1">
                                         <SelectValue placeholder="Sélectionner un type d'assignation" />
-                            </SelectTrigger>
+                                      </SelectTrigger>
                                     </FormControl>
-                            <SelectContent>
+                                    <SelectContent>
                                       <ScrollArea className="h-[200px]">
-                                        {assignmentTypes.map((assignmentType) => (
-                                          <SelectItem key={assignmentType.id} value={assignmentType.id.toString()}>
-                                            {assignmentType.label}
-                                  </SelectItem>
-                                ))}
-                              </ScrollArea>
-                            </SelectContent>
-                          </Select>
+                                        {assignmentTypes.map((type) => (
+                                          <SelectItem key={type.id} value={type.id.toString()}>
+                                            {type.label}
+                                          </SelectItem>
+                                        ))}
+                                      </ScrollArea>
+                                    </SelectContent>
+                                  </Select>
                                   {selectedAssignmentType && (
-                        <Button
+                                    <Button
                                       type="button"
                                       variant="outline"
                                       size="icon"
@@ -958,9 +1284,9 @@ export default function CreateAssignmentPage() {
                                       className="shrink-0"
                                     >
                                       <Info className="h-4 w-4" />
-                        </Button>
+                                    </Button>
                                   )}
-                      </div>
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -987,9 +1313,9 @@ export default function CreateAssignmentPage() {
                                     </FormControl>
                                     <SelectContent>
                                       <ScrollArea className="h-[200px]">
-                                        {expertiseTypes.map((expertiseType) => (
-                                          <SelectItem key={expertiseType.id} value={expertiseType.id.toString()}>
-                                            {expertiseType.label}
+                                        {expertiseTypes.map((type) => (
+                                          <SelectItem key={type.id} value={type.id.toString()}>
+                                            {type.label}
                                           </SelectItem>
                                         ))}
                                       </ScrollArea>
@@ -1006,53 +1332,7 @@ export default function CreateAssignmentPage() {
                                       <Info className="h-4 w-4" />
                                     </Button>
                                   )}
-                          </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="document_transmitted_id"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Document transmis</FormLabel>
-                                <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleDocumentSelection(value)
-                                    }} 
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un document" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {documents.map((document) => (
-                                          <SelectItem key={document.id} value={document.id.toString()}>
-                                            {document.label}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
-                                  {selectedDocument && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openDocumentDetails(selectedDocument)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                          </div>
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1060,323 +1340,948 @@ export default function CreateAssignmentPage() {
                         </div>
                       </div>
 
+                      {/* Documents transmis */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Informations d'expertise</h3>
+                        {/* <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                          <FileText className="h-5 w-5 text-indigo-500" />
+                          Documents transmis
+                        </h3>  */}
+                        <div className="flex items-center gap-2 justify-between">
+                          <FormLabel>Documents transmis</FormLabel>
+                          <Button variant="outline" size="icon" onClick={() => setShowCreateDocumentModal(true)} className="shrink-0 w-6 h-6">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                         <div className="space-y-4">
                           <FormField
                             control={form.control}
-                            name="expertise_date"
+                            name="document_transmitted_ids"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Date d'expertise</FormLabel>
-                                <FormControl>
-                                  <Input type="date" value={field.value || ''} onChange={field.onChange} />
-                                </FormControl>
+                                {/* <FormLabel>Documents transmis</FormLabel> */}
+                                <div className="space-y-2">
+                                  <ScrollArea className="h-[200px] border rounded-md p-2">
+                                    {documents.map((document) => (
+                                      <div key={document.id} className="flex items-center space-x-2 py-2">
+                                        <Checkbox
+                                          id={`document-${document.id}`}
+                                          checked={field.value?.includes(document.id.toString())}
+                                          onCheckedChange={(checked) => {
+                                            const currentIds = field.value || []
+                                            if (checked) {
+                                              field.onChange([...currentIds, document.id.toString()])
+                                              handleDocumentSelection([...currentIds, document.id.toString()])
+                                            } else {
+                                              const newIds = currentIds.filter(id => id !== document.id.toString())
+                                              field.onChange(newIds)
+                                              handleDocumentSelection(newIds)
+                                            }
+                                          }}
+                                        />
+                                        <Label htmlFor={`document-${document.id}`} className="text-sm cursor-pointer">
+                                          {document.label}
+                                        </Label>
+                                      </div>
+                                    ))}
+                                  </ScrollArea>
+                                  {selectedDocuments.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {selectedDocuments.map((doc) => (
+                                        <Badge key={doc.id} variant="secondary" className="text-xs">
+                                          {doc.label}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-
-                          <FormField
-                            control={form.control}
-                            name="expertise_place"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Lieu d'expertise</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Lieu d'expertise" value={field.value || ''} onChange={field.onChange} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="administrator"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Administrateur</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Administrateur" value={field.value || ''} onChange={field.onChange} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                            />
-                          </div>
                         </div>
                       </div>
-
-                    {/* Observations */}
-                      <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Observations</h3>
-                      <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="circumstance"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Circonstances</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Décrivez les circonstances..." value={field.value || ''} onChange={field.onChange} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="damage_declared"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Dégâts déclarés</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Décrivez les dégâts déclarés..." value={field.value || ''} onChange={field.onChange} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="observation"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Observations générales</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Observations générales..." value={field.value || ''} onChange={field.onChange} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                            />
-                          </div>
-                </div>
-              </div>
-            )}
-
-                {/* Étape 3 : Experts */}
-            {step === 3 && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                        <h2 className="text-xl font-semibold">Gestion des experts</h2>
-                    <p className="mt-1 text-base text-muted-foreground">
-                          Assignez les experts au dossier
-                    </p>
-                  </div>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                            <Button variant="outline" className="gap-2 px-4 py-2 text-base transition-transform hover:scale-105" onClick={addExpert}>
-                          <Plus className="h-4 w-4" />
-                              Ajouter un expert
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                            <p>Ajouter un nouvel expert à la liste</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-
-                <div className="space-y-4">
-                      {form.watch('experts').map((_, index) => (
-                        <div key={index} className="group border rounded-xl bg-card p-6 shadow transition-colors space-y-6 hover:border-primary/50">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold">Expert {index + 1}</h3>
-                            {form.watch('experts').length > 1 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive transition-colors hover:bg-destructive/10"
-                                onClick={() => removeExpert(index)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`experts.${index}.expert_id`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Expert</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Sélectionner un expert" />
-                            </SelectTrigger>
-                                    </FormControl>
-                            <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {users.filter(user => user.role.name === 'expert').map((user) => (
-                                          <SelectItem key={user.id} value={user.id.toString()}>
-                                            {user.name}
-                                </SelectItem>
-                              ))}
-                                      </ScrollArea>
-                            </SelectContent>
-                          </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`experts.${index}.date`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Date d'assignation</FormLabel>
-                                  <FormControl>
-                                    <Input type="date" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                    </div>
+                    {/* Ajout d'une section bien visible pour les informations d'expertise et observations */}
+                    <div className="mt-8 p-6 rounded-lg border bg-gray-50">
+                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4">
+                        <Info className="h-5 w-5 text-gray-500" />
+                        Informations d'expertise et observations
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <FormField control={form.control} name="expertise_date" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date d'expertise</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="expertise_place" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Lieu d'expertise</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Lieu d'expertise" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="administrator" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Administrateur</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Administrateur" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                        <FormField control={form.control} name="circumstance" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Circonstance</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Décrivez les circonstances..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="damage_declared" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dégâts déclarés</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Décrivez les dégâts déclarés..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="observation" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Observation générale</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Observations générales..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
+              {/* Section 3: Experts */}
+              {step >= 3 && (
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <User className="h-5 w-5 text-purple-600" />
+                      Experts
+                    </CardTitle>
+                    <CardDescription>
+                      Configurez les experts assignés au dossier
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      {form.watch('experts').map((expert, idx) => (
+                        <div key={idx} className="flex gap-4 items-end border-b pb-4 mb-4">
                           <FormField
                             control={form.control}
-                            name={`experts.${index}.observation`}
+                            name={`experts.${idx}.expert_id` as const}
                             render={({ field }) => (
-                              <FormItem>
+                              <FormItem className="flex-1">
+                                <FormLabel>Expert</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Sélectionner un expert" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <ScrollArea className="h-[200px]">
+                                      {users
+                                        .filter(user => user.role?.name === 'expert')
+                                        .map((user) => (
+                                        <SelectItem key={user.id} value={user.id.toString()}>
+                                          {user.name}
+                                        </SelectItem>
+                                      ))}
+                                    </ScrollArea>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`experts.${idx}.date` as const}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel>Date</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`experts.${idx}.observation` as const}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
                                 <FormLabel>Observation</FormLabel>
                                 <FormControl>
-                                  <Textarea placeholder="Observation pour cet expert..." value={field.value || ''} onChange={field.onChange} />
+                                  <Input placeholder="Observation" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeExpert(idx)}
+                            disabled={form.watch('experts').length === 1}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
                       ))}
-                </div>
-              </div>
-            )}
-
-            {/* Étape 4 : Récapitulatif */}
-            {step === 4 && (
-              <div className="space-y-6">
-                <div className="space-y-8">
-                  {/* Informations générales */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Informations générales</h3>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Client</span>
-                              <span className="font-medium">
-                                {users.find(u => u.id.toString() === form.watch('client_id'))?.name}
-                              </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Véhicule</span>
-                              <span className="font-medium">
-                                {vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))?.brand.label} {vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))?.vehicle_model.label}
-                              </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Assureur</span>
-                              <span className="font-medium">
-                                {entities.find(e => e.id.toString() === form.watch('insurer_id'))?.name}
-                              </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Réparateur</span>
-                              <span className="font-medium">
-                                {entities.find(e => e.id.toString() === form.watch('repairer_id'))?.name}
-                              </span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Type d'assignation</span>
-                              <span className="font-medium">
-                                {assignmentTypes.find(t => t.id.toString() === form.watch('assignment_type_id'))?.label}
-                              </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Type d'expertise</span>
-                              <span className="font-medium">
-                                {expertiseTypes.find(t => t.id.toString() === form.watch('expertise_type_id'))?.label}
-                              </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Date de réception</span>
-                              <span className="font-medium">{form.watch('received_at')}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                              <span className="text-muted-foreground">Experts assignés</span>
-                              <span className="font-medium">{form.watch('experts').length}</span>
-                        </div>
-                        </div>
-                        </div>
-                      </div>
-
-                      {/* Experts */}
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Experts assignés</h3>
-                        <div className="space-y-2">
-                          {form.watch('experts').map((expert, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                              <span className="font-medium">
-                                {users.find(u => u.id.toString() === expert.expert_id)?.name}
-                              </span>
-                              <span className="text-muted-foreground">{expert.date}</span>
-                            </div>
-                          ))}
+                      <Button type="button" variant="outline" size="sm" onClick={addExpert}>
+                        <Plus className="mr-2 h-4 w-4" /> Ajouter un expert
+                      </Button>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* Navigation entre les étapes */}
-            <div className="flex justify-between pt-6">
-                <Button
-                type="button"
-                  variant="outline"
-                  onClick={prevStep}
-                disabled={step === 1}
-                >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                  Précédent
-                </Button>
-              
-              {step < totalSteps ? (
-                <Button type="button" onClick={nextStep} disabled={!canProceed}>
-                  Suivant
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button type="submit" disabled={loading}>
-                      {loading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isEditMode ? 'Modification...' : 'Création...'}
-                        </>
-                      ) : (
-                        <>
-                      {isEditMode ? <Edit className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-                      {isEditMode ? 'Modifier le dossier' : 'Créer le dossier'}
-                        </>
+              {/* Section 4: Récapitulatif */}
+              {step === 4 && (
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <ClipboardCheck className="h-5 w-5 text-orange-600" />
+                      Récapitulatif du dossier
+                    </CardTitle>
+                    <CardDescription>
+                      Vérifiez et validez toutes les informations avant la création du dossier
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-8">
+                    {/* Informations générales */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">Informations générales</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-blue-500" />
+                            <span className="font-medium text-gray-700">Client</span>
+                          </div>
+                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="font-semibold text-blue-900">
+                              {clients.find(c => c.id.toString() === form.watch('client_id'))?.name || 'Non sélectionné'}
+                            </div>
+                            <div className="text-sm text-blue-700 mt-1">
+                              {clients.find(c => c.id.toString() === form.watch('client_id'))?.email || ''}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Car className="h-4 w-4 text-green-500" />
+                            <span className="font-medium text-gray-700">Véhicule</span>
+                          </div>
+                          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="font-semibold text-green-900">
+                              {vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))?.license_plate || 'Non sélectionné'}
+                            </div>
+                            <div className="text-sm text-green-700 mt-1">
+                              {(() => {
+                                const vehicle = vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))
+                                return vehicle ? `${vehicle.brand?.label || ''} ${vehicle.vehicle_model?.label || ''}` : ''
+                              })()}
+                            </div>
+                            {form.watch('vehicle_mileage') && (
+                              <div className="text-xs text-green-600 mt-1">
+                                Kilométrage: {form.watch('vehicle_mileage')} km
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4 text-purple-500" />
+                            <span className="font-medium text-gray-700">Assureur</span>
+                          </div>
+                          <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <div className="font-semibold text-purple-900">
+                              {entities.find(e => e.id.toString() === form.watch('insurer_id'))?.name || 'Non sélectionné'}
+                            </div>
+                            <div className="text-sm text-purple-700 mt-1">
+                              {entities.find(e => e.id.toString() === form.watch('insurer_id'))?.email || ''}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Wrench className="h-4 w-4 text-orange-500" />
+                            <span className="font-medium text-gray-700">Réparateur</span>
+                          </div>
+                          <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div className="font-semibold text-orange-900">
+                              {entities.find(e => e.id.toString() === form.watch('repairer_id'))?.name || 'Non sélectionné'}
+                            </div>
+                            <div className="text-sm text-orange-700 mt-1">
+                              {entities.find(e => e.id.toString() === form.watch('repairer_id'))?.email || ''}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Types et Documents */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                        <FileType className="h-4 w-4 text-indigo-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">Types et Documents</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-indigo-500" />
+                              <span className="font-medium text-gray-700">Type d'assignation</span>
+                            </div>
+                            <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                              <div className="font-semibold text-indigo-900">
+                                {assignmentTypes.find(t => t.id.toString() === form.watch('assignment_type_id'))?.label || 'Non sélectionné'}
+                              </div>
+                              <div className="text-sm text-indigo-700 mt-1">
+                                {assignmentTypes.find(t => t.id.toString() === form.watch('assignment_type_id'))?.description || ''}
+                              </div>
+                              <Badge variant="outline" className="mt-2 bg-indigo-100 text-indigo-800 border-indigo-300">
+                                {assignmentTypes.find(t => t.id.toString() === form.watch('assignment_type_id'))?.code || ''}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <Search className="h-4 w-4 text-teal-500" />
+                              <span className="font-medium text-gray-700">Type d'expertise</span>
+                            </div>
+                            <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
+                              <div className="font-semibold text-teal-900">
+                                {expertiseTypes.find(t => t.id.toString() === form.watch('expertise_type_id'))?.label || 'Non sélectionné'}
+                              </div>
+                              <div className="text-sm text-teal-700 mt-1">
+                                {expertiseTypes.find(t => t.id.toString() === form.watch('expertise_type_id'))?.description || ''}
+                              </div>
+                              <Badge variant="outline" className="mt-2 bg-teal-100 text-teal-800 border-teal-300">
+                                {expertiseTypes.find(t => t.id.toString() === form.watch('expertise_type_id'))?.code || ''}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-amber-500" />
+                            <span className="font-medium text-gray-700">Documents transmis</span>
+                            <Badge variant="secondary" className="ml-auto">
+                              {selectedDocuments.length} document(s)
+                            </Badge>
+                          </div>
+                          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            {selectedDocuments.length > 0 ? (
+                              <div className="space-y-2">
+                                {selectedDocuments.map((doc) => (
+                                  <div key={doc.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                                    <div>
+                                      <div className="font-medium text-amber-900">{doc.label}</div>
+                                      <div className="text-xs text-amber-700">{doc.code}</div>
+                                    </div>
+                                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+                                      ✓ Sélectionné
+                                    </Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-amber-700 text-center py-4">
+                                Aucun document sélectionné
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Experts */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                        <User className="h-4 w-4 text-pink-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">Experts assignés</h3>
+                        <Badge variant="secondary" className="ml-auto">
+                          {form.watch('experts').length} expert(s)
+                        </Badge>
+                      </div>
+                      <div className="space-y-3">
+                        {form.watch('experts').map((expert, idx) => {
+                          const expertUser = users.find(u => u.id.toString() === expert.expert_id)
+                          return (
+                            <div key={idx} className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-8 w-8 bg-pink-100 rounded-full flex items-center justify-center">
+                                    <User className="h-4 w-4 text-pink-600" />
+                                  </div>
+                                  <div>
+                                    <div className="font-semibold text-pink-900">
+                                      {expertUser?.name || 'Expert non sélectionné'}
+                                    </div>
+                                    <div className="text-sm text-pink-700">
+                                      {expertUser?.email || ''}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm font-medium text-pink-900">
+                                    {expert.date ? new Date(expert.date).toLocaleDateString('fr-FR') : 'Date non définie'}
+                                  </div>
+                                  <Badge variant="outline" className="mt-1 bg-pink-100 text-pink-800 border-pink-300">
+                                    Expert #{idx + 1}
+                                  </Badge>
+                                </div>
+                              </div>
+                              {expert.observation && (
+                                <div className="mt-3 p-2 bg-white rounded border border-pink-200">
+                                  <div className="text-xs text-pink-600 font-medium">Observation:</div>
+                                  <div className="text-sm text-pink-800">{expert.observation}</div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Informations complémentaires */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                        <Info className="h-4 w-4 text-gray-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">Informations complémentaires</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <span className="font-medium text-gray-700">Numéro de police</span>
+                            <div className="p-3 bg-gray-50 rounded-lg border">
+                              <span className="font-mono text-gray-900">
+                                {form.watch('policy_number') || 'Non renseigné'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <span className="font-medium text-gray-700">Numéro de sinistre</span>
+                            <div className="p-3 bg-gray-50 rounded-lg border">
+                              <span className="font-mono text-gray-900">
+                                {form.watch('claim_number') || 'Non renseigné'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <span className="font-medium text-gray-700">Date de réception</span>
+                            <div className="p-3 bg-gray-50 rounded-lg border">
+                              <span className="text-gray-900">
+                                {form.watch('received_at') ? new Date(form.watch('received_at')!).toLocaleDateString('fr-FR') : 'Non définie'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <span className="font-medium text-gray-700">Date d'expertise</span>
+                            <div className="p-3 bg-gray-50 rounded-lg border">
+                              <span className="text-gray-900">
+                                {form.watch('expertise_date') ? new Date(form.watch('expertise_date')!).toLocaleDateString('fr-FR') : 'Non définie'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <span className="font-medium text-gray-700">Lieu d'expertise</span>
+                            <div className="p-3 bg-gray-50 rounded-lg border">
+                              <span className="text-gray-900">
+                                {form.watch('expertise_place') || 'Non renseigné'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <span className="font-medium text-gray-700">Administrateur</span>
+                            <div className="p-3 bg-gray-50 rounded-lg border">
+                              <span className="text-gray-900">
+                                {form.watch('administrator') || 'Non renseigné'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Observations et circonstances */}
+                      {(form.watch('circumstance') || form.watch('damage_declared') || form.watch('observation')) && (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-gray-600" />
+                            <span className="font-medium text-gray-700">Observations et détails</span>
+                          </div>
+                          <div className="space-y-3">
+                            {form.watch('circumstance') && (
+                              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <div className="text-sm font-medium text-blue-900 mb-1">Circonstances:</div>
+                                <div className="text-blue-800">{form.watch('circumstance')}</div>
+                              </div>
+                            )}
+                            {form.watch('damage_declared') && (
+                              <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                                <div className="text-sm font-medium text-red-900 mb-1">Dégâts déclarés:</div>
+                                <div className="text-red-800">{form.watch('damage_declared')}</div>
+                              </div>
+                            )}
+                            {form.watch('observation') && (
+                              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                                <div className="text-sm font-medium text-green-900 mb-1">Observation générale:</div>
+                                <div className="text-green-800">{form.watch('observation')}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       )}
-                    </Button>
+                    </div>
+
+                    {/* Résumé final */}
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ClipboardCheck className="h-5 w-5 text-blue-600" />
+                        <h4 className="font-semibold text-blue-900">Résumé du dossier</h4>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="text-center">
+                          <div className="font-bold text-blue-900">{clients.find(c => c.id.toString() === form.watch('client_id'))?.name ? '✓' : '✗'}</div>
+                          <div className="text-blue-700">Client</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-bold text-blue-900">{vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))?.license_plate ? '✓' : '✗'}</div>
+                          <div className="text-blue-700">Véhicule</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-bold text-blue-900">{form.watch('experts').length > 0 ? '✓' : '✗'}</div>
+                          <div className="text-blue-700">Experts</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-bold text-blue-900">{selectedDocuments.length > 0 ? '✓' : '✗'}</div>
+                          <div className="text-blue-700">Documents</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
+            
           </div>
-        </CardContent>
-      </Card>
+ 
         </form>
       </Form>
+
+      {/* Modals de création rapide */}
+      <Dialog open={showCreateClientModal} onOpenChange={setShowCreateClientModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer un client</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer un nouveau client.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateClient} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="client-name">Nom *</Label>
+              <Input 
+                id="client-name" 
+                value={createClientForm.name} 
+                onChange={e => setCreateClientForm(f => ({ ...f, name: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client-email">Email *</Label>
+              <Input 
+                id="client-email" 
+                type="email" 
+                value={createClientForm.email} 
+                onChange={e => setCreateClientForm(f => ({ ...f, email: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client-phone1">Téléphone 1</Label>
+              <Input 
+                id="client-phone1" 
+                value={createClientForm.phone_1} 
+                onChange={e => setCreateClientForm(f => ({ ...f, phone_1: e.target.value }))} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client-phone2">Téléphone 2</Label>
+              <Input 
+                id="client-phone2" 
+                value={createClientForm.phone_2} 
+                onChange={e => setCreateClientForm(f => ({ ...f, phone_2: e.target.value }))} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client-address">Adresse</Label>
+              <Input 
+                id="client-address" 
+                value={createClientForm.address} 
+                onChange={e => setCreateClientForm(f => ({ ...f, address: e.target.value }))} 
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Créer le client</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateVehicleModal} onOpenChange={setShowCreateVehicleModal}>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Créer un véhicule</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer un nouveau véhicule.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateVehicle} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-license">Plaque d'immatriculation *</Label>
+                <Input 
+                  id="vehicle-license" 
+                  value={createVehicleForm.license_plate} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, license_plate: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-usage">Usage *</Label>
+                <Input 
+                  id="vehicle-usage" 
+                  value={createVehicleForm.usage} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, usage: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-type">Type *</Label>
+                <Input 
+                  id="vehicle-type" 
+                  value={createVehicleForm.type} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, type: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-option">Option *</Label>
+                <Input 
+                  id="vehicle-option" 
+                  value={createVehicleForm.option} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, option: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-mileage">Kilométrage *</Label>
+                <Input 
+                  id="vehicle-mileage" 
+                  type="number" 
+                  value={createVehicleForm.mileage} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, mileage: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-serial">Numéro de série *</Label>
+                <Input 
+                  id="vehicle-serial" 
+                  value={createVehicleForm.serial_number} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, serial_number: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-power">Puissance fiscale *</Label>
+                <Input 
+                  id="vehicle-power" 
+                  type="number" 
+                  value={createVehicleForm.fiscal_power} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, fiscal_power: Number(e.target.value) }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-seats">Nombre de places *</Label>
+                <Input 
+                  id="vehicle-seats" 
+                  type="number" 
+                  value={createVehicleForm.nb_seats} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, nb_seats: Number(e.target.value) }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-energy">Énergie</Label>
+                <Input 
+                  id="vehicle-energy" 
+                  value={createVehicleForm.energy} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, energy: e.target.value }))} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-model">Modèle de véhicule *</Label>
+                <Select 
+                  value={createVehicleForm.vehicle_model_id} 
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_model_id: value }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner un modèle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicleModels.map((model: VehicleModel) => (
+                      <SelectItem key={model.id} value={model.id.toString()}>
+                        {model.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-color">Couleur *</Label>
+                <Select 
+                  value={createVehicleForm.color_id} 
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, color_id: value }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner une couleur" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colors.map((color: Color) => (
+                      <SelectItem key={color.id} value={color.id.toString()}>
+                        {color.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-bodywork">Carrosserie *</Label>
+                <Select 
+                  value={createVehicleForm.bodywork_id} 
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, bodywork_id: value }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner une carrosserie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bodyworks.map((bodywork: Bodywork) => (
+                      <SelectItem key={bodywork.id} value={bodywork.id.toString()}>
+                        {bodywork.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Créer le véhicule</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateInsurerModal} onOpenChange={setShowCreateInsurerModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer un assureur</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer un nouvel assureur.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateInsurer} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="insurer-name">Nom *</Label>
+              <Input 
+                id="insurer-name" 
+                value={createInsurerForm.name} 
+                onChange={e => setCreateInsurerForm(f => ({ ...f, name: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="insurer-code">Code *</Label>
+              <Input 
+                id="insurer-code" 
+                value={createInsurerForm.code} 
+                onChange={e => setCreateInsurerForm(f => ({ ...f, code: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="insurer-email">Email</Label>
+              <Input 
+                id="insurer-email" 
+                type="email" 
+                value={createInsurerForm.email} 
+                onChange={e => setCreateInsurerForm(f => ({ ...f, email: e.target.value }))} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="insurer-phone">Téléphone</Label>
+              <Input 
+                id="insurer-phone" 
+                value={createInsurerForm.telephone} 
+                onChange={e => setCreateInsurerForm(f => ({ ...f, telephone: e.target.value }))} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="insurer-address">Adresse</Label>
+              <Input 
+                id="insurer-address" 
+                value={createInsurerForm.address} 
+                onChange={e => setCreateInsurerForm(f => ({ ...f, address: e.target.value }))} 
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Créer l'assureur</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateRepairerModal} onOpenChange={setShowCreateRepairerModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer un réparateur</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer un nouveau réparateur.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateRepairer} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="repairer-name">Nom *</Label>
+              <Input 
+                id="repairer-name" 
+                value={createRepairerForm.name} 
+                onChange={e => setCreateRepairerForm(f => ({ ...f, name: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="repairer-code">Code *</Label>
+              <Input 
+                id="repairer-code" 
+                value={createRepairerForm.code} 
+                onChange={e => setCreateRepairerForm(f => ({ ...f, code: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="repairer-email">Email</Label>
+              <Input 
+                id="repairer-email" 
+                type="email" 
+                value={createRepairerForm.email} 
+                onChange={e => setCreateRepairerForm(f => ({ ...f, email: e.target.value }))} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="repairer-phone">Téléphone</Label>
+              <Input 
+                id="repairer-phone" 
+                value={createRepairerForm.telephone} 
+                onChange={e => setCreateRepairerForm(f => ({ ...f, telephone: e.target.value }))} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="repairer-address">Adresse</Label>
+              <Input 
+                id="repairer-address" 
+                value={createRepairerForm.address} 
+                onChange={e => setCreateRepairerForm(f => ({ ...f, address: e.target.value }))} 
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Créer le réparateur</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateDocumentModal} onOpenChange={setShowCreateDocumentModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer un document transmis</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer un nouveau document transmis.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateDocument} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="document-code">Code *</Label>
+              <Input 
+                id="document-code" 
+                value={createDocumentForm.code} 
+                onChange={e => setCreateDocumentForm(f => ({ ...f, code: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="document-label">Label *</Label>
+              <Input 
+                id="document-label" 
+                value={createDocumentForm.label} 
+                onChange={e => setCreateDocumentForm(f => ({ ...f, label: e.target.value }))} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="document-description">Description</Label>
+              <textarea 
+                id="document-description" 
+                className="min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={createDocumentForm.description} 
+                onChange={e => setCreateDocumentForm(f => ({ ...f, description: e.target.value }))} 
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Créer le document</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal des détails du véhicule */}
       <Dialog open={showVehicleModal} onOpenChange={setShowVehicleModal}>
@@ -1519,81 +2424,81 @@ export default function CreateAssignmentPage() {
       <Dialog open={showClientModal} onOpenChange={setShowClientModal}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-xs">
+              <User className="h-1.25 w-1.25" />
               Détails du client
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Informations complètes sur le client sélectionné
             </DialogDescription>
           </DialogHeader>
           
           {selectedClient && (
-            <div className="space-y-6">
+            <div className="space-y-1.5">
               {/* En-tête avec avatar */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border">
-                <div className="h-20 w-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+              <div className="flex items-center gap-1 p-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border">
+                <div className="h-5 w-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-lg font-bold">
                   {selectedClient?.name?.charAt(0).toUpperCase() || ''}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedClient?.name || ''}</h3>
-                  <p className="text-gray-600">{selectedClient.email}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <h3 className="text-lg font-bold text-gray-900">{selectedClient?.name || ''}</h3>
+                  <p className="text-gray-600 text-xs">{selectedClient.email}</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xxs">
                       {selectedClient?.role?.label || ''}
                     </Badge>
-                    <span className="text-sm text-gray-500">ID: {selectedClient?.hash_id || ''}</span>
+                    <span className="text-xxs text-gray-500">ID: {selectedClient?.hash_id || ''}</span>
                   </div>
                 </div>
               </div>
 
               {/* Informations principales */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Informations personnelles</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Nom complet</span>
-                        <span className="font-semibold">{selectedClient?.first_name || ''} {selectedClient?.last_name || ''}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-sm text-gray-900 border-b pb-0.5">Informations personnelles</h4>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Nom complet</span>
+                        <span className="font-semibold text-xs">{selectedClient?.first_name || ''} {selectedClient?.last_name || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Email</span>
-                        <span className="font-semibold">{selectedClient?.email || ''}</span>
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Email</span>
+                        <span className="font-semibold text-xs">{selectedClient?.email || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Téléphone</span>
-                        <span className="font-semibold">{selectedClient?.telephone || ''}</span>
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Téléphone</span>
+                        <span className="font-semibold text-xs">{selectedClient?.telephone || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Nom d'utilisateur</span>
-                        <span className="font-semibold">{selectedClient?.username || ''}</span>
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Nom d'utilisateur</span>
+                        <span className="font-semibold text-xs">{selectedClient?.username || ''}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Informations professionnelles</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Rôle</span>
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <div className="space-y-1.5">
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-sm text-gray-900 border-b pb-0.5">Informations professionnelles</h4>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Rôle</span>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xxs">
                           {selectedClient?.role?.label || ''}
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Entité</span>
-                        <span className="font-semibold">{selectedClient?.entity?.name || ''}</span>
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Entité</span>
+                        <span className="font-semibold text-xs">{selectedClient?.entity?.name || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code entité</span>
-                        <span className="font-mono text-sm">{selectedClient?.entity?.code || ''}</span>
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code entité</span>
+                        <span className="font-mono text-xxs">{selectedClient?.entity?.code || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Vérification</span>
-                        <Badge variant={selectedClient?.pending_verification ? "destructive" : "default"}>
+                      <div className="flex justify-between items-center p-0.75 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Vérification</span>
+                        <Badge variant={selectedClient?.pending_verification ? "destructive" : "default"} className="text-xxs">
                           {selectedClient?.pending_verification ? "En attente" : "Vérifié"}
                         </Badge>
                       </div>
@@ -1603,37 +2508,37 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Informations de l'entité */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Détails de l'entité</h4>
-                <div className="grid grid-cols-2 gap-6 p-6 bg-gray-50 rounded-xl">
-                  <div className="space-y-3">
+              <div className="space-y-1">
+                <h4 className="font-semibold text-sm text-gray-900 border-b pb-0.5">Détails de l'entité</h4>
+                <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-gray-50 rounded-xl">
+                  <div className="space-y-0.75">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Nom de l'entité</span>
-                      <span className="font-semibold">{selectedClient?.entity?.name || ''}</span>
+                      <span className="text-gray-600 text-xs">Nom de l'entité</span>
+                      <span className="font-semibold text-xs">{selectedClient?.entity?.name || ''}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Email de l'entité</span>
-                      <span className="font-semibold">{selectedClient?.entity?.email || ''}</span>
+                      <span className="text-gray-600 text-xs">Email de l'entité</span>
+                      <span className="font-semibold text-xs">{selectedClient?.entity?.email || ''}</span>
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-0.75">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Téléphone</span>
-                      <span className="font-semibold">{selectedClient?.entity?.telephone || 'Non renseigné'}</span>
+                      <span className="text-gray-600 text-xs">Téléphone</span>
+                      <span className="font-semibold text-xs">{selectedClient?.entity?.telephone || 'Non renseigné'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Adresse</span>
-                      <span className="font-semibold">{selectedClient?.entity?.address || 'Non renseignée'}</span>
+                      <span className="text-gray-600 text-xs">Adresse</span>
+                      <span className="font-semibold text-xs">{selectedClient?.entity?.address || 'Non renseignée'}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Dates */}
-              <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+              <div className="flex justify-between items-center p-1 bg-blue-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-blue-600 font-medium">Membre depuis</p>
-                  <p className="text-blue-900 font-semibold">
+                  <p className="text-xxs text-blue-600 font-medium">Membre depuis</p>
+                  <p className="text-blue-900 font-semibold text-xs">
                     {new Date(selectedClient?.created_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -1642,8 +2547,8 @@ export default function CreateAssignmentPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-blue-600 font-medium">Dernière mise à jour</p>
-                  <p className="text-blue-900 font-semibold">
+                  <p className="text-xxs text-blue-600 font-medium">Dernière mise à jour</p>
+                  <p className="text-blue-900 font-semibold text-xs">
                     {new Date(selectedClient?.updated_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -1662,78 +2567,78 @@ export default function CreateAssignmentPage() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
+              <Building className="h-2.5 w-2.5" />
               Détails de l'assureur
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Informations complètes sur l'assureur sélectionné
             </DialogDescription>
           </DialogHeader>
           
           {selectedInsurer && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* En-tête avec logo */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border">
-                <div className="h-20 w-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white">
-                  <Building className="h-10 w-10" />
+              <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border">
+                <div className="h-10 w-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white">
+                  <Building className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedInsurer?.name || ''}</h3>
-                  <p className="text-gray-600">{selectedInsurer?.email || ''}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <h3 className="text-xl font-bold text-gray-900">{selectedInsurer?.name || ''}</h3>
+                  <p className="text-gray-600 text-xs">{selectedInsurer?.email || ''}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xxs">
                       {selectedInsurer?.entity_type?.label || ''}
                     </Badge>
-                    <span className="text-sm text-gray-500">Code: {selectedInsurer?.code || ''}</span>
+                    <span className="text-xxs text-gray-500">Code: {selectedInsurer?.code || ''}</span>
                   </div>
                 </div>
               </div>
 
               {/* Informations principales */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Informations générales</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Nom</span>
-                        <span className="font-semibold">{selectedInsurer?.name || ''}</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Informations générales</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Nom</span>
+                        <span className="font-semibold text-xs">{selectedInsurer?.name || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code</span>
-                        <span className="font-mono text-sm font-semibold">{selectedInsurer?.code || ''}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code</span>
+                        <span className="font-mono text-xxs font-semibold">{selectedInsurer?.code || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Email</span>
-                        <span className="font-semibold">{selectedInsurer?.email || ''}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Email</span>
+                        <span className="font-semibold text-xs">{selectedInsurer?.email || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Téléphone</span>
-                        <span className="font-semibold">{selectedInsurer?.telephone || 'Non renseigné'}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Téléphone</span>
+                        <span className="font-semibold text-xs">{selectedInsurer?.telephone || 'Non renseigné'}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Statut et type</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Type d'entité</span>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Statut et type</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Type d'entité</span>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xxs">
                           {selectedInsurer?.entity_type?.label || ''}
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Statut</span>
-                        <Badge variant={selectedInsurer?.status?.code === 'active' ? "default" : "secondary"}>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Statut</span>
+                        <Badge variant={selectedInsurer?.status?.code === 'active' ? "default" : "secondary"} className="text-xxs">
                           {selectedInsurer?.status?.label || ''}
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code du statut</span>
-                        <span className="font-mono text-sm">{selectedInsurer?.status?.code || ''}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code du statut</span>
+                        <span className="font-mono text-xxs">{selectedInsurer?.status?.code || ''}</span>
                       </div>
                     </div>
                   </div>
@@ -1742,19 +2647,19 @@ export default function CreateAssignmentPage() {
 
               {/* Adresse */}
               {selectedInsurer.address && (
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Adresse</h4>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-900 font-medium">{selectedInsurer.address}</p>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Adresse</h4>
+                  <div className="p-2 bg-gray-50 rounded-lg">
+                    <p className="text-gray-900 font-medium text-xs">{selectedInsurer.address}</p>
                   </div>
                 </div>
               )}
 
               {/* Dates */}
-              <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+              <div className="flex justify-between items-center p-2 bg-green-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-green-600 font-medium">Créé le</p>
-                  <p className="text-green-900 font-semibold">
+                  <p className="text-xxs text-green-600 font-medium">Créé le</p>
+                  <p className="text-green-900 font-semibold text-xs">
                     {new Date(selectedInsurer.created_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -1763,8 +2668,8 @@ export default function CreateAssignmentPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">Dernière mise à jour</p>
-                  <p className="text-green-900 font-semibold">
+                  <p className="text-xxs text-green-600 font-medium">Dernière mise à jour</p>
+                  <p className="text-green-900 font-semibold text-xs">
                     {new Date(selectedInsurer.updated_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -1783,78 +2688,78 @@ export default function CreateAssignmentPage() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
+              <Wrench className="h-2.5 w-2.5" />
               Détails du réparateur
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Informations complètes sur le réparateur sélectionné
             </DialogDescription>
           </DialogHeader>
           
           {selectedRepairer && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* En-tête avec logo */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border">
-                <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center text-white">
-                  <Wrench className="h-10 w-10" />
+              <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border">
+                <div className="h-10 w-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center text-white">
+                  <Wrench className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedRepairer?.name || ''}</h3>
-                  <p className="text-gray-600">{selectedRepairer?.email || ''}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                  <h3 className="text-xl font-bold text-gray-900">{selectedRepairer?.name || ''}</h3>
+                  <p className="text-gray-600 text-xs">{selectedRepairer?.email || ''}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xxs">
                       {selectedRepairer?.entity_type?.label || ''}
                     </Badge>
-                    <span className="text-sm text-gray-500">Code: {selectedRepairer?.code || ''}</span>
+                    <span className="text-xxs text-gray-500">Code: {selectedRepairer?.code || ''}</span>
                   </div>
                 </div>
               </div>
 
               {/* Informations principales */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Informations générales</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Nom</span>
-                        <span className="font-semibold">{selectedRepairer?.name || ''}</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Informations générales</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Nom</span>
+                        <span className="font-semibold text-xs">{selectedRepairer?.name || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code</span>
-                        <span className="font-mono text-sm font-semibold">{selectedRepairer?.code || ''}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code</span>
+                        <span className="font-mono text-xxs font-semibold">{selectedRepairer?.code || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Email</span>
-                        <span className="font-semibold">{selectedRepairer?.email || ''}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Email</span>
+                        <span className="font-semibold text-xs">{selectedRepairer?.email || ''}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Téléphone</span>
-                        <span className="font-semibold">{selectedRepairer?.telephone || 'Non renseigné'}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Téléphone</span>
+                        <span className="font-semibold text-xs">{selectedRepairer?.telephone || 'Non renseigné'}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Statut et type</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Type d'entité</span>
-                        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Statut et type</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Type d'entité</span>
+                        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 text-xxs">
                           {selectedRepairer?.entity_type?.label || ''}
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Statut</span>
-                        <Badge variant={selectedRepairer?.status?.code === 'active' ? "default" : "secondary"}>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Statut</span>
+                        <Badge variant={selectedRepairer?.status?.code === 'active' ? "default" : "secondary"} className="text-xxs">
                           {selectedRepairer?.status?.label || ''}
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code du statut</span>
-                        <span className="font-mono text-sm">{selectedRepairer?.status?.code || ''}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code du statut</span>
+                        <span className="font-mono text-xxs">{selectedRepairer?.status?.code || ''}</span>
                       </div>
                     </div>
                   </div>
@@ -1863,19 +2768,19 @@ export default function CreateAssignmentPage() {
 
               {/* Adresse */}
               {selectedRepairer.address && (
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Adresse</h4>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-900 font-medium">{selectedRepairer?.address || ''}</p>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Adresse</h4>
+                  <div className="p-2 bg-gray-50 rounded-lg">
+                    <p className="text-gray-900 font-medium text-xs">{selectedRepairer?.address || ''}</p>
                   </div>
                 </div>
               )}
 
               {/* Dates */}
-              <div className="flex justify-between items-center p-4 bg-orange-50 rounded-lg">
+              <div className="flex justify-between items-center p-2 bg-orange-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-orange-600 font-medium">Créé le</p>
-                  <p className="text-orange-900 font-semibold">
+                  <p className="text-xxs text-orange-600 font-medium">Créé le</p>
+                  <p className="text-orange-900 font-semibold text-xs">
                     {new Date(selectedRepairer?.created_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -1884,8 +2789,8 @@ export default function CreateAssignmentPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-orange-600 font-medium">Dernière mise à jour</p>
-                  <p className="text-orange-900 font-semibold">
+                  <p className="text-xxs text-orange-600 font-medium">Dernière mise à jour</p>
+                  <p className="text-orange-900 font-semibold text-xs">
                     {new Date(selectedRepairer?.updated_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -1904,68 +2809,68 @@ export default function CreateAssignmentPage() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+              <FileText className="h-2.5 w-2.5" />
               Détails du type d'assignation
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Informations complètes sur le type d'assignation sélectionné
             </DialogDescription>
           </DialogHeader>
           
           {selectedAssignmentType && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* En-tête avec icône */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border">
-                <div className="h-20 w-20 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center text-white">
-                  <FileText className="h-10 w-10" />
+              <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border">
+                <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center text-white">
+                  <FileText className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedAssignmentType?.label || ''}</h3>
-                  <p className="text-gray-600">{selectedAssignmentType?.description || ''}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                  <h3 className="text-xl font-bold text-gray-900">{selectedAssignmentType?.label || ''}</h3>
+                  <p className="text-gray-600 text-xs">{selectedAssignmentType?.description || ''}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xxs">
                       Type d'assignation
                     </Badge>
-                    <span className="text-sm text-gray-500">Code: {selectedAssignmentType.code}</span>
+                    <span className="text-xxs text-gray-500">Code: {selectedAssignmentType.code}</span>
                   </div>
                 </div>
               </div>
 
               {/* Informations principales */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Informations générales</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Libellé</span>
-                        <span className="font-semibold">{selectedAssignmentType.label}</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Informations générales</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Libellé</span>
+                        <span className="font-semibold text-xs">{selectedAssignmentType.label}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code</span>
-                        <span className="font-mono text-sm font-semibold">{selectedAssignmentType.code}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code</span>
+                        <span className="font-mono text-xxs font-semibold">{selectedAssignmentType.code}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Description</span>
-                        <span className="font-semibold">{selectedAssignmentType.description || 'Aucune description'}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Description</span>
+                        <span className="font-semibold text-xs">{selectedAssignmentType.description || 'Aucune description'}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Statut</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Statut</span>
-                        <Badge variant="default">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Statut</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Statut</span>
+                        <Badge variant="default" className="text-xxs">
                           Actif
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code du statut</span>
-                        <span className="font-mono text-sm">active</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code du statut</span>
+                        <span className="font-mono text-xxs">active</span>
                       </div>
                     </div>
                   </div>
@@ -1973,10 +2878,10 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Dates */}
-              <div className="flex justify-between items-center p-4 bg-purple-50 rounded-lg">
+              <div className="flex justify-between items-center p-2 bg-purple-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-purple-600 font-medium">Créé le</p>
-                  <p className="text-purple-900 font-semibold">
+                  <p className="text-xxs text-purple-600 font-medium">Créé le</p>
+                  <p className="text-purple-900 font-semibold text-xs">
                     {new Date(selectedAssignmentType.created_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -1985,8 +2890,8 @@ export default function CreateAssignmentPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-purple-600 font-medium">Dernière mise à jour</p>
-                  <p className="text-purple-900 font-semibold">
+                  <p className="text-xxs text-purple-600 font-medium">Dernière mise à jour</p>
+                  <p className="text-purple-900 font-semibold text-xs">
                     {new Date(selectedAssignmentType.updated_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -2005,68 +2910,68 @@ export default function CreateAssignmentPage() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5" />
+              <Search className="h-2.5 w-2.5" />
               Détails du type d'expertise
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Informations complètes sur le type d'expertise sélectionné
             </DialogDescription>
           </DialogHeader>
           
           {selectedExpertiseType && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* En-tête avec icône */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl border">
-                <div className="h-20 w-20 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center text-white">
-                  <Search className="h-10 w-10" />
+              <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl border">
+                <div className="h-10 w-10 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center text-white">
+                  <Search className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedExpertiseType.label}</h3>
-                  <p className="text-gray-600">{selectedExpertiseType.description}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge variant="secondary" className="bg-teal-100 text-teal-800">
+                  <h3 className="text-xl font-bold text-gray-900">{selectedExpertiseType.label}</h3>
+                  <p className="text-gray-600 text-xs">{selectedExpertiseType.description}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="bg-teal-100 text-teal-800 text-xxs">
                       Type d'expertise
                     </Badge>
-                    <span className="text-sm text-gray-500">Code: {selectedExpertiseType.code}</span>
+                    <span className="text-xxs text-gray-500">Code: {selectedExpertiseType.code}</span>
                   </div>
                 </div>
               </div>
 
               {/* Informations principales */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Informations générales</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Libellé</span>
-                        <span className="font-semibold">{selectedExpertiseType.label}</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Informations générales</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Libellé</span>
+                        <span className="font-semibold text-xs">{selectedExpertiseType.label}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code</span>
-                        <span className="font-mono text-sm font-semibold">{selectedExpertiseType.code}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code</span>
+                        <span className="font-mono text-xxs font-semibold">{selectedExpertiseType.code}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Description</span>
-                        <span className="font-semibold">{selectedExpertiseType.description || 'Aucune description'}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Description</span>
+                        <span className="font-semibold text-xs">{selectedExpertiseType.description || 'Aucune description'}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Statut</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Statut</span>
-                        <Badge variant="default">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Statut</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Statut</span>
+                        <Badge variant="default" className="text-xxs">
                           Actif
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code du statut</span>
-                        <span className="font-mono text-sm">active</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code du statut</span>
+                        <span className="font-mono text-xxs">active</span>
                       </div>
                     </div>
                   </div>
@@ -2074,10 +2979,10 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Dates */}
-              <div className="flex justify-between items-center p-4 bg-teal-50 rounded-lg">
+              <div className="flex justify-between items-center p-2 bg-teal-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-teal-600 font-medium">Créé le</p>
-                  <p className="text-teal-900 font-semibold">
+                  <p className="text-xxs text-teal-600 font-medium">Créé le</p>
+                  <p className="text-teal-900 font-semibold text-xs">
                     {new Date(selectedExpertiseType.created_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -2086,8 +2991,8 @@ export default function CreateAssignmentPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-teal-600 font-medium">Dernière mise à jour</p>
-                  <p className="text-teal-900 font-semibold">
+                  <p className="text-xxs text-teal-600 font-medium">Dernière mise à jour</p>
+                  <p className="text-teal-900 font-semibold text-xs">
                     {new Date(selectedExpertiseType.updated_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -2106,68 +3011,68 @@ export default function CreateAssignmentPage() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+              <FileText className="h-2.5 w-2.5" />
               Détails du document transmis
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               Informations complètes sur le document transmis sélectionné
             </DialogDescription>
           </DialogHeader>
           
-          {selectedDocument && (
-            <div className="space-y-6">
+          {/* {selectedDocument && ( */}
+            <div className="space-y-3">
               {/* En-tête avec icône */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border">
-                <div className="h-20 w-20 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center text-white">
-                  <FileText className="h-10 w-10" />
+              <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border">
+                <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center text-white">
+                  <FileText className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedDocument.label}</h3>
-                  <p className="text-gray-600">{selectedDocument.description}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge variant="secondary" className="bg-indigo-100 text-indigo-800">
+                  {/* <h3 className="text-xl font-bold text-gray-900">{selectedDocument.label}</h3> */}
+                  {/* <p className="text-gray-600 text-xs">{selectedDocument.description}</p> */}
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 text-xxs">
                       Document transmis
                     </Badge>
-                    <span className="text-sm text-gray-500">Code: {selectedDocument.code}</span>
+                    {/* <span className="text-xxs text-gray-500">Code: {selectedDocument.code}</span> */}
                   </div>
                 </div>
               </div>
 
               {/* Informations principales */}
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Informations générales</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Libellé</span>
-                        <span className="font-semibold">{selectedDocument.label}</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Informations générales</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Libellé</span>
+                        {/* <span className="font-semibold text-xs">{selectedDocument.label}</span> */}
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code</span>
-                        <span className="font-mono text-sm font-semibold">{selectedDocument.code}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code</span>
+                        {/* <span className="font-mono text-xxs font-semibold">{selectedDocument.code}</span> */}
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Description</span>
-                        <span className="font-semibold">{selectedDocument.description || 'Aucune description'}</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Description</span>
+                        {/* <span className="font-semibold text-xs">{selectedDocument.description || 'Aucune description'}</span> */}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg text-gray-900 border-b pb-2">Statut</h4>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Statut</span>
-                        <Badge variant="default">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Statut</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Statut</span>
+                        <Badge variant="default" className="text-xxs">
                           Actif
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-gray-600 font-medium">Code du statut</span>
-                        <span className="font-mono text-sm">active</span>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code du statut</span>
+                        <span className="font-mono text-xxs">active</span>
                       </div>
                     </div>
                   </div>
@@ -2175,30 +3080,30 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Dates */}
-              <div className="flex justify-between items-center p-4 bg-indigo-50 rounded-lg">
+              <div className="flex justify-between items-center p-2 bg-indigo-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-indigo-600 font-medium">Créé le</p>
-                  <p className="text-indigo-900 font-semibold">
-                    {new Date(selectedDocument.created_at).toLocaleDateString('fr-FR', {
+                  <p className="text-xxs text-indigo-600 font-medium">Créé le</p>
+                  <p className="text-indigo-900 font-semibold text-xs">
+                    {/* {new Date(selectedDocument.created_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
-                    })}
+                    })} */}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-indigo-600 font-medium">Dernière mise à jour</p>
-                  <p className="text-indigo-900 font-semibold">
-                    {new Date(selectedDocument.updated_at).toLocaleDateString('fr-FR', {
+                  <p className="text-xxs text-indigo-600 font-medium">Dernière mise à jour</p>
+                  <p className="text-indigo-900 font-semibold text-xs">
+                    {/* {new Date(selectedDocument.updated_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
-                    })}
+                    })} */}
                   </p>
                 </div>
               </div>
             </div>
-          )}
+          {/* // )} */}
         </DialogContent>
       </Dialog>
     </div>

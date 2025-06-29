@@ -33,6 +33,7 @@ import { useVehiclesStore } from '@/stores/vehicles'
 import { useBrandsStore } from '@/stores/brands'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
+import { useBodyworksStore } from '@/stores/bodyworks'
 
 const vehicleSchema = z.object({
   license_plate: z.string().min(1, 'La plaque d\'immatriculation est requise'),
@@ -59,12 +60,32 @@ interface VehicleMutateDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+// Types pour les modèles et couleurs
+interface VehicleModel {
+  id: number
+  label: string
+  code: string
+}
+
+interface Color {
+  id: number
+  label: string
+  code: string
+}
+
+interface Bodywork {
+  id: number
+  label: string
+  code: string
+}
+
 export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDialogProps) {
   const [loading, setLoading] = useState(false)
   const { createVehicle, updateVehicle, currentVehicle, fetchVehicle } = useVehiclesStore()
   const { fetchBrands } = useBrandsStore()
   const { vehicleModels, fetchVehicleModels } = useVehicleModelsStore()
   const { colors, fetchColors } = useColorsStore()
+  const { bodyworks, fetchBodyworks } = useBodyworksStore()
 
   const form = useForm<VehicleFormData>({
     resolver: zodResolver(vehicleSchema),
@@ -101,8 +122,9 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
       fetchBrands()
       fetchVehicleModels()
       fetchColors()
+      fetchBodyworks()
     }
-  }, [open, fetchBrands, fetchVehicleModels, fetchColors])
+  }, [open, fetchBrands, fetchVehicleModels, fetchColors, fetchBodyworks])
 
   // Mettre à jour le formulaire avec les données du véhicule
   useEffect(() => {
@@ -150,7 +172,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
       
       onOpenChange(false)
       form.reset()
-    } catch (error) {
+    } catch (_error) {
       // Error handled by store
     } finally {
       setLoading(false)
@@ -342,12 +364,12 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                     <FormLabel>Modèle de véhicule</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger  className="w-full">
                           <SelectValue placeholder="Sélectionner un modèle" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {vehicleModels.map((model: any) => (
+                        {vehicleModels.map((model: VehicleModel) => (
                           <SelectItem key={model.id} value={model.id.toString()}>
                             {model.label}
                           </SelectItem>
@@ -367,12 +389,12 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                     <FormLabel>Couleur</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger  className="w-full">
                           <SelectValue placeholder="Sélectionner une couleur" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {colors.map((color) => (
+                        {colors.map((color: Color) => (
                           <SelectItem key={color.id} value={color.id.toString()}>
                             {color.label}
                           </SelectItem>
@@ -390,9 +412,20 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Carrosserie</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="ID de la carrosserie" />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner une carrosserie" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {bodyworks.map((bodywork: Bodywork) => (
+                          <SelectItem key={bodywork.id} value={bodywork.id.toString()}>
+                            {bodywork.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -3,7 +3,7 @@ import PaymentsPage from "./PaymentDisplay";
 
 export default function SettingsProfile() {
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full w-full overflow-y-auto">
       <PaymentsPage onButtonClick={() => {
         console.log('Nouveau paiement')
       }} />

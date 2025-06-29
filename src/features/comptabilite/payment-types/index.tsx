@@ -112,7 +112,7 @@ export default function PaymentTypesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* En-tête avec statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-none">

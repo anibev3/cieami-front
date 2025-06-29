@@ -14,7 +14,7 @@ export interface Assignment {
   circumstance: string
   damage_declared: string
   observation: string | null
-  point_noted: string
+  point_noted: string | null
   seen_before_work_date: string | null
   seen_during_work_date: string | null
   seen_after_work_date: string | null
@@ -26,19 +26,63 @@ export interface Assignment {
   market_value: number | null
   work_duration: number | null
   expert_remark: string | null
-  shock_amount_excluding_tax: string
-  shock_amount_tax: string
-  shock_amount: string
-  other_cost_amount_excluding_tax: string
-  other_cost_amount_tax: string
-  other_cost_amount: string
+  shock_amount_excluding_tax: string | null
+  shock_amount_tax: string | null
+  shock_amount: string | null
+  other_cost_amount_excluding_tax: string | null
+  other_cost_amount_tax: string | null
+  other_cost_amount: string | null
   receipt_amount_excluding_tax: string | null
   receipt_amount_tax: string | null
   receipt_amount: string | null
-  total_amount_excluding_tax: string
-  total_amount_tax: string
-  total_amount: string
+  total_amount_excluding_tax: string | null
+  total_amount_tax: string | null
+  total_amount: string | null
   printed_at: string | null
+  emails: string | null
+  qr_codes: string | null
+  expert_signature: string | null
+  repairer_signature: string | null
+  customer_signature: string | null
+  edition_time_expire_at: string | null
+  edition_status: string | null
+  edition_per_cent: number | null
+  recovery_time_expire_at: string | null
+  recovery_status: string | null
+  recovery_per_cent: number | null
+  now: string | null
+  validated_by?: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
+    signature?: string
+  } | null
+  validated_at?: string | null
+  work_sheet_established_by?: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    created_at: string
+    updated_at: string
+    signature?: string
+  } | null
+  work_sheet_established_at?: string | null
   insurer: {
     id: number
     code: string

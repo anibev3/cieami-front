@@ -1,11 +1,10 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { Assignment } from '@/types/assignments'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, AlertTriangle, Clock } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
-import { formatCurrency } from '@/utils/format-currency'
 import { AssignmentActions } from './components/assignment-actions'
+import { AssignmentStatusEnum } from '@/types/global-types'
 
 interface ColumnsProps {
   onDelete: (assignment: Assignment) => void
@@ -13,7 +12,131 @@ interface ColumnsProps {
   onViewDetail: (assignmentId: number) => void
 }
 
+// Fonction utilitaire pour calculer le temps restant
+function getTimeLeft(expireAt: string | null) {
+  if (!expireAt) return null
+  const now = new Date()
+  const end = new Date(expireAt)
+  const diff = end.getTime() - now.getTime()
+  if (diff <= 0) return { expired: true, days: 0, hours: 0, minutes: 0 }
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+  const minutes = Math.floor((diff / (1000 * 60)) % 60)
+  return { expired: false, days, hours, minutes }
+}
+
+// Composant pour afficher le compte à rebours
+function CountdownBadge({ label, expireAt, status, percent }: { 
+  label: string
+  expireAt: string | null
+  status: string | null
+  percent: number | null
+}) {
+
+  if (!expireAt) return null
+  
+  const timeLeft = getTimeLeft(expireAt)
+  if (!timeLeft) return null
+
+  const isUrgent = timeLeft.expired || (timeLeft.days === 0 && timeLeft.hours < 24)
+  const isInProgress = status === 'in_progress'
+
+  if (timeLeft.expired) {
+    return (
+      <div className="flex flex-col items-center gap-1">
+        <Badge variant="destructive" className="flex items-center gap-1 bg-red-100 text-red-800 border-red-300 text-xs">
+          <AlertTriangle className="h-3 w-3" />
+          {label} expiré
+        </Badge>
+        {percent !== null && (
+          <span className="text-xs text-red-600 font-medium">{percent}%</span>
+        )}
+      </div>
+    ) 
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <Badge
+        variant={isUrgent ? 'destructive' : 'outline'}
+        className={
+          isUrgent
+            ? 'flex items-center gap-1 bg-red-100 text-red-800 border-red-300 text-xs animate-pulse'
+            : isInProgress
+            ? 'flex items-center gap-1 bg-blue-100 text-blue-800 border-blue-300 text-xs'
+            : 'flex items-center gap-1 bg-gray-100 text-gray-800 border-gray-300 text-xs'
+        }
+      >
+        {isUrgent && <AlertTriangle className="h-3 w-3" />}
+        {!isUrgent && <Clock className="h-3 w-3" />}
+        {timeLeft.days > 0 && `${timeLeft.days}j`}
+        {timeLeft.days === 0 && timeLeft.hours > 0 && `${timeLeft.hours}h`}
+        {timeLeft.days === 0 && timeLeft.hours === 0 && `${timeLeft.minutes}min`}
+        {timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && '<1min'}
+      </Badge>
+      {percent !== null && (
+        <span className={`text-xs font-medium ${
+          isUrgent ? 'text-red-600' : isInProgress ? 'text-blue-600' : 'text-gray-600'
+        }`}>
+          {percent}%
+        </span>
+      )}
+    </div>
+  )
+}
+
+// Fonction pour obtenir la variante de badge selon le statut
+function getStatusVariant(statusCode: string) {
+  switch (statusCode) {
+    case AssignmentStatusEnum.ACTIVE:
+      return 'info'
+    case AssignmentStatusEnum.OPENED:
+      return 'default'
+    case AssignmentStatusEnum.REALIZED:
+      return 'warning'
+    case AssignmentStatusEnum.EDITED:
+      return 'outline'
+    case AssignmentStatusEnum.VALIDATED:
+      return 'secondary'
+    case AssignmentStatusEnum.CLOSED:
+      return 'success'
+    case AssignmentStatusEnum.IN_PAYMENT:
+      return 'error'
+    case AssignmentStatusEnum.PAID:
+      return 'neutral'
+    case AssignmentStatusEnum.INACTIVE:
+      return 'primary'
+    case AssignmentStatusEnum.CANCELLED:
+      return 'error-light'
+    case AssignmentStatusEnum.DELETED:
+      return 'destructive'
+    case AssignmentStatusEnum.ARCHIVED:
+      return 'secondary'
+    case AssignmentStatusEnum.DRAFT:
+      return 'outline'
+    default:
+      return 'outline'
+  }
+}
+
 export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: ColumnsProps): ColumnDef<Assignment>[] => [
+
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <input
+        type="checkbox"
+        onChange={(e) => table.toggleAllRowsSelected(e.target.checked)}
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        type="checkbox"
+        checked={row.getIsSelected()}
+        onChange={(e) => row.toggleSelected(e.target.checked)}
+      />
+    ),
+  },
   {
     accessorKey: 'reference',
     header: 'Référence',
@@ -167,57 +290,7 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
   //   },
   // },
 
-  {
-    accessorKey: 'progress',
-    header: 'Progression',
-    cell: ({ row }) => {
-      // const status = row.getValue('status') as Assignment['status']
-      const getStatusVariant = (code: string) => {
 
-
-        
-        switch (code) {
-          case 'active':
-            return 'info'
-          case 'opened':
-            return 'default'
-          case 'realized':
-            return 'warning'
-          case 'edited':
-            return 'outline'
-          case 'corrected':
-            return 'secondary'
-          case 'closed':
-            return 'success'
-          case 'in_payment':
-            return 'error'
-          case 'paid':
-            return 'neutral'
-          case 'inactive':
-            return 'primary'
-          case 'cancelled':
-            return 'error-light'
-          case 'deleted':
-            return 'destructive'
-          default:
-            return 'outline'
-        }
-      }
-      
-      return (
-        // <Badge variant={getStatusVariant(status.code)}>
-        //   {status.label}
-        // </Badge>
-        <div className="flex items-center space-x-2">
-          {/* <User className="h-4 w-4 text-muted-foreground" /> */}
-          <div>
-            <div className="font-medium">{ row.getValue('edition') }</div>
-            <div className="text-sm text-muted-foreground">Progression</div>
-          </div>
-        </div>
-      )
-    },
-  },
 
 
   {
@@ -225,34 +298,6 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Statut',
     cell: ({ row }) => {
       const status = row.getValue('status') as Assignment['status']
-      const getStatusVariant = (code: string) => {
-        switch (code) {
-          case 'active':
-            return 'info'
-          case 'opened':
-            return 'default'
-          case 'realized':
-            return 'warning'
-          case 'edited':
-            return 'outline'
-          case 'corrected':
-            return 'secondary'
-          case 'closed':
-            return 'success'
-          case 'in_payment':
-            return 'error'
-          case 'paid':
-            return 'neutral'
-          case 'inactive':
-            return 'primary'
-          case 'cancelled':
-            return 'error-light'
-          case 'deleted':
-            return 'destructive'
-          default:
-            return 'outline'
-        }
-      }
       
       return (
         <Badge variant={getStatusVariant(status.code)}>
@@ -287,6 +332,36 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
   //     )
   //   },
   // },
+  {
+    accessorKey: 'edition_countdown',
+    header: 'Délai d\'édition',
+    cell: ({ row }) => {
+      const assignment = row.original
+      return (
+        <CountdownBadge
+          label="Édition"
+          expireAt={assignment.edition_time_expire_at}
+          status={assignment.edition_status}
+          percent={assignment.edition_per_cent}
+        />
+      )
+    },
+  },
+  {
+    accessorKey: 'recovery_countdown',
+    header: 'Délai de recouvrement',
+    cell: ({ row }) => {
+      const assignment = row.original
+      return (
+        <CountdownBadge
+          label="Récupération"
+          expireAt={assignment.recovery_time_expire_at}
+          status={assignment.recovery_status}
+          percent={assignment.recovery_per_cent}
+        />
+      )
+    },
+  },
   {
     id: 'actions',
     header: 'Actions',

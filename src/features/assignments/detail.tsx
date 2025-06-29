@@ -45,6 +45,7 @@ import {
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { Search } from '@/components/search'
+import { CountdownAlert } from '@/components/countdown-alert'
 
 interface AssignmentDetail {
   id: number
@@ -204,6 +205,20 @@ interface AssignmentDetail {
       description: string
     }
   }>
+  edition_status: string | null
+  edition_time_expire_at: string | null
+  edition_per_cent: number | null
+  recovery_status: string | null
+  recovery_time_expire_at: string | null
+  recovery_per_cent: number | null
+  validated_at: string | null
+  closed_at: string | null
+  cancelled_at: string | null
+  expert_signature: string | null
+  repairer_signature: string | null
+  customer_signature: string | null
+  qr_codes: string | null
+  emails: string | null
 }
 
 export default function AssignmentDetailPage() {
@@ -807,7 +822,122 @@ export default function AssignmentDetailPage() {
             </div>
           </div>
 
-
+          {/* Suivi & Statuts */}
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none">
+            <CardContent className="flex flex-wrap gap-6 items-center py-6">
+              {/* Statut d'édition */}
+              {assignment.edition_status && (
+                <div className="flex flex-col items-center">
+                  <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1">
+                    Édition : {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
+                  </Badge>
+                  {assignment.edition_time_expire_at && (
+                    <span className="text-xs text-blue-700 font-medium">
+                      Expire le {formatDate(assignment.edition_time_expire_at)}
+                    </span>
+                  )}
+                  {typeof assignment.edition_per_cent === 'number' && (
+                    <span className="text-xs text-blue-900 font-semibold">
+                      Progression : {assignment.edition_per_cent}%
+                    </span>
+                  )}
+                </div>
+              )}
+              {/* Statut de récupération */}
+              {assignment.recovery_status && (
+                <div className="flex flex-col items-center">
+                  <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300">
+                    Récupération : {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
+                  </Badge>
+                  {assignment.recovery_time_expire_at && (
+                    <span className="text-xs text-yellow-700 font-medium">
+                      Expire le {formatDate(assignment.recovery_time_expire_at)}
+                    </span>
+                  )}
+                  {typeof assignment.recovery_per_cent === 'number' && (
+                    <span className="text-xs text-yellow-900 font-semibold">
+                      Progression : {assignment.recovery_per_cent}%
+                    </span>
+                  )}
+                </div>
+              )}
+              {/* Validation */}
+              {assignment.validated_at && (
+                <div className="flex flex-col items-center">
+                  <Badge variant="success" className="mb-1 bg-green-100 text-green-800 border-green-300">
+                    Validé
+                  </Badge>
+                  <span className="text-xs text-green-700 font-medium">
+                    {formatDate(assignment.validated_at)}
+                  </span>
+                </div>
+              )}
+              {/* Clôture, annulation, etc. */}
+              {assignment.closed_at && (
+                <div className="flex flex-col items-center">
+                  <Badge variant="secondary" className="mb-1 bg-gray-200 text-gray-800 border-gray-300">
+                    Clôturé
+                  </Badge>
+                  <span className="text-xs text-gray-700 font-medium">
+                    {formatDate(assignment.closed_at)}
+                  </span>
+                </div>
+              )}
+              {assignment.cancelled_at && (
+                <div className="flex flex-col items-center">
+                  <Badge variant="destructive" className="mb-1 bg-red-100 text-red-800 border-red-300">
+                    Annulé
+                  </Badge>
+                  <span className="text-xs text-red-700 font-medium">
+                    {formatDate(assignment.cancelled_at)}
+                  </span>
+                </div>
+              )}
+              {/* Signatures */}
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-muted-foreground mb-1">Signatures</span>
+                <div className="flex gap-2">
+                  {assignment.expert_signature && (
+                    <a href={assignment.expert_signature} target="_blank" rel="noopener noreferrer" title="Signature expert">
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Expert</Badge>
+                    </a>
+                  )}
+                  {assignment.repairer_signature && (
+                    <a href={assignment.repairer_signature} target="_blank" rel="noopener noreferrer" title="Signature réparateur">
+                      <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">Réparateur</Badge>
+                    </a>
+                  )}
+                  {assignment.customer_signature && (
+                    <a href={assignment.customer_signature} target="_blank" rel="noopener noreferrer" title="Signature client">
+                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Client</Badge>
+                    </a>
+                  )}
+                </div>
+              </div>
+              {/* QR code et emails */}
+              {assignment.qr_codes && (
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-muted-foreground mb-1">QR Code</span>
+                  <a href={assignment.qr_codes} target="_blank" rel="noopener noreferrer">
+                    <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300">Voir</Badge>
+                  </a>
+                </div>
+              )}
+              {assignment.emails && (
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-muted-foreground mb-1">Emails</span>
+                  <span className="text-xs text-blue-900 font-semibold">{assignment.emails}</span>
+                </div>
+              )}
+              {/* Décompte dynamique (alerte si proche de l'expiration) */}
+              {assignment.edition_time_expire_at && (
+                <CountdownAlert label="Édition" expireAt={assignment.edition_time_expire_at} />
+              )}
+              {assignment.recovery_time_expire_at && (
+                <CountdownAlert label="Récupération" expireAt={assignment.recovery_time_expire_at} />
+              )}
+            </CardContent>
+          </Card>
 
           {/* Layout avec sidebar et contenu */}
           <div className="flex gap-6">

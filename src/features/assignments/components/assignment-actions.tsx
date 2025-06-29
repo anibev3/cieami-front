@@ -100,14 +100,14 @@ export function AssignmentActions({
           show: true,
           destructive: false
         },
-        {
-          key: 'receipts',
-          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-          icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
-          show: true,
-          destructive: false
-        },
+        // {
+        //   key: 'receipts',
+        //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+        //   icon: Receipt,
+        //   onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+        //   show: true,
+        //   destructive: false
+        // },
         {
           key: 'realize-opened',
           label: 'Réaliser le dossier',
@@ -127,14 +127,14 @@ export function AssignmentActions({
           show: true,
           destructive: false
         },
-        {
-          key: 'receipts',
-          label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-          icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
-          show: true,
-          destructive: false
-        },
+        // {
+        //   key: 'receipts',
+        //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+        //   icon: Receipt,
+        //   onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+        //   show: true,
+        //   destructive: false
+        // },
         {
           key: 'write-report',
           label: 'Rédiger le rapport',

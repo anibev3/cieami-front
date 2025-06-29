@@ -327,7 +327,7 @@ export default function RealizeAssignmentPage() {
         {/* Informations principales du dossier */}
         <div className="space-y-6">
           {/* Informations du client */}
-          <Card>
+          <Card className='shadow-none'>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -349,7 +349,7 @@ export default function RealizeAssignmentPage() {
           </Card>
 
           {/* Informations du véhicule */}
-          <Card>
+          <Card className='shadow-none'>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Car className="h-5 w-5" />
@@ -373,7 +373,7 @@ export default function RealizeAssignmentPage() {
           </Card>
 
           {/* Informations financières */}
-          <Card>
+          <Card className='shadow-none'>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
@@ -397,7 +397,7 @@ export default function RealizeAssignmentPage() {
 
         {/* Formulaire de réalisation */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className='shadow-none'>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5" />
@@ -505,7 +505,7 @@ export default function RealizeAssignmentPage() {
                           <FormLabel>Expert responsable</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className='w-full'>
                                 <SelectValue placeholder="Sélectionner un expert" />
                               </SelectTrigger>
                             </FormControl>
@@ -533,7 +533,7 @@ export default function RealizeAssignmentPage() {
                           <FormLabel>Garage</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className='w-full'>
                                 <SelectValue placeholder="Sélectionner un garage" />
                               </SelectTrigger>
                             </FormControl>
@@ -630,7 +630,7 @@ export default function RealizeAssignmentPage() {
             {/* Contenu scrollable */}
             <div className="max-h-[60vh] overflow-y-auto space-y-4">
               {filteredDetails.map(([key, value]) => (
-                <Card key={key}>
+                <Card key={key} className='shadow-none'>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium capitalize">
                       {key.replace(/_/g, ' ')}

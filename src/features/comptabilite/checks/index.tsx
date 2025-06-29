@@ -43,7 +43,7 @@ export default function ChecksPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className='flex flex-col gap-2'>
@@ -162,7 +162,7 @@ export default function ChecksPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => navigate({ to: `/comptabilite/check/edit/${check.id}` })}
+                      onClick={() => navigate({ to: `/comptabilite/checks/edit/${check.id}` })}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
