@@ -105,60 +105,30 @@ export interface PhotoTypeFilters {
 // Types pour les photos
 export interface Photo {
   id: number
-  assignment_id: string
-  photo_type_id: string
-  photo_url: string
+  name: string
   is_cover: boolean
-  photo_type?: PhotoType
-  assignment?: {
+  photo: string
+  photo_type: {
     id: number
-    reference: string
+    code: string
+    label: string
+    description: string | null
+    created_by: null
+    updated_by: null
+    deleted_by: null
+    created_at: string | null
+    updated_at: string | null
   }
-  created_by: {
+  status: {
     id: number
-    hash_id: string
-    email: string
-    username: string
-    name: string
-    last_name: string
-    first_name: string
-    telephone: string
-    photo_url: string
-    pending_verification: boolean
-    signature: string | null
-    created_at: string
-    updated_at: string
+    code: string
+    label: string
+    description: string | null
+    deleted_at: string | null
+    created_at: string | null
+    updated_at: string | null
   }
-  updated_by: {
-    id: number
-    hash_id: string
-    email: string
-    username: string
-    name: string
-    last_name: string
-    first_name: string
-    telephone: string
-    photo_url: string
-    pending_verification: boolean
-    signature: string | null
-    created_at: string
-    updated_at: string
-  }
-  deleted_by: {
-    id: number
-    hash_id: string
-    email: string
-    username: string
-    name: string
-    last_name: string
-    first_name: string
-    telephone: string
-    photo_url: string
-    pending_verification: boolean
-    signature: string | null
-    created_at: string
-    updated_at: string
-  } | null
+  deleted_at: string | null
   created_at: string
   updated_at: string
 }

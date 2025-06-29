@@ -328,46 +328,45 @@ export default function AssignmentDetailPage() {
     switch (activeSection) {
       case 'parties':
         return (
-          <div className="space-y-6">
-                      {/* Informations principales */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Informations générales */}
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-xs">
+                  <FileText className="h-4 w-4" />
                   Informations générales
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-2">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Référence</p>
-                    <p className="font-semibold">{assignment.reference}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Référence</p>
+                    <p className="text-sm font-semibold">{assignment.reference}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Date de réception</p>
-                    <p className="font-semibold">{formatDate(assignment.received_at)}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Date de réception</p>
+                    <p className="text-sm font-semibold">{formatDate(assignment.received_at)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Date d'expertise</p>
-                    <p className="font-semibold">{formatDate(assignment.expertise_date)}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Date d'expertise</p>
+                    <p className="text-sm font-semibold">{formatDate(assignment.expertise_date)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Lieu d'expertise</p>
-                    <p className="font-semibold">{assignment.expertise_place || 'Non renseigné'}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Lieu d'expertise</p>
+                    <p className="text-sm font-semibold">{assignment.expertise_place || 'Non renseigné'}</p>
                   </div>
                 </div>
                 {assignment.circumstance && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Circonstances</p>
-                    <p className="text-sm">{assignment.circumstance}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Circonstances</p>
+                    <p className="text-xs">{assignment.circumstance}</p>
                   </div>
                 )}
                 {assignment.damage_declared && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Dégâts déclarés</p>
-                    <p className="text-sm">{assignment.damage_declared}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Dégâts déclarés</p>
+                    <p className="text-xs">{assignment.damage_declared}</p>
                   </div>
                 )}
               </CardContent>
@@ -375,32 +374,32 @@ export default function AssignmentDetailPage() {
 
             {/* Montants */}
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-xs">
+                  <DollarSign className="h-4 w-4" />
                   Montants
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm">Chocs (HT)</span>
-                    <span className="font-semibold">{formatCurrency(assignment.shock_amount_excluding_tax)}</span>
+                    <span className="text-xs">Chocs (HT)</span>
+                    <span className="text-sm font-semibold">{formatCurrency(assignment.shock_amount_excluding_tax)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Autres coûts (HT)</span>
-                    <span className="font-semibold">{formatCurrency(assignment.other_cost_amount_excluding_tax)}</span>
+                    <span className="text-xs">Autres coûts (HT)</span>
+                    <span className="text-sm font-semibold">{formatCurrency(assignment.other_cost_amount_excluding_tax)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Honoraires (HT)</span>
-                    <span className="font-semibold">{formatCurrency(assignment.receipt_amount_excluding_tax)}</span>
+                    <span className="text-xs">Honoraires (HT)</span>
+                    <span className="text-sm font-semibold">{formatCurrency(assignment.receipt_amount_excluding_tax)}</span>
                   </div>
                   <Separator />
-                  <div className="flex justify-between text-lg font-bold">
+                  <div className="flex justify-between text-sm font-bold">
                     <span>Total (HT)</span>
                     <span>{formatCurrency(assignment.total_amount_excluding_tax)}</span>
                   </div>
-                  <div className="flex justify-between text-lg font-bold text-primary">
+                  <div className="flex justify-between text-sm font-bold text-primary">
                     <span>Total (TTC)</span>
                     <span>{formatCurrency(assignment.total_amount)}</span>
                   </div>
@@ -410,64 +409,64 @@ export default function AssignmentDetailPage() {
 
             {/* Actions rapides */}
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Settings className="h-4 w-4" />
                   Actions
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2">
                 {assignment.expertise_sheet && (
-                  <Button variant="outline" className="w-full justify-start">
-                    <FileDown className="h-4 w-4 mr-2" />
+                  <Button variant="outline" className="w-full justify-start text-xs h-8">
+                    <FileDown className="h-3 w-3 mr-2" />
                     Télécharger la fiche
                   </Button>
                 )}
                 {assignment.expertise_report && (
-                  <Button variant="outline" className="w-full justify-start">
-                    <FileDown className="h-4 w-4 mr-2" />
+                  <Button variant="outline" className="w-full justify-start text-xs h-8">
+                    <FileDown className="h-3 w-3 mr-2" />
                     Télécharger le rapport
                   </Button>
                 )}
-                <Button variant="outline" className="w-full justify-start">
-                  <Eye className="h-4 w-4 mr-2" />
+                <Button variant="outline" className="w-full justify-start text-xs h-8">
+                  <Eye className="h-3 w-3 mr-2" />
                   Voir les photos
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Receipt className="h-4 w-4 mr-2" />
+                <Button variant="outline" className="w-full justify-start text-xs h-8">
+                  <Receipt className="h-3 w-3 mr-2" />
                   Gérer les quittances
                 </Button>
               </CardContent>
             </Card>
           </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Client */}
               <Card className="shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <User className="h-4 w-4" />
                     Client
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Nom</p>
-                    <p className="font-semibold">{assignment.client.name}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Nom</p>
+                    <p className="text-sm font-semibold">{assignment.client.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <p className="text-sm">{assignment.client.email}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Email</p>
+                    <p className="text-xs">{assignment.client.email}</p>
                   </div>
                   {assignment.client.phone_1 && (
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
-                      <p className="text-sm">{assignment.client.phone_1}</p>
+                      <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                      <p className="text-xs">{assignment.client.phone_1}</p>
                     </div>
                   )}
                   {assignment.client.address && (
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Adresse</p>
-                      <p className="text-sm whitespace-pre-line">{assignment.client.address}</p>
+                      <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                      <p className="text-xs whitespace-pre-line">{assignment.client.address}</p>
                     </div>
                   )}
                 </CardContent>
@@ -475,35 +474,35 @@ export default function AssignmentDetailPage() {
 
               {/* Assureur */}
               <Card className="shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Building className="h-4 w-4" />
                     Assureur
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Nom</p>
-                    <p className="font-semibold">{assignment.insurer.name}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Nom</p>
+                    <p className="text-sm font-semibold">{assignment.insurer.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Code</p>
-                    <p className="text-sm font-mono">{assignment.insurer.code}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Code</p>
+                    <p className="text-xs font-mono">{assignment.insurer.code}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <p className="text-sm">{assignment.insurer.email}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Email</p>
+                    <p className="text-xs">{assignment.insurer.email}</p>
                   </div>
                   {assignment.policy_number && (
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Numéro de police</p>
-                      <p className="text-sm">{assignment.policy_number}</p>
+                      <p className="text-xs font-medium text-muted-foreground">Numéro de police</p>
+                      <p className="text-xs">{assignment.policy_number}</p>
                     </div>
                   )}
                   {assignment.claim_number && (
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Numéro de sinistre</p>
-                      <p className="text-sm">{assignment.claim_number}</p>
+                      <p className="text-xs font-medium text-muted-foreground">Numéro de sinistre</p>
+                      <p className="text-xs">{assignment.claim_number}</p>
                     </div>
                   )}
                 </CardContent>
@@ -511,29 +510,29 @@ export default function AssignmentDetailPage() {
 
               {/* Réparateur */}
               <Card className="shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wrench className="h-5 w-5" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Wrench className="h-4 w-4" />
                     Réparateur
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Nom</p>
-                    <p className="font-semibold">{assignment.repairer.name}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Nom</p>
+                    <p className="text-sm font-semibold">{assignment.repairer.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Code</p>
-                    <p className="text-sm font-mono">{assignment.repairer.code}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Code</p>
+                    <p className="text-xs font-mono">{assignment.repairer.code}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <p className="text-sm">{assignment.repairer.email}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Email</p>
+                    <p className="text-xs">{assignment.repairer.email}</p>
                   </div>
                   {assignment.repairer.telephone && (
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
-                      <p className="text-sm">{assignment.repairer.telephone}</p>
+                      <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                      <p className="text-xs">{assignment.repairer.telephone}</p>
                     </div>
                   )}
                 </CardContent>
@@ -544,47 +543,47 @@ export default function AssignmentDetailPage() {
 
       case 'vehicle':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Car className="h-5 w-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Car className="h-4 w-4" />
                   Informations du véhicule
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Plaque d'immatriculation</p>
-                    <p className="font-semibold text-lg">{assignment.vehicle.license_plate}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Plaque d'immatriculation</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.license_plate}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Numéro de série</p>
-                    <p className="font-semibold">{assignment.vehicle.serial_number}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Numéro de série</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.serial_number}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Kilométrage</p>
-                    <p className="font-semibold">{assignment.vehicle.mileage} km</p>
+                    <p className="text-xs font-medium text-muted-foreground">Kilométrage</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.mileage} km</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Puissance fiscale</p>
-                    <p className="font-semibold">{assignment.vehicle.fiscal_power} CV</p>
+                    <p className="text-xs font-medium text-muted-foreground">Puissance fiscale</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.fiscal_power} CV</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Énergie</p>
-                    <p className="font-semibold">{assignment.vehicle.energy}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Énergie</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.energy}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Nombre de places</p>
-                    <p className="font-semibold">{assignment.vehicle.nb_seats}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Nombre de places</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.nb_seats}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Type</p>
-                    <p className="font-semibold">{assignment.vehicle.type}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Type</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.type}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Usage</p>
-                    <p className="font-semibold">{assignment.vehicle.usage}</p>
+                    <p className="text-xs font-medium text-muted-foreground">Usage</p>
+                    <p className="text-sm font-semibold">{assignment.vehicle.usage}</p>
                   </div>
                 </div>
               </CardContent>
@@ -602,59 +601,59 @@ export default function AssignmentDetailPage() {
 
       case 'shocks':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {assignment.shocks.map((shock, index) => (
-              <Card key={shock.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+              <Card key={shock.id} className="shadow-none">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-sm">
                     <span>Choc #{index + 1}</span>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Total choc</p>
-                        <p className="font-semibold">{formatCurrency(shock.amount)}</p>
+                        <p className="text-xs text-muted-foreground">Total choc</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.amount)}</p>
                       </div>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-4 text-xs">
                       <div>
                         <p className="font-medium text-muted-foreground">Main d'œuvre (HT)</p>
-                        <p className="font-semibold">{formatCurrency(shock.workforce_amount_excluding_tax)}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount_excluding_tax)}</p>
                       </div>
                       <div>
                         <p className="font-medium text-muted-foreground">Total (HT)</p>
-                        <p className="font-semibold">{formatCurrency(shock.amount_excluding_tax)}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.amount_excluding_tax)}</p>
                       </div>
                       <div>
                         <p className="font-medium text-muted-foreground">Total (TTC)</p>
-                        <p className="font-semibold">{formatCurrency(shock.amount)}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.amount)}</p>
                       </div>
                     </div>
                     
                     <Separator />
                     
                     <div>
-                      <h4 className="font-semibold mb-3">Détail des travaux</h4>
+                      <h4 className="font-semibold mb-2 text-sm">Détail des travaux</h4>
                       <div className="space-y-2">
                         {shock.workforces.map((workforce) => (
-                          <div key={workforce.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              {workforce.workforce_type.code === 'paint' && <Palette className="h-4 w-4" />}
-                              {workforce.workforce_type.code === 'electricity' && <Zap className="h-4 w-4" />}
-                              {workforce.workforce_type.code === 'metalworking' && <Hammer className="h-4 w-4" />}
+                          <div key={workforce.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              {workforce.workforce_type.code === 'paint' && <Palette className="h-3 w-3" />}
+                              {workforce.workforce_type.code === 'electricity' && <Zap className="h-3 w-3" />}
+                              {workforce.workforce_type.code === 'metalworking' && <Hammer className="h-3 w-3" />}
                               <div>
-                                <p className="font-medium">{workforce.workforce_type_label}</p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="font-medium text-xs">{workforce.workforce_type_label}</p>
+                                <p className="text-xs text-muted-foreground">
                                   {workforce.nb_hours}h × {formatCurrency(workforce.work_fee)}/h
                                   {parseFloat(workforce.discount) > 0 && ` (-${workforce.discount}%)`}
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold">{formatCurrency(workforce.amount)}</p>
-                              <p className="text-sm text-muted-foreground">HT: {formatCurrency(workforce.amount_excluding_tax)}</p>
+                              <p className="text-sm font-semibold">{formatCurrency(workforce.amount)}</p>
+                              <p className="text-xs text-muted-foreground">HT: {formatCurrency(workforce.amount_excluding_tax)}</p>
                             </div>
                           </div>
                         ))}
@@ -669,29 +668,29 @@ export default function AssignmentDetailPage() {
 
       case 'costs':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle>Autres coûts</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs">Autres coûts</CardTitle>
               </CardHeader>
               <CardContent>
                 {assignment.other_costs.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {assignment.other_costs.map((cost) => (
-                      <div key={cost.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div key={cost.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                         <div>
-                          <p className="font-medium">{cost.other_cost_type_label}</p>
-                          <p className="text-sm text-muted-foreground">{cost.other_cost_type.description}</p>
+                          <p className="font-medium text-xs">{cost.other_cost_type_label}</p>
+                          <p className="text-xs text-muted-foreground">{cost.other_cost_type.description}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold">{formatCurrency(cost.amount)}</p>
-                          <p className="text-sm text-muted-foreground">HT: {formatCurrency(cost.amount_excluding_tax)}</p>
+                          <p className="text-sm font-semibold">{formatCurrency(cost.amount)}</p>
+                          <p className="text-xs text-muted-foreground">HT: {formatCurrency(cost.amount_excluding_tax)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-8">Aucun autre coût enregistré</p>
+                  <p className="text-muted-foreground text-center py-6 text-sm">Aucun autre coût enregistré</p>
                 )}
               </CardContent>
             </Card>
@@ -700,29 +699,29 @@ export default function AssignmentDetailPage() {
 
       case 'receipts':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle>Quittances</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs">Quittances</CardTitle>
               </CardHeader>
               <CardContent>
                 {assignment.receipts.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {assignment.receipts.map((receipt) => (
-                      <div key={receipt.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div key={receipt.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                         <div>
-                          <p className="font-medium">{receipt.receipt_type.label}</p>
-                          <p className="text-sm text-muted-foreground">{receipt.receipt_type.description}</p>
+                          <p className="font-medium text-xs">{receipt.receipt_type.label}</p>
+                          <p className="text-xs text-muted-foreground">{receipt.receipt_type.description}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold">{formatCurrency(receipt.amount)}</p>
-                          <p className="text-sm text-muted-foreground">HT: {formatCurrency(receipt.amount_excluding_tax)}</p>
+                          <p className="text-sm font-semibold">{formatCurrency(receipt.amount)}</p>
+                          <p className="text-xs text-muted-foreground">HT: {formatCurrency(receipt.amount_excluding_tax)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-8">Aucune quittance enregistrée</p>
+                  <p className="text-muted-foreground text-center py-6 text-sm">Aucune quittance enregistrée</p>
                 )}
               </CardContent>
             </Card>
@@ -731,35 +730,35 @@ export default function AssignmentDetailPage() {
 
       case 'experts':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle>Experts assignés</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs">Experts assignés</CardTitle>
               </CardHeader>
               <CardContent>
                 {assignment.experts.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {assignment.experts.map((expert) => (
-                      <div key={expert.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div key={expert.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                         <div>
-                          <p className="font-medium">Expert #{expert.id}</p>
+                          <p className="font-medium text-xs">Expert #{expert.id}</p>
                           {expert.date && (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                               Date: {formatDate(expert.date)}
                             </p>
                           )}
                           {expert.observation && (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                               Observation: {expert.observation}
                             </p>
                           )}
                         </div>
-                        <Badge variant="outline">Assigné</Badge>
+                        <Badge variant="outline" className="text-xs">Assigné</Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-8">Aucun expert assigné</p>
+                  <p className="text-muted-foreground text-center py-6 text-sm">Aucun expert assigné</p>
                 )}
               </CardContent>
             </Card>
@@ -817,8 +816,8 @@ export default function AssignmentDetailPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Dossier {assignment.reference}</h1>
-                <p className="text-muted-foreground">Détails complets du dossier d'expertise</p>
+                <h1 className="text-xl font-bold tracking-tight">Dossier {assignment.reference}</h1>
+                <p className="text-xs text-muted-foreground">Détails complets du dossier d'expertise</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -838,133 +837,16 @@ export default function AssignmentDetailPage() {
             </div>
           </div>
 
-          {/* Suivi & Statuts */}
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none">
-            <CardContent className="flex flex-wrap gap-6 items-center py-6">
-              {/* Statut d'édition */}
-              {assignment.edition_status && (
-                <div className="flex flex-col items-center">
-                  <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1">
-                    Délai de redaction: {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
-                  </Badge>
-                  {assignment.edition_time_expire_at && (
-                    <span className="text-xs text-blue-700 font-medium">
-                      Expire le {formatDate(assignment.edition_time_expire_at)}
-                    </span>
-                  )}
-                  {typeof assignment.edition_per_cent === 'number' && (
-                    <span className="text-xs text-blue-900 font-semibold">
-                      Progression : {assignment.edition_per_cent}%
-                    </span>
-                  )}
-                </div>
-              )}
-              {/* Statut de récupération */}
-              {assignment.recovery_status && (
-                <div className="flex flex-col items-center">
-                  <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300">
-                    Délai de recouvrement: {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
-                  </Badge>
-                  {assignment.recovery_time_expire_at && (
-                    <span className="text-xs text-yellow-700 font-medium">
-                      Expire le {formatDate(assignment.recovery_time_expire_at)}
-                    </span>
-                  )}
-                  {typeof assignment.recovery_per_cent === 'number' && (
-                    <span className="text-xs text-yellow-900 font-semibold">
-                      Progression : {assignment.recovery_per_cent}%
-                    </span>
-                  )}
-                </div>
-              )}
-              {/* Validation */}
-              {assignment.validated_at && (
-                <div className="flex flex-col items-center">
-                  <Badge variant="success" className="mb-1 bg-green-100 text-green-800 border-green-300">
-                    Validé
-                  </Badge>
-                  <span className="text-xs text-green-700 font-medium">
-                    {formatDate(assignment.validated_at)}
-                  </span>
-                </div>
-              )}
-              {/* Clôture, annulation, etc. */}
-              {assignment.closed_at && (
-                <div className="flex flex-col items-center">
-                  <Badge variant="secondary" className="mb-1 bg-gray-200 text-gray-800 border-gray-300">
-                    Clôturé
-                  </Badge>
-                  <span className="text-xs text-gray-700 font-medium">
-                    {formatDate(assignment.closed_at)}
-                  </span>
-                </div>
-              )}
-              {assignment.cancelled_at && (
-                <div className="flex flex-col items-center">
-                  <Badge variant="destructive" className="mb-1 bg-red-100 text-red-800 border-red-300">
-                    Annulé
-                  </Badge>
-                  <span className="text-xs text-red-700 font-medium">
-                    {formatDate(assignment.cancelled_at)}
-                  </span>
-                </div>
-              )}
-              {/* Signatures */}
-              <div className="flex flex-col items-center">
-                <span className="text-xs text-muted-foreground mb-1">Signatures</span>
-                <div className="flex gap-2">
-                  {assignment.expert_signature && (
-                    <a href={assignment.expert_signature} target="_blank" rel="noopener noreferrer" title="Signature expert">
-                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Expert</Badge>
-                    </a>
-                  )}
-                  {assignment.repairer_signature && (
-                    <a href={assignment.repairer_signature} target="_blank" rel="noopener noreferrer" title="Signature réparateur">
-                      <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">Réparateur</Badge>
-                    </a>
-                  )}
-                  {assignment.customer_signature && (
-                    <a href={assignment.customer_signature} target="_blank" rel="noopener noreferrer" title="Signature client">
-                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Client</Badge>
-                    </a>
-                  )}
-                </div>
-              </div>
-              {/* QR code et emails */}
-              {assignment.qr_codes && (
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground mb-1">QR Code</span>
-                  <a href={assignment.qr_codes} target="_blank" rel="noopener noreferrer">
-                    <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300">Voir</Badge>
-                  </a>
-                </div>
-              )}
-              {assignment.emails && (
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground mb-1">Emails</span>
-                  <span className="text-xs text-blue-900 font-semibold">{assignment.emails}</span>
-                </div>
-              )}
-              {/* Décompte dynamique (alerte si proche de l'expiration) */}
-              {assignment.edition_time_expire_at && (
-                <CountdownAlert label="Redaction" expireAt={assignment.edition_time_expire_at} />
-              )}
-              {assignment.recovery_time_expire_at && (
-                <CountdownAlert label="Recouvrement" expireAt={assignment.recovery_time_expire_at} />
-              )}
-            </CardContent>
-          </Card>
-
           {/* Layout avec sidebar et contenu */}
-          <div className="flex gap-6">
+          <div className="flex gap-4">
             {/* Sidebar */}
-            <div className="w-80 flex-shrink-0">
+            <div className="w-64 flex-shrink-0">
               <Card className="shadow-none">
-                <CardHeader>
-                  <CardTitle>Navigation</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-xs">Navigation</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <nav className="space-y-1">
+                  <nav className="space-y-0.5">
                     {sidebarItems.map((item) => {
                       const Icon = item.icon
                       return (
@@ -972,16 +854,16 @@ export default function AssignmentDetailPage() {
                           key={item.id}
                           onClick={() => setActiveSection(item.id)}
                           className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50",
+                            "w-full flex items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-muted/50 text-xs",
                             activeSection === item.id
                               ? "bg-primary/10 text-primary border-r-2 border-primary"
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
-                          <Icon className="h-5 w-5" />
+                          <Icon className="h-4 w-4" />
                           <div className="flex-1">
-                            <p className="font-medium">{item.label}</p>
-                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                            <p className="font-medium text-xs">{item.label}</p>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
                           </div>
                         </button>
                       )
@@ -993,27 +875,131 @@ export default function AssignmentDetailPage() {
 
             {/* Contenu principal */}
             <div className="flex-1">
-              <Card className="shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {(() => {
-                      const activeItem = sidebarItems.find(item => item.id === activeSection)
-                      const Icon = activeItem?.icon
-                      return (
-                        <>
-                          {Icon && <Icon className="h-5 w-5" />}
-                          {activeItem?.label}
-                        </>
-                      )
-                    })()}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[600px]">
-                    {renderSection()}
-                  </ScrollArea>
+              {/* Suivi & Statuts */}
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none">
+                <CardContent className="flex flex-wrap gap-6 items-center">
+                  {/* Statut d'édition */}
+                  {assignment.edition_status && (
+                    <div className="flex flex-col items-center">
+                      <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1">
+                        Délai de redaction: {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
+                      </Badge>
+                      {assignment.edition_time_expire_at && (
+                        <span className="text-xs text-blue-700 font-medium">
+                          Expire le {formatDate(assignment.edition_time_expire_at)}
+                        </span>
+                      )}
+                      {typeof assignment.edition_per_cent === 'number' && (
+                        <span className="text-xs text-blue-900 font-semibold">
+                          Progression : {assignment.edition_per_cent}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {/* Statut de récupération */}
+                  {assignment.recovery_status && (
+                    <div className="flex flex-col items-center">
+                      <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300">
+                        Délai de recouvrement: {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
+                      </Badge>
+                      {assignment.recovery_time_expire_at && (
+                        <span className="text-xs text-yellow-700 font-medium">
+                          Expire le {formatDate(assignment.recovery_time_expire_at)}
+                        </span>
+                      )}
+                      {typeof assignment.recovery_per_cent === 'number' && (
+                        <span className="text-xs text-yellow-900 font-semibold">
+                          Progression : {assignment.recovery_per_cent}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {/* Validation */}
+                  {assignment.validated_at && (
+                    <div className="flex flex-col items-center">
+                      <Badge variant="success" className="mb-1 bg-green-100 text-green-800 border-green-300">
+                        Validé
+                      </Badge>
+                      <span className="text-xs text-green-700 font-medium">
+                        {formatDate(assignment.validated_at)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Clôture, annulation, etc. */}
+                  {assignment.closed_at && (
+                    <div className="flex flex-col items-center">
+                      <Badge variant="secondary" className="mb-1 bg-gray-200 text-gray-800 border-gray-300">
+                        Clôturé
+                      </Badge>
+                      <span className="text-xs text-gray-700 font-medium">
+                        {formatDate(assignment.closed_at)}
+                      </span>
+                    </div>
+                  )}
+                  {assignment.cancelled_at && (
+                    <div className="flex flex-col items-center">
+                      <Badge variant="destructive" className="mb-1 bg-red-100 text-red-800 border-red-300">
+                        Annulé
+                      </Badge>
+                      <span className="text-xs text-red-700 font-medium">
+                        {formatDate(assignment.cancelled_at)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Signatures */}
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-muted-foreground mb-1">Signatures</span>
+                    <div className="flex gap-2">
+                      {assignment.expert_signature && (
+                        <a href={assignment.expert_signature} target="_blank" rel="noopener noreferrer" title="Signature expert">
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Expert</Badge>
+                        </a>
+                      )}
+                      {assignment.repairer_signature && (
+                        <a href={assignment.repairer_signature} target="_blank" rel="noopener noreferrer" title="Signature réparateur">
+                          <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">Réparateur</Badge>
+                        </a>
+                      )}
+                      {assignment.customer_signature && (
+                        <a href={assignment.customer_signature} target="_blank" rel="noopener noreferrer" title="Signature client">
+                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Client</Badge>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  {/* QR code et emails */}
+                  {assignment.qr_codes && (
+                    <div className="flex flex-col items-center">
+                      <span className="text-xs text-muted-foreground mb-1">QR Code</span>
+                      <a href={assignment.qr_codes} target="_blank" rel="noopener noreferrer">
+                        <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300">Voir</Badge>
+                      </a>
+                    </div>
+                  )}
+                  {assignment.emails && (
+                    <div className="flex flex-col items-center">
+                      <span className="text-xs text-muted-foreground mb-1">Emails</span>
+                      <span className="text-xs text-blue-900 font-semibold">{assignment.emails}</span>
+                    </div>
+                  )}
+                  {/* Décompte dynamique (alerte si proche de l'expiration) */}
+                  <div>
+                    {assignment.edition_time_expire_at && (
+                      <CountdownAlert label="Redaction" expireAt={assignment.edition_time_expire_at} />
+                    )}
+                    <div className='mt-2'></div>
+                    {assignment.recovery_time_expire_at && (
+                      <CountdownAlert label="Recouvrement" expireAt={assignment.recovery_time_expire_at} />
+                    )}
+                  </div>
                 </CardContent>
               </Card>
+              
+              <div className="shadow-none mt-4">
+                <ScrollArea className="h-[600px]">
+                  {renderSection()}
+                </ScrollArea>
+              </div>
             </div>
           </div>
         </div>

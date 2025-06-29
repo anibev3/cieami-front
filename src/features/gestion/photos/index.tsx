@@ -9,9 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Edit, Trash2, Camera, Star, Upload, Image as ImageIcon, X } from 'lucide-react'
+import { Search, Edit, Trash2, Camera, Star, Upload, Image as ImageIcon, X, Grid3X3, List } from 'lucide-react'
 import { CreatePhotoData, UpdatePhotoData, Photo } from '@/types/gestion'
 import { AssignmentSelect } from './components/AssignmentSelect'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 
 export default function PhotosPage() {
   const {
@@ -31,6 +35,7 @@ export default function PhotosPage() {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPhotoTypeId, setSelectedPhotoTypeId] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
@@ -52,13 +57,27 @@ export default function PhotosPage() {
   }, [fetchPhotos, fetchPhotoTypes])
 
   const filteredPhotos = photos.filter(photo => {
-    const matchesSearch = photo.assignment?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = photo.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          photo.photo_type?.label?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesType = !selectedPhotoTypeId || photo.photo_type_id === selectedPhotoTypeId
+    const matchesType = !selectedPhotoTypeId || photo.photo_type.id.toString() === selectedPhotoTypeId
     
     return matchesSearch && matchesType
   })
+
+  // Fonction pour extraire la référence de l'assignation depuis l'URL de la photo
+  const getAssignmentReference = (photoUrl: string) => {
+    try {
+      const urlParts = photoUrl.split('/')
+      const photosIndex = urlParts.findIndex(part => part === 'photos')
+      if (photosIndex !== -1 && urlParts[photosIndex + 1]) {
+        return urlParts[photosIndex + 1]
+      }
+    } catch (_error) {
+      // Erreur silencieuse - retourne 'N/A' par défaut
+    }
+    return 'N/A'
+  }
 
   const handleFileSelect = (files: FileList | null) => {
     if (files) {
@@ -145,7 +164,7 @@ export default function PhotosPage() {
   const openEditDialog = (photo: Photo) => {
     setSelectedPhoto(photo)
     setEditData({
-      photo_type_id: photo.photo_type_id,
+      photo_type_id: photo.photo_type.id.toString(),
       photo: new File([], '')
     })
     setIsEditDialogOpen(true)
@@ -157,18 +176,28 @@ export default function PhotosPage() {
     byType: photoTypes.length
   }
 
-  return (
+    return (
+        <>
+            <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main>
     <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className='flex flex-col gap-2'>
-          <h3 className='text-lg font-bold'>Photos</h3>
-          <p className='text-muted-foreground text-sm'>Gérez les photos des assignations</p>
+          <h3 className='text-lg font-bold'>Galerie Photos</h3>
+          <p className='text-muted-foreground text-sm'>Gérez et organisez les photos des assignations</p>
         </div>
 
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
               <Upload className="mr-2 h-4 w-4" />
               Ajouter des photos
             </Button>
@@ -210,8 +239,10 @@ export default function PhotosPage() {
               
               {/* Upload Zone */}
               <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                  dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
+                  dragActive 
+                    ? 'border-primary bg-primary/5 scale-105' 
+                    : 'border-muted-foreground/25 hover:border-primary/50'
                 }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
@@ -245,7 +276,7 @@ export default function PhotosPage() {
                   <Label>Fichiers sélectionnés ({uploadData.photos.length})</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {uploadData.photos.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 border rounded">
+                      <div key={index} className="flex items-center justify-between p-2 border rounded bg-muted/50">
                         <span className="text-sm truncate">{file.name}</span>
                         <Button
                           variant="ghost"
@@ -267,6 +298,7 @@ export default function PhotosPage() {
               <Button 
                 onClick={handleUpload} 
                 disabled={!uploadData.assignment_id || !uploadData.photo_type_id || uploadData.photos.length === 0}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
                 Uploader
               </Button>
@@ -277,33 +309,33 @@ export default function PhotosPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className='shadow-none'>
+        <Card className='shadow-none border-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Camera className="h-4 w-4 text-muted-foreground" />
+            <Camera className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
             <p className="text-xs text-muted-foreground">Photos</p>
           </CardContent>
         </Card>
-        <Card className='shadow-none'>
+        <Card className='shadow-none border-0 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Couvertures</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
+            <Star className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.cover}</div>
+            <div className="text-2xl font-bold text-yellow-600">{stats.cover}</div>
             <p className="text-xs text-muted-foreground">Photos de couverture</p>
           </CardContent>
         </Card>
-        <Card className='shadow-none'>
+        <Card className='shadow-none border-0 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Types</CardTitle>
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            <ImageIcon className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.byType}</div>
+            <div className="text-2xl font-bold text-purple-600">{stats.byType}</div>
             <p className="text-xs text-muted-foreground">Types de photos</p>
           </CardContent>
         </Card>
@@ -320,95 +352,156 @@ export default function PhotosPage() {
             className="pl-8"
           />
         </div>
-        <Select value={selectedPhotoTypeId} onValueChange={setSelectedPhotoTypeId}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrer par type" />
-          </SelectTrigger>
-          <SelectContent>
-            {photoTypes.map((type) => (
-              <SelectItem key={type.id} value={type.id.toString()}>
-                {type.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center space-x-2">
+          <Select value={selectedPhotoTypeId} onValueChange={setSelectedPhotoTypeId}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filtrer par type" />
+            </SelectTrigger>
+            <SelectContent>
+              {photoTypes.map((type) => (
+                <SelectItem key={type.id} value={type.id.toString()}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(selectedPhotoTypeId || searchTerm) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedPhotoTypeId('')
+                setSearchTerm('')
+              }}
+              className="h-9 px-3"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center space-x-1 border rounded-md p-1">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className="h-8 w-8 p-0"
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="h-8 w-8 p-0"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      {/* Photos Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Photos Grid/List */}
+      <div className={`grid gap-4 ${
+        viewMode === 'grid' 
+          ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+          : 'grid-cols-1'
+      }`}>
         {filteredPhotos.map((photo) => (
-          <Card key={photo.id} className="hover:shadow-lg transition-shadow shadow-none">
-            <CardHeader className="p-0">
-              <div className="relative">
-                <img
-                  src={photo.photo_url}
-                  alt={`Photo ${photo.id}`}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-                {photo.is_cover && (
-                  <Badge className="absolute top-2 right-2 bg-yellow-500">
-                    <Star className="mr-1 h-3 w-3" />
-                    Couverture
-                  </Badge>
-                )}
-                <div className="absolute top-2 left-2 flex space-x-1">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleSetAsCover(photo.id)}
-                    disabled={photo.is_cover}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Star className="h-4 w-4" />
-                  </Button>
-                </div>
+          <Card key={photo.id} className="hover:shadow-lg transition-all duration-200 shadow-none border-0 overflow-hidden group">
+            <div 
+              className={`relative bg-cover bg-center bg-no-repeat ${
+                viewMode === 'grid' ? 'h-64' : 'h-48'
+              }`}
+              style={{ backgroundImage: `url(${photo.photo})` }}
+            >
+              {/* Overlay gradient pour améliorer la lisibilité */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              
+              {/* Badge de couverture */}
+              {photo.is_cover && (
+                <Badge className="absolute top-3 right-3 bg-yellow-500 hover:bg-yellow-600 z-10">
+                  <Star className="mr-1 h-3 w-3" />
+                  Couverture
+                </Badge>
+              )}
+              
+              {/* Boutons d'action */}
+              <div className="absolute top-3 left-3 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleSetAsCover(photo.id)}
+                  disabled={photo.is_cover}
+                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
+                >
+                  <Star className="h-4 w-4" />
+                </Button>
               </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">#{photo.id}</span>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEditDialog(photo)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action ne peut pas être annulée. Cela supprimera définitivement la photo #{photo.id}.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(photo.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+
+              {/* Contenu superposé */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+                      #{photo.id}
+                    </span>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditDialog(photo)}
+                        className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white"
                           >
-                            Supprimer
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action ne peut pas être annulée. Cela supprimera définitivement la photo #{photo.id}.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(photo.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                  
+                  {/* Informations avec fond semi-transparent */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1 bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+                      <span className="text-xs font-medium">Assignation:</span>
+                      <span className="text-xs">{getAssignmentReference(photo.photo) || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+                      <span className="text-xs font-medium">Type:</span>
+                      <span className="text-xs">{photo.photo_type?.label || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+                      <span className="text-xs font-medium">Créé le:</span>
+                      <span className="text-xs">{new Date(photo.created_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  <div>Assignation: {photo.assignment?.reference || 'N/A'}</div>
-                  <div>Type: {photo.photo_type?.label || 'N/A'}</div>
-                  <div>Créé le {new Date(photo.created_at).toLocaleDateString()}</div>
-                </div>
               </div>
-            </CardContent>
+            </div>
           </Card>
         ))}
       </div>
@@ -472,6 +565,28 @@ export default function PhotosPage() {
           <div className="text-muted-foreground">Chargement...</div>
         </div>
       )}
-    </div>
+
+      {/* Empty State */}
+      {!loading && filteredPhotos.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Camera className="h-16 w-16 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">Aucune photo trouvée</h3>
+          <p className="text-muted-foreground mb-4">
+            {searchTerm || selectedPhotoTypeId 
+              ? 'Aucune photo ne correspond à vos critères de recherche.'
+              : 'Commencez par ajouter votre première photo.'
+            }
+          </p>
+          {!searchTerm && !selectedPhotoTypeId && (
+            <Button onClick={() => setIsUploadDialogOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Ajouter des photos
+            </Button>
+          )}
+        </div>
+      )}
+                </div>
+            </Main></>
+            
   )
 }

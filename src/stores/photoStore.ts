@@ -11,7 +11,7 @@ interface PhotoState {
   selectedPhoto: Photo | null
   
   // Actions
-  fetchPhotos: (filters?: any) => Promise<void>
+  fetchPhotos: (filters?: Record<string, unknown>) => Promise<void>
   createPhotos: (data: CreatePhotoData) => Promise<void>
   updatePhoto: (id: number, data: UpdatePhotoData) => Promise<void>
   deletePhoto: (id: number) => Promise<void>
@@ -20,7 +20,7 @@ interface PhotoState {
   clearError: () => void
 }
 
-export const usePhotoStore = create<PhotoState>((set, get) => ({
+export const usePhotoStore = create<PhotoState>((set) => ({
   // État initial
   photos: [],
   loading: false,
@@ -28,7 +28,7 @@ export const usePhotoStore = create<PhotoState>((set, get) => ({
   selectedPhoto: null,
 
   // Actions
-  fetchPhotos: async (filters?: any) => {
+  fetchPhotos: async (filters?: Record<string, unknown>) => {
     try {
       set({ loading: true, error: null })
       const response = await photoService.getAll(filters)
@@ -43,12 +43,9 @@ export const usePhotoStore = create<PhotoState>((set, get) => ({
   createPhotos: async (data: CreatePhotoData) => {
     try {
       set({ loading: true })
-      const newPhotos = await photoService.create(data)
-      set(state => ({ 
-        photos: [...state.photos, ...newPhotos], 
-        loading: false 
-      }))
-      toast.success(`${newPhotos.length} photo(s) créée(s) avec succès`)
+      await photoService.create(data)
+      set({ loading: false })
+      toast.success(`${data.photos.length} photo(s) créée(s) avec succès`)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ loading: false })
@@ -96,7 +93,7 @@ export const usePhotoStore = create<PhotoState>((set, get) => ({
   setAsCover: async (id: number) => {
     try {
       set({ loading: true })
-      const updatedPhoto = await photoService.setAsCover(id)
+      await photoService.setAsCover(id)
       
       // Mettre à jour toutes les photos pour s'assurer qu'une seule est en couverture
       set(state => ({
