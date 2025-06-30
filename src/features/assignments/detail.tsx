@@ -41,13 +41,17 @@ import {
   Zap as Lightning,
   Calculator,
   FileCheck,
-  Camera
+  Camera,
+  Mail,
+  Phone,
+  AlertTriangle
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { Search } from '@/components/search'
 import { CountdownAlert } from '@/components/countdown-alert'
 import { AssignmentPhotos } from './detail/components/AssignmentPhotos'
+import { PdfViewer } from '@/components/ui/PdfViewer'
 
 interface AssignmentDetail {
   id: number
@@ -117,6 +121,39 @@ interface AssignmentDetail {
     fiscal_power: number
     energy: string
     nb_seats: number
+    brand?: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    vehicle_model?: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    color?: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    bodywork?: {
+      id: number
+      code: string
+      label: string
+      description: string
+      status?: {
+        id: number
+        code: string
+        label: string
+      }
+    }
+    first_entry_into_circulation_date?: string
+    technical_visit_date?: string
+    created_at: string
+    updated_at: string
   }
   insurer: {
     id: number
@@ -165,6 +202,40 @@ interface AssignmentDetail {
     amount_excluding_tax: string
     amount_tax: string
     amount: string
+    shock_point: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    shock_works: Array<{
+      id: number
+      disassembly: boolean
+      replacement: boolean
+      repair: boolean
+      paint: boolean
+      control: boolean
+      comment: string
+      obsolescence_rate: string
+      obsolescence_amount_excluding_tax: string
+      obsolescence_amount_tax: string
+      obsolescence_amount: string
+      recovery_rate: string
+      recovery_amount_excluding_tax: string
+      recovery_amount_tax: string
+      recovery_amount: string
+      new_amount_excluding_tax: string
+      new_amount_tax: string
+      new_amount: string
+      amount_excluding_tax: string
+      amount_tax: string
+      amount: string
+      supply: {
+        id: number
+        label: string
+        description: string
+      }
+    }>
     workforces: Array<{
       id: number
       nb_hours: string
@@ -229,6 +300,7 @@ export default function AssignmentDetailPage() {
   const [assignment, setAssignment] = useState<AssignmentDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('parties')
+  const [pdfViewer, setPdfViewer] = useState<{ open: boolean, url: string, title?: string }>({ open: false, url: '', title: '' })
 
   useEffect(() => {
     const fetchAssignment = async () => {
@@ -246,13 +318,14 @@ export default function AssignmentDetailPage() {
     fetchAssignment()
   }, [id])
 
-  const formatCurrency = (amount: string) => {
+  const formatCurrency = (amount: string | null | undefined) => {
+    const value = amount === null || amount === undefined ? 0 : parseFloat(amount)
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(parseFloat(amount))
+    }).format(isNaN(value) ? 0 : value)
   }
 
   const formatDate = (dateString: string | null) => {
@@ -387,17 +460,33 @@ export default function AssignmentDetailPage() {
                     <span className="text-sm font-semibold">{formatCurrency(assignment.shock_amount_excluding_tax)}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-xs">Chocs (TVA)</span>
+                    <span className="text-sm font-semibold">{formatCurrency(assignment.shock_amount_tax)}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-xs">Autres coûts (HT)</span>
                     <span className="text-sm font-semibold">{formatCurrency(assignment.other_cost_amount_excluding_tax)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs">Autres coûts (TVA)</span>
+                    <span className="text-sm font-semibold">{formatCurrency(assignment.other_cost_amount_tax)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-xs">Honoraires (HT)</span>
                     <span className="text-sm font-semibold">{formatCurrency(assignment.receipt_amount_excluding_tax)}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs">Honoraires (TVA)</span>
+                    <span className="text-sm font-semibold">{formatCurrency(assignment.receipt_amount_tax)}</span>
+                  </div>
                   <Separator />
                   <div className="flex justify-between text-sm font-bold">
                     <span>Total (HT)</span>
                     <span>{formatCurrency(assignment.total_amount_excluding_tax)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold">
+                    <span>Total (TVA)</span>
+                    <span>{formatCurrency(assignment.total_amount_tax)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold text-primary">
                     <span>Total (TTC)</span>
@@ -417,15 +506,15 @@ export default function AssignmentDetailPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {assignment.expertise_sheet && (
-                  <Button variant="outline" className="w-full justify-start text-xs h-8">
+                  <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.expertise_sheet!, title: 'Fiche d\'expertise' })}>
                     <FileDown className="h-3 w-3 mr-2" />
-                    Télécharger la fiche
+                    Voir la fiche
                   </Button>
                 )}
                 {assignment.expertise_report && (
-                  <Button variant="outline" className="w-full justify-start text-xs h-8">
+                  <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.expertise_report!, title: 'Rapport d\'expertise' })}>
                     <FileDown className="h-3 w-3 mr-2" />
-                    Télécharger le rapport
+                    Voir le rapport
                   </Button>
                 )}
                 <Button variant="outline" className="w-full justify-start text-xs h-8">
@@ -448,27 +537,63 @@ export default function AssignmentDetailPage() {
                     Client
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Nom</p>
-                    <p className="text-sm font-semibold">{assignment.client.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Email</p>
-                    <p className="text-xs">{assignment.client.email}</p>
-                  </div>
-                  {assignment.client.phone_1 && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
-                      <p className="text-xs">{assignment.client.phone_1}</p>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Informations principales */}
+                    <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Informations personnelles</h4>
+                        <Badge variant="outline" className="text-xs">ID: {assignment.client.id}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.client.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.client.email}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  {assignment.client.address && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Adresse</p>
-                      <p className="text-xs whitespace-pre-line">{assignment.client.address}</p>
+
+                    {/* Coordonnées */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
+                      <div className="space-y-2">
+                        {assignment.client.phone_1 && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Téléphone principal</p>
+                              <p className="text-sm font-semibold">{assignment.client.phone_1}</p>
+                            </div>
+                          </div>
+                        )}
+                        {assignment.client.phone_2 && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Téléphone secondaire</p>
+                              <p className="text-sm font-semibold">{assignment.client.phone_2}</p>
+                            </div>
+                          </div>
+                        )}
+                        {assignment.client.address && (
+                          <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                              <p className="text-xs whitespace-pre-line">{assignment.client.address}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -480,31 +605,97 @@ export default function AssignmentDetailPage() {
                     Assureur
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Nom</p>
-                    <p className="text-sm font-semibold">{assignment.insurer.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Code</p>
-                    <p className="text-xs font-mono">{assignment.insurer.code}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Email</p>
-                    <p className="text-xs">{assignment.insurer.email}</p>
-                  </div>
-                  {assignment.policy_number && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Numéro de police</p>
-                      <p className="text-xs">{assignment.policy_number}</p>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Informations principales */}
+                    <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Informations société</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.insurer.code}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom de la société</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.insurer.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.insurer.email}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  {assignment.claim_number && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Numéro de sinistre</p>
-                      <p className="text-xs">{assignment.claim_number}</p>
+
+                    {/* Coordonnées */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
+                      <div className="space-y-2">
+                        {assignment.insurer.telephone && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                              <p className="text-sm font-semibold">{assignment.insurer.telephone}</p>
+                            </div>
+                          </div>
+                        )}
+                        {assignment.insurer.address && (
+                          <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                              <p className="text-xs whitespace-pre-line">{assignment.insurer.address}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+
+                    {/* Informations d'assurance */}
+                    {(assignment.policy_number || assignment.claim_number) && (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations d'assurance</h4>
+                        <div className="space-y-2">
+                          {assignment.policy_number && (
+                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                              <FileText className="h-3 w-3 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground">Numéro de police</p>
+                                <p className="text-sm font-semibold font-mono">{assignment.policy_number}</p>
+                              </div>
+                            </div>
+                          )}
+                          {assignment.claim_number && (
+                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                              <AlertTriangle className="h-3 w-3 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground">Numéro de sinistre</p>
+                                <p className="text-sm font-semibold font-mono">{assignment.claim_number}</p>
+                              </div>
+                            </div>
+                          )}
+                          {(assignment.claim_starts_at || assignment.claim_ends_at) && (
+                            <div className="grid grid-cols-2 gap-2">
+                              {assignment.claim_starts_at && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground">Début sinistre</p>
+                                  <p className="text-xs font-semibold">{formatDate(assignment.claim_starts_at)}</p>
+                                </div>
+                              )}
+                              {assignment.claim_ends_at && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground">Fin sinistre</p>
+                                  <p className="text-xs font-semibold">{formatDate(assignment.claim_ends_at)}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -516,25 +707,80 @@ export default function AssignmentDetailPage() {
                     Réparateur
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Nom</p>
-                    <p className="text-sm font-semibold">{assignment.repairer.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Code</p>
-                    <p className="text-xs font-mono">{assignment.repairer.code}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Email</p>
-                    <p className="text-xs">{assignment.repairer.email}</p>
-                  </div>
-                  {assignment.repairer.telephone && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
-                      <p className="text-xs">{assignment.repairer.telephone}</p>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Informations principales */}
+                    <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Informations garage</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.repairer.code}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom du garage</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.repairer.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.repairer.email}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
+
+                    {/* Coordonnées */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
+                      <div className="space-y-2">
+                        {assignment.repairer.telephone && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                              <p className="text-sm font-semibold">{assignment.repairer.telephone}</p>
+                            </div>
+                          </div>
+                        )}
+                        {assignment.repairer.address && (
+                          <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                              <p className="text-xs whitespace-pre-line">{assignment.repairer.address}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Informations d'expertise */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations d'expertise</h4>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Type d'expertise</p>
+                            <Badge variant="secondary" className="text-xs">{assignment.expertise_type.label}</Badge>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Type d'assignation</p>
+                            <Badge variant="secondary" className="text-xs">{assignment.assignment_type.label}</Badge>
+                          </div>
+                        </div>
+                        {assignment.administrator && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <User className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Administrateur</p>
+                              <p className="text-sm font-semibold">{assignment.administrator}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -544,6 +790,7 @@ export default function AssignmentDetailPage() {
       case 'vehicle':
         return (
           <div className="space-y-4">
+            {/* Informations principales du véhicule */}
             <Card className="shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-sm">
@@ -552,38 +799,184 @@ export default function AssignmentDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Plaque d'immatriculation</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.license_plate}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Identité du véhicule */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Identité</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Plaque d'immatriculation</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.license_plate}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Numéro de série</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded font-mono">{assignment.vehicle.serial_number}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Kilométrage</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.mileage} km</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Numéro de série</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.serial_number}</p>
+
+                  {/* Caractéristiques techniques */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Caractéristiques</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Puissance fiscale</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.fiscal_power} CV</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Énergie</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.energy}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Nombre de places</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.nb_seats} places</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Kilométrage</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.mileage} km</p>
+
+                  {/* Classification */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Classification</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Type</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.type}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Usage</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.usage}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Options</p>
+                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.option}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Puissance fiscale</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.fiscal_power} CV</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Marque, modèle et caractéristiques visuelles */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Marque et modèle */}
+              <Card className="shadow-none">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Building className="h-4 w-4" />
+                    Marque et modèle
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Marque</p>
+                        <p className="text-sm font-semibold">{assignment.vehicle.brand?.label || 'Non renseigné'}</p>
+                        <p className="text-xs text-muted-foreground">{assignment.vehicle.brand?.description}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {assignment.vehicle.brand?.code}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Modèle</p>
+                        <p className="text-sm font-semibold">{assignment.vehicle.vehicle_model?.label || 'Non renseigné'}</p>
+                        <p className="text-xs text-muted-foreground">{assignment.vehicle.vehicle_model?.description}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {assignment.vehicle.vehicle_model?.code}
+                      </Badge>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Énergie</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.energy}</p>
+                </CardContent>
+              </Card>
+
+              {/* Couleur et carrosserie */}
+              <Card className="shadow-none">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Palette className="h-4 w-4" />
+                    Apparence
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 rounded-lg">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Couleur</p>
+                        <p className="text-sm font-semibold">{assignment.vehicle.color?.label || 'Non renseigné'}</p>
+                        <p className="text-xs text-muted-foreground">{assignment.vehicle.color?.description}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {assignment.vehicle.color?.code}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 rounded-lg">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Carrosserie</p>
+                        <p className="text-sm font-semibold">{assignment.vehicle.bodywork?.label || 'Non renseigné'}</p>
+                        <p className="text-xs text-muted-foreground">{assignment.vehicle.bodywork?.description}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {assignment.vehicle.bodywork?.code}
+                      </Badge>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Nombre de places</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.nb_seats}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Informations complémentaires */}
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Info className="h-4 w-4" />
+                  Informations complémentaires
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Date de première mise en circulation</p>
+                      <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">
+                        {assignment.vehicle.first_entry_into_circulation_date 
+                          ? formatDate(assignment.vehicle.first_entry_into_circulation_date)
+                          : 'Non renseigné'
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Date de visite technique</p>
+                      <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">
+                        {assignment.vehicle.technical_visit_date 
+                          ? formatDate(assignment.vehicle.technical_visit_date)
+                          : 'Non renseigné'
+                        }
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Type</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.type}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Usage</p>
-                    <p className="text-sm font-semibold">{assignment.vehicle.usage}</p>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Statut de la carrosserie</p>
+                      <Badge variant={assignment.vehicle.bodywork?.status?.code === 'active' ? 'default' : 'secondary'} className="text-xs">
+                        {assignment.vehicle.bodywork?.status?.label || 'Non renseigné'}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Date de création</p>
+                      <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">
+                        {formatDate(assignment.created_at)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -606,25 +999,30 @@ export default function AssignmentDetailPage() {
               <Card key={shock.id} className="shadow-none">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center justify-between text-sm">
-                    <span>Choc #{index + 1}</span>
+                    <span>Choc #{index + 1} - {shock.shock_point.label}</span>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Total choc</p>
+                        <p className="text-xs text-muted-foreground">Total choc (TTC)</p>
                         <p className="text-sm font-semibold">{formatCurrency(shock.amount)}</p>
                       </div>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-4 text-xs">
+                  <div className="space-y-4">
+                    {/* Résumé des montants du choc */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                       <div>
                         <p className="font-medium text-muted-foreground">Main d'œuvre (HT)</p>
                         <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount_excluding_tax)}</p>
                       </div>
                       <div>
-                        <p className="font-medium text-muted-foreground">Total (HT)</p>
-                        <p className="text-sm font-semibold">{formatCurrency(shock.amount_excluding_tax)}</p>
+                        <p className="font-medium text-muted-foreground">Main d'œuvre (TVA)</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount_tax)}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground">Main d'œuvre (TTC)</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount)}</p>
                       </div>
                       <div>
                         <p className="font-medium text-muted-foreground">Total (TTC)</p>
@@ -634,29 +1032,151 @@ export default function AssignmentDetailPage() {
                     
                     <Separator />
                     
-                    <div>
-                      <h4 className="font-semibold mb-2 text-sm">Détail des travaux</h4>
-                      <div className="space-y-2">
-                        {shock.workforces.map((workforce) => (
-                          <div key={workforce.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              {workforce.workforce_type.code === 'paint' && <Palette className="h-3 w-3" />}
-                              {workforce.workforce_type.code === 'electricity' && <Zap className="h-3 w-3" />}
-                              {workforce.workforce_type.code === 'metalworking' && <Hammer className="h-3 w-3" />}
-                              <div>
-                                <p className="font-medium text-xs">{workforce.workforce_type_label}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {workforce.nb_hours}h × {formatCurrency(workforce.work_fee)}/h
-                                  {parseFloat(workforce.discount) > 0 && ` (-${workforce.discount}%)`}
-                                </p>
+                    {/* Détail des travaux (shock_works) */}
+                    {shock.shock_works && shock.shock_works.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3 text-sm">Détail des fournitures</h4>
+                        <div className="space-y-3">
+                          {shock.shock_works.map((work) => (
+                            <div key={work.id} className="border rounded-lg p-3 bg-muted/30">
+                              <div className="flex items-center justify-between mb-2">
+                                <div>
+                                  <p className="font-medium text-sm">{work.supply.label}</p>
+                                  <p className="text-xs text-muted-foreground">{work.supply.description}</p>
+                                </div>
+                                <Badge variant="outline" className="text-xs">
+                                  {work.replacement ? 'Remplacement' : work.repair ? 'Réparation' : 'Démontage'}
+                                </Badge>
+                              </div>
+                              
+                              {/* Types de travaux */}
+                              <div className="flex flex-wrap gap-1 mb-3">
+                                {work.disassembly && <Badge variant="secondary" className="text-xs">Démontage</Badge>}
+                                {work.replacement && <Badge variant="secondary" className="text-xs">Remplacement</Badge>}
+                                {work.repair && <Badge variant="secondary" className="text-xs">Réparation</Badge>}
+                                {work.paint && <Badge variant="secondary" className="text-xs">Peinture</Badge>}
+                                {work.control && <Badge variant="secondary" className="text-xs">Contrôle</Badge>}
+                              </div>
+
+                              {/* Montants détaillés */}
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Vetusté (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.obsolescence_amount_excluding_tax)}</p>
+                                  <p className="text-xs text-muted-foreground">Taux: {work.obsolescence_rate}%</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Vetusté (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.obsolescence_amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Vetusté (TTC)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.obsolescence_amount)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Récupération (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.recovery_amount_excluding_tax)}</p>
+                                  <p className="text-xs text-muted-foreground">Taux: {work.recovery_rate}%</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Récupération (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.recovery_amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Récupération (TTC)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.recovery_amount)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Neuf (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.new_amount_excluding_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Neuf (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.new_amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Neuf (TTC)</p>
+                                  <p className="text-sm font-semibold text-primary">{formatCurrency(work.new_amount)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Total (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.amount_excluding_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Total (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Total (TTC)</p>
+                                  <p className="text-sm font-semibold text-primary">{formatCurrency(work.amount)}</p>
+                                </div>
+                              </div>
+
+                              {/* Commentaire */}
+                              {work.comment && (
+                                <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950 rounded text-xs">
+                                  <p className="font-medium text-blue-700 dark:text-blue-300">Commentaire:</p>
+                                  <p className="text-blue-600 dark:text-blue-400">{work.comment}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <Separator />
+                    
+                    {/* Détail des travaux (workforces) */}
+                    {shock.workforces && shock.workforces.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2 text-sm">Détail des travaux</h4>
+                        <div className="space-y-2">
+                          {shock.workforces.map((workforce) => (
+                            <div key={workforce.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                {workforce.workforce_type.code === 'paint' && <Palette className="h-3 w-3" />}
+                                {workforce.workforce_type.code === 'electricity' && <Zap className="h-3 w-3" />}
+                                {workforce.workforce_type.code === 'metalworking' && <Hammer className="h-3 w-3" />}
+                                {workforce.workforce_type.code === 'saddlery' && <Wrench className="h-3 w-3" />}
+                                <div>
+                                  <p className="font-medium text-xs">{workforce.workforce_type.label}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {workforce.nb_hours}h × {formatCurrency(workforce.work_fee)}/h
+                                    {parseFloat(workforce.discount) > 0 && ` (-${workforce.discount}%)`}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-semibold">{formatCurrency(workforce.amount)}</p>
+                                <p className="text-xs text-muted-foreground">HT: {formatCurrency(workforce.amount_excluding_tax)} | TVA: {formatCurrency(workforce.amount_tax)}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-sm font-semibold">{formatCurrency(workforce.amount)}</p>
-                              <p className="text-xs text-muted-foreground">HT: {formatCurrency(workforce.amount_excluding_tax)}</p>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Résumé final du choc */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-3 rounded-lg">
+                      <h5 className="font-semibold text-sm mb-2">Résumé du choc #{index + 1}</h5>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Total fournitures</p>
+                          <p className="text-sm font-semibold">{formatCurrency(shock.amount_excluding_tax)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Total main d'œuvre</p>
+                          <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">TVA</p>
+                          <p className="text-sm font-semibold">{formatCurrency(shock.amount_tax)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Total TTC</p>
+                          <p className="text-sm font-semibold text-primary">{formatCurrency(shock.amount)}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -684,7 +1204,7 @@ export default function AssignmentDetailPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-semibold">{formatCurrency(cost.amount)}</p>
-                          <p className="text-xs text-muted-foreground">HT: {formatCurrency(cost.amount_excluding_tax)}</p>
+                          <p className="text-xs text-muted-foreground">HT: {formatCurrency(cost.amount_excluding_tax)} | TVA: {formatCurrency(cost.amount_tax)}</p>
                         </div>
                       </div>
                     ))}
@@ -715,7 +1235,7 @@ export default function AssignmentDetailPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-semibold">{formatCurrency(receipt.amount)}</p>
-                          <p className="text-xs text-muted-foreground">HT: {formatCurrency(receipt.amount_excluding_tax)}</p>
+                          <p className="text-xs text-muted-foreground">HT: {formatCurrency(receipt.amount_excluding_tax)} | TVA: {formatCurrency(receipt.amount_tax)}</p>
                         </div>
                       </div>
                     ))}
@@ -1004,6 +1524,9 @@ export default function AssignmentDetailPage() {
           </div>
         </div>
       </Main>
+
+      {/* PDF Viewer */}
+      <PdfViewer open={pdfViewer.open} onOpenChange={open => setPdfViewer(v => ({ ...v, open }))} url={pdfViewer.url} title={pdfViewer.title} />
     </>
   )
 } 

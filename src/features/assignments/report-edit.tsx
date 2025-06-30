@@ -124,6 +124,18 @@ interface CalculationResult {
   total_amount: number
   shock_works?: any[]
   workforces?: any[]
+  total_shock_amount_excluding_tax?: number
+  total_shock_amount_tax?: number
+  total_shock_amount?: number
+  total_workforce_amount_excluding_tax?: number
+  total_workforce_amount_tax?: number
+  total_workforce_amount?: number
+  total_paint_product_amount_excluding_tax?: number
+  total_paint_product_amount_tax?: number
+  total_paint_product_amount?: number
+  total_small_supply_amount_excluding_tax?: number
+  total_small_supply_amount_tax?: number
+  total_small_supply_amount?: number
 }
 
 export default function ReportEditPage() {
@@ -1385,15 +1397,46 @@ function GlobalRecap({
   otherCosts: { other_cost_type_id: number; amount: number }[]
   calculationResults: { [key: number]: CalculationResult }
 }) {
-  const totalShockAmount = Object.values(calculationResults).reduce((total, result) => {
-    return total + (result.total_amount || 0)
-  }, 0)
+  // Calculer les totaux des chocs
+  const shockTotals = Object.values(calculationResults).reduce((acc, result) => {
+    return {
+      total_shock_amount_excluding_tax: acc.total_shock_amount_excluding_tax + (result.total_shock_amount_excluding_tax || 0),
+      total_shock_amount_tax: acc.total_shock_amount_tax + (result.total_shock_amount_tax || 0),
+      total_shock_amount: acc.total_shock_amount + (result.total_shock_amount || 0),
+      total_workforce_amount_excluding_tax: acc.total_workforce_amount_excluding_tax + (result.total_workforce_amount_excluding_tax || 0),
+      total_workforce_amount_tax: acc.total_workforce_amount_tax + (result.total_workforce_amount_tax || 0),
+      total_workforce_amount: acc.total_workforce_amount + (result.total_workforce_amount || 0),
+      total_paint_product_amount_excluding_tax: acc.total_paint_product_amount_excluding_tax + (result.total_paint_product_amount_excluding_tax || 0),
+      total_paint_product_amount_tax: acc.total_paint_product_amount_tax + (result.total_paint_product_amount_tax || 0),
+      total_paint_product_amount: acc.total_paint_product_amount + (result.total_paint_product_amount || 0),
+      total_small_supply_amount_excluding_tax: acc.total_small_supply_amount_excluding_tax + (result.total_small_supply_amount_excluding_tax || 0),
+      total_small_supply_amount_tax: acc.total_small_supply_amount_tax + (result.total_small_supply_amount_tax || 0),
+      total_small_supply_amount: acc.total_small_supply_amount + (result.total_small_supply_amount || 0),
+    }
+  }, {
+    total_shock_amount_excluding_tax: 0,
+    total_shock_amount_tax: 0,
+    total_shock_amount: 0,
+    total_workforce_amount_excluding_tax: 0,
+    total_workforce_amount_tax: 0,
+    total_workforce_amount: 0,
+    total_paint_product_amount_excluding_tax: 0,
+    total_paint_product_amount_tax: 0,
+    total_paint_product_amount: 0,
+    total_small_supply_amount_excluding_tax: 0,
+    total_small_supply_amount_tax: 0,
+    total_small_supply_amount: 0,
+  })
 
   const totalOtherCosts = otherCosts.reduce((total, cost) => {
     return total + (cost.amount || 0)
   }, 0)
 
-  const grandTotal = totalShockAmount + totalOtherCosts
+  const grandTotal = shockTotals.total_shock_amount + totalOtherCosts
+
+  const formatCurrency = (amount: number) => {
+    return (amount / 1000).toFixed(3) || '0.000'
+  }
 
   return (
     <Card className="shadow-none">
@@ -1404,7 +1447,7 @@ function GlobalRecap({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Points de choc</p>
             <p className="text-2xl font-bold">{shocks.length}</p>
@@ -1418,51 +1461,143 @@ function GlobalRecap({
             <p className="text-2xl font-bold">{otherCosts.length}</p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">Total</p>
-            <p className="text-2xl font-bold text-blue-600">{grandTotal.toLocaleString('fr-FR')} F CFA</p>  
+            <p className="text-sm text-muted-foreground">Total TTC</p>
+            <p className="text-2xl font-bold text-blue-600">{formatCurrency(grandTotal)}</p>  
           </div>
         </div>
         
         <Separator className="my-4" />
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <h4 className="font-semibold mb-2">Détail des montants</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Montant des chocs :</span>
-                <span className="font-semibold">{totalShockAmount.toLocaleString('fr-FR')} F CFA</span>
+            <h4 className="font-semibold mb-4 text-lg">Détail des montants des chocs</h4>
+            <div className="space-y-3">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-blue-800">Main d'œuvre</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <span className="text-blue-600">HT:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_workforce_amount_excluding_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-blue-600">TVA:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_workforce_amount_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-blue-600">TTC:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_workforce_amount)}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Coûts autres :</span>
-                <span className="font-semibold">{totalOtherCosts.toLocaleString('fr-FR')} F CFA</span>
+              
+              <div className="bg-green-50 p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-green-800">Produits peinture</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <span className="text-green-600">HT:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_paint_product_amount_excluding_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-green-600">TVA:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_paint_product_amount_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-green-600">TTC:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_paint_product_amount)}</p>
+                  </div>
+                </div>
               </div>
-              <Separator />
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total général :</span>
-                  <span className="text-blue-600">{grandTotal.toLocaleString('fr-FR')} F CFA</span>
+              
+              <div className="bg-purple-50 p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-purple-800">Petites fournitures</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <span className="text-purple-600">HT:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_small_supply_amount_excluding_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600">TVA:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_small_supply_amount_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-purple-600">TTC:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_small_supply_amount)}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-orange-800">Total chocs</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <span className="text-orange-600">HT:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_shock_amount_excluding_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-orange-600">TVA:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_shock_amount_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-orange-600">TTC:</span>
+                    <p className="font-semibold">{formatCurrency(shockTotals.total_shock_amount)}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-2">Statut des calculs</h4>
-            <div className="space-y-2">
-              {shocks.map((shock, index) => (
-                <div key={shock.uid} className="flex justify-between items-center">
-                  <span className="text-sm">
-                    {shock.shock_point_id ? `Point ${index + 1}` : 'Point non défini'}
-                  </span>
-                  {calculationResults[index] ? (
-                    <Badge variant="default" className="bg-green-100 text-green-800">
-                      <Check className="mr-1 h-3 w-3" />
-                      Calculé
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">En attente</Badge>
-                  )}
+            <h4 className="font-semibold mb-4 text-lg">Récapitulatif final</h4>
+            <div className="space-y-3">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-gray-800">Coûts autres</span>
                 </div>
-              ))}
+                <div className="text-right">
+                  <p className="font-semibold text-lg">{formatCurrency(totalOtherCosts)}</p>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="bg-blue-100 p-4 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-bold text-blue-900 text-lg">Total général</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-2xl text-blue-900">{formatCurrency(grandTotal)}</p>
+                  <p className="text-sm text-blue-700">Tous montants TTC</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <h4 className="font-semibold mb-2">Statut des calculs</h4>
+              <div className="space-y-2">
+                {shocks.map((shock, index) => (
+                  <div key={shock.uid} className="flex justify-between items-center">
+                    <span className="text-sm">
+                      {shock.shock_point_id ? `Point ${index + 1}` : 'Point non défini'}
+                    </span>
+                    {calculationResults[index] ? (
+                      <Badge variant="default" className="bg-green-100 text-green-800">
+                        <Check className="mr-1 h-3 w-3" />
+                        Calculé
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">En attente</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

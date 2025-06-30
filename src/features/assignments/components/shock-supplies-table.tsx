@@ -126,10 +126,14 @@ export function ShockSuppliesTable({
       obsolescence_ht: acc.obsolescence_ht + (work.obsolescence_amount_excluding_tax || 0),
       recovery_ht: acc.recovery_ht + (work.recovery_amount_excluding_tax || 0),
       new_ht: acc.new_ht + (work.new_amount_excluding_tax || 0),
+      obsolescence_tva: acc.obsolescence_tva + (work.obsolescence_amount_tax || 0),
+      recovery_tva: acc.recovery_tva + (work.recovery_amount_tax || 0),
+      new_tva: acc.new_tva + (work.new_amount_tax || 0),
     }
   }, { 
     obsolescence: 0, recovery: 0, new: 0, 
-    obsolescence_ht: 0, recovery_ht: 0, new_ht: 0 
+    obsolescence_ht: 0, recovery_ht: 0, new_ht: 0,
+    obsolescence_tva: 0, recovery_tva: 0, new_tva: 0
   })
 
   return (
@@ -282,6 +286,9 @@ export function ShockSuppliesTable({
                   <div className="text-xs text-gray-500">
                     HT: {formatCurrency(row.obsolescence_amount_excluding_tax || 0)}
                   </div>
+                  <div className="text-xs text-gray-500">
+                    TVA: {formatCurrency(row.obsolescence_amount_tax || 0)}
+                  </div>
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <div className="text-green-600 font-medium">
@@ -290,6 +297,9 @@ export function ShockSuppliesTable({
                   <div className="text-xs text-gray-500">
                     HT: {formatCurrency(row.recovery_amount_excluding_tax || 0)}
                   </div>
+                  <div className="text-xs text-gray-500">
+                    TVA: {formatCurrency(row.recovery_amount_tax || 0)}
+                  </div>
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
@@ -297,6 +307,9 @@ export function ShockSuppliesTable({
                   </div>
                   <div className="text-xs text-gray-500">
                     HT: {formatCurrency(row.new_amount_excluding_tax || 0)}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    TVA: {formatCurrency(row.new_amount_tax || 0)}
                   </div>
                 </td>
                 <td className="border px-2 py-2 text-center">
@@ -336,27 +349,46 @@ export function ShockSuppliesTable({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-6 gap-4 text-sm">
+        <div className="grid grid-cols-9 gap-4 text-sm">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
             <div className="text-xl font-bold text-gray-800">{localShockWorks.length}</div>
           </div>
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté</div>
+            <div className="text-blue-600 font-medium">Vetusté HT</div>
+            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.obsolescence_ht)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-blue-600 font-medium">Vetusté TVA</div>
+            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.obsolescence_tva)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-blue-600 font-medium">Vetusté TTC</div>
             <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
-            <div className="text-xs text-gray-500">HT: {formatCurrency(totals.obsolescence_ht)}</div>
           </div>
           <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération</div>
+            <div className="text-green-600 font-medium">Récupération HT</div>
+            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.recovery_ht)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-green-600 font-medium">Récupération TVA</div>
+            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.recovery_tva)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-green-600 font-medium">Récupération TTC</div>
             <div className="text-lg font-bold text-green-700">{formatCurrency(totals.recovery)}</div>
-            <div className="text-xs text-gray-500">HT: {formatCurrency(totals.recovery_ht)}</div>
           </div>
           <div className="text-center">
-            <div className="text-purple-600 font-medium">Montant Final</div>
+            <div className="text-purple-600 font-medium">Montant Final HT</div>
+            <div className={`text-lg font-bold ${totals.new_ht >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+              {formatCurrency(totals.new_ht)}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-purple-600 font-medium">Montant Final TTC</div>
             <div className={`text-lg font-bold ${totals.new >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
               {formatCurrency(totals.new)}
             </div>
-            <div className="text-xs text-gray-500">HT: {formatCurrency(totals.new_ht)}</div>
           </div>
         </div>
       </div>

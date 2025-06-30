@@ -231,11 +231,11 @@ export default function AssignmentsPage() {
                           <Label className="text-sm font-medium text-gray-700">Résumé</Label>
                           <div className="grid grid-cols-2 gap-3 text-xs">
                             <div className="space-y-1">
-                              <div className="text-gray-500">Total: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.total_amount) || 0), 0))}</span></div>
-                              <div className="text-gray-500">Choc: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.shock_amount) || 0), 0))}</span></div>
+                              <div className="text-gray-500">Total: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.total_amount || '0') || 0), 0))}</span></div>
+                              <div className="text-gray-500">Choc: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.shock_amount || '0') || 0), 0))}</span></div>
                             </div>
                             <div className="space-y-1">
-                              <div className="text-gray-500">Autres: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.other_cost_amount) || 0), 0))}</span></div>
+                              <div className="text-gray-500">Autres: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.other_cost_amount || '0') || 0), 0))}</span></div>
                               <div className="text-gray-500">Quittances: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.receipt_amount || '0') || 0), 0))}</span></div>
                             </div>
                           </div>

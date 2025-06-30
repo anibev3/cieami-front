@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs } from '@/components/ui/tabs'
-import { Upload, Camera, Star, Edit, Trash2, X, Plus, Grid3X3, Eye, Loader2 } from 'lucide-react'
+import { Upload, Camera, Star, Edit, Trash2, X, Plus, Grid3X3, Eye, Loader2, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag } from 'lucide-react'
 import { CreatePhotoData, UpdatePhotoData, Photo, PhotoType } from '@/types/gestion'
 import { photoService } from '@/services/photoService'
 
@@ -42,9 +42,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
 
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
-  const [selectedPhotoForView, setSelectedPhotoForView] = useState<Photo | null>(null)
   const [activeTab, setActiveTab] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('grid')
   const [tabsData, setTabsData] = useState<TabData[]>([])
@@ -59,6 +57,11 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   })
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Photo viewer states
+  const [isViewerOpen, setIsViewerOpen] = useState(false)
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [showDetails, setShowDetails] = useState(false)
 
   // Charger les types de photos au montage
   useEffect(() => {
@@ -148,6 +151,65 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     loadPhotosForTab(activeTab)
   }
 
+  // Photo viewer functions
+  const openPhotoViewer = (photo: Photo) => {
+    const currentPhotos = getCurrentTabData()?.photos || []
+    const index = currentPhotos.findIndex(p => p.id === photo.id)
+    setCurrentPhotoIndex(index)
+    setIsViewerOpen(true)
+  }
+
+  const navigatePhoto = (direction: 'prev' | 'next') => {
+    const currentPhotos = getCurrentTabData()?.photos || []
+    if (direction === 'prev') {
+      setCurrentPhotoIndex(prev => prev > 0 ? prev - 1 : currentPhotos.length - 1)
+    } else {
+      setCurrentPhotoIndex(prev => prev < currentPhotos.length - 1 ? prev + 1 : 0)
+    }
+  }
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (!isViewerOpen) return
+    
+    switch (e.key) {
+      case 'ArrowLeft':
+        navigatePhoto('prev')
+        break
+      case 'ArrowRight':
+        navigatePhoto('next')
+        break
+      case 'Escape':
+        setIsViewerOpen(false)
+        break
+      case 'd':
+      case 'D':
+        setShowDetails(prev => !prev)
+        break
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isViewerOpen])
+
+  const getCurrentTabData = () => {
+    return tabsData.find(tab => tab.id === activeTab) || tabsData[0]
+  }
+
+  const currentTabData = getCurrentTabData()
+  const currentPhotos = currentTabData?.photos || []
+  const currentPhoto = currentPhotos[currentPhotoIndex]
+
+  const downloadPhoto = (photoUrl: string, photoName: string) => {
+    const link = document.createElement('a')
+    link.href = photoUrl
+    link.download = photoName || `photo-${Date.now()}.jpg`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const handleFileSelect = (files: FileList | null) => {
     if (files) {
       const fileArray = Array.from(files)
@@ -215,7 +277,8 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
         photo_type_id: '',
         photo: new File([], '')
       })
-      // Recharger le tab actuel
+      
+      // Recharger les photos
       refreshCurrentTab()
     } catch (_error) {
       // Error handled by store
@@ -225,7 +288,6 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   const handleDelete = async (id: number) => {
     try {
       await deletePhoto(id)
-      // Recharger le tab actuel
       refreshCurrentTab()
     } catch (_error) {
       // Error handled by store
@@ -235,7 +297,6 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   const handleSetAsCover = async (id: number) => {
     try {
       await setAsCover(id)
-      // Recharger le tab actuel
       refreshCurrentTab()
     } catch (_error) {
       // Error handled by store
@@ -251,18 +312,6 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     setIsEditDialogOpen(true)
   }
 
-  const openViewDialog = (photo: Photo) => {
-    setSelectedPhotoForView(photo)
-    setIsViewDialogOpen(true)
-  }
-
-  const getCurrentTabData = () => {
-    return tabsData.find(tab => tab.id === activeTab) || tabsData[0]
-  }
-
-  const currentTabData = getCurrentTabData()
-  const currentPhotos = currentTabData?.photos || []
-
   const stats = {
     total: tabsData.reduce((sum, tab) => sum + tab.count, 0),
     cover: currentPhotos.filter(p => p.is_cover).length,
@@ -270,7 +319,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   }
 
   const PhotoCard = ({ photo }: { photo: Photo }) => (
-    <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg h-64">
+    <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg h-64 cursor-pointer" onClick={() => openPhotoViewer(photo)}>
       {/* Image de fond */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-300 group-hover:scale-105"
@@ -308,7 +357,10 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => openViewDialog(photo)}
+              onClick={(e) => {
+                e.stopPropagation()
+                openPhotoViewer(photo)
+              }}
               className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
             >
               <Eye className="h-5 w-5" />
@@ -316,7 +368,10 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => openEditDialog(photo)}
+              onClick={(e) => {
+                e.stopPropagation()
+                openEditDialog(photo)
+              }}
               className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
             >
               <Edit className="h-5 w-5" />
@@ -324,7 +379,10 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => handleSetAsCover(photo.id)}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleSetAsCover(photo.id)
+              }}
               disabled={photo.is_cover}
               className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
             >
@@ -335,6 +393,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 <Button 
                   variant="secondary" 
                   size="sm"
+                  onClick={(e) => e.stopPropagation()}
                   className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -505,40 +564,6 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
         </div>
       </div>
 
-      {/* Stats Cards */}
-      {/* <div className="grid gap-4 md:grid-cols-3">
-        <Card className='shadow-none bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-700">Total</CardTitle>
-            <Camera className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{stats.total}</div>
-            <p className="text-xs text-blue-600">Photos</p>
-          </CardContent>
-        </Card>
-        <Card className='shadow-none bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-700">Couverture</CardTitle>
-            <Star className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">{stats.cover}</div>
-            <p className="text-xs text-yellow-600">Photo de couverture</p>
-          </CardContent>
-        </Card>
-        <Card className='shadow-none bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700">Types</CardTitle>
-            <ImageIcon className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-900">{stats.types}</div>
-            <p className="text-xs text-purple-600">Types disponibles</p>
-          </CardContent>
-        </Card>
-      </div> */}
-
       {/* Tabs dynamiques */}
       {tabsData.length > 0 ? (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -577,7 +602,6 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             ) : currentPhotos.length > 0 ? (
               <div className={`grid gap-6 ${
                 viewMode === 'grid' 
-                  // ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
                   ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                   : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
               }`}>
@@ -619,6 +643,198 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
         </div>
       )}
 
+      {/* Photo Viewer Modal */}
+      {isViewerOpen && currentPhoto && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+          {/* Close button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsViewerOpen(false)}
+            className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white"
+          >
+            <X className="h-6 w-6" />
+          </Button>
+
+          {/* Navigation buttons */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigatePhoto('prev')}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 text-white"
+          >
+            <ChevronLeft className="h-8 w-8" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigatePhoto('next')}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 text-white"
+          >
+            <ChevronRight className="h-8 w-8" />
+          </Button>
+
+          {/* Action buttons */}
+          <div className="absolute top-4 left-4 z-10 flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDetails(!showDetails)}
+              className="bg-white/20 hover:bg-white/30 text-white"
+            >
+              <Info className="h-4 w-4 mr-2" />
+              Détails
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => downloadPhoto(currentPhoto.photo, currentPhoto.name || `photo-${currentPhoto.id}.jpg`)}
+              className="bg-white/20 hover:bg-white/30 text-white"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Télécharger
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleSetAsCover(currentPhoto.id)}
+              disabled={currentPhoto.is_cover}
+              className="bg-white/20 hover:bg-white/30 text-white"
+            >
+              <Star className="h-4 w-4 mr-2" />
+              {currentPhoto.is_cover ? 'Couverture' : 'Définir couverture'}
+            </Button>
+          </div>
+
+          {/* Photo counter */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-black/50 text-white px-4 py-2 rounded-full">
+            {currentPhotoIndex + 1} / {currentPhotos.length}
+          </div>
+
+          {/* Main photo */}
+          <div className="relative max-w-4xl max-h-[80vh] mx-auto">
+            <img
+              src={currentPhoto.photo}
+              alt={currentPhoto.name || `Photo ${currentPhoto.id}`}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+
+          {/* Details panel */}
+          {showDetails && (
+            <div className="absolute right-0 top-0 h-full w-80 bg-white dark:bg-gray-900 shadow-xl overflow-y-auto">
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Détails de la photo</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowDetails(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Hash className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">ID:</span>
+                    <span className="text-sm">#{currentPhoto.id}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Type:</span>
+                    <Badge variant="secondary">{currentPhoto.photo_type?.label || 'N/A'}</Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Assignation:</span>
+                    <span className="text-sm">{assignmentReference}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Créé le:</span>
+                    <span className="text-sm">{new Date(currentPhoto.created_at).toLocaleDateString('fr-FR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</span>
+                  </div>
+
+                  {currentPhoto.updated_at && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Modifié le:</span>
+                      <span className="text-sm">{new Date(currentPhoto.updated_at).toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</span>
+                    </div>
+                  )}
+
+                  {currentPhoto.is_cover && (
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm font-medium text-yellow-600">Photo de couverture</span>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t">
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(currentPhoto)}
+                        className="flex-1"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Modifier
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            className="flex-1"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action ne peut pas être annulée. Cela supprimera définitivement la photo #{currentPhoto.id}.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(currentPhoto.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
@@ -635,7 +851,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 value={editData.photo_type_id}
                 onValueChange={(value) => setEditData({ ...editData, photo_type_id: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className='w-full'>
                   <SelectValue placeholder="Sélectionnez un type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -668,53 +884,6 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             </Button>
             <Button onClick={handleEdit} disabled={!editData.photo_type_id}>
               Modifier
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Visualiser la photo</DialogTitle>
-          </DialogHeader>
-          {selectedPhotoForView && (
-            <div className="space-y-4">
-              <div className="relative">
-                <img
-                  src={selectedPhotoForView.photo}
-                  alt={selectedPhotoForView.name}
-                  className="w-full h-96 object-contain rounded-lg"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="font-medium text-muted-foreground">Nom</p>
-                  <p className="font-semibold">{selectedPhotoForView.name}</p>
-                </div>
-                <div>
-                  <p className="font-medium text-muted-foreground">Type</p>
-                  <p className="font-semibold">{selectedPhotoForView.photo_type.label}</p>
-                </div>
-                <div>
-                  <p className="font-medium text-muted-foreground">Date de création</p>
-                  <p className="font-semibold">
-                    {new Date(selectedPhotoForView.created_at).toLocaleDateString('fr-FR')}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium text-muted-foreground">Statut</p>
-                  <Badge variant={selectedPhotoForView.is_cover ? 'default' : 'secondary'}>
-                    {selectedPhotoForView.is_cover ? 'Photo de couverture' : 'Photo normale'}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
-              Fermer
             </Button>
           </DialogFooter>
         </DialogContent>

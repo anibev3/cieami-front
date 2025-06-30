@@ -148,8 +148,13 @@ export function ShockWorkforceTable({
       ht: acc.ht + (workforce.amount_excluding_tax || 0),
       tva: acc.tva + (workforce.amount_tax || 0),
       ttc: acc.ttc + (workforce.amount || 0),
+      work_fee_total: acc.work_fee_total + (Number(workforce.work_fee) || 0),
+      discount_total: acc.discount_total + (workforce.discount || 0),
     }
-  }, { hours: 0, ht: 0, tva: 0, ttc: 0 })
+  }, { 
+    hours: 0, ht: 0, tva: 0, ttc: 0, 
+    work_fee_total: 0, discount_total: 0 
+  })
 
   return (
     <div className="space-y-4">
@@ -361,10 +366,22 @@ export function ShockWorkforceTable({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-5 gap-4 text-sm">
+        <div className="grid grid-cols-7 gap-4 text-sm">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total Heures</div>
             <div className="text-xl font-bold text-gray-800">{totals.hours}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-gray-600 font-medium">Taux horaire moy.</div>
+            <div className="text-lg font-bold text-gray-700">
+              {localWorkforces.length > 0 ? formatCurrency(totals.work_fee_total / localWorkforces.length) : '0.000'}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-gray-600 font-medium">Remise moy. (%)</div>
+            <div className="text-lg font-bold text-gray-700">
+              {localWorkforces.length > 0 ? (totals.discount_total / localWorkforces.length).toFixed(1) : '0'}%
+            </div>
           </div>
           <div className="text-center">
             <div className="text-green-600 font-medium">Total HT</div>
