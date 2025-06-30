@@ -44,7 +44,8 @@ import {
   Camera,
   Mail,
   Phone,
-  AlertTriangle
+  AlertTriangle,
+  Shield
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
@@ -52,6 +53,15 @@ import { Search } from '@/components/search'
 import { CountdownAlert } from '@/components/countdown-alert'
 import { AssignmentPhotos } from './detail/components/AssignmentPhotos'
 import { PdfViewer } from '@/components/ui/PdfViewer'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { toast } from 'sonner'
 
 interface AssignmentDetail {
   id: number
@@ -301,6 +311,8 @@ export default function AssignmentDetailPage() {
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('parties')
   const [pdfViewer, setPdfViewer] = useState<{ open: boolean, url: string, title?: string }>({ open: false, url: '', title: '' })
+  const [validateModalOpen, setValidateModalOpen] = useState(false)
+  const [validating, setValidating] = useState(false)
 
   useEffect(() => {
     const fetchAssignment = async () => {
@@ -1290,6 +1302,33 @@ export default function AssignmentDetailPage() {
     }
   }
 
+  const handleValidateAssignment = async () => {
+    if (!assignment) return
+    
+    setValidating(true)
+    try {
+      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/validate/${assignment.id}`)
+      toast.success('Dossier validé avec succès')
+      setValidateModalOpen(false)
+      
+      // Mettre à jour le statut localement
+      setAssignment(prev => prev ? {
+        ...prev,
+        status: {
+          ...prev.status,
+          code: 'validated',
+          label: 'Validé'
+        },
+        validated_at: new Date().toISOString()
+      } : null)
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error)
+      toast.error('Erreur lors de la validation du dossier')
+    } finally {
+      setValidating(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -1344,6 +1383,15 @@ export default function AssignmentDetailPage() {
               <Badge className={getStatusColor(assignment.status.code)}>
                 {assignment.status.label}
               </Badge>
+              {assignment.status.code === 'edited' && (
+                <Button 
+                  onClick={() => setValidateModalOpen(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Valider le dossier
+                </Button>
+              )}
               <Button variant="outline" size="icon">
                 <Printer className="h-4 w-4" />
               </Button>
@@ -1524,6 +1572,45 @@ export default function AssignmentDetailPage() {
           </div>
         </div>
       </Main>
+
+      {/* Modal de validation */}
+      <Dialog open={validateModalOpen} onOpenChange={setValidateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-green-600" />
+              Valider le dossier
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider le dossier <strong>{assignment?.reference}</strong> ?
+              <br />
+              Cette action ne peut pas être annulée.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setValidateModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleValidateAssignment} 
+              disabled={validating}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {validating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Validation...
+                </>
+              ) : (
+                <>
+                  <Shield className="h-4 w-4 mr-2" />
+                  Valider le dossier
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* PDF Viewer */}
       <PdfViewer open={pdfViewer.open} onOpenChange={open => setPdfViewer(v => ({ ...v, open }))} url={pdfViewer.url} title={pdfViewer.title} />
