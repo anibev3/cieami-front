@@ -213,6 +213,11 @@ export const sidebarData: SidebarData = {
           icon: IconCheck,
         },
         {
+          title: 'Factures',
+          url: '/comptabilite/invoices',
+          icon: IconFileText,
+        },
+        {
           title: 'Configuration',
           icon: IconCalculator,
           items: [

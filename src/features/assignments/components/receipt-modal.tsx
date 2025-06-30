@@ -89,11 +89,11 @@ export function ReceiptModal({
       if (Array.isArray(typesResponse)) {
         receiptTypesData = typesResponse
       } else if (typesResponse && typeof typesResponse === 'object') {
-        const response = typesResponse as any
+        const response = typesResponse as { data?: ReceiptType[] | { data: ReceiptType[] } }
         if (Array.isArray(response.data)) {
           receiptTypesData = response.data
-        } else if (response.data && Array.isArray(response.data.data)) {
-          receiptTypesData = response.data.data
+        } else if (response.data && Array.isArray((response.data as { data: ReceiptType[] }).data)) {
+          receiptTypesData = (response.data as { data: ReceiptType[] }).data
         }
       }
       
@@ -220,8 +220,8 @@ export function ReceiptModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
             Gérer les quittances
@@ -232,14 +232,14 @@ export function ReceiptModal({
         </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8 flex-1">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             <span className="ml-2">Chargement...</span>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-y-auto pr-2">
             {/* Résumé du dossier */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center justify-between">
                   <span>Informations du dossier</span>
@@ -283,7 +283,7 @@ export function ReceiptModal({
               </div>
 
               {receipts.length === 0 ? (
-                <Card className="border-dashed">
+                <Card className="border-dashed shadow-none">
                   <CardContent className="text-center py-8">
                     <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">Aucune quittance ajoutée</p>
@@ -296,7 +296,7 @@ export function ReceiptModal({
               ) : (
                 <div className="space-y-3">
                   {receipts.map((receipt, index) => (
-                    <Card key={index}>
+                    <Card key={index} className='shadow-none'>
                       <CardContent className="pt-4">
                         <div className="flex items-center justify-between mb-3">
                           <Badge variant={receipt.isNew ? "default" : "secondary"}>
@@ -385,28 +385,28 @@ export function ReceiptModal({
                 </CardContent>
               </Card>
             )}
-
-            {/* Actions */}
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={onClose}>
-                Annuler
-              </Button>
-              <Button onClick={handleSave} disabled={receipts.length === 0 || saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sauvegarde...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Sauvegarder les quittances
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
         )}
+
+        {/* Actions - Toujours visibles en bas */}
+        <div className="flex justify-end gap-2 pt-4 border-t mt-4 flex-shrink-0">
+          <Button variant="outline" onClick={onClose}>
+            Annuler
+          </Button>
+          <Button onClick={handleSave} disabled={receipts.length === 0 || saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sauvegarde...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Sauvegarder les quittances
+              </>
+            )}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -1,6 +1,7 @@
 import { Outlet } from '@tanstack/react-router'
 import {
   IconBrowserCheck,
+  IconFileText,
   IconNotification,
   IconPalette,
   IconTool,
@@ -59,6 +60,11 @@ const sidebarNavItems = [
     title: 'Cheques',
     icon: <IconTool size={18} />,
     href: '/comptabilite/checks',
+  },
+  {
+    title: 'Factures',
+    icon: <IconFileText size={18} />,
+    href: '/comptabilite/invoices',
   },
   {
     title: 'Types de paiement',

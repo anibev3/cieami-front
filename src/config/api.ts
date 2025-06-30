@@ -18,6 +18,7 @@ export const API_CONFIG = {
     ASSIGNMENTS_EDIT: '/assignments/edit',
     RECEIPTS: '/receipts',
     RECEIPT_TYPES: '/receipt-types',
+    INVOICES: '/invoices',
     // Endpoints pour l'édition des assignations
     SHOCK_POINTS: '/shock-points',
     SUPPLIES: '/supplies',
@@ -51,6 +52,7 @@ export interface ApiConfig {
     ASSIGNMENTS: string
     RECEIPTS: string
     RECEIPT_TYPES: string
+    INVOICES: string
     // Endpoints pour l'édition des assignations
     SHOCK_POINTS: string
     SUPPLIES: string

@@ -412,4 +412,166 @@ export interface TreasuryReport {
   payments: number
   checks: number
   total: number
+}
+
+// Types pour les factures (invoices)
+
+export interface InvoiceAssignment {
+  id: number
+  reference: string
+  policy_number: string
+  claim_number: string
+  claim_starts_at: string
+  claim_ends_at: string
+  expertise_date: string
+  expertise_place: string | null
+  received_at: string
+  insurer_id: number
+  repairer_id: number
+  administrator: string | null
+  circumstance: string
+  damage_declared: string
+  observation: string | null
+  point_noted: string
+  seen_before_work_date: string | null
+  seen_during_work_date: string | null
+  seen_after_work_date: string | null
+  contact_date: string | null
+  assured_value: string | null
+  salvage_value: string | null
+  new_value: string | null
+  depreciation_rate: string | null
+  market_value: string | null
+  work_duration: string | null
+  expert_remark: string | null
+  shock_amount_excluding_tax: string
+  shock_amount_tax: string
+  shock_amount: string
+  other_cost_amount_excluding_tax: string
+  other_cost_amount_tax: string
+  other_cost_amount: string
+  receipt_amount_excluding_tax: string
+  receipt_amount_tax: string
+  receipt_amount: string
+  total_amount_excluding_tax: string
+  total_amount_tax: string
+  total_amount: string
+  emails: string | null
+  qr_codes: string | null
+  document_transmitted: Array<{
+    id: number
+    code: string
+    label: string
+  }>
+  expertise_sheet: string | null
+  expertise_report: string | null
+  expert_signature: string | null
+  repairer_signature: string | null
+  customer_signature: string | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  closed_at: string | null
+  cancelled_at: string | null
+  edited_at: string | null
+  validated_at: string | null
+  realized_at: string | null
+  work_sheet_established_at: string | null
+  edition_time_expire_at: string | null
+  edition_status: string | null
+  edition_per_cent: number | null
+  recovery_time_expire_at: string | null
+  recovery_status: string | null
+  recovery_per_cent: number | null
+}
+
+export interface InvoiceStatus {
+  id: number
+  code: string
+  label: string
+  description: string | null
+  deleted_at: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface InvoiceUser {
+  id: number
+  hash_id: string
+  email: string | null
+  username: string | null
+  name: string
+  last_name: string | null
+  first_name: string | null
+  telephone: string | null
+  photo_url: string
+  pending_verification: boolean
+  signature: string
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface Invoice {
+  id: number
+  reference: string
+  date: string
+  amount: string | null
+  assignment: InvoiceAssignment
+  status: InvoiceStatus
+  created_by: InvoiceUser
+  updated_by: InvoiceUser
+  deleted_by: InvoiceUser | null
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface InvoiceResponse {
+  data: Invoice[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+export interface InvoiceDetailResponse {
+  status: number
+  message: string | null
+  data: Invoice
+}
+
+export interface CreateInvoiceData {
+  assignment_id: string
+  date: string
+}
+
+export interface UpdateInvoiceData {
+  assignment_id: string
+  date: string
+}
+
+export interface InvoiceFilters {
+  search?: string
+  date_from?: string
+  date_to?: string
+  status?: string
+  assignment_reference?: string
+  page?: number
+  per_page?: number
 } 
