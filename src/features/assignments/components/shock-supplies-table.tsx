@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import React from 'react'
+import { Separator } from '@/components/ui/separator'
 
 interface Supply {
   id: number
@@ -140,7 +141,7 @@ export function ShockSuppliesTable({
     <div className="space-y-4">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-lg flex items-center gap-2">
+        <h4 className="font-semibold text-base flex items-center gap-2">
           <Calculator className="h-5 w-5 text-blue-600" />
           Fournitures
         </h4>
@@ -156,43 +157,43 @@ export function ShockSuppliesTable({
         <table className="min-w-full border text-xs">
           <thead>
             <tr className="bg-gray-50 border-b">
-              <th className="border px-3 py-2 text-left font-medium">
+              <th className="border px-3 py-2 text-left font-medium text-xs">
                 Fournitures
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Dém
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remp
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Rep
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Peint
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Vte (%)
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 R (%)
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Montant HT
               </th>
-              <th className="border px-2 py-2 text-left font-medium">
+              <th className="border px-2 py-2 text-left font-medium text-xs">
                 Commentaire
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-blue-600">
+              <th className="border px-2 py-2 text-center font-medium text-blue-600 text-xs">
                 Vetusté
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-green-600">
+              <th className="border px-2 py-2 text-center font-medium text-green-600 text-xs">
                 Récupération
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-purple-600">
+              <th className="border px-2 py-2 text-center font-medium text-purple-600 text-xs">
                 Montant Final
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Actions
               </th>
             </tr>
@@ -200,14 +201,14 @@ export function ShockSuppliesTable({
           <tbody>
             {localShockWorks.length === 0 && (
               <tr>
-                <td colSpan={14} className="text-center text-muted-foreground py-8">
+                <td colSpan={14} className="text-center text-muted-foreground py-8 text-xs">
                   Aucune fourniture ajoutée
                 </td>
               </tr>
             )}
             {localShockWorks.map((row, i) => (
               <tr key={row.uid} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
-                <td className="border px-3 py-2">
+                <td className="border px-3 py-2 text-xs">
                   <Select 
                     value={row.supply_id ? row.supply_id.toString() : ''} 
                     onValueChange={v => updateLocalShockWork(i, 'supply_id', Number(v))}
@@ -222,97 +223,100 @@ export function ShockSuppliesTable({
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.disassembly} 
                     onCheckedChange={v => updateLocalShockWork(i, 'disassembly', v)} 
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.replacement} 
                     onCheckedChange={v => updateLocalShockWork(i, 'replacement', v)} 
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.repair} 
                     onCheckedChange={v => updateLocalShockWork(i, 'repair', v)} 
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.paint} 
                     onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 text-center text-xs">
                   <Input
                     type="number"
-                    className="w-full border rounded p-1 text-center"
+                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.obsolescence_rate}
                     onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 text-center text-xs">
                   <Input
                     type="number"
-                    className="w-full border rounded p-1 text-center"
+                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.recovery_rate}
                     onChange={e => updateLocalShockWork(i, 'recovery_rate', Number(e.target.value))}
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs">
                   <Input
                     type="number"
-                    className="w-20 border rounded p-1 text-center"
+                    className="rounded w-25 p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.amount}
                     onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
                   />
                 </td>
-                <td className="border px-2 py-2">
+                <td className="border px-2 py-2 text-xs">
                   <Input
                     type="text"
-                    className="w-32 border rounded p-1"
+                    className="rounded w-20 p-1 border-none focus:border-none focus:ring-0"
                     value={row.comment}
                     placeholder="Commentaire..."
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border w-35 px-2 py-2 text-center text-xs">
                   <div className="text-blue-600 font-medium">
                     {formatCurrency(row.obsolescence_amount || 0)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <Separator className="my-1" />
+                  <div className="text-[8px] text-gray-500">
                     HT: {formatCurrency(row.obsolescence_amount_excluding_tax || 0)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-[8px] text-gray-500">
                     TVA: {formatCurrency(row.obsolescence_amount_tax || 0)}
                   </div>
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className="text-green-600 font-medium">
                     {formatCurrency(row.recovery_amount || 0)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <Separator className="my-1" />
+                  <div className="text-[8px] text-gray-500">
                     HT: {formatCurrency(row.recovery_amount_excluding_tax || 0)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-[8px] text-gray-500">
                     TVA: {formatCurrency(row.recovery_amount_tax || 0)}
                   </div>
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
                     {formatCurrency(row.new_amount || 0)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <Separator className="my-1" />
+                  <div className="text-[8px] text-gray-500">
                     HT: {formatCurrency(row.new_amount_excluding_tax || 0)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-[8px] text-gray-500">
                     TVA: {formatCurrency(row.new_amount_tax || 0)}
                   </div>
                 </td>
-                <td className="border px-2 py-2 text-center">
+                <td className="border px-2 py-2 text-center text-xs">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (
                       <Button
@@ -349,44 +353,44 @@ export function ShockSuppliesTable({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-9 gap-4 text-sm">
+        <div className="grid grid-cols-9 gap-4 text-xs">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
-            <div className="text-xl font-bold text-gray-800">{localShockWorks.length}</div>
+            <div className="text-lg font-bold text-gray-800">{localShockWorks.length}</div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Vetusté HT</div>
-            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.obsolescence_ht)}</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_ht)}</div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Vetusté TVA</div>
-            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.obsolescence_tva)}</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_tva)}</div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Vetusté TTC</div>
-            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
           </div>
           <div className="text-center">
             <div className="text-green-600 font-medium">Récupération HT</div>
-            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.recovery_ht)}</div>
+            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_ht)}</div>
           </div>
           <div className="text-center">
             <div className="text-green-600 font-medium">Récupération TVA</div>
-            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.recovery_tva)}</div>
+            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_tva)}</div>
           </div>
           <div className="text-center">
             <div className="text-green-600 font-medium">Récupération TTC</div>
-            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.recovery)}</div>
+            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery)}</div>
           </div>
           <div className="text-center">
             <div className="text-purple-600 font-medium">Montant Final HT</div>
-            <div className={`text-lg font-bold ${totals.new_ht >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+            <div className={`text-base font-bold ${totals.new_ht >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
               {formatCurrency(totals.new_ht)}
             </div>
           </div>
           <div className="text-center">
             <div className="text-purple-600 font-medium">Montant Final TTC</div>
-            <div className={`text-lg font-bold ${totals.new >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+            <div className={`text-base font-bold ${totals.new >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
               {formatCurrency(totals.new)}
             </div>
           </div>

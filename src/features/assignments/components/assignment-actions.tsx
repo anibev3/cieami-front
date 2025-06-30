@@ -9,7 +9,6 @@ import {
   Eye,
   FileText,
   Download,
-  Printer,
   CheckCircle,
   Clock,
   AlertCircle
@@ -203,26 +202,26 @@ export function AssignmentActions({
           show: true,
           destructive: false
         },
-        {
-          key: 'download-sheet',
-          label: 'Télécharger la fiche',
-          icon: Download,
-          onClick: () => {
-            // TODO: Implémenter le téléchargement de la fiche
-          },
-          show: true,
-          destructive: false
-        },
-        {
-          key: 'download-report',
-          label: 'Télécharger le rapport',
-          icon: FileText,
-          onClick: () => {
-            // TODO: Implémenter le téléchargement du rapport
-          },
-          show: true,
-          destructive: false
-        }
+        // {
+        //   key: 'download-sheet',
+        //   label: 'Télécharger la fiche',
+        //   icon: Download,
+        //   onClick: () => {
+        //     // TODO: Implémenter le téléchargement de la fiche
+        //   },
+        //   show: true,
+        //   destructive: false
+        // },
+        // {
+        //   key: 'download-report',
+        //   label: 'Télécharger le rapport',
+        //   icon: FileText,
+        //   onClick: () => {
+        //     // TODO: Implémenter le téléchargement du rapport
+        //   },
+        //   show: true,
+        //   destructive: false
+        // }
       ],
       // Statuts payés - lecture seule
       'paid': [
@@ -234,26 +233,26 @@ export function AssignmentActions({
           show: true,
           destructive: false
         },
-        {
-          key: 'download-sheet',
-          label: 'Télécharger la fiche',
-          icon: Download,
-          onClick: () => {
-            // TODO: Implémenter le téléchargement de la fiche
-          },
-          show: true,
-          destructive: false
-        },
-        {
-          key: 'download-report',
-          label: 'Télécharger le rapport',
-          icon: FileText,
-          onClick: () => {
-            // TODO: Implémenter le téléchargement du rapport
-          },
-          show: true,
-          destructive: false
-        }
+        // {
+        //   key: 'download-sheet',
+        //   label: 'Télécharger la fiche',
+        //   icon: Download,
+        //   onClick: () => {
+        //     // TODO: Implémenter le téléchargement de la fiche
+        //   },
+        //   show: true,
+        //   destructive: false
+        // },
+        // {
+        //   key: 'download-report',
+        //   label: 'Télécharger le rapport',
+        //   icon: FileText,
+        //   onClick: () => {
+        //     // TODO: Implémenter le téléchargement du rapport
+        //   },
+        //   show: true,
+        //   destructive: false
+        // }
       ],
       // Statuts annulés - lecture seule
       'cancelled': [

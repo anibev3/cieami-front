@@ -55,67 +55,12 @@ import {
 import { ShockSuppliesTable } from './components/shock-supplies-table'
 import { ShockWorkforceTable } from './components/shock-workforce-table'
 import type { Shock } from './hooks/use-shock-management'
-import { Checkbox } from '@/components/ui/checkbox'
 
-interface ShockPoint {
-  id: number
-  label: string
-  code: string
-}
-
-interface Supply {
-  id: number
-  label: string
-  code: string
-  price: number
-}
-
-interface WorkforceType {
-  id: number
-  label: string
-  code: string
-  hourly_rate: number
-}
 
 interface OtherCostType {
   id: number
   label: string
   code: string
-}
-
-interface Assignment {
-  id: number
-  reference: string
-  status: {
-    code: string
-    label: string
-  }
-  client: {
-    id: number
-    name: string
-    email: string
-  }
-  vehicle: {
-    id: number
-    license_plate: string
-    brand?: {
-      label: string
-    }
-    vehicle_model?: {
-      label: string
-    }
-  }
-  insurer: {
-    id: number
-    name: string
-  }
-  repairer: {
-    id: number
-    name: string
-  }
-  total_amount: number
-  created_at: string
-  updated_at: string
 }
 
 interface CalculationResult {
@@ -151,7 +96,9 @@ export default function ReportEditPage() {
     hasUnsavedChanges, 
     setHasUnsavedChanges, 
     saveAssignment, 
-    goBack 
+    goBack,
+    formattedShocks,
+    setFormattedShocks
   } = useEditAssignment(assignmentId)
   
   const { 
@@ -170,7 +117,7 @@ export default function ReportEditPage() {
     addShock,
     removeShock,
     updateShock
-  } = useShockManagement() as {
+  } = useShockManagement(formattedShocks) as {
     shocks: Shock[];
     setShocks: React.Dispatch<React.SetStateAction<Shock[]>>;
     addShock: (shockPointId: number) => void;
@@ -184,7 +131,10 @@ export default function ReportEditPage() {
     removeOtherCost,
     updateOtherCost,
     cleanOtherCosts
-  } = useOtherCosts()
+  } = useOtherCosts(assignment?.other_costs?.map(cost => ({
+    other_cost_type_id: cost.other_cost_type_id,
+    amount: parseFloat(cost.amount) || 0
+  })))
   
   const {
     calculationResults,
@@ -210,6 +160,9 @@ export default function ReportEditPage() {
   
   // État pour les calculs individuels
   const [calculatingShocks, setCalculatingShocks] = useState<Set<number>>(new Set())
+  
+  // État pour suivre si des données pré-remplies ont été chargées
+  const [hasPreloadedData, setHasPreloadedData] = useState(false)
 
   // Mettre à jour hasUnsavedChanges quand les données changent
   useEffect(() => {
@@ -217,6 +170,17 @@ export default function ReportEditPage() {
       setHasUnsavedChanges(true)
     }
   }, [shocks, otherCosts, setHasUnsavedChanges])
+
+  // Vérifier si des données pré-remplies ont été chargées
+  useEffect(() => {
+    if (assignment?.shocks && assignment.shocks.length > 0) {
+      setHasPreloadedData(true)
+      // Afficher un toast informatif
+      toast.success(`${assignment.shocks.length} point(s) de choc pré-rempli(s) chargé(s)`)
+    } else {
+      toast.success('Aucun point de choc pré-rempli chargé')
+    }
+  }, [assignment?.shocks])
 
   // Fonction de sauvegarde avec option de redirection
   const handleSaveAssignment = useCallback(async () => {
@@ -748,7 +712,7 @@ export default function ReportEditPage() {
 
   return (
     <>
-          <Header fixed>
+    <Header fixed>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />
@@ -757,7 +721,7 @@ export default function ReportEditPage() {
       </Header>
 
       <Main>
-        <div className="container mx-autospace-y-6">
+        <div className="">
           {/* En-tête */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -765,10 +729,18 @@ export default function ReportEditPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">Édition du dossier</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-xl font-bold">Édition du dossier</h1>
+                <p className="text-sm text-muted-foreground">
                   Modifiez les informations du dossier {assignment.reference}
                 </p>
+                {hasPreloadedData && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      <Check className="mr-1 h-3 w-3" />
+                      Données pré-remplies chargées
+                    </Badge>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -823,6 +795,21 @@ export default function ReportEditPage() {
 
           {/* Liste des points de choc */}
           <div className="space-y-6 mt-10">
+            {hasPreloadedData && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <h3 className="text-base font-semibold text-blue-800">Données pré-remplies détectées</h3>
+                    <p className="text-xs text-blue-700">
+                      {shocks.length} point(s) de choc avec leurs fournitures et main d'œuvre ont été chargés automatiquement.
+                      Vous pouvez les modifier ou ajouter de nouveaux points de choc.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {shocks.map((shock, index) => {
               const s = shock as Shock;
               return (
@@ -834,7 +821,7 @@ export default function ReportEditPage() {
                           <MapPin className="h-5 w-5" />
                           {shockPoints.find(p => p.id === s.shock_point_id)?.label || `Point de choc`}
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-sm">
                           Point de choc avec {s.shock_works.length} fourniture(s) et {s.workforces.length} main d'œuvre
                         </CardDescription>
                       </div>
@@ -970,7 +957,7 @@ export default function ReportEditPage() {
                     {calculationResults[index] && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="flex items-center gap-2 text-green-800 font-semibold">
+                          <h4 className="flex items-center gap-2 text-sm text-green-800 font-semibold">
                             <Check className="h-4 w-4" />
                             Calcul terminé
                           </h4>
@@ -982,7 +969,7 @@ export default function ReportEditPage() {
                             Voir détails
                           </Button>
                         </div>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-3 gap-4 text-xs">
                           <div>
                             <span className="text-green-600">Montant total :</span>
                             <p className="font-semibold">{calculationResults[index].total_amount?.toLocaleString('fr-FR')} F CFA</p>
@@ -1008,7 +995,7 @@ export default function ReportEditPage() {
           {otherCosts.length > 0 && (
             <div className="space-y-4 mt-10">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold flex items-center gap-2">
+                <h2 className="text-lg font-bold flex items-center gap-2">
                   <Calculator className="h-5 w-5 text-purple-600" />
                   Coûts autres
                   {loadingCalculation && (
@@ -1048,8 +1035,8 @@ export default function ReportEditPage() {
             <div className="text-center py-8">
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
                 <Calculator className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Aucun coût autre</h3>
-                <p className="text-gray-500 mb-4">Ajoutez des coûts supplémentaires si nécessaire</p>
+                <h3 className="text-base font-semibold text-gray-700 mb-2">Aucun coût autre</h3>
+                <p className="text-sm text-gray-500 mb-4">Ajoutez des coûts supplémentaires si nécessaire</p>
                 <Button 
                   onClick={addOtherCostWithCalculation}
                   className="bg-purple-600 hover:bg-purple-700 text-white"
@@ -1072,11 +1059,11 @@ export default function ReportEditPage() {
           <Dialog open={showShockModal} onOpenChange={setShowShockModal}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-xl">
+                <DialogTitle className="flex items-center gap-2 text-lg">
                   <MapPin className="h-6 w-6 text-blue-600" />
                   Ajouter un point de choc
                 </DialogTitle>
-                <DialogDescription className="text-base">
+                <DialogDescription className="text-sm">
                   Sélectionnez un point de choc à ajouter au dossier pour commencer l'expertise
                 </DialogDescription>
               </DialogHeader>
@@ -1084,7 +1071,7 @@ export default function ReportEditPage() {
               <div className="space-y-6 py-4">
                 {/* Section de sélection */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
                     <MapPin className="h-4 w-4 text-blue-500" />
                     Point de choc à ajouter
                   </div>
@@ -1099,7 +1086,7 @@ export default function ReportEditPage() {
                           <SelectItem key={point.id} value={point.id.toString()} className="py-3">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium">{point.label}</span>
+                              <span className="text-sm font-medium">{point.label}</span>
                               <span className="text-xs text-gray-500 ml-auto">#{point.code}</span>
                             </div>
                           </SelectItem>
@@ -1114,13 +1101,13 @@ export default function ReportEditPage() {
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Check className="h-4 w-4 text-green-600" />
-                      <span className="font-semibold text-green-800">Point de choc sélectionné</span>
+                      <span className="text-sm font-semibold text-green-800">Point de choc sélectionné</span>
                     </div>
-                    <div className="text-sm text-gray-700">
-                      <p className="font-medium">
+                    <div className="text-xs text-gray-700">
+                      <p className="text-sm font-medium">
                         {shockPoints.find(p => p.id === selectedShockPointId)?.label}
                       </p>
-                      <p className="text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         Code: {shockPoints.find(p => p.id === selectedShockPointId)?.code}
                       </p>
                     </div>
@@ -1131,11 +1118,11 @@ export default function ReportEditPage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold text-blue-600">{shockPoints.length}</div>
+                      <div className="text-xl font-bold text-blue-600">{shockPoints.length}</div>
                       <div className="text-xs text-gray-600">Points disponibles</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-green-600">{shocks.length}</div>
+                      <div className="text-xl font-bold text-green-600">{shocks.length}</div>
                       <div className="text-xs text-gray-600">Points ajoutés</div>
                     </div>
                   </div>
@@ -1173,13 +1160,13 @@ export default function ReportEditPage() {
           <Dialog open={showVerificationModal} onOpenChange={setShowVerificationModal}>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-3 text-xl">
+                <DialogTitle className="flex items-center gap-3 text-lg">
                   <div className="p-2 bg-green-100 rounded-full">
                     <FileText className="h-6 w-6 text-green-600" />
                   </div>
                   Confirmer la rédaction du rapport
                 </DialogTitle>
-                <DialogDescription className="text-base text-gray-600">
+                <DialogDescription className="text-sm text-gray-600">
                   Vérifiez les informations avant de procéder à la rédaction du rapport d'expertise
                 </DialogDescription>
               </DialogHeader>
@@ -1187,74 +1174,74 @@ export default function ReportEditPage() {
               <div className="space-y-6 py-4">
                 {/* Résumé des données */}
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
-                  <h4 className="flex items-center gap-2 text-lg font-semibold text-blue-800 mb-4">
+                  <h4 className="flex items-center gap-2 text-base font-semibold text-blue-800 mb-4">
                     <Calculator className="h-5 w-5" />
                     Résumé de l'expertise
                   </h4>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-blue-600">{shocks.length}</div>
-                      <div className="text-sm text-gray-600">Points de choc</div>
+                      <div className="text-xl font-bold text-blue-600">{shocks.length}</div>
+                      <div className="text-xs text-gray-600">Points de choc</div>
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-green-600">{otherCosts.filter(c => c.other_cost_type_id > 0).length}</div>
-                      <div className="text-sm text-gray-600">Coûts autres</div>
+                      <div className="text-xl font-bold text-green-600">{otherCosts.filter(c => c.other_cost_type_id > 0).length}</div>
+                      <div className="text-xs text-gray-600">Coûts autres</div>
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-purple-600">{Object.keys(calculationResults).length}</div>
-                      <div className="text-sm text-gray-600">Calculs effectués</div>
+                      <div className="text-xl font-bold text-purple-600">{Object.keys(calculationResults).length}</div>
+                      <div className="text-xs text-gray-600">Calculs effectués</div>
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-orange-600">
+                      <div className="text-xl font-bold text-orange-600">
                         {shocks.reduce((total, shock) => 
                           total + shock.shock_works.length + shock.workforces.length, 0
                         )}
                       </div>
-                      <div className="text-sm text-gray-600">Lignes totales</div>
+                      <div className="text-xs text-gray-600">Lignes totales</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Validation des données */}
                 <div className="space-y-3">
-                  <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                  <h4 className="flex items-center gap-2 text-base font-semibold text-gray-800">
                     <Check className="h-5 w-5 text-green-600" />
                     Validation des données
                   </h4>
                   
                   <div className="space-y-2">
                     {shocks.length > 0 ? (
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-xs">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700">Points de choc configurés</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-xs">
                         <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                         <span className="text-red-700">Aucun point de choc ajouté</span>
                       </div>
                     )}
                     
                     {shocks.every(shock => shock.paint_type_id && shock.hourly_rate_id) ? (
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-xs">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700">Types de peinture et taux horaires définis</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-xs">
                         <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                         <span className="text-red-700">Types de peinture ou taux horaires manquants</span>
                       </div>
                     )}
                     
                     {Object.keys(calculationResults).length > 0 ? (
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-xs">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700">Calculs effectués avec succès</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-xs">
                         <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                         <span className="text-orange-700">Aucun calcul effectué</span>
                       </div>
@@ -1268,7 +1255,7 @@ export default function ReportEditPage() {
                     <div className="p-1 bg-amber-100 rounded-full mt-0.5">
                       <FileText className="h-4 w-4 text-amber-600" />
                     </div>
-                    <div className="text-sm">
+                    <div className="text-xs">
                       <p className="font-medium text-amber-800 mb-1">Action irréversible</p>
                       <p className="text-amber-700">
                         La rédaction du rapport va sauvegarder définitivement toutes les modifications et générer le rapport d'expertise final.
@@ -1339,7 +1326,7 @@ function OtherCostItem({
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 m">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+        <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
           <Calculator className="h-4 w-4 text-purple-600" />
           Coût supplémentaire
         </h4>
@@ -1354,7 +1341,7 @@ function OtherCostItem({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2">Type de coût</Label>
+          <Label className="text-xs font-medium text-gray-700 mb-2">Type de coût</Label>
           <Select 
             value={cost.other_cost_type_id.toString()} 
             onValueChange={(value) => onUpdate('other_cost_type_id', Number(value))}
@@ -1373,7 +1360,7 @@ function OtherCostItem({
           </Select>
         </div>
         <div>
-          <Label className="text-sm font-medium text-gray-700 mb-2">Montant (FCFA)</Label>
+          <Label className="text-xs font-medium text-gray-700 mb-2">Montant (FCFA)</Label>
           <Input
             type="number"
             value={cost.amount}
@@ -1449,20 +1436,20 @@ function GlobalRecap({
       <CardContent>
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">Points de choc</p>
-            <p className="text-2xl font-bold">{shocks.length}</p>
+            <p className="text-xs text-muted-foreground">Points de choc</p>
+            <p className="text-xl font-bold">{shocks.length}</p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">Calculs effectués</p>
-            <p className="text-2xl font-bold text-green-600">{Object.keys(calculationResults).length}</p>
+            <p className="text-xs text-muted-foreground">Calculs effectués</p>
+            <p className="text-xl font-bold text-green-600">{Object.keys(calculationResults).length}</p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">Coûts autres</p>
-            <p className="text-2xl font-bold">{otherCosts.length}</p>
+            <p className="text-xs text-muted-foreground">Coûts autres</p>
+            <p className="text-xl font-bold">{otherCosts.length}</p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">Total TTC</p>
-            <p className="text-2xl font-bold text-blue-600">{formatCurrency(grandTotal)}</p>  
+            <p className="text-xs text-muted-foreground">Total TTC</p>
+            <p className="text-xl font-bold text-blue-600">{formatCurrency(grandTotal)}</p>  
           </div>
         </div>
         
@@ -1470,13 +1457,13 @@ function GlobalRecap({
         
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <h4 className="font-semibold mb-4 text-lg">Détail des montants des chocs</h4>
+            <h4 className="font-semibold mb-4 text-base">Détail des montants des chocs</h4>
             <div className="space-y-3">
               <div className="bg-blue-50 p-3 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-blue-800">Main d'œuvre</span>
+                  <span className="text-sm font-medium text-blue-800">Main d'œuvre</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
                     <span className="text-blue-600">HT:</span>
                     <p className="font-semibold">{formatCurrency(shockTotals.total_workforce_amount_excluding_tax)}</p>
@@ -1494,9 +1481,9 @@ function GlobalRecap({
               
               <div className="bg-green-50 p-3 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-green-800">Produits peinture</span>
+                  <span className="text-sm font-medium text-green-800">Produits peinture</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
                     <span className="text-green-600">HT:</span>
                     <p className="font-semibold">{formatCurrency(shockTotals.total_paint_product_amount_excluding_tax)}</p>
@@ -1514,9 +1501,9 @@ function GlobalRecap({
               
               <div className="bg-purple-50 p-3 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-purple-800">Petites fournitures</span>
+                  <span className="text-sm font-medium text-purple-800">Petites fournitures</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
                     <span className="text-purple-600">HT:</span>
                     <p className="font-semibold">{formatCurrency(shockTotals.total_small_supply_amount_excluding_tax)}</p>
@@ -1534,9 +1521,9 @@ function GlobalRecap({
               
               <div className="bg-orange-50 p-3 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-orange-800">Total chocs</span>
+                  <span className="text-sm font-medium text-orange-800">Total chocs</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
                     <span className="text-orange-600">HT:</span>
                     <p className="font-semibold">{formatCurrency(shockTotals.total_shock_amount_excluding_tax)}</p>
@@ -1555,14 +1542,14 @@ function GlobalRecap({
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4 text-lg">Récapitulatif final</h4>
+            <h4 className="font-semibold mb-4 text-base">Récapitulatif final</h4>
             <div className="space-y-3">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-gray-800">Coûts autres</span>
+                  <span className="text-sm font-medium text-gray-800">Coûts autres</span>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-lg">{formatCurrency(totalOtherCosts)}</p>
+                  <p className="font-semibold text-base">{formatCurrency(totalOtherCosts)}</p>
                 </div>
               </div>
               
@@ -1570,21 +1557,21 @@ function GlobalRecap({
               
               <div className="bg-blue-100 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-blue-900 text-lg">Total général</span>
+                  <span className="font-bold text-blue-900 text-base">Total général</span>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-2xl text-blue-900">{formatCurrency(grandTotal)}</p>
-                  <p className="text-sm text-blue-700">Tous montants TTC</p>
+                  <p className="font-bold text-xl text-blue-900">{formatCurrency(grandTotal)}</p>
+                  <p className="text-xs text-blue-700">Tous montants TTC</p>
                 </div>
               </div>
             </div>
             
             <div className="mt-6">
-              <h4 className="font-semibold mb-2">Statut des calculs</h4>
+              <h4 className="font-semibold mb-2 text-sm">Statut des calculs</h4>
               <div className="space-y-2">
                 {shocks.map((shock, index) => (
                   <div key={shock.uid} className="flex justify-between items-center">
-                    <span className="text-sm">
+                    <span className="text-xs">
                       {shock.shock_point_id ? `Point ${index + 1}` : 'Point non défini'}
                     </span>
                     {calculationResults[index] ? (

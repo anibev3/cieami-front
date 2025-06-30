@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 export interface ShockWork {
   uid: string
@@ -12,9 +12,20 @@ export interface ShockWork {
   obsolescence_rate: number
   recovery_rate: number
   amount: number
+  // Données calculées
+  obsolescence_amount_excluding_tax?: number
+  obsolescence_amount_tax?: number
+  obsolescence_amount?: number
+  recovery_amount_excluding_tax?: number
+  recovery_amount_tax?: number
+  recovery_amount?: number
+  new_amount_excluding_tax?: number
+  new_amount_tax?: number
+  new_amount?: number
 }
 
 export interface Workforce {
+  uid: string
   workforce_type_id: number
   workforce_type_label: string
   nb_hours: number
@@ -36,8 +47,15 @@ export interface Shock {
   with_tax: boolean
 }
 
-export function useShockManagement() {
+export function useShockManagement(initialShocks?: Shock[]) {
   const [shocks, setShocks] = useState<Shock[]>([])
+
+  // Initialiser avec des données pré-remplies
+  useEffect(() => {
+    if (initialShocks && initialShocks.length > 0) {
+      setShocks(initialShocks)
+    }
+  }, [initialShocks])
 
   // Ajouter un point de choc
   const addShock = useCallback((shockPointId: number) => {
@@ -119,6 +137,7 @@ export function useShockManagement() {
   // Ajouter de la main d'œuvre à un point de choc
   const addWorkforce = useCallback((shockIndex: number) => {
     const newWorkforce: Workforce = {
+      uid: crypto.randomUUID(),
       workforce_type_id: 0,
       workforce_type_label: '',
       nb_hours: 0,

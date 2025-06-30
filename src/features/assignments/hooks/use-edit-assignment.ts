@@ -38,6 +38,137 @@ interface Assignment {
   total_amount: number
   created_at: string
   updated_at: string
+  // Nouvelles propriétés pour les données complètes
+  shocks?: ApiShock[]
+  other_costs?: ApiOtherCost[]
+  emails?: Array<{ email: string }>
+}
+
+// Types pour les données de l'API
+interface ApiSupply {
+  id: number
+  label: string
+  description: string
+}
+
+interface ApiWorkforceType {
+  id: number
+  label: string
+}
+
+interface ApiShockWork {
+  id: number
+  disassembly: boolean
+  replacement: boolean
+  repair: boolean
+  paint: boolean
+  control: boolean
+  comment: string | null
+  obsolescence_rate: string
+  obsolescence_amount_excluding_tax: string
+  obsolescence_amount_tax: string
+  obsolescence_amount: string
+  recovery_rate: string
+  recovery_amount_excluding_tax: string
+  recovery_amount_tax: string
+  recovery_amount: string
+  new_amount_excluding_tax: string
+  new_amount_tax: string
+  new_amount: string
+  amount_excluding_tax: string | null
+  amount_tax: string | null
+  amount: string | null
+  supply: ApiSupply
+}
+
+interface ApiWorkforce {
+  id: number
+  workforce_type: ApiWorkforceType
+  nb_hours: string
+  work_fee: string
+  discount: string
+  amount_excluding_tax: string
+  amount_tax: string
+  amount: string
+}
+
+interface ApiShockPoint {
+  id: number
+  code: string
+  label: string
+  description: string
+}
+
+interface ApiShock {
+  id: number
+  obsolescence_amount_excluding_tax: string | null
+  obsolescence_amount_tax: string | null
+  obsolescence_amount: string | null
+  recovery_amount_excluding_tax: string | null
+  recovery_amount_tax: string | null
+  recovery_amount: string | null
+  new_amount_excluding_tax: string | null
+  new_amount_tax: string | null
+  new_amount: string | null
+  workforce_amount_excluding_tax: string | null
+  workforce_amount_tax: string | null
+  workforce_amount: string | null
+  amount_excluding_tax: string | null
+  amount_tax: string | null
+  amount: string | null
+  shock_point: ApiShockPoint
+  shock_works: ApiShockWork[]
+  workforces: ApiWorkforce[]
+}
+
+interface ApiOtherCost {
+  id: number
+  other_cost_type_id: number
+  amount: string
+}
+
+// Interface pour les données formatées des shocks
+export interface FormattedShockData {
+  uid: string
+  shock_point_id: number
+  shock_works: Array<{
+    uid: string
+    supply_id: number
+    disassembly: boolean
+    replacement: boolean
+    repair: boolean
+    paint: boolean
+    control: boolean
+    comment: string
+    obsolescence_rate: number
+    recovery_rate: number
+    amount: number
+    // Données calculées
+    obsolescence_amount_excluding_tax?: number
+    obsolescence_amount_tax?: number
+    obsolescence_amount?: number
+    recovery_amount_excluding_tax?: number
+    recovery_amount_tax?: number
+    recovery_amount?: number
+    new_amount_excluding_tax?: number
+    new_amount_tax?: number
+    new_amount?: number
+  }>
+  paint_type_id: number
+  hourly_rate_id: number
+  workforces: Array<{
+    uid: string
+    workforce_type_id: number
+    workforce_type_label: string
+    nb_hours: number
+    work_fee: string
+    discount: number
+    amount_excluding_tax: number
+    amount_tax: number
+    amount: number
+  }>
+  comment: string
+  with_tax: boolean
 }
 
 export function useEditAssignment(assignmentId: number) {
@@ -46,20 +177,74 @@ export function useEditAssignment(assignmentId: number) {
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [saving, setSaving] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [formattedShocks, setFormattedShocks] = useState<FormattedShockData[]>([])
+
+  // Fonction pour formater les données des shocks de l'API
+  const formatShocksFromAPI = useCallback((apiShocks: ApiShock[]): FormattedShockData[] => {
+    return apiShocks.map(shock => ({
+      uid: crypto.randomUUID(), // Générer un UID unique
+      shock_point_id: shock.shock_point?.id || 0,
+      shock_works: shock.shock_works?.map((work: ApiShockWork) => ({
+        uid: crypto.randomUUID(),
+        supply_id: work.supply?.id || 0,
+        disassembly: work.disassembly || false,
+        replacement: work.replacement || false,
+        repair: work.repair || false,
+        paint: work.paint || false,
+        control: work.control || false,
+        comment: work.comment || '',
+        obsolescence_rate: parseFloat(work.obsolescence_rate) || 0,
+        recovery_rate: parseFloat(work.recovery_rate) || 0,
+        amount: parseFloat(work.amount || '0') || 0,
+        // Données calculées
+        obsolescence_amount_excluding_tax: parseFloat(work.obsolescence_amount_excluding_tax) || 0,
+        obsolescence_amount_tax: parseFloat(work.obsolescence_amount_tax) || 0,
+        obsolescence_amount: parseFloat(work.obsolescence_amount) || 0,
+        recovery_amount_excluding_tax: parseFloat(work.recovery_amount_excluding_tax) || 0,
+        recovery_amount_tax: parseFloat(work.recovery_amount_tax) || 0,
+        recovery_amount: parseFloat(work.recovery_amount) || 0,
+        new_amount_excluding_tax: parseFloat(work.new_amount_excluding_tax) || 0,
+        new_amount_tax: parseFloat(work.new_amount_tax) || 0,
+        new_amount: parseFloat(work.new_amount) || 0,
+      })) || [],
+      paint_type_id: 1, // Valeur par défaut
+      hourly_rate_id: 1, // Valeur par défaut
+      workforces: shock.workforces?.map((workforce: ApiWorkforce) => ({
+        uid: crypto.randomUUID(),
+        workforce_type_id: workforce.workforce_type?.id || 0,
+        workforce_type_label: workforce.workforce_type?.label || '',
+        nb_hours: parseFloat(workforce.nb_hours) || 0,
+        work_fee: workforce.work_fee?.toString() || '0',
+        discount: parseFloat(workforce.discount) || 0,
+        amount_excluding_tax: parseFloat(workforce.amount_excluding_tax) || 0,
+        amount_tax: parseFloat(workforce.amount_tax) || 0,
+        amount: parseFloat(workforce.amount) || 0,
+      })) || [],
+      comment: '',
+      with_tax: true,
+    }))
+  }, [])
 
   // Charger l'assignation
   const loadAssignment = useCallback(async () => {
     try {
       setLoading(true)
       const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`)
-      setAssignment(response.data.data)
+      const assignmentData = response.data.data
+      setAssignment(assignmentData)
+      
+      // Formater les shocks si ils existent
+      if (assignmentData.shocks && assignmentData.shocks.length > 0) {
+        const formatted = formatShocksFromAPI(assignmentData.shocks)
+        setFormattedShocks(formatted)
+      }
     } catch (error) {
       console.error('Erreur lors du chargement:', error)
       toast.error('Erreur lors du chargement des données')
     } finally {
       setLoading(false)
     }
-  }, [assignmentId])
+  }, [assignmentId, formatShocksFromAPI])
 
   // Sauvegarder l'assignation
   const saveAssignment = useCallback(async (payload: unknown, _redirectToReport = false) => {
@@ -104,6 +289,8 @@ export function useEditAssignment(assignmentId: number) {
     hasUnsavedChanges,
     setHasUnsavedChanges,
     saveAssignment,
-    goBack
+    goBack,
+    formattedShocks,
+    setFormattedShocks
   }
 } 

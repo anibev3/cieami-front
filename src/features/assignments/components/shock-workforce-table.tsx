@@ -160,7 +160,7 @@ export function ShockWorkforceTable({
     <div className="space-y-4">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-lg flex items-center gap-2">
+        <h4 className="font-semibold text-base flex items-center gap-2">
           <Calculator className="h-5 w-5 text-green-600" />
           Main d'œuvre
         </h4>
@@ -176,7 +176,7 @@ export function ShockWorkforceTable({
       <div className="border rounded bg-gray-50 p-4 space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
-            <Label className="text-sm font-medium mb-2">Type de peinture</Label>
+            <Label className="text-xs font-medium mb-2">Type de peinture</Label>
             <Select 
               value={paintTypeId ? paintTypeId.toString() : ''} 
               onValueChange={(value) => onPaintTypeChange(Number(value))}
@@ -194,7 +194,7 @@ export function ShockWorkforceTable({
             </Select>
           </div>
           <div>
-            <Label className="text-sm font-medium mb-2">Taux horaire</Label>
+            <Label className="text-xs font-medium mb-2">Taux horaire</Label>
             <Select 
               value={hourlyRateId ? hourlyRateId.toString() : ''} 
               onValueChange={(value) => onHourlyRateChange(Number(value))}
@@ -225,7 +225,7 @@ export function ShockWorkforceTable({
               </div>
               <div className="flex items-center gap-2 py-1 mt-2">
                 <div className={`w-3 h-3 rounded-full ${withTax ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <Label className="text-sm font-medium text-gray-700">Calcul TVA</Label>
+                <Label className="text-xs font-medium text-gray-700">Calcul TVA</Label>
               </div>
 
               {withTax && (
@@ -366,38 +366,38 @@ export function ShockWorkforceTable({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-7 gap-4 text-sm">
+        <div className="grid grid-cols-7 gap-4 text-xs">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total Heures</div>
-            <div className="text-xl font-bold text-gray-800">{totals.hours}</div>
+            <div className="text-lg font-bold text-gray-800">{totals.hours}</div>
           </div>
           <div className="text-center">
             <div className="text-gray-600 font-medium">Taux horaire moy.</div>
-            <div className="text-lg font-bold text-gray-700">
+            <div className="text-base font-bold text-gray-700">
               {localWorkforces.length > 0 ? formatCurrency(totals.work_fee_total / localWorkforces.length) : '0.000'}
             </div>
           </div>
           <div className="text-center">
             <div className="text-gray-600 font-medium">Remise moy. (%)</div>
-            <div className="text-lg font-bold text-gray-700">
+            <div className="text-base font-bold text-gray-700">
               {localWorkforces.length > 0 ? (totals.discount_total / localWorkforces.length).toFixed(1) : '0'}%
             </div>
           </div>
           <div className="text-center">
             <div className="text-green-600 font-medium">Total HT</div>
-            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.ht)}</div>
+            <div className="text-base font-bold text-green-700">{formatCurrency(totals.ht)}</div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Total TVA</div>
-            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.tva)}</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.tva)}</div>
           </div>
           <div className="text-center">
             <div className="text-purple-600 font-medium">Total TTC</div>
-            <div className="text-lg font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
+            <div className="text-base font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
           </div>
           <div className="text-center">
             <div className="text-gray-600 font-medium">Récap</div>
-            <div className="text-lg font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
+            <div className="text-base font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
           </div>
         </div>
       </div>

@@ -1,14 +1,21 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 interface OtherCost {
   other_cost_type_id: number
   amount: number
 }
 
-export function useOtherCosts() {
+export function useOtherCosts(initialOtherCosts?: OtherCost[]) {
   const [otherCosts, setOtherCosts] = useState<OtherCost[]>([
     { other_cost_type_id: 0, amount: 0 }
   ])
+
+  // Initialiser avec des données pré-remplies
+  useEffect(() => {
+    if (initialOtherCosts && initialOtherCosts.length > 0) {
+      setOtherCosts(initialOtherCosts)
+    }
+  }, [initialOtherCosts])
 
   // Ajouter un coût autre
   const addOtherCost = useCallback(() => {

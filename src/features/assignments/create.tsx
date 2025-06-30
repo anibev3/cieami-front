@@ -725,20 +725,20 @@ export default function CreateAssignmentPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-gray-200/60">
         <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" onClick={handleCancel} className="shrink-0">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
+            {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
                 {isEditMode ? 'Modifiez les informations du dossier' : 'Créez un nouveau dossier d\'expertise'}
               </p>
-            </div>
-          </div>
-          
+        </div>
+      </div>
+
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={handleCancel}>
               Annuler
@@ -763,7 +763,7 @@ export default function CreateAssignmentPage() {
             </Button>
           </div>
         </div>
-      </div>
+          </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -796,7 +796,7 @@ export default function CreateAssignmentPage() {
                         <div key={section.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50/50 border border-gray-200/40">
                           <div className={`p-2 rounded-lg bg-white shadow-sm ${section.color}`}>
                             <Icon className="h-4 w-4" />
-                          </div>
+              </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">
                               {section.title}
@@ -841,7 +841,7 @@ export default function CreateAssignmentPage() {
                         Suivant
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </Button>
-                    </div>
+            </div>
                     <div className="text-center text-sm text-gray-500">
                       Étape {step} sur {totalSteps}
                     </div>
@@ -901,14 +901,14 @@ export default function CreateAssignmentPage() {
                     </Button>
                   </CardContent>
                 </Card> */}
-              </div>
-            </div>
+        </div>
+      </div>
 
             {/* Main Content */}
             <div className="flex-1 space-y-6">
               {/* Section 1: Informations générales */}
               <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                <CardHeader>
+        <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <FileText className="h-5 w-5 text-blue-600" />
                     Informations générales
@@ -916,21 +916,21 @@ export default function CreateAssignmentPage() {
                   <CardDescription>
                     Renseignez les informations du client, véhicule, assureur et réparateur.
                   </CardDescription>
-                </CardHeader>
+        </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Client et Véhicule */}
-                    <div className="space-y-4">
+                      {/* Client et Véhicule */}
+                  <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <User className="h-5 w-5 text-blue-500" />
-                        Client et Véhicule
-                      </h3>
-                      <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="client_id"
-                          render={({ field }) => (
-                            <FormItem>
+                          Client et Véhicule
+                        </h3>
+                    <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="client_id"
+                            render={({ field }) => (
+                              <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Client</FormLabel>
                                 <Button variant="outline" size="icon" onClick={() => setShowCreateClientModal(true)} className="shrink-0 w-6 h-6">
@@ -938,108 +938,108 @@ export default function CreateAssignmentPage() {
                                 </Button>
                               </div>
                               
-                              <div className="flex gap-2">
-                                <Select 
-                                  onValueChange={(value) => {
-                                    field.onChange(value)
-                                    handleClientSelection(value)
-                                  }} 
-                                  value={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="flex-1">
-                                      <SelectValue placeholder="Sélectionner un client" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <ScrollArea className="h-[200px]">
-                                      {clients.map((client) => (
-                                        <SelectItem key={client.id} value={client.id.toString()}>
-                                          {client.name}
-                                        </SelectItem>
-                                      ))}
-                                    </ScrollArea>
-                                  </SelectContent>
-                                </Select>
-                                {selectedClient && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => openClientDetails(selectedClient)}
-                                    className="shrink-0"
+                                <div className="flex gap-2">
+                                  <Select 
+                                    onValueChange={(value) => {
+                                      field.onChange(value)
+                                      handleClientSelection(value)
+                                    }} 
+                                    value={field.value}
                                   >
-                                    <Info className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                    <FormControl>
+                                      <SelectTrigger className="flex-1">
+                                        <SelectValue placeholder="Sélectionner un client" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <ScrollArea className="h-[200px]">
+                                        {clients.map((client) => (
+                                          <SelectItem key={client.id} value={client.id.toString()}>
+                                            {client.name}
+                                          </SelectItem>
+                                        ))}
+                                      </ScrollArea>
+                                    </SelectContent>
+                                  </Select>
+                                  {selectedClient && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => openClientDetails(selectedClient)}
+                                      className="shrink-0"
+                                    >
+                                      <Info className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                      </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                        <FormField
-                          control={form.control}
-                          name="vehicle_id"
-                          render={({ field }) => (
-                            <FormItem>
+                          <FormField
+                            control={form.control}
+                            name="vehicle_id"
+                            render={({ field }) => (
+                              <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Véhicule</FormLabel>
                                 <Button variant="outline" size="icon" onClick={() => setShowCreateVehicleModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
-                              <div className="flex gap-2">
-                                <Select 
-                                  onValueChange={(value) => {
-                                    field.onChange(value)
-                                    handleVehicleSelection(value)
-                                  }} 
-                                  value={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="flex-1">
-                                      <SelectValue placeholder="Sélectionner un véhicule" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <ScrollArea className="h-[200px]">
-                                      {vehicles.map((vehicle) => (
-                                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                                          {vehicle.brand.label} {vehicle.vehicle_model.label} - {vehicle.license_plate}
-                                        </SelectItem>
-                                      ))}
-                                    </ScrollArea>
-                                  </SelectContent>
-                                </Select>
-                                {selectedVehicle && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => openVehicleDetails(selectedVehicle)}
-                                    className="shrink-0"
+                                <div className="flex gap-2">
+                                  <Select 
+                                    onValueChange={(value) => {
+                                      field.onChange(value)
+                                      handleVehicleSelection(value)
+                                    }} 
+                                    value={field.value}
                                   >
-                                    <Info className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                    <FormControl>
+                                      <SelectTrigger className="flex-1">
+                                        <SelectValue placeholder="Sélectionner un véhicule" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <ScrollArea className="h-[200px]">
+                                        {vehicles.map((vehicle) => (
+                                          <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                                            {vehicle.brand.label} {vehicle.vehicle_model.label} - {vehicle.license_plate}
+                                          </SelectItem>
+                                        ))}
+                                      </ScrollArea>
+                                    </SelectContent>
+                                  </Select>
+                                  {selectedVehicle && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => openVehicleDetails(selectedVehicle)}
+                                      className="shrink-0"
+                                    >
+                                      <Info className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                      </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                        <FormField
-                          control={form.control}
-                          name="vehicle_mileage"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Kilométrage du véhicule</FormLabel>
-                              <FormControl>
-                                <Input
+                          <FormField
+                            control={form.control}
+                            name="vehicle_mileage"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Kilométrage du véhicule</FormLabel>
+                                <FormControl>
+                        <Input
                                   // type="number"
-                                  placeholder="Kilométrage"
-                                  value={field.value || ''}
+                                    placeholder="Kilométrage"
+                                    value={field.value || ''}
                                   // onChange={(e) => {
                                   //   const value = e.target.value
                                   //   if (value === '') {
@@ -1049,13 +1049,13 @@ export default function CreateAssignmentPage() {
                                   //     field.onChange(isNaN(numValue) ? null : numValue)
                                   //   }
                                   // }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                    </div>
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
                         <Info className="h-5 w-5 text-gray-500" />
                         Informations complémentaires
@@ -1100,125 +1100,125 @@ export default function CreateAssignmentPage() {
                           )} />
                         </div>
                       </div>
-                    </div>
+                  </div>
 
                     {/* Assureur et Réparateur + Date de réception */}
-                    <div className="space-y-4">
+                  <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <Building className="h-5 w-5 text-green-500" />
-                        Assureur et Réparateur
-                      </h3>
-                      <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="insurer_id"
-                          render={({ field }) => (
-                            <FormItem>
+                          Assureur et Réparateur
+                        </h3>
+                    <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="insurer_id"
+                            render={({ field }) => (
+                              <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Assureur</FormLabel>
                                 <Button variant="outline" size="icon" onClick={() => setShowCreateInsurerModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
-                              <div className="flex gap-2">
-                                <Select 
-                                  onValueChange={(value) => {
-                                    field.onChange(value)
-                                    handleInsurerSelection(value)
-                                  }} 
-                                  value={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="flex-1">
-                                      <SelectValue placeholder="Sélectionner un assureur" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <ScrollArea className="h-[200px]">
-                                      {entities.filter(e => e.entity_type.code === 'insurer').map((entity) => (
-                                        <SelectItem key={entity.id} value={entity.id.toString()}>
-                                          {entity.name}
-                                        </SelectItem>
-                                      ))}
-                                    </ScrollArea>
-                                  </SelectContent>
-                                </Select>
-                                {selectedInsurer && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => openInsurerDetails(selectedInsurer)}
-                                    className="shrink-0"
+                                <div className="flex gap-2">
+                                  <Select 
+                                    onValueChange={(value) => {
+                                      field.onChange(value)
+                                      handleInsurerSelection(value)
+                                    }} 
+                                    value={field.value}
                                   >
-                                    <Info className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                    <FormControl>
+                                      <SelectTrigger className="flex-1">
+                                        <SelectValue placeholder="Sélectionner un assureur" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <ScrollArea className="h-[200px]">
+                                        {entities.filter(e => e.entity_type.code === 'insurer').map((entity) => (
+                                          <SelectItem key={entity.id} value={entity.id.toString()}>
+                                            {entity.name}
+                                          </SelectItem>
+                                        ))}
+                                      </ScrollArea>
+                                    </SelectContent>
+                                  </Select>
+                                  {selectedInsurer && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => openInsurerDetails(selectedInsurer)}
+                                      className="shrink-0"
+                                    >
+                                      <Info className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                      </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                        <FormField
-                          control={form.control}
-                          name="repairer_id"
-                          render={({ field }) => (
-                            <FormItem>
+                          <FormField
+                            control={form.control}
+                            name="repairer_id"
+                            render={({ field }) => (
+                              <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Réparateur</FormLabel>
                                 <Button variant="outline" size="icon" onClick={() => setShowCreateRepairerModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
-                              <div className="flex gap-2">
-                                <Select 
-                                  onValueChange={(value) => {
-                                    field.onChange(value)
-                                    handleRepairerSelection(value)
-                                  }} 
-                                  value={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="flex-1">
-                                      <SelectValue placeholder="Sélectionner un réparateur" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <ScrollArea className="h-[200px]">
-                                      {entities.filter(e => e.entity_type.code === 'repairer').map((entity) => (
-                                        <SelectItem key={entity.id} value={entity.id.toString()}>
-                                          {entity.name}
-                                        </SelectItem>
-                                      ))}
-                                    </ScrollArea>
-                                  </SelectContent>
-                                </Select>
-                                {selectedRepairer && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => openRepairerDetails(selectedRepairer)}
-                                    className="shrink-0"
+                                <div className="flex gap-2">
+                                  <Select 
+                                    onValueChange={(value) => {
+                                      field.onChange(value)
+                                      handleRepairerSelection(value)
+                                    }} 
+                                    value={field.value}
                                   >
-                                    <Info className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                    <FormControl>
+                                      <SelectTrigger className="flex-1">
+                                        <SelectValue placeholder="Sélectionner un réparateur" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <ScrollArea className="h-[200px]">
+                                        {entities.filter(e => e.entity_type.code === 'repairer').map((entity) => (
+                                          <SelectItem key={entity.id} value={entity.id.toString()}>
+                                            {entity.name}
+                                          </SelectItem>
+                                        ))}
+                                      </ScrollArea>
+                                    </SelectContent>
+                                  </Select>
+                                  {selectedRepairer && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => openRepairerDetails(selectedRepairer)}
+                                      className="shrink-0"
+                                    >
+                                      <Info className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                      </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                       </div>
                       <FormField control={form.control} name="received_at" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date de réception</FormLabel>
-                          <FormControl>
+                              <FormItem>
+                                <FormLabel>Date de réception</FormLabel>
+                                <FormControl>
                             <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                       )} />
                     </div>
                   </div>
@@ -1240,7 +1240,7 @@ export default function CreateAssignmentPage() {
                   <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Types */}
-                      <div className="space-y-4">
+                <div className="space-y-4">
                         <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
                           <FileText className="h-5 w-5 text-purple-500" />
                           Types
@@ -1263,20 +1263,20 @@ export default function CreateAssignmentPage() {
                                     <FormControl>
                                       <SelectTrigger className="flex-1">
                                         <SelectValue placeholder="Sélectionner un type d'assignation" />
-                                      </SelectTrigger>
+                            </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
+                            <SelectContent>
                                       <ScrollArea className="h-[200px]">
                                         {assignmentTypes.map((type) => (
                                           <SelectItem key={type.id} value={type.id.toString()}>
                                             {type.label}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
+                                  </SelectItem>
+                                ))}
+                              </ScrollArea>
+                            </SelectContent>
+                          </Select>
                                   {selectedAssignmentType && (
-                                    <Button
+                        <Button
                                       type="button"
                                       variant="outline"
                                       size="icon"
@@ -1284,9 +1284,9 @@ export default function CreateAssignmentPage() {
                                       className="shrink-0"
                                     >
                                       <Info className="h-4 w-4" />
-                                    </Button>
+                        </Button>
                                   )}
-                                </div>
+                      </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1332,7 +1332,7 @@ export default function CreateAssignmentPage() {
                                       <Info className="h-4 w-4" />
                                     </Button>
                                   )}
-                                </div>
+                          </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1361,7 +1361,7 @@ export default function CreateAssignmentPage() {
                                 {/* <FormLabel>Documents transmis</FormLabel> */}
                                 <div className="space-y-2">
                                   <ScrollArea className="h-[200px] border rounded-md p-2">
-                                    {documents.map((document) => (
+                                        {documents.map((document) => (
                                       <div key={document.id} className="flex items-center space-x-2 py-2">
                                         <Checkbox
                                           id={`document-${document.id}`}
@@ -1379,11 +1379,11 @@ export default function CreateAssignmentPage() {
                                           }}
                                         />
                                         <Label htmlFor={`document-${document.id}`} className="text-sm cursor-pointer">
-                                          {document.label}
+                                            {document.label}
                                         </Label>
                                       </div>
-                                    ))}
-                                  </ScrollArea>
+                                        ))}
+                                      </ScrollArea>
                                   {selectedDocuments.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mt-2">
                                       {selectedDocuments.map((doc) => (
@@ -1393,7 +1393,7 @@ export default function CreateAssignmentPage() {
                                       ))}
                                     </div>
                                   )}
-                                </div>
+                          </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1409,63 +1409,63 @@ export default function CreateAssignmentPage() {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <FormField control={form.control} name="expertise_date" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date d'expertise</FormLabel>
-                            <FormControl>
+                              <FormItem>
+                                <FormLabel>Date d'expertise</FormLabel>
+                                <FormControl>
                               <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                         )} />
                         <FormField control={form.control} name="expertise_place" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Lieu d'expertise</FormLabel>
-                            <FormControl>
+                              <FormItem>
+                                <FormLabel>Lieu d'expertise</FormLabel>
+                                <FormControl>
                               <Input placeholder="Lieu d'expertise" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                         )} />
                         <FormField control={form.control} name="administrator" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Administrateur</FormLabel>
-                            <FormControl>
+                              <FormItem>
+                                <FormLabel>Administrateur</FormLabel>
+                                <FormControl>
                               <Input placeholder="Administrateur" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                         )} />
-                      </div>
+                          </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                         <FormField control={form.control} name="circumstance" render={({ field }) => (
-                          <FormItem>
+                            <FormItem>
                             <FormLabel>Circonstance</FormLabel>
-                            <FormControl>
+                              <FormControl>
                               <Input placeholder="Décrivez les circonstances..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                         )} />
                         <FormField control={form.control} name="damage_declared" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Dégâts déclarés</FormLabel>
-                            <FormControl>
+                            <FormItem>
+                              <FormLabel>Dégâts déclarés</FormLabel>
+                              <FormControl>
                               <Input placeholder="Décrivez les dégâts déclarés..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                         )} />
                         <FormField control={form.control} name="observation" render={({ field }) => (
-                          <FormItem>
+                            <FormItem>
                             <FormLabel>Observation générale</FormLabel>
-                            <FormControl>
+                              <FormControl>
                               <Input placeholder="Observations générales..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                         )} />
-                      </div>
-                    </div>
+                          </div>
+                </div>
                   </CardContent>
                 </Card>
               )}
@@ -1483,53 +1483,53 @@ export default function CreateAssignmentPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="space-y-4">
+                <div className="space-y-4">
                       {form.watch('experts').map((expert, idx) => (
                         <div key={idx} className="flex gap-4 items-end border-b pb-4 mb-4">
-                          <FormField
-                            control={form.control}
+                            <FormField
+                              control={form.control}
                             name={`experts.${idx}.expert_id` as const}
-                            render={({ field }) => (
+                              render={({ field }) => (
                               <FormItem className="flex-1">
-                                <FormLabel>Expert</FormLabel>
+                                  <FormLabel>Expert</FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
                                   value={field.value}
                                 >
-                                  <FormControl>
+                                    <FormControl>
                                     <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Sélectionner un expert" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <ScrollArea className="h-[200px]">
+                                        <SelectValue placeholder="Sélectionner un expert" />
+                            </SelectTrigger>
+                                    </FormControl>
+                            <SelectContent>
+                                      <ScrollArea className="h-[200px]">
                                       {users
                                         .filter(user => user.role?.name === 'expert')
                                         .map((user) => (
-                                        <SelectItem key={user.id} value={user.id.toString()}>
-                                          {user.name}
-                                        </SelectItem>
-                                      ))}
-                                    </ScrollArea>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
+                                          <SelectItem key={user.id} value={user.id.toString()}>
+                                            {user.name}
+                                </SelectItem>
+                              ))}
+                                      </ScrollArea>
+                            </SelectContent>
+                          </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
                             name={`experts.${idx}.date` as const}
-                            render={({ field }) => (
+                              render={({ field }) => (
                               <FormItem className="flex-1">
                                 <FormLabel>Date</FormLabel>
-                                <FormControl>
-                                  <Input type="date" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                           <FormField
                             control={form.control}
                             name={`experts.${idx}.observation` as const}
@@ -1557,13 +1557,13 @@ export default function CreateAssignmentPage() {
                       <Button type="button" variant="outline" size="sm" onClick={addExpert}>
                         <Plus className="mr-2 h-4 w-4" /> Ajouter un expert
                       </Button>
-                    </div>
+                </div>
                   </CardContent>
                 </Card>
-              )}
+            )}
 
               {/* Section 4: Récapitulatif */}
-              {step === 4 && (
+            {step === 4 && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl">
@@ -1575,8 +1575,8 @@ export default function CreateAssignmentPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
-                    {/* Informations générales */}
-                    <div className="space-y-4">
+                  {/* Informations générales */}
+                  <div className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <FileText className="h-4 w-4 text-blue-600" />
                         <h3 className="text-lg font-semibold text-gray-900">Informations générales</h3>
@@ -1707,19 +1707,19 @@ export default function CreateAssignmentPage() {
                           </div>
                           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                             {selectedDocuments.length > 0 ? (
-                              <div className="space-y-2">
+                      <div className="space-y-2">
                                 {selectedDocuments.map((doc) => (
                                   <div key={doc.id} className="flex items-center justify-between p-2 bg-white rounded border">
                                     <div>
                                       <div className="font-medium text-amber-900">{doc.label}</div>
                                       <div className="text-xs text-amber-700">{doc.code}</div>
-                                    </div>
+                        </div>
                                     <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
                                       ✓ Sélectionné
                                     </Badge>
-                                  </div>
+                        </div>
                                 ))}
-                              </div>
+                        </div>
                             ) : (
                               <div className="text-amber-700 text-center py-4">
                                 Aucun document sélectionné
@@ -1744,7 +1744,7 @@ export default function CreateAssignmentPage() {
                           const expertUser = users.find(u => u.id.toString() === expert.expert_id)
                           return (
                             <div key={idx} className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                              <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                   <div className="h-8 w-8 bg-pink-100 rounded-full flex items-center justify-center">
                                     <User className="h-4 w-4 text-pink-600" />
@@ -1793,15 +1793,15 @@ export default function CreateAssignmentPage() {
                               <span className="font-mono text-gray-900">
                                 {form.watch('policy_number') || 'Non renseigné'}
                               </span>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
+                        </div>
+                      </div>
+                      <div className="space-y-2">
                             <span className="font-medium text-gray-700">Numéro de sinistre</span>
                             <div className="p-3 bg-gray-50 rounded-lg border">
                               <span className="font-mono text-gray-900">
                                 {form.watch('claim_number') || 'Non renseigné'}
                               </span>
-                            </div>
+                        </div>
                           </div>
                           <div className="space-y-2">
                             <span className="font-medium text-gray-700">Date de réception</span>
@@ -1809,8 +1809,8 @@ export default function CreateAssignmentPage() {
                               <span className="text-gray-900">
                                 {form.watch('received_at') ? new Date(form.watch('received_at')!).toLocaleDateString('fr-FR') : 'Non définie'}
                               </span>
-                            </div>
-                          </div>
+                        </div>
+                        </div>
                         </div>
 
                         <div className="space-y-3">
@@ -1820,26 +1820,26 @@ export default function CreateAssignmentPage() {
                               <span className="text-gray-900">
                                 {form.watch('expertise_date') ? new Date(form.watch('expertise_date')!).toLocaleDateString('fr-FR') : 'Non définie'}
                               </span>
-                            </div>
-                          </div>
+                        </div>
+                        </div>
                           <div className="space-y-2">
                             <span className="font-medium text-gray-700">Lieu d'expertise</span>
                             <div className="p-3 bg-gray-50 rounded-lg border">
                               <span className="text-gray-900">
                                 {form.watch('expertise_place') || 'Non renseigné'}
                               </span>
-                            </div>
+                      </div>
                           </div>
-                          <div className="space-y-2">
+                        <div className="space-y-2">
                             <span className="font-medium text-gray-700">Administrateur</span>
                             <div className="p-3 bg-gray-50 rounded-lg border">
                               <span className="text-gray-900">
                                 {form.watch('administrator') || 'Non renseigné'}
                               </span>
                             </div>
-                          </div>
-                        </div>
-                      </div>
+                    </div>
+                  </div>
+                </div>
 
                       {/* Observations et circonstances */}
                       {(form.watch('circumstance') || form.watch('damage_declared') || form.watch('observation')) && (
@@ -1853,8 +1853,8 @@ export default function CreateAssignmentPage() {
                               <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                                 <div className="text-sm font-medium text-blue-900 mb-1">Circonstances:</div>
                                 <div className="text-blue-800">{form.watch('circumstance')}</div>
-                              </div>
-                            )}
+              </div>
+            )}
                             {form.watch('damage_declared') && (
                               <div className="p-3 bg-red-50 rounded-lg border border-red-200">
                                 <div className="text-sm font-medium text-red-900 mb-1">Dégâts déclarés:</div>
@@ -1895,10 +1895,10 @@ export default function CreateAssignmentPage() {
                           <div className="font-bold text-blue-900">{selectedDocuments.length > 0 ? '✓' : '✗'}</div>
                           <div className="text-blue-700">Documents</div>
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
               )}
             </div>
             

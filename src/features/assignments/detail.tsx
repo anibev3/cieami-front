@@ -301,7 +301,7 @@ interface AssignmentDetail {
   repairer_signature: string | null
   customer_signature: string | null
   qr_codes: string | null
-  emails: string | null
+  emails: Array<{email: string}> | null
 }
 
 export default function AssignmentDetailPage() {
@@ -1547,7 +1547,7 @@ export default function AssignmentDetailPage() {
                   {assignment.emails && (
                     <div className="flex flex-col items-center">
                       <span className="text-xs text-muted-foreground mb-1">Emails</span>
-                      <span className="text-xs text-blue-900 font-semibold">{assignment.emails}</span>
+                      <span className="text-xs text-blue-900 font-semibold">{assignment.emails.map(email => email.email).join(', ')}</span>
                     </div>
                   )}
                   {/* Décompte dynamique (alerte si proche de l'expiration) */}
