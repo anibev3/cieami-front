@@ -59,6 +59,7 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: IconLayoutDashboard,
         },
+
       ],
     },
     {
@@ -67,6 +68,16 @@ export const sidebarData: SidebarData = {
         {
           title: 'Dossiers',
           url: '/assignments',
+          icon: IconFolder,
+        },
+        {
+          title: 'Dossiers edition expirés',
+          url: '/assignments/edition-expired',
+          icon: IconFolder,
+        },
+        {
+          title: 'Dossiers recouvrement expirés',
+          url: '/assignments/recovery-expired',
           icon: IconFolder,
         },
         {

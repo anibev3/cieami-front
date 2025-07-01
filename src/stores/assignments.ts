@@ -46,7 +46,7 @@ interface AssignmentsActions {
   fetchReceipts: (assignmentId: number) => Promise<Receipt[]>
   createReceipt: (assignmentId: number, receiptData: { receipt_type_id: number; amount: number }) => Promise<void>
   createMultipleReceipts: (assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]) => Promise<void>
-  updateReceipt: (receiptId: number, receiptData: { receipt_type_id: number; amount: number }) => Promise<void>
+  updateReceipt: (receiptId: number, receiptData: { assignment_id: number; receipt_type_id: number; amount: number }) => Promise<void>
   deleteReceipt: (receiptId: number) => Promise<void>
   
   // Actions utilitaires
@@ -108,6 +108,8 @@ const getAllStatusTabs = (): StatusTab[] => {
 export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   // État initial
   assignments: [],
+  assignmentsRecoveryExpired: [],
+  assignmentsEditionExpired: [],
   currentAssignment: null,
   loading: false,
   error: null,
@@ -137,6 +139,30 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
         },
         loading: false,
       })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
+      set({ loading: false, error: errorMessage })
+      toast.error(errorMessage)
+    }
+  },
+
+  fetchAssignmentsRecoveryExpired: async (date_from: string, date_to: string, assignment_type_id: number) => {
+
+    try {
+      const response = await assignmentService.getAssignmentsRecoveryExpired(date_from, date_to, assignment_type_id)
+      set({ assignmentsRecoveryExpired: response.data, loading: false })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
+      set({ loading: false, error: errorMessage })
+      toast.error(errorMessage)
+    }
+  },
+
+  fetchAssignmentsEditionExpired: async (date_from: string, date_to: string, assignment_type_id: number) => {
+
+    try {
+      const response = await assignmentService.getAssignmentsEditionExpired(date_from, date_to, assignment_type_id)
+      set({ assignmentsEditionExpired: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
       set({ loading: false, error: errorMessage })
@@ -236,29 +262,29 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
 
     // Filtrer par statut
     if (activeTab !== 'all') {
-      filtered = filtered.filter(assignment => assignment.status.code === activeTab)
+      filtered = filtered.filter(assignment => assignment.status?.code === activeTab)
     }
 
     // Filtrer par recherche
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(assignment =>
-        assignment.reference.toLowerCase().includes(query) ||
-        assignment.client.name.toLowerCase().includes(query) ||
-        assignment.client.email.toLowerCase().includes(query) ||
-        assignment.vehicle.license_plate.toLowerCase().includes(query) ||
-        assignment.insurer.name.toLowerCase().includes(query) ||
-        assignment.insurer.code.toLowerCase().includes(query) ||
-        assignment.repairer.name.toLowerCase().includes(query) ||
-        assignment.repairer.code.toLowerCase().includes(query) ||
-        assignment.assignment_type.label.toLowerCase().includes(query) ||
-        assignment.assignment_type.code.toLowerCase().includes(query) ||
-        assignment.expertise_type.label.toLowerCase().includes(query) ||
-        assignment.expertise_type.code.toLowerCase().includes(query) ||
-        assignment.policy_number.toLowerCase().includes(query) ||
-        assignment.claim_number.toLowerCase().includes(query) ||
-        assignment.status.label.toLowerCase().includes(query) ||
-        assignment.status.code.toLowerCase().includes(query)
+        (assignment.reference?.toLowerCase() || '').includes(query) ||
+        (assignment.client?.name?.toLowerCase() || '').includes(query) ||
+        (assignment.client?.email?.toLowerCase() || '').includes(query) ||
+        (assignment.vehicle?.license_plate?.toLowerCase() || '').includes(query) ||
+        (assignment.insurer?.name?.toLowerCase() || '').includes(query) ||
+        (assignment.insurer?.code?.toLowerCase() || '').includes(query) ||
+        (assignment.repairer?.name?.toLowerCase() || '').includes(query) ||
+        (assignment.repairer?.code?.toLowerCase() || '').includes(query) ||
+        (assignment.assignment_type?.label?.toLowerCase() || '').includes(query) ||
+        (assignment.assignment_type?.code?.toLowerCase() || '').includes(query) ||
+        (assignment.expertise_type?.label?.toLowerCase() || '').includes(query) ||
+        (assignment.expertise_type?.code?.toLowerCase() || '').includes(query) ||
+        (assignment.policy_number?.toLowerCase() || '').includes(query) ||
+        (assignment.claim_number?.toLowerCase() || '').includes(query) ||
+        (assignment.status?.label?.toLowerCase() || '').includes(query) ||
+        (assignment.status?.code?.toLowerCase() || '').includes(query)
       )
     }
 
@@ -272,7 +298,7 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     statusGroups.forEach((group) => {
       if (group.items) {
         group.items.forEach((item) => {
-          counts[item.value] = assignments.filter(assignment => assignment.status.code === item.value).length
+          counts[item.value] = assignments.filter(assignment => assignment.status?.code === item.value).length
         })
       }
     })

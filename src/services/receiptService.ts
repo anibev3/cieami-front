@@ -47,29 +47,23 @@ class ReceiptService {
   /**
    * Créer une nouvelle quittance
    */
-  async createReceipt(assignmentId: number, receiptData: { receipt_type_id: number; amount: number }): Promise<Receipt> {
-    const response = await axiosInstance.put<ReceiptApiResponse>(`${API_CONFIG.ENDPOINTS.RECEIPTS}/sit`, {
-      assignment_id: assignmentId,
-      receipt_type_id: receiptData.receipt_type_id,
-      amount: receiptData.amount
+  async createReceipt(assignmentId: number, receiptData: { receipt_type_id: number; amount: number }): Promise<void> {
+    await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
+      assignment_id: assignmentId.toString(),
+      receipts: [{
+        receipt_type_id: receiptData.receipt_type_id.toString(),
+        amount: receiptData.amount
+      }]
     })
     
-    return {
-      id: response.data.id,
-      assignment_id: response.data.assignment_id,
-      amount: response.data.amount,
-      type: 'receipt',
-      reference: `REC-${response.data.id}`,
-      description: `Quittance ${response.data.id}`,
-      created_at: response.data.created_at,
-      updated_at: response.data.updated_at
-    }
+    // L'API retourne data: null, donc on ne retourne rien
+    // Les données seront rafraîchies via onRefresh dans le composant
   }
 
   /**
    * Mettre à jour une quittance
    */
-  async updateReceipt(receiptId: number, receiptData: { receipt_type_id: number; amount: number }): Promise<Receipt> {
+  async updateReceipt(receiptId: number, receiptData: { assignment_id: number, receipt_type_id: number; amount: number }): Promise<Receipt> {
     const response = await axiosInstance.put<ReceiptApiResponse>(`${API_CONFIG.ENDPOINTS.RECEIPTS}/${receiptId}`, receiptData)
     
     return {
@@ -94,9 +88,14 @@ class ReceiptService {
   /**
    * Créer plusieurs quittances en une fois
    */
-  async createMultipleReceipts(assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]): Promise<Receipt[]> {
-    const promises = receipts.map(receipt => this.createReceipt(assignmentId, receipt))
-    return Promise.all(promises)
+  async createMultipleReceipts(assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]): Promise<void> {
+    await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
+      assignment_id: assignmentId.toString(),
+      receipts: receipts.map(r => ({
+        receipt_type_id: r.receipt_type_id.toString(),
+        amount: r.amount
+      }))
+    })
   }
 }
 

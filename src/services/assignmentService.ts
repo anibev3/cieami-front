@@ -22,6 +22,16 @@ class AssignmentService {
     return response.data
   }
 
+  async getAssignmentsEditionExpired(date_from: string, date_to: string, assignment_type_id: number): Promise<AssignmentApiResponse> {
+    const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITION_EXPIRED}?date_from=${date_from}&date_to=${date_to}&assignment_type_id=${assignment_type_id}`)
+    return response.data
+  }
+
+  async getAssignmentsRecoveryExpired(date_from: string, date_to: string, assignment_type_id: number): Promise<AssignmentApiResponse> {
+    const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_RECOVERY_EXPIRED}?date_from=${date_from}&date_to=${date_to}&assignment_type_id=${assignment_type_id}`)
+    return response.data
+  }
+
   /**
    * Récupérer une assignation par son ID
    */

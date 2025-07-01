@@ -32,6 +32,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { ShockWorkforceTableV2 } from '@/features/assignments/components/shock-workforce-table-v2'
+import { ReceiptManagement } from '@/features/assignments/components/receipt-management'
 import { assignmentService } from '@/services/assignmentService'
 
 interface Assignment {
@@ -694,40 +695,11 @@ export default function EditReportPage() {
 
                 {/* Quittances */}
                 {activeTab === 'receipts' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-bold text-gray-900">Quittances</h2>
-                    </div>
-
-                    <Card className="shadow-none">
-                      <CardContent className="p-6">
-                        {assignment.receipts && assignment.receipts.length > 0 ? (
-                          <div className="space-y-4">
-                            {assignment.receipts.map((receipt) => (
-                              <div key={receipt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <div>
-                                  <h4 className="font-semibold">{receipt.receipt_type.label}</h4>
-                                  <p className="text-xs text-gray-600">{receipt.receipt_type.code}</p>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-base font-bold text-green-600">
-                                    {formatCurrency(receipt.amount)}
-                                  </div>
-                                  <div className="text-xs text-gray-600">
-                                    HT: {formatCurrency(receipt.amount_excluding_tax)}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-gray-500">
-                            Aucune quittance enregistrée
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <ReceiptManagement
+                    assignmentId={assignment.id}
+                    receipts={assignment.receipts || []}
+                    onRefresh={refreshAssignment}
+                  />
                 )}
               </div>
             </ScrollArea>

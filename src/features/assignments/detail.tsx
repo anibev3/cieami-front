@@ -107,6 +107,81 @@ interface AssignmentDetail {
   expertise_report: string | null
   created_at: string
   updated_at: string
+  // Nouvelles propriétés de l'API
+  insurer_id: number
+  repairer_id: number
+  emails: Array<{email: string}> | null
+  qr_codes: string | null
+  document_transmitted: Array<{
+    id: number
+    code: string
+    label: string
+  }>
+  technical_conclusion: {
+    id: number
+    code: string
+    label: string
+    description: string
+  }
+  general_state: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    created_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      signature: string | null
+      created_at: string
+      updated_at: string
+    }
+    updated_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      signature: string | null
+      created_at: string
+      updated_at: string
+    }
+    deleted_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      signature: string | null
+      created_at: string
+      updated_at: string
+    } | null
+    created_at: string
+    updated_at: string
+  }
   status: {
     id: number
     code: string
@@ -120,6 +195,9 @@ interface AssignmentDetail {
     phone_1: string | null
     phone_2: string | null
     address: string | null
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
   }
   vehicle: {
     id: number
@@ -137,18 +215,27 @@ interface AssignmentDetail {
       code: string
       label: string
       description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
     }
     vehicle_model?: {
       id: number
       code: string
       label: string
       description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
     }
     color?: {
       id: number
       code: string
       label: string
       description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
     }
     bodywork?: {
       id: number
@@ -159,10 +246,17 @@ interface AssignmentDetail {
         id: number
         code: string
         label: string
+        description: string
+        deleted_at: string | null
+        created_at: string
+        updated_at: string
       }
+      created_at: string
+      updated_at: string
     }
     first_entry_into_circulation_date?: string
     technical_visit_date?: string
+    deleted_at: string | null
     created_at: string
     updated_at: string
   }
@@ -173,6 +267,8 @@ interface AssignmentDetail {
     email: string
     telephone: string | null
     address: string | null
+    created_at: string
+    updated_at: string
   }
   repairer: {
     id: number
@@ -181,43 +277,76 @@ interface AssignmentDetail {
     email: string
     telephone: string | null
     address: string | null
+    created_at: string
+    updated_at: string
   }
   assignment_type: {
     id: number
     code: string
     label: string
     description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    created_at: string
+    updated_at: string
   }
   expertise_type: {
     id: number
     code: string
     label: string
     description: string
-  }
-  document_transmitted: {
-    id: number
-    code: string
-    label: string
-    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    created_at: string
+    updated_at: string
   }
   experts: Array<{
     id: number
     date: string | null
     observation: string | null
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
   }>
   shocks: Array<{
     id: number
-    workforce_amount_excluding_tax: string
-    workforce_amount_tax: string
-    workforce_amount: string
-    amount_excluding_tax: string
-    amount_tax: string
-    amount: string
+    obsolescence_amount_excluding_tax: string | null
+    obsolescence_amount_tax: string | null
+    obsolescence_amount: string | null
+    recovery_amount_excluding_tax: string | null
+    recovery_amount_tax: string | null
+    recovery_amount: string | null
+    new_amount_excluding_tax: string | null
+    new_amount_tax: string | null
+    new_amount: string | null
+    workforce_amount_excluding_tax: string | null
+    workforce_amount_tax: string | null
+    workforce_amount: string | null
+    amount_excluding_tax: string | null
+    amount_tax: string | null
+    amount: string | null
     shock_point: {
       id: number
       code: string
       label: string
       description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
     }
     shock_works: Array<{
       id: number
@@ -238,14 +367,20 @@ interface AssignmentDetail {
       new_amount_excluding_tax: string
       new_amount_tax: string
       new_amount: string
-      amount_excluding_tax: string
-      amount_tax: string
-      amount: string
+      amount_excluding_tax: string | null
+      amount_tax: string | null
+      amount: string | null
       supply: {
         id: number
         label: string
         description: string
+        deleted_at: string | null
+        created_at: string
+        updated_at: string
       }
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
     }>
     workforces: Array<{
       id: number
@@ -255,14 +390,22 @@ interface AssignmentDetail {
       amount_excluding_tax: string
       amount_tax: string
       amount: string
-      workforce_type_label: string
       workforce_type: {
         id: number
         code: string
         label: string
         description: string
+        deleted_at: string | null
+        created_at: string
+        updated_at: string
       }
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
     }>
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
   }>
   other_costs: Array<{
     id: number
@@ -275,7 +418,13 @@ interface AssignmentDetail {
       code: string
       label: string
       description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
     }
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
   }>
   receipts: Array<{
     id: number
@@ -287,22 +436,165 @@ interface AssignmentDetail {
       code: string
       label: string
       description: string
+      created_at: string
+      updated_at: string
     }
+    created_at: string
+    updated_at: string
   }>
-  edition_status: string | null
-  edition_time_expire_at: string | null
-  edition_per_cent: number | null
-  recovery_status: string | null
-  recovery_time_expire_at: string | null
-  recovery_per_cent: number | null
-  validated_at: string | null
+  // Informations sur les utilisateurs
+  created_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  }
+  updated_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  }
+  deleted_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  } | null
+  realized_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  }
+  edited_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  }
+  validated_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  }
+  closed_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  } | null
+  cancelled_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  } | null
+  work_sheet_established_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  } | null
+  // Dates importantes
+  deleted_at: string | null
   closed_at: string | null
   cancelled_at: string | null
+  edited_at: string | null
+  validated_at: string | null
+  realized_at: string | null
+  work_sheet_established_at: string | null
+  edition_time_expire_at: string | null
+  edition_status: string | null
+  edition_per_cent: number | null
+  recovery_time_expire_at: string | null
+  recovery_status: string | null
+  recovery_per_cent: number | null
   expert_signature: string | null
   repairer_signature: string | null
   customer_signature: string | null
-  qr_codes: string | null
-  emails: Array<{email: string}> | null
   work_sheet: string | null
 }
 
@@ -406,6 +698,18 @@ export default function AssignmentDetailPage() {
       label: 'Experts',
       icon: FileCheck,
       description: 'Experts assignés'
+    },
+    {
+      id: 'documents',
+      label: 'Documents',
+      icon: FileText,
+      description: 'Documents transmis et conclusions'
+    },
+    {
+      id: 'tracking',
+      label: 'Suivi',
+      icon: Clock,
+      description: 'Historique et suivi du dossier'
     }
   ]
 
@@ -443,6 +747,14 @@ export default function AssignmentDetailPage() {
                     <p className="text-xs font-medium text-muted-foreground">Lieu d'expertise</p>
                     <p className="text-sm font-semibold">{assignment.expertise_place || 'Non renseigné'}</p>
                   </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">ID Assureur</p>
+                    <p className="text-sm font-semibold">{assignment.insurer_id}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">ID Réparateur</p>
+                    <p className="text-sm font-semibold">{assignment.repairer_id}</p>
+                  </div>
                 </div>
                 {assignment.circumstance && (
                   <div>
@@ -454,6 +766,27 @@ export default function AssignmentDetailPage() {
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">Dégâts déclarés</p>
                     <p className="text-xs">{assignment.damage_declared}</p>
+                  </div>
+                )}
+                {/* Informations sur les emails et QR codes */}
+                {assignment.emails && assignment.emails.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Emails associés</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {assignment.emails.map((email, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {email.email}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {assignment.qr_codes && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">QR Codes</p>
+                    <a href={assignment.qr_codes} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                      Voir les QR codes
+                    </a>
                   </div>
                 )}
               </CardContent>
@@ -518,27 +851,35 @@ export default function AssignmentDetailPage() {
                   Actions
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+                <CardContent className="space-y-2">
+                {assignment.work_sheet && (
+                  <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.work_sheet!, title: 'Fiche des travaux' })}>
+                    <FileDown className="h-3 w-3 mr-2" />
+                    Voir la fiche des travaux
+                  </Button>
+                )}
                 {assignment.expertise_sheet && (
                   <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.expertise_sheet!, title: 'Fiche d\'expertise' })}>
                     <FileDown className="h-3 w-3 mr-2" />
-                    Voir la fiche
+                    Voir la fiche d'expertise
                   </Button>
-                )}
-                {assignment.work_sheet && (
-                  <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.work_sheet!, title: 'Feuille de travail' })}>
-                    <FileDown className="h-3 w-3 mr-2" />
-                    Voir la feuille de travail
-                  </Button>
-                )}
-                <Button variant="outline" className="w-full justify-start text-xs h-8">
+                  )}
+                  {/* expertise_report */}
+                  {assignment.expertise_report && (
+                    <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.expertise_report!, title: 'Rapport d\'expertise' })}>
+                      <FileDown className="h-3 w-3 mr-2" />
+                      Voir le rapport d'expertise
+                    </Button>
+                  )}
+
+                {/* <Button variant="outline" className="w-full justify-start text-xs h-8">
                   <Eye className="h-3 w-3 mr-2" />
                   Voir les photos
                 </Button>
                 <Button variant="outline" className="w-full justify-start text-xs h-8">
                   <Receipt className="h-3 w-3 mr-2" />
                   Gérer les quittances
-                </Button>
+                </Button> */}
               </CardContent>
             </Card>
           </div>
@@ -605,6 +946,21 @@ export default function AssignmentDetailPage() {
                             </div>
                           </div>
                         )}
+                      </div>
+                    </div>
+
+                    {/* Informations système */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations système</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Créé le</p>
+                          <p className="font-semibold">{formatDate(assignment.client.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Modifié le</p>
+                          <p className="font-semibold">{formatDate(assignment.client.updated_at)}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -792,6 +1148,21 @@ export default function AssignmentDetailPage() {
                             </div>
                           </div>
                         )}
+                      </div>
+                    </div>
+
+                    {/* Informations système */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations système</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Créé le</p>
+                          <p className="font-semibold">{formatDate(assignment.repairer.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Modifié le</p>
+                          <p className="font-semibold">{formatDate(assignment.repairer.updated_at)}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1299,6 +1670,382 @@ export default function AssignmentDetailPage() {
           </div>
         )
 
+      case 'documents':
+        return (
+          <div className="space-y-4">
+            {/* Documents transmis */}
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <FileText className="h-4 w-4" />
+                  Documents transmis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {assignment.document_transmitted && assignment.document_transmitted.length > 0 ? (
+                  <div className="space-y-2">
+                    {assignment.document_transmitted.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium text-xs">{doc.label}</p>
+                            <p className="text-xs text-muted-foreground">Code: {doc.code}</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Transmis</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-6 text-sm">Aucun document transmis</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Conclusion technique */}
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4" />
+                  Conclusion technique
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-sm text-primary">Conclusion</h4>
+                    <Badge variant="outline" className="text-xs">{assignment.technical_conclusion.code}</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Libellé</p>
+                      <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.technical_conclusion.label}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Description</p>
+                      <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.technical_conclusion.description}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* État général */}
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Info className="h-4 w-4" />
+                  État général
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-sm text-primary">État</h4>
+                    <Badge variant="outline" className="text-xs">{assignment.general_state.code}</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Libellé</p>
+                      <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.general_state.label}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Description</p>
+                      <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.general_state.description}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Statut</p>
+                      <Badge variant={assignment.general_state.status.code === 'active' ? 'default' : 'secondary'} className="text-xs">
+                        {assignment.general_state.status.label}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )
+
+      case 'tracking':
+        return (
+          <div className="space-y-4">
+            {/* Informations de création et modification */}
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4" />
+                  Création et modification
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Créé par */}
+                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm text-primary">Créé par</h4>
+                      <Badge variant="outline" className="text-xs">{assignment.created_by.username}</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                        <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Email</p>
+                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.telephone}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Date de création</p>
+                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.created_at)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Modifié par */}
+                  <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm text-primary">Modifié par</h4>
+                      <Badge variant="outline" className="text-xs">{assignment.updated_by.username}</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                        <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Email</p>
+                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.telephone}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">Date de modification</p>
+                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.updated_at)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Autres intervenants */}
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4" />
+                  Autres intervenants
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Réalisé par */}
+                  {assignment.realized_by && (
+                    <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Réalisé par</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.realized_by.username}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.realized_by.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Email</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.realized_by.email}</p>
+                        </div>
+                        {assignment.realized_at && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Date de réalisation</p>
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.realized_at)}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Édité par */}
+                  {assignment.edited_by && (
+                    <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Édité par</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.edited_by.username}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.edited_by.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Email</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.edited_by.email}</p>
+                        </div>
+                        {assignment.edited_at && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Date d'édition</p>
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.edited_at)}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Validé par */}
+                  {assignment.validated_by && (
+                    <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Validé par</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.validated_by.username}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.validated_by.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Email</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.validated_by.email}</p>
+                        </div>
+                        {assignment.validated_at && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Date de validation</p>
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.validated_at)}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Informations complémentaires */}
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Info className="h-4 w-4" />
+                  Informations complémentaires
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Observations et remarques */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Observations et remarques</h4>
+                    <div className="space-y-2">
+                      {assignment.observation && (
+                        <div className="p-2 bg-muted/30 rounded-lg">
+                          <p className="text-xs font-medium text-muted-foreground">Observation générale</p>
+                          <p className="text-xs">{assignment.observation}</p>
+                        </div>
+                      )}
+                      {assignment.point_noted && (
+                        <div className="p-2 bg-muted/30 rounded-lg">
+                          <p className="text-xs font-medium text-muted-foreground">Points notés</p>
+                          <p className="text-xs">{assignment.point_noted}</p>
+                        </div>
+                      )}
+                      {assignment.expert_remark && (
+                        <div className="p-2 bg-muted/30 rounded-lg">
+                          <p className="text-xs font-medium text-muted-foreground">Remarque expert</p>
+                          <p className="text-xs">{assignment.expert_remark}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Valeurs et durées */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Valeurs et durées</h4>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      {assignment.assured_value && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Valeur assurée</p>
+                          <p className="font-semibold">{formatCurrency(assignment.assured_value)}</p>
+                        </div>
+                      )}
+                      {assignment.salvage_value && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Valeur de récupération</p>
+                          <p className="font-semibold">{formatCurrency(assignment.salvage_value)}</p>
+                        </div>
+                      )}
+                      {assignment.new_value && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Valeur neuve</p>
+                          <p className="font-semibold">{formatCurrency(assignment.new_value)}</p>
+                        </div>
+                      )}
+                      {assignment.market_value && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Valeur marchande</p>
+                          <p className="font-semibold">{formatCurrency(assignment.market_value)}</p>
+                        </div>
+                      )}
+                      {assignment.depreciation_rate && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Taux de dépréciation</p>
+                          <p className="font-semibold">{assignment.depreciation_rate}%</p>
+                        </div>
+                      )}
+                      {assignment.work_duration && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Durée des travaux</p>
+                          <p className="font-semibold">{assignment.work_duration}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Dates importantes */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Dates importantes</h4>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      {assignment.seen_before_work_date && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Vu avant travaux</p>
+                          <p className="font-semibold">{formatDate(assignment.seen_before_work_date)}</p>
+                        </div>
+                      )}
+                      {assignment.seen_during_work_date && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Vu pendant travaux</p>
+                          <p className="font-semibold">{formatDate(assignment.seen_during_work_date)}</p>
+                        </div>
+                      )}
+                      {assignment.seen_after_work_date && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Vu après travaux</p>
+                          <p className="font-semibold">{formatDate(assignment.seen_after_work_date)}</p>
+                        </div>
+                      )}
+                      {assignment.contact_date && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Date de contact</p>
+                          <p className="font-semibold">{formatDate(assignment.contact_date)}</p>
+                        </div>
+                      )}
+                      {assignment.printed_at && (
+                        <div>
+                          <p className="font-medium text-muted-foreground">Imprimé le</p>
+                          <p className="font-semibold">{formatDate(assignment.printed_at)}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )
+
       default:
         return null
     }
@@ -1509,7 +2256,7 @@ export default function AssignmentDetailPage() {
                       {/* <Badge variant="success" className="mb-1 bg-green-100 text-green-800 border-green-300">
                         Validé
                       </Badge> */}
-                      <span className="text-xs text-green-700 font-medium">
+                      <span className="text-lg text-green-700 font-medium">
                         {formatDate(assignment.validated_at)}
                       </span>
                     </div>
@@ -1578,7 +2325,7 @@ export default function AssignmentDetailPage() {
                     )}
                     <div className='mt-2'></div>
                     {assignment.edition_time_expire_at && assignment.edition_status !== 'done' && (
-                      <CountdownAlert label="Recouvrement" expireAt={assignment.recovery_time_expire_at} />
+                      <CountdownAlert label="Recouvrement" expireAt={assignment.recovery_time_expire_at!} />
                     )}
                   </div>
                 </CardContent>

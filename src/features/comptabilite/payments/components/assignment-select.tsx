@@ -172,10 +172,10 @@ export function AssignmentSelect({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-0 w-[400px]" align="start">
-          <Command>
+        <PopoverContent className="p-0 w-[400px] max-h-[400px] overflow-hidden" align="start">
+          <Command className="max-h-[400px] overflow-hidden">
             <CommandInput placeholder="Rechercher un dossier..." />
-            <CommandList>
+            <CommandList className="h-[300px] overflow-y-auto" style={{ maxHeight: '300px', overflowY: 'auto' }}>
               {loading ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

@@ -173,10 +173,10 @@ export function ReceiptModal({
       return
     }
 
-    if (totalReceipts > assignmentAmount) {
-      toast.error('Le montant total des quittances ne peut pas dépasser le montant du dossier')
-      return
-    }
+    // if (totalReceipts > assignmentAmount) {
+    //   toast.error('Le montant total des quittances ne peut pas dépasser le montant du dossier')
+    //   return
+    // }
 
     setSaving(true)
     try {
@@ -196,6 +196,7 @@ export function ReceiptModal({
       for (const receipt of existingReceipts) {
         if (receipt.id) {
           await receiptService.updateReceipt(receipt.id, {
+            assignment_id: assignmentId,
             receipt_type_id: receipt.receipt_type_id,
             amount: receipt.amount
           })
@@ -262,12 +263,12 @@ export function ReceiptModal({
                       {assignmentAmount.toLocaleString('fr-FR')} F CFA
                     </p>
                   </div>
-                  <div>
+                  {/* <div>
                     <Label className="text-sm text-muted-foreground">Montant restant</Label>
                     <p className={`text-2xl font-bold ${remainingAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {remainingAmount.toLocaleString('fr-FR')} F CFA
                     </p>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>
@@ -339,7 +340,7 @@ export function ReceiptModal({
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-4 mt-3">
+                        {/* <div className="grid grid-cols-2 gap-4 mt-3">
                           <div>
                             <Label className="text-sm">Date</Label>
                             <Input
@@ -358,7 +359,7 @@ export function ReceiptModal({
                               className="mt-1"
                             />
                           </div>
-                        </div>
+                        </div> */}
                       </CardContent>
                     </Card>
                   ))}

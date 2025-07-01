@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +22,6 @@ import {
   DollarSign,
   User,
   Building,
-  CheckCircle,
   Loader2,
   X
 } from 'lucide-react'
@@ -30,9 +29,6 @@ import { useInvoiceStore } from '@/stores/invoiceStore'
 import { formatDate } from '@/utils/format-date'
 import { formatCurrency } from '@/utils/format-currency'
 import { useNavigate } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { CreateInvoiceData } from '@/types/comptabilite'
-import { AssignmentSelect } from '../payments/components/assignment-select'
 import { cn } from '@/lib/utils'
 
 export default function InvoicesPage() {
@@ -41,8 +37,7 @@ export default function InvoicesPage() {
     invoices, 
     loading, 
     fetchInvoices, 
-    deleteInvoice,
-    createInvoice
+    deleteInvoice
   } = useInvoiceStore()
   
   const [searchTerm, setSearchTerm] = useState('')
@@ -51,14 +46,7 @@ export default function InvoicesPage() {
     date_to: '',
     status: 'all'
   })
-  const [createModalOpen, setCreateModalOpen] = useState(false)
   const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [creating, setCreating] = useState(false)
-  const [newInvoice, setNewInvoice] = useState<CreateInvoiceData>({
-    assignment_id: '',
-    date: new Date().toISOString().split('T')[0]
-  })
-  const [calendarOpen, setCalendarOpen] = useState(false)
   const [dateFromOpen, setDateFromOpen] = useState(false)
   const [dateToOpen, setDateToOpen] = useState(false)
 
@@ -103,46 +91,10 @@ export default function InvoicesPage() {
   }
 
   const handleCreate = () => {
-    setCreateModalOpen(true)
+    navigate({ to: '/comptabilite/invoices/create' })
   }
 
-  const handleCreateSubmit = async () => {
-    if (!newInvoice.assignment_id) {
-      toast.error('Veuillez sélectionner un dossier')
-      return
-    }
 
-    if (!newInvoice.date) {
-      toast.error('Veuillez sélectionner une date')
-      return
-    }
-
-    setCreating(true)
-    try {
-      await createInvoice(newInvoice)
-      setCreateModalOpen(false)
-      setNewInvoice({
-        assignment_id: '',
-        date: new Date().toISOString().split('T')[0]
-      })
-      toast.success('Facture créée avec succès')
-      await fetchInvoices()
-    } catch (_error) {
-      // L'erreur est déjà gérée dans le store
-    } finally {
-      setCreating(false)
-    }
-  }
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setNewInvoice(prev => ({ 
-        ...prev, 
-        date: date.toISOString().split('T')[0] 
-      }))
-    }
-    setCalendarOpen(false)
-  }
 
   const handleFilterDateFrom = (date: Date | undefined) => {
     if (date) {
@@ -451,78 +403,7 @@ export default function InvoicesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de création de facture */}
-      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              Nouvelle facture
-            </DialogTitle>
-            <DialogDescription>
-              Créez une nouvelle facture pour un dossier
-            </DialogDescription>
-          </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="assignment">Dossier</Label>
-              <AssignmentSelect
-                value={newInvoice.assignment_id}
-                onValueChange={(value) => setNewInvoice(prev => ({ ...prev, assignment_id: value }))}
-                placeholder="Sélectionnez un dossier..."
-                showReceipts={true}
-                showDetails={true}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Date de facturation</Label>
-              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !newInvoice.date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {newInvoice.date ? formatDate(newInvoice.date) : "Sélectionnez une date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={newInvoice.date ? new Date(newInvoice.date) : undefined}
-                    onSelect={handleDateSelect}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleCreateSubmit} disabled={creating}>
-                {creating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Création...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Créer la facture
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
