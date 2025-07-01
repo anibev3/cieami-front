@@ -14,6 +14,8 @@ import { toast } from 'sonner'
 
 interface AssignmentsState {
   assignments: Assignment[]
+  assignmentsRecoveryExpired: Assignment[]
+  assignmentsEditionExpired: Assignment[]
   currentAssignment: Assignment | null
   loading: boolean
   error: string | null
@@ -35,6 +37,12 @@ interface AssignmentsActions {
   updateAssignment: (id: number, assignmentData: AssignmentUpdate) => Promise<void>
   deleteAssignment: (id: number) => Promise<void>
   changeAssignmentStatus: (id: number, statusId: number) => Promise<void>
+  
+  // Actions de pagination
+  setCurrentPage: (page: number) => void
+  goToNextPage: () => void
+  goToPreviousPage: () => void
+  goToPage: (page: number) => void
   
   // Actions de filtrage
   setSearchQuery: (query: string) => void
@@ -127,7 +135,14 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     set({ loading: true, error: null })
     
     try {
-      const response = await assignmentService.getAssignments(page, filters)
+      // Construire les filtres à partir de l'état actuel
+      const currentFilters: AssignmentFilters = {
+        ...filters,
+        search: get().searchQuery,
+        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+      }
+      
+      const response = await assignmentService.getAssignments(page, currentFilters)
       
       set({
         assignments: response.data,
@@ -247,48 +262,49 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     }
   },
 
+  // Actions de pagination
+  setCurrentPage: (page) => {
+    set({ pagination: { ...get().pagination, currentPage: page } })
+    get().fetchAssignments(page)
+  },
+
+  goToNextPage: () => {
+    const nextPage = get().pagination.currentPage + 1
+    if (nextPage <= get().pagination.totalPages) {
+      set({ pagination: { ...get().pagination, currentPage: nextPage } })
+      get().fetchAssignments(nextPage)
+    }
+  },
+
+  goToPreviousPage: () => {
+    const prevPage = get().pagination.currentPage - 1
+    if (prevPage >= 1) {
+      set({ pagination: { ...get().pagination, currentPage: prevPage } })
+      get().fetchAssignments(prevPage)
+    }
+  },
+
+  goToPage: (page) => {
+    if (page >= 1 && page <= get().pagination.totalPages) {
+      set({ pagination: { ...get().pagination, currentPage: page } })
+      get().fetchAssignments(page)
+    }
+  },
+
   // Actions de filtrage
   setSearchQuery: (query) => {
-    set({ searchQuery: query })
+    set({ searchQuery: query, pagination: { ...get().pagination, currentPage: 1 } })
+    get().fetchAssignments(1)
   },
 
   setActiveTab: (tab) => {
-    set({ activeTab: tab })
+    set({ activeTab: tab, pagination: { ...get().pagination, currentPage: 1 } })
+    get().fetchAssignments(1)
   },
 
   getFilteredAssignments: () => {
-    const { assignments, activeTab, searchQuery } = get()
-    let filtered = assignments
-
-    // Filtrer par statut
-    if (activeTab !== 'all') {
-      filtered = filtered.filter(assignment => assignment.status?.code === activeTab)
-    }
-
-    // Filtrer par recherche
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(assignment =>
-        (assignment.reference?.toLowerCase() || '').includes(query) ||
-        (assignment.client?.name?.toLowerCase() || '').includes(query) ||
-        (assignment.client?.email?.toLowerCase() || '').includes(query) ||
-        (assignment.vehicle?.license_plate?.toLowerCase() || '').includes(query) ||
-        (assignment.insurer?.name?.toLowerCase() || '').includes(query) ||
-        (assignment.insurer?.code?.toLowerCase() || '').includes(query) ||
-        (assignment.repairer?.name?.toLowerCase() || '').includes(query) ||
-        (assignment.repairer?.code?.toLowerCase() || '').includes(query) ||
-        (assignment.assignment_type?.label?.toLowerCase() || '').includes(query) ||
-        (assignment.assignment_type?.code?.toLowerCase() || '').includes(query) ||
-        (assignment.expertise_type?.label?.toLowerCase() || '').includes(query) ||
-        (assignment.expertise_type?.code?.toLowerCase() || '').includes(query) ||
-        (assignment.policy_number?.toLowerCase() || '').includes(query) ||
-        (assignment.claim_number?.toLowerCase() || '').includes(query) ||
-        (assignment.status?.label?.toLowerCase() || '').includes(query) ||
-        (assignment.status?.code?.toLowerCase() || '').includes(query)
-      )
-    }
-
-    return filtered
+    const { assignments } = get()
+    return assignments
   },
 
   getStatusCounts: () => {
