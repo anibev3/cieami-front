@@ -156,7 +156,8 @@ export default function ReportEditPage() {
     calculateAll,
     removeCalculation,
     getCalculatedCount,
-    getTotalAmount
+    getTotalAmount,
+    updateCalculation
   } = useCalculations()
   
   // États pour les modals
@@ -492,12 +493,43 @@ export default function ReportEditPage() {
           }
         })
         
-        // Mettre à jour les résultats de calcul globaux
-        Object.keys(calculatedData).forEach(key => {
-          if (key !== 'shocks') {
-            (calculationResults as any)[key] = calculatedData[key]
-          }
-        })
+        // Mettre à jour les résultats de calcul avec les montants globaux
+        // Stocker les montants globaux dans le premier calcul (index 0)
+        if (calculatedData) {
+          updateCalculation(0, {
+            shocks: calculatedData.shocks || [],
+            other_costs: calculatedData.other_costs || [],
+            shock_works: calculatedData.shocks?.[0]?.shock_works || [],
+            workforces: calculatedData.shocks?.[0]?.workforces || [],
+            // Montants globaux des chocs
+            total_shock_amount_excluding_tax: calculatedData.total_shock_amount_excluding_tax,
+            total_shock_amount_tax: calculatedData.total_shock_amount_tax,
+            total_shock_amount: calculatedData.total_shock_amount,
+            // Montants globaux de la main d'œuvre
+            total_workforce_amount_excluding_tax: calculatedData.total_workforce_amount_excluding_tax,
+            total_workforce_amount_tax: calculatedData.total_workforce_amount_tax,
+            total_workforce_amount: calculatedData.total_workforce_amount,
+            // Montants globaux des produits peinture
+            total_paint_product_amount_excluding_tax: calculatedData.total_paint_product_amount_excluding_tax,
+            total_paint_product_amount_tax: calculatedData.total_paint_product_amount_tax,
+            total_paint_product_amount: calculatedData.total_paint_product_amount,
+            // Montants globaux des petites fournitures
+            total_small_supply_amount_excluding_tax: calculatedData.total_small_supply_amount_excluding_tax,
+            total_small_supply_amount_tax: calculatedData.total_small_supply_amount_tax,
+            total_small_supply_amount: calculatedData.total_small_supply_amount,
+            // Montants globaux des autres coûts
+            total_other_costs_amount_excluding_tax: calculatedData.total_other_costs_amount_excluding_tax,
+            total_other_costs_amount_tax: calculatedData.total_other_costs_amount_tax,
+            total_other_costs_amount: calculatedData.total_other_costs_amount,
+            // Montants globaux totaux
+            shocks_amount_excluding_tax: calculatedData.shocks_amount_excluding_tax,
+            shocks_amount_tax: calculatedData.shocks_amount_tax,
+            shocks_amount: calculatedData.shocks_amount,
+            total_amount_excluding_tax: calculatedData.total_amount_excluding_tax,
+            total_amount_tax: calculatedData.total_amount_tax,
+            total_amount: calculatedData.total_amount,
+          })
+        }
         
         setHasUnsavedChanges(true)
         toast.success('Calcul global effectué avec succès')
@@ -690,6 +722,43 @@ export default function ReportEditPage() {
           }
 
           updateShock(shockIndex, updatedShock)
+        }
+        
+        // Mettre à jour les résultats de calcul avec les montants globaux
+        if (calculatedData) {
+          updateCalculation(shockIndex, {
+            shocks: calculatedData.shocks || [],
+            other_costs: calculatedData.other_costs || [],
+            shock_works: calculatedData.shocks?.[0]?.shock_works || [],
+            workforces: calculatedData.shocks?.[0]?.workforces || [],
+            // Montants globaux des chocs
+            total_shock_amount_excluding_tax: calculatedData.total_shock_amount_excluding_tax,
+            total_shock_amount_tax: calculatedData.total_shock_amount_tax,
+            total_shock_amount: calculatedData.total_shock_amount,
+            // Montants globaux de la main d'œuvre
+            total_workforce_amount_excluding_tax: calculatedData.total_workforce_amount_excluding_tax,
+            total_workforce_amount_tax: calculatedData.total_workforce_amount_tax,
+            total_workforce_amount: calculatedData.total_workforce_amount,
+            // Montants globaux des produits peinture
+            total_paint_product_amount_excluding_tax: calculatedData.total_paint_product_amount_excluding_tax,
+            total_paint_product_amount_tax: calculatedData.total_paint_product_amount_tax,
+            total_paint_product_amount: calculatedData.total_paint_product_amount,
+            // Montants globaux des petites fournitures
+            total_small_supply_amount_excluding_tax: calculatedData.total_small_supply_amount_excluding_tax,
+            total_small_supply_amount_tax: calculatedData.total_small_supply_amount_tax,
+            total_small_supply_amount: calculatedData.total_small_supply_amount,
+            // Montants globaux des autres coûts
+            total_other_costs_amount_excluding_tax: calculatedData.total_other_costs_amount_excluding_tax,
+            total_other_costs_amount_tax: calculatedData.total_other_costs_amount_tax,
+            total_other_costs_amount: calculatedData.total_other_costs_amount,
+            // Montants globaux totaux
+            shocks_amount_excluding_tax: calculatedData.shocks_amount_excluding_tax,
+            shocks_amount_tax: calculatedData.shocks_amount_tax,
+            shocks_amount: calculatedData.shocks_amount,
+            total_amount_excluding_tax: calculatedData.total_amount_excluding_tax,
+            total_amount_tax: calculatedData.total_amount_tax,
+            total_amount: calculatedData.total_amount,
+          })
         }
         
         setHasUnsavedChanges(true)
@@ -1398,68 +1467,30 @@ function GlobalRecap({
   otherCosts: { other_cost_type_id: number; amount: number }[]
   calculationResults: { [key: number]: CalculationResult }
 }) {
-  // Récupérer les montants globaux du premier calcul (ou du dernier)
-  const globalResults = Object.values(calculationResults)[0] as CalculationResult | undefined
+  // Récupérer les montants globaux depuis tous les calculs
+  const allResults = Object.values(calculationResults)
   
-  // Calculer les totaux des chocs (fallback si pas de données globales)
-  const shockTotals = Object.values(calculationResults).reduce((acc, result) => {
-    return {
-      total_shock_amount_excluding_tax: acc.total_shock_amount_excluding_tax + (result.total_shock_amount_excluding_tax || 0),
-      total_shock_amount_tax: acc.total_shock_amount_tax + (result.total_shock_amount_tax || 0),
-      total_shock_amount: acc.total_shock_amount + (result.total_shock_amount || 0),
-      total_workforce_amount_excluding_tax: acc.total_workforce_amount_excluding_tax + (result.total_workforce_amount_excluding_tax || 0),
-      total_workforce_amount_tax: acc.total_workforce_amount_tax + (result.total_workforce_amount_tax || 0),
-      total_workforce_amount: acc.total_workforce_amount + (result.total_workforce_amount || 0),
-      total_paint_product_amount_excluding_tax: acc.total_paint_product_amount_excluding_tax + (result.total_paint_product_amount_excluding_tax || 0),
-      total_paint_product_amount_tax: acc.total_paint_product_amount_tax + (result.total_paint_product_amount_tax || 0),
-      total_paint_product_amount: acc.total_paint_product_amount + (result.total_paint_product_amount || 0),
-      total_small_supply_amount_excluding_tax: acc.total_small_supply_amount_excluding_tax + (result.total_small_supply_amount_excluding_tax || 0),
-      total_small_supply_amount_tax: acc.total_small_supply_amount_tax + (result.total_small_supply_amount_tax || 0),
-      total_small_supply_amount: acc.total_small_supply_amount + (result.total_small_supply_amount || 0),
-    }
-  }, {
-    total_shock_amount_excluding_tax: 0,
-    total_shock_amount_tax: 0,
-    total_shock_amount: 0,
-    total_workforce_amount_excluding_tax: 0,
-    total_workforce_amount_tax: 0,
-    total_workforce_amount: 0,
-    total_paint_product_amount_excluding_tax: 0,
-    total_paint_product_amount_tax: 0,
-    total_paint_product_amount: 0,
-    total_small_supply_amount_excluding_tax: 0,
-    total_small_supply_amount_tax: 0,
-    total_small_supply_amount: 0,
-  })
+  // Prendre le premier résultat qui contient les montants globaux
+  const globalResults = allResults.find(result => 
+    result.total_amount_excluding_tax !== undefined ||
+    result.total_other_costs_amount_excluding_tax !== undefined
+  ) as CalculationResult | undefined
 
-  // Utiliser les montants globaux de l'API si disponibles, sinon les totaux calculés
-  const finalShockAmounts = {
-    shocks_amount_excluding_tax: globalResults?.shocks_amount_excluding_tax || shockTotals.total_shock_amount_excluding_tax,
-    shocks_amount_tax: globalResults?.shocks_amount_tax || shockTotals.total_shock_amount_tax,
-    shocks_amount: globalResults?.shocks_amount || shockTotals.total_shock_amount,
-    total_workforce_amount_excluding_tax: globalResults?.total_workforce_amount_excluding_tax || shockTotals.total_workforce_amount_excluding_tax,
-    total_workforce_amount_tax: globalResults?.total_workforce_amount_tax || shockTotals.total_workforce_amount_tax,
-    total_workforce_amount: globalResults?.total_workforce_amount || shockTotals.total_workforce_amount,
-    total_paint_product_amount_excluding_tax: globalResults?.total_paint_product_amount_excluding_tax || shockTotals.total_paint_product_amount_excluding_tax,
-    total_paint_product_amount_tax: globalResults?.total_paint_product_amount_tax || shockTotals.total_paint_product_amount_tax,
-    total_paint_product_amount: globalResults?.total_paint_product_amount || shockTotals.total_paint_product_amount,
-    total_small_supply_amount_excluding_tax: globalResults?.total_small_supply_amount_excluding_tax || shockTotals.total_small_supply_amount_excluding_tax,
-    total_small_supply_amount_tax: globalResults?.total_small_supply_amount_tax || shockTotals.total_small_supply_amount_tax,
-    total_small_supply_amount: globalResults?.total_small_supply_amount || shockTotals.total_small_supply_amount,
-  }
+  // Si aucun résultat global n'est trouvé, essayer de récupérer depuis n'importe quel calcul
+  const fallbackResults = allResults.length > 0 ? allResults[0] : undefined
 
   // Montants des autres coûts
   const otherCostsAmounts = {
-    total_other_costs_amount_excluding_tax: globalResults?.total_other_costs_amount_excluding_tax || 0,
-    total_other_costs_amount_tax: globalResults?.total_other_costs_amount_tax || 0,
-    total_other_costs_amount: globalResults?.total_other_costs_amount || 0,
+    total_other_costs_amount_excluding_tax: globalResults?.total_other_costs_amount_excluding_tax || fallbackResults?.total_other_costs_amount_excluding_tax || 0,
+    total_other_costs_amount_tax: globalResults?.total_other_costs_amount_tax || fallbackResults?.total_other_costs_amount_tax || 0,
+    total_other_costs_amount: globalResults?.total_other_costs_amount || fallbackResults?.total_other_costs_amount || 0,
   }
 
   // Montants totaux globaux
   const totalAmounts = {
-    total_amount_excluding_tax: globalResults?.total_amount_excluding_tax || 0,
-    total_amount_tax: globalResults?.total_amount_tax || 0,
-    total_amount: globalResults?.total_amount || 0,
+    total_amount_excluding_tax: globalResults?.total_amount_excluding_tax || fallbackResults?.total_amount_excluding_tax || 0,
+    total_amount_tax: globalResults?.total_amount_tax || fallbackResults?.total_amount_tax || 0,
+    total_amount: globalResults?.total_amount || fallbackResults?.total_amount || 0,
   }
 
   const formatCurrency = (amount: number) => {
@@ -1541,27 +1572,6 @@ function GlobalRecap({
                   </div>
                 </div>
                 <p className="text-xs text-blue-700 mt-2">Tous montants calculés par l'API</p>
-              </div>
-            </div>
-            
-            <div className="mt-6">
-              <h4 className="font-semibold mb-2 text-sm">Statut des calculs</h4>
-              <div className="space-y-2">
-                {shocks.map((shock, index) => (
-                  <div key={shock.uid} className="flex justify-between items-center">
-                    <span className="text-xs">
-                      {shock.shock_point_id ? `Point ${index + 1}` : 'Point non défini'}
-                    </span>
-                    {calculationResults[index] ? (
-                      <Badge variant="default" className="bg-green-100 text-green-800">
-                        <Check className="mr-1 h-3 w-3" />
-                        Calculé
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">En attente</Badge>
-                    )}
-                  </div>
-                ))}
               </div>
             </div>
           </div>

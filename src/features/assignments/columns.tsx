@@ -1,7 +1,9 @@
-import { ColumnDef } from '@tanstack/react-table'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-refresh/only-export-components */
+import { ColumnDef, Row } from '@tanstack/react-table'
 import { Assignment } from '@/types/assignments'
 import { Badge } from '@/components/ui/badge'
-import { ExternalLink, AlertTriangle, Clock, Info, Calendar, TrendingUp, AlertCircle } from 'lucide-react'
+import { ExternalLink, AlertTriangle, Clock, Info, Calendar, TrendingUp, AlertCircle, Check } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import { AssignmentActions } from './components/assignment-actions'
 import { AssignmentStatusEnum } from '@/types/global-types'
@@ -83,9 +85,11 @@ function DelayDetailsModal({
 
   const getProgressColor = () => {
     if (label === "Édition") {
-      if (percent && percent >= 0 && percent <= 50) return 'bg-green-500'
-      if (percent && percent > 50 && percent <= 90) return 'bg-yellow-500'
-      if (percent && percent > 90) return 'bg-red-500'
+      // Bloquer le pourcentage à 100% pour l'affichage
+      const displayPercent = percent !== null ? Math.min(percent, 100) : 0
+      if (displayPercent >= 0 && displayPercent <= 50) return 'bg-green-500'
+      if (displayPercent > 50 && displayPercent <= 90) return 'bg-yellow-500'
+      if (displayPercent > 90) return 'bg-red-500'
     }
     return 'bg-blue-500'
   }
@@ -120,9 +124,9 @@ function DelayDetailsModal({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Progression</span>
-                <span className="text-sm font-bold">{percent}%</span>
+                <span className="text-sm font-bold">{Math.min(percent, 100)}%</span>
               </div>
-              <Progress value={percent} className="h-2" />
+              <Progress value={Math.min(percent, 100)} className="h-2" />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>0%</span>
                 <span>100%</span>
@@ -214,22 +218,43 @@ function CountdownBadge({ label, expireAt, status, percent }: {
 
   const isUrgent = timeLeft.expired || (timeLeft.days === 0 && timeLeft.hours < 24)
   const isInProgress = status === 'in_progress'
+  const isDone = status === 'done'
+
+  // Si le statut est "done", afficher "Validé" en vert
+  if (isDone) {
+    return (
+      <div className="flex flex-col items-center gap-1">
+        <div className="flex items-center gap-1">
+          <Badge className="flex items-center gap-1 bg-green-100 text-green-800 border-green-300 text-xs">
+            <Check className="h-3 w-3" />
+            Validé
+          </Badge>
+        </div>
+      </div>
+    )
+  }
 
   // Fonction pour déterminer la couleur selon le pourcentage (uniquement pour "Édition")
   const getColorByPercentage = (label: string, percent: number | null) => {
     if (label !== "Édition" || percent === null) return null
     
-    if (percent >= 0 && percent <= 50) {
+    // Bloquer le pourcentage à 100% pour l'affichage
+    const displayPercent = Math.min(percent, 100)
+    
+    if (displayPercent >= 0 && displayPercent <= 50) {
       return 'green' // Vert pour 0-50%
-    } else if (percent > 50 && percent <= 90) {
+    } else if (displayPercent > 50 && displayPercent <= 90) {
       return 'warning' // Warning pour 50-90%
-    } else if (percent > 90) {
+    } else if (displayPercent > 90) {
       return 'danger' // Danger pour 90%+
     }
     return null
   }
 
   const percentageColor = getColorByPercentage(label, percent)
+  
+  // Calculer le pourcentage d'affichage (bloqué à 100%)
+  const displayPercent = percent !== null ? Math.min(percent, 100) : null
 
   if (timeLeft.expired) {
     return (
@@ -248,7 +273,7 @@ function CountdownBadge({ label, expireAt, status, percent }: {
             </button>
           </div>
           {percent !== null && (
-            <span className="text-xs text-red-600 font-medium">{percent}%</span>
+            <span className="text-xs text-red-600 font-medium">{displayPercent}%</span>
           )}
         </div>
         <DelayDetailsModal
@@ -327,7 +352,7 @@ function CountdownBadge({ label, expireAt, status, percent }: {
         </div>
         {percent !== null && (
           <span className={`text-xs font-medium ${getPercentageTextColor()}`}>
-            {percent}%
+            {displayPercent}%
           </span>
         )}
       </div>
@@ -400,10 +425,14 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Référence',
     cell: ({ row }) => {
       const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
         <button
           onClick={() => onViewDetail(assignment.id)}
-          className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 hover:underline transition-colors bg-transparent border-none cursor-pointer text-left"
+          className={`flex items-center gap-2 font-medium text-primary hover:text-primary/80 hover:underline transition-colors bg-transparent border-none cursor-pointer text-left ${isDone ? 'bg-green-50' : ''}`}
         >
           {row.getValue('reference')}
           <ExternalLink className="h-3 w-3" />
@@ -416,8 +445,17 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Client',
     cell: ({ row }) => {
       const client = row.getValue('client') as Assignment['client']
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
-        <div className="flex items-center space-x-2">
+        <div className={`flex items-center space-x-2 
+        
+        `}
+        >
+         
           {/* <User className="h-4 w-4 text-muted-foreground" /> */}
           <div>
             <div className="font-medium">{client.name}</div>
@@ -432,8 +470,13 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Véhicule',
     cell: ({ row }) => {
       const vehicle = row.getValue('vehicle') as Assignment['vehicle']
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
-        <div className="flex items-center space-x-2">
+        <div className={`flex items-center space-x-2`}>
           {/* <Car className="h-4 w-4 text-muted-foreground" /> */}
           <div>
             <p className="font-medium">{vehicle.license_plate}</p>
@@ -450,8 +493,13 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Assureur',
     cell: ({ row }) => {
       const insurer = row.getValue('insurer') as Assignment['insurer']
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
-        <div className="flex items-center justify-center space-x-2">
+        <div className={`flex items-center justify-center space-x-2`}>
           {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
           <div>
             <div className="font-medium">{insurer.name}</div>
@@ -482,8 +530,15 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Type d\'expertise',
     cell: ({ row }) => {
       const expertiseType = row.getValue('expertise_type') as Assignment['expertise_type']
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
-        <div>
+        <div 
+        // className={isDone ? 'bg-green-50' : ''}
+        >
           <div className="font-medium">{expertiseType.label}</div>
           {/* <div className="text-sm text-muted-foreground">{expertiseType.code}</div> */}
         </div>
@@ -556,11 +611,19 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Statut',
     cell: ({ row }) => {
       const status = row.getValue('status') as Assignment['status']
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
       
       return (
-        <Badge variant={getStatusVariant(status.code)}>
-          {status.label}
-        </Badge>
+        <div 
+        // className={isDone ? 'bg-green-50' : ''}
+        >
+          <Badge variant={getStatusVariant(status.code)}>
+            {status.label}
+          </Badge>
+        </div>
       )
     },
   },
@@ -569,8 +632,13 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Date expertise',
     cell: ({ row }) => {
       const expertiseDate = row.getValue('expertise_date') as string
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
-        <div className="flex items-center space-x-2">
+        <div className={`flex items-center space-x-2`}>
           {/* <Calendar className="h-4 w-4 text-muted-foreground" /> */}
           <div className="text-sm text-muted-foreground">
             {expertiseDate ? formatDate(expertiseDate) : 'Non définie'}
@@ -595,13 +663,21 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Délai d\'édition',
     cell: ({ row }) => {
       const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
-        <CountdownBadge
-          label="Édition"
-          expireAt={assignment.edition_time_expire_at}
-          status={assignment.edition_status}
-          percent={assignment.edition_per_cent}
-        />
+        <div 
+        // className={isDone ? 'bg-green-50' : ''}
+        >
+          <CountdownBadge
+            label="Édition"
+            expireAt={assignment.edition_time_expire_at}
+            status={assignment.edition_status}
+            percent={assignment.edition_per_cent}
+          />
+        </div>
       )
     },
   },
@@ -610,13 +686,32 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Délai de recouvrement',
     cell: ({ row }) => {
       const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
       return (
-        <CountdownBadge
-          label="Récupération"
-          expireAt={assignment.recovery_time_expire_at}
-          status={assignment.recovery_status}
-          percent={assignment.recovery_per_cent}
-        />
+        isDone ? (
+        <div 
+        // className={isDone ? 'bg-green-50' : ''}
+        >
+          {/* <CountdownBadge
+            label="Récupération"
+            expireAt={assignment.recovery_time_expire_at}
+            status={assignment.recovery_status}
+            percent={assignment.recovery_per_cent}
+          /> */}
+        </div>
+        ) : (
+          <div>
+            <CountdownBadge
+              label="Récupération"
+              expireAt={assignment.recovery_time_expire_at}
+              status={assignment.recovery_status}
+              percent={assignment.recovery_per_cent}
+            />
+          </div>
+        )
       )
     },
   },
@@ -625,14 +720,21 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Actions',
     cell: ({ row }) => {
       const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
 
       return (
-        <AssignmentActions
-          assignment={assignment}
-          onDelete={onDelete}
-          onOpenReceiptModal={onOpenReceiptModal}
-          onViewDetail={onViewDetail}
-        />
+        <div 
+        // className={isDone ? 'bg-green-50' : ''}
+        >
+          <AssignmentActions
+            assignment={assignment}
+            onDelete={onDelete}
+            onOpenReceiptModal={onOpenReceiptModal}
+            onViewDetail={onViewDetail}
+          />
+        </div>
       )
     },
   },

@@ -45,7 +45,8 @@ import {
   Mail,
   Phone,
   AlertTriangle,
-  Shield
+  Shield,
+  Check
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
@@ -302,6 +303,7 @@ interface AssignmentDetail {
   customer_signature: string | null
   qr_codes: string | null
   emails: Array<{email: string}> | null
+  work_sheet: string | null
 }
 
 export default function AssignmentDetailPage() {
@@ -523,10 +525,10 @@ export default function AssignmentDetailPage() {
                     Voir la fiche
                   </Button>
                 )}
-                {assignment.expertise_report && (
-                  <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.expertise_report!, title: 'Rapport d\'expertise' })}>
+                {assignment.work_sheet && (
+                  <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.work_sheet!, title: 'Feuille de travail' })}>
                     <FileDown className="h-3 w-3 mr-2" />
-                    Voir le rapport
+                    Voir la feuille de travail
                   </Button>
                 )}
                 <Button variant="outline" className="w-full justify-start text-xs h-8">
@@ -1446,48 +1448,67 @@ export default function AssignmentDetailPage() {
               {/* Suivi & Statuts */}
               <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none">
                 <CardContent className="flex flex-wrap gap-6 items-center">
-                  {/* Statut d'édition */}
-                  {assignment.edition_status && (
+                  {/* Si l'un des statuts est "done", afficher seulement "Validé" */}
+                  {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
                     <div className="flex flex-col items-center">
-                      <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1">
-                        Délai de redaction: {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
-                      </Badge>
-                      {assignment.edition_time_expire_at && (
-                        <span className="text-xs text-blue-700 font-medium">
-                          Expire le {formatDate(assignment.edition_time_expire_at)}
+                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Check className="h-5 w-5" />
+                          <span className="font-bold text-lg">Validé</span>
+                        </div>
+                      </div>
+                      {/* {assignment.validated_at && (
+                        <span className="text-xs text-green-700 font-medium mt-2">
+                          {formatDate(assignment.validated_at)}
                         </span>
-                      )}
-                      {typeof assignment.edition_per_cent === 'number' && (
-                        <span className="text-xs text-blue-900 font-semibold">
-                          Progression : {assignment.edition_per_cent}%
-                        </span>
-                      )}
+                      )} */}
                     </div>
-                  )}
-                  {/* Statut de récupération */}
-                  {assignment.recovery_status && (
-                    <div className="flex flex-col items-center">
-                      <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300">
-                        Délai de recouvrement: {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
-                      </Badge>
-                      {assignment.recovery_time_expire_at && (
-                        <span className="text-xs text-yellow-700 font-medium">
-                          Expire le {formatDate(assignment.recovery_time_expire_at)}
-                        </span>
+                  ) : (
+                    <>
+                      {/* Statut d'édition */}
+                      {assignment.edition_status && (
+                        <div className="flex flex-col items-center">
+                          <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1">
+                            Délai de redaction: {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
+                          </Badge>
+                          {assignment.edition_time_expire_at && (
+                            <span className="text-xs text-blue-700 font-medium">
+                              Expire le {formatDate(assignment.edition_time_expire_at)}
+                            </span>
+                          )}
+                          {typeof assignment.edition_per_cent === 'number' && (
+                            <span className="text-xs text-blue-900 font-semibold">
+                              Progression : {Math.min(assignment.edition_per_cent, 100)}%
+                            </span>
+                          )}
+                        </div>
                       )}
-                      {typeof assignment.recovery_per_cent === 'number' && (
-                        <span className="text-xs text-yellow-900 font-semibold">
-                          Progression : {assignment.recovery_per_cent}%
-                        </span>
+                      {/* Statut de récupération */}
+                      {assignment.recovery_status && (
+                        <div className="flex flex-col items-center">
+                          <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300">
+                            Délai de recouvrement: {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
+                          </Badge>
+                          {assignment.recovery_time_expire_at && (
+                            <span className="text-xs text-yellow-700 font-medium">
+                              Expire le {formatDate(assignment.recovery_time_expire_at)}
+                            </span>
+                          )}
+                          {typeof assignment.recovery_per_cent === 'number' && (
+                            <span className="text-xs text-yellow-900 font-semibold">
+                              Progression : {Math.min(assignment.recovery_per_cent, 100)}%
+                            </span>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    </>
                   )}
                   {/* Validation */}
                   {assignment.validated_at && (
                     <div className="flex flex-col items-center">
-                      <Badge variant="success" className="mb-1 bg-green-100 text-green-800 border-green-300">
+                      {/* <Badge variant="success" className="mb-1 bg-green-100 text-green-800 border-green-300">
                         Validé
-                      </Badge>
+                      </Badge> */}
                       <span className="text-xs text-green-700 font-medium">
                         {formatDate(assignment.validated_at)}
                       </span>
@@ -1550,13 +1571,13 @@ export default function AssignmentDetailPage() {
                       <span className="text-xs text-blue-900 font-semibold">{assignment.emails.map(email => email.email).join(', ')}</span>
                     </div>
                   )}
-                  {/* Décompte dynamique (alerte si proche de l'expiration) */}
+                  {/* Décompte dynamique (alerte si proche de l'expiration) - seulement si pas done */}
                   <div>
-                    {assignment.edition_time_expire_at && (
+                    {assignment.edition_time_expire_at && assignment.edition_status !== 'done' && (
                       <CountdownAlert label="Redaction" expireAt={assignment.edition_time_expire_at} />
                     )}
                     <div className='mt-2'></div>
-                    {assignment.recovery_time_expire_at && (
+                    {assignment.edition_time_expire_at && assignment.edition_status !== 'done' && (
                       <CountdownAlert label="Recouvrement" expireAt={assignment.recovery_time_expire_at} />
                     )}
                   </div>
