@@ -6,7 +6,35 @@ import { API_CONFIG } from '@/config/api'
 interface CalculationResult {
   shocks: unknown[]
   other_costs: unknown[]
-  total_amount: number
+  shock_works?: any[]
+  workforces?: any[]
+  // Montants globaux des chocs
+  total_shock_amount_excluding_tax?: number
+  total_shock_amount_tax?: number
+  total_shock_amount?: number
+  // Montants globaux de la main d'œuvre
+  total_workforce_amount_excluding_tax?: number
+  total_workforce_amount_tax?: number
+  total_workforce_amount?: number
+  // Montants globaux des produits peinture
+  total_paint_product_amount_excluding_tax?: number
+  total_paint_product_amount_tax?: number
+  total_paint_product_amount?: number
+  // Montants globaux des petites fournitures
+  total_small_supply_amount_excluding_tax?: number
+  total_small_supply_amount_tax?: number
+  total_small_supply_amount?: number
+  // Montants globaux des autres coûts
+  total_other_costs_amount_excluding_tax?: number
+  total_other_costs_amount_tax?: number
+  total_other_costs_amount?: number
+  // Montants globaux totaux
+  shocks_amount_excluding_tax?: number
+  shocks_amount_tax?: number
+  shocks_amount?: number
+  total_amount_excluding_tax?: number
+  total_amount_tax?: number
+  total_amount?: number
 }
 
 interface Shock {
@@ -72,11 +100,17 @@ export function useCalculations() {
 
       const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATIONS}`, payload)
       
-      // Mettre à jour les résultats de calcul
+      // Mettre à jour les résultats de calcul avec les montants globaux de l'API
       const newResults: { [key: number]: CalculationResult } = {}
       if (response.data.data.shocks && response.data.data.shocks.length > 0) {
         response.data.data.shocks.forEach((apiShock: any, index: number) => {
-          newResults[index] = response.data.data
+          newResults[index] = {
+            ...response.data.data, // Inclure tous les montants globaux
+            shocks: response.data.data.shocks,
+            other_costs: response.data.data.other_costs,
+            shock_works: apiShock.shock_works,
+            workforces: apiShock.workforces
+          }
         })
       }
       

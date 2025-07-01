@@ -66,21 +66,35 @@ interface OtherCostType {
 interface CalculationResult {
   shocks: any[]
   other_costs: any[]
-  total_amount: number
   shock_works?: any[]
   workforces?: any[]
+  // Montants globaux des chocs
   total_shock_amount_excluding_tax?: number
   total_shock_amount_tax?: number
   total_shock_amount?: number
+  // Montants globaux de la main d'œuvre
   total_workforce_amount_excluding_tax?: number
   total_workforce_amount_tax?: number
   total_workforce_amount?: number
+  // Montants globaux des produits peinture
   total_paint_product_amount_excluding_tax?: number
   total_paint_product_amount_tax?: number
   total_paint_product_amount?: number
+  // Montants globaux des petites fournitures
   total_small_supply_amount_excluding_tax?: number
   total_small_supply_amount_tax?: number
   total_small_supply_amount?: number
+  // Montants globaux des autres coûts
+  total_other_costs_amount_excluding_tax?: number
+  total_other_costs_amount_tax?: number
+  total_other_costs_amount?: number
+  // Montants globaux totaux
+  shocks_amount_excluding_tax?: number
+  shocks_amount_tax?: number
+  shocks_amount?: number
+  total_amount_excluding_tax?: number
+  total_amount_tax?: number
+  total_amount?: number
 }
 
 export default function ReportEditPage() {
@@ -1384,7 +1398,10 @@ function GlobalRecap({
   otherCosts: { other_cost_type_id: number; amount: number }[]
   calculationResults: { [key: number]: CalculationResult }
 }) {
-  // Calculer les totaux des chocs
+  // Récupérer les montants globaux du premier calcul (ou du dernier)
+  const globalResults = Object.values(calculationResults)[0] as CalculationResult | undefined
+  
+  // Calculer les totaux des chocs (fallback si pas de données globales)
   const shockTotals = Object.values(calculationResults).reduce((acc, result) => {
     return {
       total_shock_amount_excluding_tax: acc.total_shock_amount_excluding_tax + (result.total_shock_amount_excluding_tax || 0),
@@ -1415,11 +1432,35 @@ function GlobalRecap({
     total_small_supply_amount: 0,
   })
 
-  const totalOtherCosts = otherCosts.reduce((total, cost) => {
-    return total + (cost.amount || 0)
-  }, 0)
+  // Utiliser les montants globaux de l'API si disponibles, sinon les totaux calculés
+  const finalShockAmounts = {
+    shocks_amount_excluding_tax: globalResults?.shocks_amount_excluding_tax || shockTotals.total_shock_amount_excluding_tax,
+    shocks_amount_tax: globalResults?.shocks_amount_tax || shockTotals.total_shock_amount_tax,
+    shocks_amount: globalResults?.shocks_amount || shockTotals.total_shock_amount,
+    total_workforce_amount_excluding_tax: globalResults?.total_workforce_amount_excluding_tax || shockTotals.total_workforce_amount_excluding_tax,
+    total_workforce_amount_tax: globalResults?.total_workforce_amount_tax || shockTotals.total_workforce_amount_tax,
+    total_workforce_amount: globalResults?.total_workforce_amount || shockTotals.total_workforce_amount,
+    total_paint_product_amount_excluding_tax: globalResults?.total_paint_product_amount_excluding_tax || shockTotals.total_paint_product_amount_excluding_tax,
+    total_paint_product_amount_tax: globalResults?.total_paint_product_amount_tax || shockTotals.total_paint_product_amount_tax,
+    total_paint_product_amount: globalResults?.total_paint_product_amount || shockTotals.total_paint_product_amount,
+    total_small_supply_amount_excluding_tax: globalResults?.total_small_supply_amount_excluding_tax || shockTotals.total_small_supply_amount_excluding_tax,
+    total_small_supply_amount_tax: globalResults?.total_small_supply_amount_tax || shockTotals.total_small_supply_amount_tax,
+    total_small_supply_amount: globalResults?.total_small_supply_amount || shockTotals.total_small_supply_amount,
+  }
 
-  const grandTotal = shockTotals.total_shock_amount + totalOtherCosts
+  // Montants des autres coûts
+  const otherCostsAmounts = {
+    total_other_costs_amount_excluding_tax: globalResults?.total_other_costs_amount_excluding_tax || 0,
+    total_other_costs_amount_tax: globalResults?.total_other_costs_amount_tax || 0,
+    total_other_costs_amount: globalResults?.total_other_costs_amount || 0,
+  }
+
+  // Montants totaux globaux
+  const totalAmounts = {
+    total_amount_excluding_tax: globalResults?.total_amount_excluding_tax || 0,
+    total_amount_tax: globalResults?.total_amount_tax || 0,
+    total_amount: globalResults?.total_amount || 0,
+  }
 
   const formatCurrency = (amount: number) => {
     return (amount / 1000).toFixed(3) || '0.000'
@@ -1449,98 +1490,13 @@ function GlobalRecap({
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Total TTC</p>
-            <p className="text-xl font-bold text-blue-600">{formatCurrency(grandTotal)}</p>  
+            <p className="text-xl font-bold text-blue-600">{formatCurrency(totalAmounts.total_amount)}</p>  
           </div>
         </div>
         
         <Separator className="my-4" />
         
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold mb-4 text-base">Détail des montants des chocs</h4>
-            <div className="space-y-3">
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-blue-800">Main d'œuvre</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-blue-600">HT:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_workforce_amount_excluding_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-blue-600">TVA:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_workforce_amount_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-blue-600">TTC:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_workforce_amount)}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-green-50 p-3 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-green-800">Produits peinture</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-green-600">HT:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_paint_product_amount_excluding_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-green-600">TVA:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_paint_product_amount_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-green-600">TTC:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_paint_product_amount)}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-purple-50 p-3 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-purple-800">Petites fournitures</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-purple-600">HT:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_small_supply_amount_excluding_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-purple-600">TVA:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_small_supply_amount_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-purple-600">TTC:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_small_supply_amount)}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-orange-800">Total chocs</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-orange-600">HT:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_shock_amount_excluding_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-orange-600">TVA:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_shock_amount_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-orange-600">TTC:</span>
-                    <p className="font-semibold">{formatCurrency(shockTotals.total_shock_amount)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
+        <div className="grid">
           <div>
             <h4 className="font-semibold mb-4 text-base">Récapitulatif final</h4>
             <div className="space-y-3">
@@ -1548,8 +1504,19 @@ function GlobalRecap({
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-800">Coûts autres</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-base">{formatCurrency(totalOtherCosts)}</p>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-600">HT:</span>
+                    <p className="font-semibold">{formatCurrency(otherCostsAmounts.total_other_costs_amount_excluding_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">TVA:</span>
+                    <p className="font-semibold">{formatCurrency(otherCostsAmounts.total_other_costs_amount_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">TTC:</span>
+                    <p className="font-semibold">{formatCurrency(otherCostsAmounts.total_other_costs_amount)}</p>
+                  </div>
                 </div>
               </div>
               
@@ -1559,10 +1526,21 @@ function GlobalRecap({
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-bold text-blue-900 text-base">Total général</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-xl text-blue-900">{formatCurrency(grandTotal)}</p>
-                  <p className="text-xs text-blue-700">Tous montants TTC</p>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="text-blue-600">HT:</span>
+                    <p className="font-bold text-lg text-blue-900">{formatCurrency(totalAmounts.total_amount_excluding_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-blue-600">TVA:</span>
+                    <p className="font-bold text-lg text-blue-900">{formatCurrency(totalAmounts.total_amount_tax)}</p>
+                  </div>
+                  <div>
+                    <span className="text-blue-600">TTC:</span>
+                    <p className="font-bold text-xl text-blue-900">{formatCurrency(totalAmounts.total_amount)}</p>
+                  </div>
                 </div>
+                <p className="text-xs text-blue-700 mt-2">Tous montants calculés par l'API</p>
               </div>
             </div>
             
