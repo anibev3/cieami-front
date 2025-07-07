@@ -32,11 +32,14 @@ interface AssignmentsState {
 interface AssignmentsActions {
   // Actions principales
   fetchAssignments: (page?: number, filters?: AssignmentFilters) => Promise<void>
+  fetchAssignmentsRecoveryExpired: (page?: string, filters?: AssignmentFilters) => Promise<void>
+  fetchAssignmentsEditionExpired: (page?: string, filters?: AssignmentFilters) => Promise<void>
   fetchAssignment: (id: number) => Promise<void>
   createAssignment: (assignmentData: AssignmentCreate) => Promise<void>
   updateAssignment: (id: number, assignmentData: AssignmentUpdate) => Promise<void>
   deleteAssignment: (id: number) => Promise<void>
   changeAssignmentStatus: (id: number, statusId: number) => Promise<void>
+
   
   // Actions de pagination
   setCurrentPage: (page: number) => void
@@ -161,10 +164,10 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     }
   },
 
-  fetchAssignmentsRecoveryExpired: async (date_from: string, date_to: string, assignment_type_id: number) => {
+  fetchAssignmentsRecoveryExpired: async (page?: string, filters?: AssignmentFilters) => {
 
     try {
-      const response = await assignmentService.getAssignmentsRecoveryExpired(date_from, date_to, assignment_type_id)
+      const response = await assignmentService.getAssignmentsRecoveryExpired(page, filters)
       set({ assignmentsRecoveryExpired: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
@@ -173,10 +176,10 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     }
   },
 
-  fetchAssignmentsEditionExpired: async (date_from: string, date_to: string, assignment_type_id: number) => {
+  fetchAssignmentsEditionExpired: async (page?: string, filters?: AssignmentFilters) => {
 
     try {
-      const response = await assignmentService.getAssignmentsEditionExpired(date_from, date_to, assignment_type_id)
+      const response = await assignmentService.getAssignmentsEditionExpired(page, filters)
       set({ assignmentsEditionExpired: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'

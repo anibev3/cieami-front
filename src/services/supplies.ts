@@ -5,7 +5,6 @@ import {
   SupplyUpdate,
   SuppliesResponse,
   SupplyResponse,
-  SupplyPrice,
   SupplyPriceRequest,
   SupplyPriceResponse,
   SupplyPriceFilters,
@@ -61,5 +60,16 @@ export const getSupplyPricesWithFilters = async (filters: SupplyPriceFilters): P
   }
 
   const response = await axiosInstance.get<SupplyPriceResponse>(`/shock-works/get-supply-price-by-vehicle-brand-and-vehicle-model?${params.toString()}`)
+  return response.data
+}
+
+// Nouveau service pour récupérer les fournitures disponibles par modèle de véhicule
+export const getSuppliesByVehicleModel = async (vehicleModelId: string): Promise<SupplyPriceResponse> => {
+  const data: SupplyPriceRequest = {
+    vehicle_model_id: vehicleModelId,
+    supply_id: null,
+    date: null
+  }
+  const response = await axiosInstance.post<SupplyPriceResponse>('/shock-works/get-supply-price-by-vehicle-brand-and-vehicle-model', data)
   return response.data
 } 

@@ -22,22 +22,28 @@ interface VehicleModelSelectProps {
   onValueChange: (value: string) => void
   placeholder?: string
   disabled?: boolean
+  brandId?: string
 }
 
 export function VehicleModelSelect({
   value,
   onValueChange,
   placeholder = "Sélectionnez un modèle de véhicule...",
-  disabled = false
+  disabled = false,
+  brandId
 }: VehicleModelSelectProps) {
   const [open, setOpen] = useState(false)
   const { vehicleModels, loading, fetchVehicleModels } = useVehicleModelsStore()
 
   useEffect(() => {
-    if (vehicleModels.length === 0) {
-      fetchVehicleModels()
+    // Si on a un brandId, on filtre les modèles par marque
+    if (brandId) {
+      fetchVehicleModels(1, { brand_id: brandId })
+    } else {
+      // Sinon on charge tous les modèles
+      fetchVehicleModels(1)
     }
-  }, [fetchVehicleModels, vehicleModels.length])
+  }, [fetchVehicleModels, brandId])
 
   const selectedVehicleModel = vehicleModels.find(model => model.id.toString() === value)
 
@@ -49,13 +55,15 @@ export function VehicleModelSelect({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
-          disabled={disabled || loading}
+          disabled={disabled || loading || !brandId}
         >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Chargement...
             </>
+          ) : !brandId ? (
+            "Sélectionnez une marque"
           ) : selectedVehicleModel ? (
             <div className="flex items-center text-left">
               <span className="font-medium text-sm">{selectedVehicleModel.brand?.label}</span>
@@ -76,8 +84,12 @@ export function VehicleModelSelect({
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Chargement des modèles...
               </div>
+            ) : !brandId ? (
+              <div className="flex items-center justify-center py-6 text-muted-foreground">
+                Sélectionnez une marque
+              </div>
             ) : vehicleModels.length === 0 ? (
-              <CommandEmpty>Aucun modèle trouvé.</CommandEmpty>
+              <CommandEmpty>Aucun modèle trouvé pour cette marque.</CommandEmpty>
             ) : (
               <CommandGroup>
                 {vehicleModels.map((model) => (

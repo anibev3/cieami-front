@@ -262,7 +262,7 @@ export default function PhotosPage() {
             <DialogHeader>
               <DialogTitle>Ajouter des photos</DialogTitle>
               <DialogDescription>
-                Sélectionnez une assignation, un type de photo et ajoutez vos images.
+                Sélectionnez un dossier, un type de photo et ajoutez vos images.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -271,7 +271,7 @@ export default function PhotosPage() {
                 <AssignmentSelect
                   value={uploadData.assignment_id}
                   onValueChange={(value) => setUploadData({ ...uploadData, assignment_id: value })}
-                  placeholder="Sélectionner une assignation"
+                  placeholder="Sélectionner un dossier"
                 />
               </div>
               <div>

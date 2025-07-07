@@ -39,14 +39,14 @@ export default function BrandsPage() {
               Gérez les marques de véhicules
             </p>
           </div>
-          <BrandMutateDialog />
-        </div>
+        <BrandMutateDialog />
+      </div>
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <DataTable 
             data={brands} 
             loading={loading}
           />
-        </div>
+      </div>
       </Main>
     </>
   )

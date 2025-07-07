@@ -140,10 +140,10 @@ export default function AssignmentsRecoveryExpiredPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                  Dossiers
+                  Dossiers recouvrement expirés
                 </h1>
                 <p className="mt-2 text-sm text-gray-600">
-                  Gérez vos dossiers d'expertise automobile
+                  Gérez vos dossiers d'expertise automobile dont la date de recouvrement est expirée
                 </p>
               </div>
               <Button 

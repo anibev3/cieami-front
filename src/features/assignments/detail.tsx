@@ -2312,12 +2312,12 @@ export default function AssignmentDetailPage() {
                       </a>
                     </div>
                   )}
-                  {assignment.emails && (
+                  {/* {assignment.emails && (
                     <div className="flex flex-col items-center">
                       <span className="text-xs text-muted-foreground mb-1">Emails</span>
                       <span className="text-xs text-blue-900 font-semibold">{assignment.emails.map(email => email.email).join(', ')}</span>
                     </div>
-                  )}
+                  )} */}
                   {/* Décompte dynamique (alerte si proche de l'expiration) - seulement si pas done */}
                   <div>
                     {assignment.edition_time_expire_at && assignment.edition_status !== 'done' && (

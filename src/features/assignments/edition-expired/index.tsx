@@ -31,7 +31,7 @@ export default function AssignmentsEditionExpiredPage() {
     error,
     searchQuery,
     activeTab,
-    fetchAssignments,
+    fetchAssignmentsEditionExpired,
     setSearchQuery,
     setActiveTab,
     getFilteredAssignments,
@@ -46,10 +46,10 @@ export default function AssignmentsEditionExpiredPage() {
   // Charger les assignations au montage
   useEffect(() => {
     if (!isInitialized) {
-      fetchAssignments()
+      fetchAssignmentsEditionExpired()
       setIsInitialized(true)
     }
-  }, [fetchAssignments, isInitialized])
+  }, [fetchAssignmentsEditionExpired, isInitialized])
 
   // Filtrer les assignations
   const filteredAssignments = getFilteredAssignments()
@@ -141,10 +141,10 @@ export default function AssignmentsEditionExpiredPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                  Dossiers
+                  Dossiers édition expirés
                 </h1>
                 <p className="mt-2 text-sm text-gray-600">
-                  Gérez vos dossiers d'expertise automobile
+                  Gérez vos dossiers d'expertise automobile dont la date d'édition est expirée
                 </p>
               </div>
               <Button 

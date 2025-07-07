@@ -2285,26 +2285,26 @@ export default function CreateAssignmentPage() {
 
       {/* Modal des détails du véhicule */}
       <Dialog open={showVehicleModal} onOpenChange={setShowVehicleModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Car className="h-5 w-5" />
-              Détails du véhicule
+            <DialogTitle className="flex items-center gap-1">
+              <Car className="h-4 w-4" />
+              Détails
             </DialogTitle>
             <DialogDescription>
-              Informations complètes sur le véhicule sélectionné
+              Infos sur le véhicule
             </DialogDescription>
           </DialogHeader>
           
           {selectedVehicle && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* En-tête avec photo/icône */}
-              <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-                <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Car className="h-8 w-8 text-primary" />
+              <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Car className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">
+                  <h3 className="text-lg font-semibold">
                     {selectedVehicle?.brand?.label || ''} {selectedVehicle?.vehicle_model?.label || ''}
                   </h3>
                   <p className="text-muted-foreground">{selectedVehicle.license_plate}</p>
@@ -2312,10 +2312,10 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Informations principales */}
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Informations générales</h4>
-                  <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Infos générales</h4>
+                  <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Marque</span>
                       <span className="font-medium">{selectedVehicle?.brand?.label || ''}</span>
@@ -2335,19 +2335,19 @@ export default function CreateAssignmentPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Caractéristiques</h4>
-                  <div className="space-y-3">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Caractéristiques</h4>
+                  <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Kilométrage</span>
                       <span className="font-medium">{selectedVehicle?.mileage || ''} km</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Puissance fiscale</span>
+                      <span className="text-muted-foreground">Puissance</span>
                       <span className="font-medium">{selectedVehicle?.fiscal_power || ''} CV</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Nombre de places</span>
+                      <span className="text-muted-foreground">Places</span>
                       <span className="font-medium">{selectedVehicle?.nb_seats || ''}</span>
                     </div>
                     <div className="flex justify-between">
@@ -2359,13 +2359,13 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Informations techniques */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Informations techniques</h4>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-3">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Infos techniques</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Numéro de série</span>
-                      <span className="font-medium font-mono text-sm">{selectedVehicle?.serial_number || ''}</span>
+                      <span className="text-muted-foreground">N° de série</span>
+                      <span className="font-medium font-mono text-xs">{selectedVehicle?.serial_number || ''}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Usage</span>
@@ -2376,9 +2376,9 @@ export default function CreateAssignmentPage() {
                       <Badge variant="outline">{selectedVehicle?.type || ''}</Badge>
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">1ère mise en circulation</span>
+                      <span className="text-muted-foreground">1ère circulation</span>
                       <span className="font-medium">
                         {selectedVehicle?.first_entry_into_circulation_date 
                           ? new Date(selectedVehicle?.first_entry_into_circulation_date).toLocaleDateString('fr-FR')
@@ -2387,7 +2387,7 @@ export default function CreateAssignmentPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Visite technique</span>
+                      <span className="text-muted-foreground">Visite tech.</span>
                       <span className="font-medium">
                         {selectedVehicle?.technical_visit_date 
                           ? new Date(selectedVehicle?.technical_visit_date).toLocaleDateString('fr-FR')
@@ -2404,9 +2404,9 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Statut du véhicule */}
-              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+              <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
                 <div>
-                  <p className="text-sm text-muted-foreground">Statut du véhicule</p>
+                  <p className="text-xs text-muted-foreground">Statut</p>
                   <p className="font-medium">{selectedVehicle?.bodywork?.status?.label || ''}</p>
                 </div>
                 <Badge 

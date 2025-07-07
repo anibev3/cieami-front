@@ -32,7 +32,7 @@ interface AssignmentSelectProps {
   placeholder?: string
 }
 
-export function AssignmentSelect({ value, onValueChange, placeholder = "Sélectionner une assignation..." }: AssignmentSelectProps) {
+export function AssignmentSelect({ value, onValueChange, placeholder = "Sélectionner un dossier..." }: AssignmentSelectProps) {
   const [open, setOpen] = useState(false)
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [loading, setLoading] = useState(false)

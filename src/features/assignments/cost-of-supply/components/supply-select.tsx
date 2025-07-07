@@ -15,31 +15,101 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useSuppliesStore } from '@/stores/supplies'
+import { getSuppliesByVehicleModel } from '@/services/supplies'
+import { SupplyPrice } from '@/types/supplies'
 
 interface SupplySelectProps {
   value: string
   onValueChange: (value: string) => void
   placeholder?: string
   disabled?: boolean
+  vehicleModelId?: string
 }
 
 export function SupplySelect({
   value,
   onValueChange,
   placeholder = "Sélectionnez une fourniture...",
-  disabled = false
+  disabled = false,
+  vehicleModelId
 }: SupplySelectProps) {
   const [open, setOpen] = useState(false)
-  const { supplies, loading, fetchSupplies } = useSuppliesStore()
+  const [supplies, setSupplies] = useState<SupplyPrice[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (supplies.length === 0) {
-      fetchSupplies()
-    }
-  }, [fetchSupplies, supplies.length])
+    const fetchSupplies = async () => {
+      if (!vehicleModelId) {
+        setSupplies([])
+        return
+      }
 
-  const selectedSupply = supplies.find(supply => supply.id.toString() === value)
+      setLoading(true)
+      try {
+        const response = await getSuppliesByVehicleModel(vehicleModelId)
+        setSupplies(response.data)
+      } catch (_error) {
+        // Erreur lors du chargement des fournitures
+        setSupplies([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSupplies()
+  }, [vehicleModelId])
+
+  const selectedSupply = supplies.find(supply => supply.supply.id.toString() === value)
+
+  const formatCurrency = (amount: string) => {
+    return parseFloat(amount).toLocaleString('fr-FR', { 
+      style: 'currency', 
+      currency: 'XOF',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })
+  }
+
+  const getStatusBadge = (supplyPrice: SupplyPrice) => {
+    const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
+    const hasObsolescence = parseFloat(supplyPrice.obsolescence_rate) > 0
+    const hasRecovery = parseFloat(supplyPrice.recovery_rate) > 0
+
+    if (hasNewPrice) return 'Nouveau'
+    if (hasObsolescence) return 'Obsolète'
+    if (hasRecovery) return 'Récupération'
+    return 'Standard'
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Nouveau':
+        return 'text-green-600'
+      case 'Obsolète':
+        return 'text-red-600'
+      case 'Récupération':
+        return 'text-blue-600'
+      default:
+        return 'text-gray-600'
+    }
+  }
+
+  const renderSupplyInfo = (supplyPrice: SupplyPrice) => {
+    const status = getStatusBadge(supplyPrice)
+    return (
+      <div className="flex flex-col items-start text-left">
+        <div className="flex items-center justify-between w-full">
+          <span className="font-medium">{supplyPrice.supply.label}</span>
+          <span className={`text-xs ${getStatusColor(status)}`}>
+            {status}
+          </span>
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">
+          {formatCurrency(supplyPrice.new_amount)}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -49,27 +119,24 @@ export function SupplySelect({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
-          disabled={disabled || loading}
+          disabled={disabled || loading || !vehicleModelId}
         >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Chargement...
             </>
+          ) : !vehicleModelId ? (
+            "Sélectionnez un modèle"
           ) : selectedSupply ? (
-            <div className="flex flex-col items-start text-left">
-              <span className="font-medium">{selectedSupply.label}</span>
-              <span className="text-xs text-muted-foreground">
-                {selectedSupply.code}
-              </span>
-            </div>
+            renderSupplyInfo(selectedSupply)
           ) : (
             placeholder
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0" align="start">
+      <PopoverContent className="w-[350px] p-0">
         <Command>
           <CommandInput placeholder="Rechercher une fourniture..." />
           <CommandList>
@@ -78,31 +145,33 @@ export function SupplySelect({
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Chargement des fournitures...
               </div>
+            ) : !vehicleModelId ? (
+              <div className="flex items-center justify-center py-6 text-muted-foreground">
+                Sélectionnez un modèle
+              </div>
             ) : supplies.length === 0 ? (
-              <CommandEmpty>Aucune fourniture trouvée.</CommandEmpty>
+              <CommandEmpty>Aucune fourniture trouvée pour ce modèle.</CommandEmpty>
             ) : (
               <CommandGroup>
-                {supplies.map((supply) => (
+                {supplies.map((supplyPrice) => (
                   <CommandItem
-                    key={supply.id}
-                    value={`${supply.label} ${supply.code}`}
+                    key={supplyPrice.id}
+                    value={`${supplyPrice.supply.label} ${supplyPrice.supply.description || ''}`}
                     onSelect={() => {
-                      onValueChange(supply.id.toString())
+                      onValueChange(supplyPrice.supply.id.toString())
                       setOpen(false)
                     }}
+                    className="flex flex-col items-start p-3"
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === supply.id.toString() ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-medium">{supply.label}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {supply.code}
-                      </span>
+                    <div className="flex items-center justify-between w-full">
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === supplyPrice.supply.id.toString() ? "opacity-100" : "opacity-0"
+                        )}
+                      />
                     </div>
+                    {renderSupplyInfo(supplyPrice)}
                   </CommandItem>
                 ))}
               </CommandGroup>

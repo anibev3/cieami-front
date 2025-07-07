@@ -44,8 +44,8 @@ export function CountdownAlert({ label, expireAt }: CountdownAlertProps) {
       variant={isUrgent ? 'destructive' : 'outline'}
       className={
         isUrgent
-          ? 'flex items-center gap-1 bg-red-100 text-red-800 border-red-300 animate-pulse'
-          : 'flex items-center gap-1 bg-blue-100 text-blue-800 border-blue-300'
+          ? 'flex items-center gap-1 bg-red-100 text-red-800 border-red-300 animate-pulse w-full'
+          : 'flex items-center gap-1 bg-blue-100 text-blue-800 border-blue-300 w-full'
       }
     >
       {isUrgent && <AlertTriangle className="h-4 w-4 mr-1" />}
@@ -54,7 +54,7 @@ export function CountdownAlert({ label, expireAt }: CountdownAlertProps) {
       {timeLeft.hours > 0 && ` ${timeLeft.hours}h`}
       {timeLeft.minutes > 0 && ` ${timeLeft.minutes}min`}
       {timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && ' <1min'}
-      restants
+      { " " } restants
     </Badge>
   )
 }

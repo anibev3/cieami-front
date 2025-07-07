@@ -86,6 +86,11 @@ export const sidebarData: SidebarData = {
           icon: IconCheck,
         },
         {
+          title: 'Statistiques',
+          url: '/assignments/statistics',
+          icon: IconCalculator,
+        },
+        {
           title: 'Gestion des photos',
           icon: IconPalette,
           items: [
@@ -268,6 +273,17 @@ export const sidebarData: SidebarData = {
               url: '/comptabilite/reports/treasury',
               icon: IconCalculator,
             },
+          ],
+        },
+        {
+          title: 'Statistiques',
+          icon: IconCalculator,
+          items: [
+            {
+              title: 'Statistiques des dossiers',
+              url: '/comptabilite/statistics/assignments',
+              icon: IconWallet,
+            }
           ],
         },
       ],

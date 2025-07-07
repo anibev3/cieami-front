@@ -549,4 +549,28 @@ export interface ReceiptUpdate {
   type?: string
   reference?: string
   description?: string
+}
+
+// Types pour les statistiques des assignations
+export interface AssignmentStatistics {
+  assignments_by_year_and_month_count: AssignmentCountByMonth[]
+  assignments_by_year_and_month_amount: AssignmentAmountByMonth[]
+}
+
+export interface AssignmentCountByMonth {
+  year: number
+  month: number
+  count: number
+}
+
+export interface AssignmentAmountByMonth {
+  year: number
+  month: number
+  amount: string
+}
+
+export interface AssignmentStatisticsFilters {
+  start_date: string
+  end_date: string
+  assignment_id?: number
 } 
