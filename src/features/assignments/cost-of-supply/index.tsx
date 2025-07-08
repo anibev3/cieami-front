@@ -291,13 +291,13 @@ export default function CostOfSupplyPage() {
           </Card>
         </div>
         {/* Filtres avancés */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <AdvancedFilters
             filters={filters}
             onFiltersChange={setFilters}
             onClearFilters={clearFilters}
           />
-        </div>
+        </div> */}
 
         {/* Data Table */}
         <DataTable

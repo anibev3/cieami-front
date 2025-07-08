@@ -100,13 +100,13 @@ export function SupplySelect({
       <div className="flex flex-col items-start text-left">
         <div className="flex items-center justify-between w-full">
           <span className="font-medium">{supplyPrice.supply.label}</span>
-          <span className={`text-xs ${getStatusColor(status)}`}>
+          {/* <span className={`text-xs ml-2 ${getStatusColor(status)}`}>
             {status}
-          </span>
+          </span> */}
         </div>
-        <div className="text-xs text-muted-foreground mt-1">
+        {/* <div className="text-xs text-muted-foreground mt-1">
           {formatCurrency(supplyPrice.new_amount)}
-        </div>
+        </div> */}
       </div>
     )
   }
@@ -152,6 +152,29 @@ export function SupplySelect({
             ) : supplies.length === 0 ? (
               <CommandEmpty>Aucune fourniture trouvée pour ce modèle.</CommandEmpty>
             ) : (
+              // <CommandGroup>
+              //   {supplies.map((supplyPrice) => (
+              //     <CommandItem
+              //       key={supplyPrice.id}
+              //       value={`${supplyPrice.supply.label} ${supplyPrice.supply.description || ''}`}
+              //       onSelect={() => {
+              //         onValueChange(supplyPrice.supply.id.toString())
+              //         setOpen(false)
+              //       }}
+              //       className="flex flex-col items-start p-3"
+              //     >
+              //       <div className="flex items-center justify-between w-full">
+              //         <Check
+              //           className={cn(
+              //             "mr-2 h-4 w-4",
+              //             value === supplyPrice.supply.id.toString() ? "opacity-100" : "opacity-0"
+              //           )}
+              //         />
+              //       </div>
+              //       {renderSupplyInfo(supplyPrice)}
+              //     </CommandItem>
+              //   ))}
+                    // </CommandGroup>
               <CommandGroup>
                 {supplies.map((supplyPrice) => (
                   <CommandItem
@@ -161,17 +184,19 @@ export function SupplySelect({
                       onValueChange(supplyPrice.supply.id.toString())
                       setOpen(false)
                     }}
-                    className="flex flex-col items-start p-3"
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === supplyPrice.supply.id.toString() ? "opacity-100" : "opacity-0"
-                        )}
-                      />
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === supplyPrice.supply.id.toString() ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">{supplyPrice.supply.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {supplyPrice.supply.label} - {formatCurrency(supplyPrice.new_amount)}
+                      </span>
                     </div>
-                    {renderSupplyInfo(supplyPrice)}
                   </CommandItem>
                 ))}
               </CommandGroup>

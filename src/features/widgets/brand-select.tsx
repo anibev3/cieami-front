@@ -16,7 +16,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useBrandsStore } from '@/stores/brands'
-import { Brand } from '@/types/brands'
 
 interface BrandSelectProps {
   value: string
@@ -42,37 +41,6 @@ export function BrandSelect({
 
   const selectedBrand = brands.find(brand => brand.id.toString() === value)
 
-  const getStatusColor = (statusCode: string) => {
-    switch (statusCode) {
-      case 'active':
-        return 'text-green-600'
-      case 'inactive':
-        return 'text-red-600'
-      default:
-        return 'text-gray-600'
-    }
-  }
-
-  const renderBrandInfo = (brand: Brand) => {
-    return (
-      <div className="flex flex-col items-start text-left">
-        <div className="flex items-center justify-between w-full">
-          <span className="font-medium">{brand.label}</span>
-          {brand.status && (
-            <span className={`text-xs ${getStatusColor(brand.status.code)}`}>
-              {brand.status.label}
-            </span>
-          )}
-        </div>
-        {brand.description && (
-          <span className="text-xs text-muted-foreground mt-1">
-            {brand.description}
-          </span>
-        )}
-      </div>
-    )
-  }
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -89,7 +57,7 @@ export function BrandSelect({
               Chargement...
             </>
           ) : selectedBrand ? (
-            renderBrandInfo(selectedBrand)
+            selectedBrand.label
           ) : (
             placeholder
           )}
@@ -107,7 +75,7 @@ export function BrandSelect({
               </div>
             ) : brands.length === 0 ? (
               <CommandEmpty>Aucune marque trouvée.</CommandEmpty>
-            ) : (
+            ) : (                  
               <CommandGroup>
                 {brands.map((brand) => (
                   <CommandItem
@@ -117,17 +85,19 @@ export function BrandSelect({
                       onValueChange(brand.id.toString())
                       setOpen(false)
                     }}
-                    className="flex flex-col items-start p-3"
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === brand.id.toString() ? "opacity-100" : "opacity-0"
-                        )}
-                      />
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === brand.id.toString() ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">{brand.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {brand.description} - {brand.code}
+                      </span>
                     </div>
-                    {renderBrandInfo(brand)}
                   </CommandItem>
                 ))}
               </CommandGroup>

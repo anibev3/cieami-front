@@ -65,8 +65,8 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <Card className="shadow-none">
-      <CardHeader>
+    <div className="shadow-none">
+      <div className="flex justify-between">
         <div className="flex items-center justify-between">
           <div>
             {title && (
@@ -93,8 +93,8 @@ export function DataTable<TData, TValue>({
             />
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -176,7 +176,7 @@ export function DataTable<TData, TValue>({
             Suivant
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 } 
