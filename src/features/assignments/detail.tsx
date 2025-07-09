@@ -2147,7 +2147,7 @@ export default function AssignmentDetailPage() {
               <Button variant="outline" size="icon">
                 <Download className="h-4 w-4" />
               </Button>
-              <Button>
+              <Button onClick={() => navigate({ to: `/assignments/edit/${assignment.id}` })}>
                 <Edit className="h-4 w-4 mr-2" />
                 Modifier
               </Button>

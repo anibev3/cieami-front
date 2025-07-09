@@ -39,6 +39,7 @@ import { Route as AuthenticatedAppsIndexImport } from './routes/_authenticated/a
 import { Route as ClerkAuthenticatedUserManagementImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInImport } from './routes/clerk/(auth)/sign-in'
+import { Route as AuthenticatedSettingsUpdateImport } from './routes/_authenticated/settings/update'
 import { Route as AuthenticatedSettingsNotificationsImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceImport } from './routes/_authenticated/settings/appearance'
@@ -286,6 +287,13 @@ const ClerkauthSignInRoute = ClerkauthSignInImport.update({
   path: '/sign-in',
   getParentRoute: () => ClerkauthRouteRoute,
 } as any)
+
+const AuthenticatedSettingsUpdateRoute =
+  AuthenticatedSettingsUpdateImport.update({
+    id: '/update',
+    path: '/update',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsImport.update({
@@ -1266,6 +1274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsNotificationsImport
       parentRoute: typeof AuthenticatedSettingsRouteImport
     }
+    '/_authenticated/settings/update': {
+      id: '/_authenticated/settings/update'
+      path: '/update'
+      fullPath: '/settings/update'
+      preLoaderRoute: typeof AuthenticatedSettingsUpdateImport
+      parentRoute: typeof AuthenticatedSettingsRouteImport
+    }
     '/clerk/(auth)/sign-in': {
       id: '/clerk/(auth)/sign-in'
       path: '/sign-in'
@@ -1553,6 +1568,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsUpdateRoute: typeof AuthenticatedSettingsUpdateRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -1563,6 +1579,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
     AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
+    AuthenticatedSettingsUpdateRoute: AuthenticatedSettingsUpdateRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 
@@ -1845,6 +1862,7 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/update': typeof AuthenticatedSettingsUpdateRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -1942,6 +1960,7 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/update': typeof AuthenticatedSettingsUpdateRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -2045,6 +2064,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/settings/update': typeof AuthenticatedSettingsUpdateRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -2148,6 +2168,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/settings/update'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -2244,6 +2265,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
+    | '/settings/update'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -2345,6 +2367,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/settings/update'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
@@ -2536,6 +2559,7 @@ export const routeTree = rootRoute
         "/_authenticated/settings/appearance",
         "/_authenticated/settings/display",
         "/_authenticated/settings/notifications",
+        "/_authenticated/settings/update",
         "/_authenticated/settings/"
       ]
     },
@@ -2790,6 +2814,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/settings/notifications": {
       "filePath": "_authenticated/settings/notifications.tsx",
+      "parent": "/_authenticated/settings"
+    },
+    "/_authenticated/settings/update": {
+      "filePath": "_authenticated/settings/update.tsx",
       "parent": "/_authenticated/settings"
     },
     "/clerk/(auth)/sign-in": {

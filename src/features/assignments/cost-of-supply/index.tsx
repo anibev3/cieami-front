@@ -214,7 +214,7 @@ export default function CostOfSupplyPage() {
                   <BrandSelect
                     value={selectedBrandId}
                     onValueChange={setSelectedBrandId}
-                    placeholder="Sélectionnez une marque..."
+                    placeholder="Sélectionnez une marque"
                   />
                 </div>
 
@@ -271,7 +271,7 @@ export default function CostOfSupplyPage() {
                   <Button 
                     onClick={handleSearch} 
                     disabled={loading || !formData.vehicle_model_id || !formData.supply_id}
-                    className="w-full h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="w-full h-10  hover:from-blue-700 hover:to-indigo-700  transition-all duration-200"
                   >
                     {loading ? (
                       <>

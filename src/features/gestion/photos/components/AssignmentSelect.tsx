@@ -94,11 +94,11 @@ export function AssignmentSelect({ value, onValueChange, placeholder = "Sélecti
           ) : selectedAssignment ? (
             <div className="flex items-center gap-2">
               <span>{selectedAssignment.reference}</span>
-              {selectedAssignment.status && (
+              {/* {selectedAssignment.status && (
                 <span className={`text-xs ${getStatusColor(selectedAssignment.status.code)}`}>
                   {selectedAssignment.status.label}
                 </span>
-              )}
+              )} */}
             </div>
           ) : (
             placeholder

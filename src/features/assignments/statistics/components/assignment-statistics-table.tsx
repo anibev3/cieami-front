@@ -65,8 +65,8 @@ export function AssignmentStatisticsTable({ statistics }: AssignmentStatisticsTa
   const totalAmount = data.reduce((total, item) => total + item.amount, 0)
 
   return (
-    <Card className="shadow-none">
-      <CardHeader>
+    <div className="shadow-none">
+      <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
@@ -88,9 +88,9 @@ export function AssignmentStatisticsTable({ statistics }: AssignmentStatisticsTa
             )}
           </Button>
         </div>
-      </CardHeader>
+      </div>
       {expanded && (
-        <CardContent>
+        <div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -129,8 +129,8 @@ export function AssignmentStatisticsTable({ statistics }: AssignmentStatisticsTa
               )}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   )
 } 

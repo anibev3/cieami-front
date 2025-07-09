@@ -70,32 +70,34 @@ export const createColumns = (onViewDetails: (supplyPrice: SupplyPrice) => void)
   },
   {
     accessorKey: "obsolescence_rate",
-    header: "Vetusté",
+    header: "Dossier",
     cell: ({ row }) => {
       const supplyPrice = row.original
       const rate = parseFloat(supplyPrice.obsolescence_rate)
       return (
         <div className="flex flex-col">
-          <span className="font-semibold text-red-600">{rate}%</span>
+          -
+          {/* <span className="font-semibold text-red-600">{rate}%</span>
           <span className="text-xs text-muted-foreground">
             {formatCurrency(supplyPrice.obsolescence_amount)}
-          </span>
+          </span> */}
         </div>
       )
     },
   },
   {
     accessorKey: "recovery_rate",
-    header: "Récupération",
+    header: "-",
     cell: ({ row }) => {
       const supplyPrice = row.original
       const rate = parseFloat(supplyPrice.recovery_rate)
       return (
         <div className="flex flex-col">
-          <span className="font-semibold text-blue-600">{rate}%</span>
+          -
+          {/* <span className="font-semibold text-blue-600">{rate}%</span>
           <span className="text-xs text-muted-foreground">
             {formatCurrency(supplyPrice.recovery_amount)}
-          </span>
+          </span> */}
         </div>
       )
     },

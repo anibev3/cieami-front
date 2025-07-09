@@ -23,6 +23,7 @@ import {
   IconReceipt,
   IconCheck,
   IconWallet,
+  IconDownload,
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -430,6 +431,11 @@ export const sidebarData: SidebarData = {
               title: 'Profil',
               url: '/settings',
               icon: IconUserCog,
+            },
+            {
+              title: 'Mise à jour',
+              url: '/settings/update',
+              icon: IconDownload,
             },
             {
               title: 'Compte',
