@@ -54,7 +54,7 @@ import {
 } from './hooks'
 import { ShockSuppliesTable } from './components/shock-supplies-table'
 import { ShockWorkforceTable } from './components/shock-workforce-table'
-import { OtherCostTypeSelect } from './components/reusable-selects'
+import { OtherCostTypeSelect } from '@/features/widgets/reusable-selects'   
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 import type { Shock } from './hooks/use-shock-management'
 

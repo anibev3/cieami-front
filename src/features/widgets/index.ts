@@ -1,2 +1,7 @@
+export { AssignmentTypeSelect } from './assignment-type-select'
 export { BrandSelect } from './brand-select'
+export { ColorSelect } from './color-select'
+export { VehicleGenreSelect } from './vehicle-genre-select'
+export { VehicleAgeSelect } from './vehicle-age-select'
+export { VehicleEnergySelect } from './vehicle-energy-select'
 export { ShockPointSelect } from './shock-point-select' 

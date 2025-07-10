@@ -34,6 +34,9 @@ import { useBrandsStore } from '@/stores/brands'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
+import { VehicleGenreSelect } from '@/features/widgets/vehicle-genre-select'
+import { VehicleAgeSelect } from '@/features/widgets/vehicle-age-select'
+import { VehicleEnergySelect } from '@/features/widgets/vehicle-energy-select'
 
 const vehicleSchema = z.object({
   license_plate: z.string().min(1, 'La plaque d\'immatriculation est requise'),
@@ -50,6 +53,9 @@ const vehicleSchema = z.object({
   nb_seats: z.number().min(1, 'Le nombre de places est requis'),
   vehicle_model_id: z.string().min(1, 'Le modèle de véhicule est requis'),
   color_id: z.string().min(1, 'La couleur est requise'),
+  vehicle_genre_id: z.string().optional(),
+  vehicle_age_id: z.string().optional(),
+  vehicle_energy_id: z.string().optional(),
 })
 
 type VehicleFormData = z.infer<typeof vehicleSchema>
@@ -104,6 +110,9 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
       nb_seats: 0,
       vehicle_model_id: '',
       color_id: '',
+      vehicle_genre_id: '',
+      vehicle_age_id: '',
+      vehicle_energy_id: '',
     },
   })
 
@@ -144,6 +153,9 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
         nb_seats: currentVehicle.nb_seats,
         vehicle_model_id: currentVehicle.vehicle_model.id.toString(),
         color_id: currentVehicle.color.id.toString(),
+        vehicle_genre_id: '',
+        vehicle_age_id: '',
+        vehicle_energy_id: '',
       })
     }
   }, [currentVehicle, isEditing, form])
@@ -186,7 +198,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Modifier le véhicule' : 'Créer un véhicule'}
@@ -319,7 +331,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 name="energy"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Énergie</FormLabel>
+                    <FormLabel>Énergie (libre)</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -426,6 +438,63 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="vehicle_genre_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Genre de véhicule</FormLabel>
+                    <FormControl>
+                      <VehicleGenreSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Sélectionner un genre de véhicule"
+                        showDescription={true}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="vehicle_age_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Âge du véhicule</FormLabel>
+                    <FormControl>
+                      <VehicleAgeSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Sélectionner un âge de véhicule"
+                        showDescription={true}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="vehicle_energy_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type d'énergie</FormLabel>
+                    <FormControl>
+                      <VehicleEnergySelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Sélectionner un type d'énergie"
+                        showDescription={true}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

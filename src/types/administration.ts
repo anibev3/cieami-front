@@ -535,4 +535,106 @@ export interface ReceiptTypeActions {
   delete: (id: number | string) => Promise<void>
   getById: (id: number | string) => Promise<ReceiptType>
   getAll: (filters?: ReceiptTypeFilters) => Promise<ReceiptTypeResponse>
+}
+
+// Types pour les tableaux de dépréciation
+export interface DepreciationTable {
+  id: number
+  value: string
+  vehicle_genre: VehicleGenre
+  vehicle_age: VehicleAge
+  status: Status
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface DepreciationTableResponse {
+  data: DepreciationTable[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+export interface CreateDepreciationTableData {
+  vehicle_genre_id: string
+  vehicle_age_id: string
+  value: number
+}
+
+export interface UpdateDepreciationTableData {
+  vehicle_genre_id?: string
+  vehicle_age_id?: string
+  value?: number
+}
+
+export interface DepreciationTableFilters {
+  search?: string
+  page?: number
+  per_page?: number
+  vehicle_genre_id?: number
+  vehicle_age_id?: number
+}
+
+export interface TheoreticalValueCalculationData {
+  first_entry_into_circulation_date: string
+  expertise_date: string
+  vehicle_genre_id: string
+  vehicle_energy_id: string
+  vehicle_new_value: number
+  vehicle_mileage: number
+}
+
+export interface TheoreticalValueCalculationResult {
+  expertise_date: string
+  first_entry_into_circulation_date: string
+  vehicle_new_value: number
+  vehicle_age: number
+  theorical_depreciation_rate: string
+  theorical_vehicle_market_value: number
+}
+
+export interface TheoreticalValueCalculationResponse {
+  status: number
+  message: string
+  data: TheoreticalValueCalculationResult
+}
+
+// Types pour les genres de véhicules
+export interface VehicleGenre {
+  id: number
+  code: string
+  label: string
+  description: string
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Types pour les âges de véhicules
+export interface VehicleAge {
+  id: number
+  value: number
+  label: string
+  description: string
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
 } 

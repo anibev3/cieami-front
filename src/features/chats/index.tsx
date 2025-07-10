@@ -316,7 +316,7 @@ export default function Chats() {
               )}
             >
               <div className='flex flex-col items-center space-y-6'>
-                <div className='border-border flex size-16 items-center justify-center rounded-full border-2'>
+                <div className='flex size-16 items-center justify-center rounded-full border-2'>
                   <IconMessages className='size-8' />
                 </div>
                 <div className='space-y-2 text-center'>

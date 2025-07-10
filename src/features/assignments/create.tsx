@@ -61,6 +61,11 @@ import { useClientsStore } from '../gestion/clients/store'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
+import { VehicleGenreSelect } from '@/features/widgets/vehicle-genre-select'
+import { VehicleAgeSelect } from '@/features/widgets/vehicle-age-select'
+import { VehicleEnergySelect } from '@/features/widgets/vehicle-energy-select'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { HtmlContent } from '@/components/ui/html-content'
 
 // Types pour les experts
 interface Expert {
@@ -208,6 +213,9 @@ export default function CreateAssignmentPage() {
     vehicle_model_id: '',
     color_id: '',
     bodywork_id: '',
+    vehicle_genre_id: '',
+    vehicle_age_id: '',
+    vehicle_energy_id: '',
   })
   
   const [createInsurerForm, setCreateInsurerForm] = useState({
@@ -656,6 +664,7 @@ export default function CreateAssignmentPage() {
         license_plate: '', usage: '', type: '', option: '', mileage: '',
         serial_number: '', fiscal_power: 0, energy: '', nb_seats: 0,
         vehicle_model_id: '', color_id: '', bodywork_id: '',
+        vehicle_genre_id: '', vehicle_age_id: '', vehicle_energy_id: '',
       })
       fetchVehicles() // Recharger la liste
     } catch (error) {
@@ -1407,7 +1416,7 @@ export default function CreateAssignmentPage() {
                         <Info className="h-5 w-5 text-gray-500" />
                         Informations d'expertise et observations
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField control={form.control} name="expertise_date" render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Date d'expertise</FormLabel>
@@ -1435,13 +1444,18 @@ export default function CreateAssignmentPage() {
                                 <FormMessage />
                               </FormItem>
                         )} />
-                          </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
                         <FormField control={form.control} name="circumstance" render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Circonstance</FormLabel>
+                              <FormLabel>Circonstance</FormLabel>
                               <FormControl>
-                              <Input placeholder="Décrivez les circonstances..." {...field} />
+                                <RichTextEditor
+                                  value={field.value || ''}
+                                  onChange={field.onChange}
+                                  placeholder="Décrivez les circonstances de l'accident..."
+                                  className="min-h-[120px]"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1450,16 +1464,26 @@ export default function CreateAssignmentPage() {
                             <FormItem>
                               <FormLabel>Dégâts déclarés</FormLabel>
                               <FormControl>
-                              <Input placeholder="Décrivez les dégâts déclarés..." {...field} />
+                                <RichTextEditor
+                                  value={field.value || ''}
+                                  onChange={field.onChange}
+                                  placeholder="Décrivez les dégâts déclarés par le client..."
+                                  className="min-h-[120px]"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="observation" render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Observation générale</FormLabel>
+                              <FormLabel>Observation générale</FormLabel>
                               <FormControl>
-                              <Input placeholder="Observations générales..." {...field} />
+                                <RichTextEditor
+                                  value={field.value || ''}
+                                  onChange={field.onChange}
+                                  placeholder="Ajoutez vos observations générales..."
+                                  className="min-h-[120px]"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1485,7 +1509,8 @@ export default function CreateAssignmentPage() {
                   <CardContent className="space-y-6">
                 <div className="space-y-4">
                       {form.watch('experts').map((expert, idx) => (
-                        <div key={idx} className="flex gap-4 items-end border-b pb-4 mb-4">
+                        <div key={idx} className="space-y-4 border-b pb-4 mb-4">
+                          <div className="flex gap-4 items-end">
                             <FormField
                               control={form.control}
                             name={`experts.${idx}.expert_id` as const}
@@ -1530,28 +1555,34 @@ export default function CreateAssignmentPage() {
                                 </FormItem>
                               )}
                             />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeExpert(idx)}
+                              disabled={form.watch('experts').length === 1}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                           <FormField
                             control={form.control}
                             name={`experts.${idx}.observation` as const}
                             render={({ field }) => (
-                              <FormItem className="flex-1">
+                              <FormItem>
                                 <FormLabel>Observation</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Observation" {...field} />
+                                  <RichTextEditor
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                    placeholder="Ajoutez vos observations sur cet expert..."
+                                    className="min-h-[100px]"
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeExpert(idx)}
-                            disabled={form.watch('experts').length === 1}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
                         </div>
                       ))}
                       <Button type="button" variant="outline" size="sm" onClick={addExpert}>
@@ -1768,9 +1799,13 @@ export default function CreateAssignmentPage() {
                                 </div>
                               </div>
                               {expert.observation && (
-                                <div className="mt-3 p-2 bg-white rounded border border-pink-200">
+                                <div className="mt-3 space-y-2">
                                   <div className="text-xs text-pink-600 font-medium">Observation:</div>
-                                  <div className="text-sm text-pink-800">{expert.observation}</div>
+                                  <HtmlContent
+                                    content={expert.observation || ''}
+                                    className="p-2 bg-white rounded border border-pink-200"
+                                    label=""
+                                  />
                                 </div>
                               )}
                             </div>
@@ -1850,21 +1885,33 @@ export default function CreateAssignmentPage() {
                           </div>
                           <div className="space-y-3">
                             {form.watch('circumstance') && (
-                              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                <div className="text-sm font-medium text-blue-900 mb-1">Circonstances:</div>
-                                <div className="text-blue-800">{form.watch('circumstance')}</div>
-              </div>
-            )}
+                              <div className="space-y-2">
+                                <div className="text-sm font-medium text-blue-900">Circonstances:</div>
+                                <HtmlContent
+                                  content={form.watch('circumstance') || ''}
+                                  className="p-3 bg-blue-50 rounded-lg border border-blue-200"
+                                  label=""
+                                />
+                              </div>
+                            )}
                             {form.watch('damage_declared') && (
-                              <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                                <div className="text-sm font-medium text-red-900 mb-1">Dégâts déclarés:</div>
-                                <div className="text-red-800">{form.watch('damage_declared')}</div>
+                              <div className="space-y-2">
+                                <div className="text-sm font-medium text-red-900">Dégâts déclarés:</div>
+                                <HtmlContent
+                                  content={form.watch('damage_declared') || ''}
+                                  className="p-3 bg-red-50 rounded-lg border border-red-200"
+                                  label=""
+                                />
                               </div>
                             )}
                             {form.watch('observation') && (
-                              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                                <div className="text-sm font-medium text-green-900 mb-1">Observation générale:</div>
-                                <div className="text-green-800">{form.watch('observation')}</div>
+                              <div className="space-y-2">
+                                <div className="text-sm font-medium text-green-900">Observation générale:</div>
+                                <HtmlContent
+                                  content={form.watch('observation') || ''}
+                                  className="p-3 bg-green-50 rounded-lg border border-green-200"
+                                  label=""
+                                />
                               </div>
                             )}
                           </div>
@@ -2113,6 +2160,36 @@ export default function CreateAssignmentPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-genre">Genre de véhicule</Label>
+                <VehicleGenreSelect
+                  value={createVehicleForm.vehicle_genre_id}
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_genre_id: value }))}
+                  placeholder="Sélectionner un genre de véhicule"
+                  showDescription={false}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-age">Âge du véhicule</Label>
+                <VehicleAgeSelect
+                  value={createVehicleForm.vehicle_age_id}
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_age_id: value }))}
+                  placeholder="Sélectionner un âge de véhicule"
+                  showDescription={false}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-energy-type">Type d'énergie</Label>
+                <VehicleEnergySelect
+                  value={createVehicleForm.vehicle_energy_id}
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_energy_id: value }))}
+                  placeholder="Sélectionner un type d'énergie"
+                  showDescription={false}
+                />
               </div>
             </div>
             <DialogFooter>

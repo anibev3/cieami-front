@@ -82,6 +82,11 @@ export const sidebarData: SidebarData = {
           icon: IconFolder,
         },
         {
+          title: 'Liste des constats',
+          url: '/administration/constat',
+          icon: IconFolder,
+        },
+        {
           title: 'Coût de fourniture',
           url: '/assignments/cost-of-supply',
           icon: IconCheck,
@@ -90,6 +95,22 @@ export const sidebarData: SidebarData = {
           title: 'Statistiques',
           url: '/assignments/statistics',
           icon: IconCalculator,
+        },
+        {
+          title: 'Tableaux de dépréciation',
+          icon: IconPalette,
+          items: [
+            {
+              title: 'Liste tous les tableaux',
+              url: '/gestion/depreciation-tables',
+              icon: IconPalette,
+            },
+            {
+              title: 'Vénale théorique',
+              url: '/gestion/depreciation-tables/theoretical-value',
+              icon: IconPalette,
+            },
+          ],
         },
         {
           title: 'Gestion des photos',
@@ -105,7 +126,6 @@ export const sidebarData: SidebarData = {
               url: '/gestion/photo-types',
               icon: IconPalette,
             },
-
           ],
         },
       ],
@@ -387,6 +407,11 @@ export const sidebarData: SidebarData = {
           icon: IconCar,
           items: [
             {
+              title: 'Liste des véhicules',
+              url: '/administration/vehicles',
+              icon: IconCar,
+            },
+            {
               title: 'Couleurs',
               url: '/administration/colors',
               icon: IconPalette,
@@ -407,10 +432,52 @@ export const sidebarData: SidebarData = {
               icon: IconCategory,
             },
             {
-              title: 'Véhicules',
-              url: '/administration/vehicles',
-              icon: IconCar,
+              title: 'Genre de véhicule',
+              url: '/administration/vehicule/genre',
+              icon: IconCategory,
             },
+            {
+              title: 'Énergie de véhicule',
+              url: '/administration/vehicule/energie',
+              icon: IconCategory,
+            },
+            {
+              title: 'Âge de véhicule',
+              url: '/administration/vehicule/age',
+              icon: IconCategory,
+            },
+          ],
+        },
+        {
+          title: 'Constat',
+          icon: IconBuilding,
+          items: [
+            {
+              title: 'Type de constat',
+              url: '/administration/constat/type',
+              icon: IconBuilding,
+            },
+            // {
+            //   title: 'Constat',
+            //   url: '/administration/constat/constat',
+            //   icon: IconCategory,
+            // },
+          ],
+        },
+        {
+          title: 'Constat',
+          icon: IconBuilding,
+          items: [
+            {
+              title: 'Type de constat',
+              url: '/administration/constat/type',
+              icon: IconBuilding,
+            },
+            // {
+            //   title: 'Constat',
+            //   url: '/administration/constat/constat',
+            //   icon: IconCategory,
+            // },
           ],
         },
         {

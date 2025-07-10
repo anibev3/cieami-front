@@ -11,11 +11,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search, Edit, Trash2, Camera, Star, Upload, Image as ImageIcon, X, Grid3X3, List, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag } from 'lucide-react'
 import { CreatePhotoData, UpdatePhotoData, Photo } from '@/types/gestion'
-import { AssignmentSelect } from './components/AssignmentSelect'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
 
 export default function PhotosPage() {
   const {

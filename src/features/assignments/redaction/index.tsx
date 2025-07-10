@@ -60,11 +60,12 @@ import { Main } from '@/components/layout/main'
 import { assignmentService } from '@/services/assignmentService'
 import { ShockWorkforceTableV2 } from '@/features/assignments/components/shock-workforce-table-v2'
 import { ShockSuppliesEditTable } from '@/features/assignments/components/shock-supplies-edit-table'
-import { OtherCostTypeSelect, SelectedItemInfo } from '@/features/assignments/components/reusable-selects'
+import { OtherCostTypeSelect, SelectedItemInfo } from '@/features/widgets/reusable-selects'  
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { ReceiptManagement } from '@/features/assignments/components/receipt-management'
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
 interface Assignment {
   id: number
@@ -243,6 +244,10 @@ export default function EditReportPage() {
   const [saving, setSaving] = useState(false)
   const [showAddOtherCostModal, setShowAddOtherCostModal] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  // États pour les champs d'édition
+  const [circumstance, setCircumstance] = useState('')
+  const [damageDeclared, setDamageDeclared] = useState('')
+  const [observation, setObservation] = useState('')
   // Remplacer newOtherCost par un tableau newOtherCosts
   const [newOtherCosts, setNewOtherCosts] = useState([
     { other_cost_type_id: 0, amount: 0 }
@@ -264,8 +269,18 @@ export default function EditReportPage() {
         
         if (response && typeof response === 'object' && 'data' in response) {
           setAssignment(response.data as unknown as Assignment)
+          // Initialiser les champs d'édition
+          const assignmentData = response.data as unknown as Assignment
+          setCircumstance(assignmentData.circumstance || '')
+          setDamageDeclared(assignmentData.damage_declared || '')
+          setObservation(assignmentData.observation || '')
         } else {
           setAssignment(response as unknown as Assignment)
+          // Initialiser les champs d'édition
+          const assignmentData = response as unknown as Assignment
+          setCircumstance(assignmentData.circumstance || '')
+          setDamageDeclared(assignmentData.damage_declared || '')
+          setObservation(assignmentData.observation || '')
         }
       } catch (err) {
         console.log(err)
@@ -387,8 +402,16 @@ export default function EditReportPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Ici vous pouvez ajouter la logique de sauvegarde si nécessaire
+      // Sauvegarder les modifications des champs d'édition
+      if (assignment) {
+        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignment.id}`, {
+          circumstance,
+          damage_declared: damageDeclared,
+          observation
+        })
+      }
       toast.success('Modifications sauvegardées avec succès')
+      refreshAssignment()
     } catch (err) {
       console.error('Erreur lors de la sauvegarde:', err)
       toast.error('Erreur lors de la sauvegarde')
@@ -650,7 +673,7 @@ export default function EditReportPage() {
                 {/* Vue d'ensemble */}
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
-                    {/* <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
                       <h2 className="text-xl font-bold text-gray-900">Vue d'ensemble</h2>
                       <Button 
                         onClick={handleSave}
@@ -669,7 +692,7 @@ export default function EditReportPage() {
                           </>
                         )}
                       </Button>
-                    </div> */}
+                    </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Informations générales */}
@@ -703,18 +726,46 @@ export default function EditReportPage() {
                           <Separator />
                           
                           <div>
-                            <label className="text-xs font-medium text-gray-600">Circonstances</label>
-                            <p className="text-sm text-gray-900">{assignment.circumstance}</p>
+                            <RichTextEditor
+                              label="Circonstances"
+                              value={circumstance}
+                              onChange={setCircumstance}
+                              placeholder="Décrivez les circonstances de l'accident..."
+                              className="mb-4"
+                            />
                           </div>
                           
                           <div>
-                            <label className="text-xs font-medium text-gray-600">Dégâts déclarés</label>
-                            <p className="text-sm text-gray-900">{assignment.damage_declared}</p>
+                            <RichTextEditor
+                              label="Dégâts déclarés"
+                              value={damageDeclared}
+                              onChange={setDamageDeclared}
+                              placeholder="Décrivez les dégâts déclarés..."
+                              className="mb-4"
+                            />
                           </div>
                           
                           <div>
-                            <label className="text-xs font-medium text-gray-600">Points notés</label>
-                            <p className="text-sm text-gray-900">{assignment.point_noted}</p>
+                            <RichTextEditor
+                              label="Points notés"
+                              value={assignment.point_noted || ''}
+                              onChange={(value) => {
+                                // Pour les points notés, on peut les rendre éditables aussi si nécessaire
+                                console.log('Points notés modifiés:', value)
+                              }}
+                              placeholder="Ajoutez des points notés..."
+                              className="mb-4"
+                            />
+                          </div>
+                          
+                          <div>
+                            <RichTextEditor
+                              label="Observation générale"
+                              value={observation}
+                              onChange={setObservation}
+                              placeholder="Ajoutez vos observations générales..."
+                              className="mb-4"
+                            />
                           </div>
                         </CardContent>
                       </Card>

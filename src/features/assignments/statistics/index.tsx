@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, BarChart3, TrendingUp, FileText, Search } from 'lucide-react'
+import { CalendarIcon, Search } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-import { AssignmentSelect } from '../../gestion/photos/components/AssignmentSelect'
+import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
 import { AssignmentStatisticsTable } from './components/assignment-statistics-table'
 import { useAssignmentStatisticsStore } from '@/stores/assignmentStatisticsStore'
-import { formatCurrency } from '@/utils/format-currency'
 
 export default function AssignmentStatisticsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
@@ -33,15 +32,6 @@ export default function AssignmentStatisticsPage() {
     fetchStatistics(filters)
   }
 
-  const getTotalCount = () => {
-    if (!statistics?.assignments_by_year_and_month_count) return 0
-    return statistics.assignments_by_year_and_month_count.reduce((total, item) => total + item.count, 0)
-  }
-
-  const getTotalAmount = () => {
-    if (!statistics?.assignments_by_year_and_month_amount) return 0
-    return statistics.assignments_by_year_and_month_amount.reduce((total, item) => total + parseFloat(item.amount), 0)
-  }
 
   return (
     <div className="space-y-6">
