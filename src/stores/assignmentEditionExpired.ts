@@ -118,7 +118,7 @@ const getAllStatusTabs = (): StatusTab[] => {
   return tabs
 }
 
-export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
+export const useAssignmentsEditionExpiredStore = create<AssignmentsStore>((set, get) => ({
   // État initial
   assignments: [],
   assignmentsRecoveryExpired: [],

@@ -40,6 +40,7 @@ interface ShockWorkforceTableV2Props {
   shockId: number
   workforces: Workforce[]
   onUpdate: (updatedWorkforces: Workforce[]) => void
+  onAdd?: (workforceData?: any) => Promise<void> // Nouvelle prop pour l'API POST
   onAssignmentRefresh?: () => void // Callback pour rafraîchir les données du dossier
 }
 
@@ -47,12 +48,15 @@ export function ShockWorkforceTableV2({
   shockId,
   workforces,
   onUpdate,
+  onAdd,
   onAssignmentRefresh
 }: ShockWorkforceTableV2Props) {
   const [localWorkforces, setLocalWorkforces] = useState<Workforce[]>(workforces)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
   const [creatingId, setCreatingId] = useState<string | null>(null)
   const [originalValues, setOriginalValues] = useState<Record<number, Partial<Workforce>>>({})
+  const [newRows, setNewRows] = useState<Set<number>>(new Set()) // Lignes nouvellement ajoutées
+  const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set()) // Lignes modifiées
 
   // Utiliser les stores
   const { workforceTypes, loading: workforceTypesLoading, fetchWorkforceTypes } = useWorkforceTypesStore()
@@ -119,6 +123,7 @@ export function ShockWorkforceTableV2({
     const updated = [...localWorkforces]
     updated[index] = { ...updated[index], [field]: value }
     setLocalWorkforces(updated)
+    setModifiedRows(prev => new Set([...prev, index]))
   }
 
   // Fonction pour sauvegarder une ligne existante
@@ -173,64 +178,101 @@ export function ShockWorkforceTableV2({
     }
   }
 
-  // Fonction pour sauvegarder une nouvelle ligne
-  const saveNewWorkforce = async (index: number) => {
+  // Fonction pour ajouter une nouvelle ligne localement
+  const handleAddNewRow = () => {
+    const newWorkforce: Workforce = {
+      uid: crypto.randomUUID(),
+      workforce_type_id: 0,
+      nb_hours: 0,
+      discount: 0,
+      work_fee: 0,
+      amount_excluding_tax: 0,
+      amount_tax: 0,
+      amount: 0,
+      hourly_rate_id: _hourlyRates.length > 0 ? _hourlyRates[0].id : 0,
+      paint_type_id: _paintTypes.length > 0 ? _paintTypes[0].id : 0
+    }
+    
+    const updated = [...localWorkforces, newWorkforce]
+    setLocalWorkforces(updated)
+    setNewRows(prev => new Set([...prev, updated.length - 1]))
+    setModifiedRows(prev => new Set([...prev, updated.length - 1]))
+    // Ne pas appeler onUpdate ici, seulement lors de la validation
+  }
+
+  // Fonction de validation d'une ligne
+  const handleValidateRow = async (index: number) => {
     const workforce = localWorkforces[index]
-    if (!workforce.uid) return
+    
+    if (newRows.has(index)) {
+      // Nouvelle ligne, appeler onAdd (API POST)
+      if (onAdd) {
+        try {
+          setCreatingId(workforce.uid || '')
+          
+          const workforceData = {
+            workforce_type_id: getWorkforceTypeId(workforce),
+            nb_hours: Number(workforce.nb_hours),
+            discount: Number(workforce.discount)
+          }
+          
+          await onAdd(workforceData)
+          
+          setNewRows(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(index)
+            return newSet
+          })
+          
+          setModifiedRows(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(index)
+            return newSet
+          })
+          
+          toast.success('Main d\'œuvre créée avec succès')
+        } catch (_error) {
+          toast.error('Erreur lors de la création de la main d\'œuvre')
+        } finally {
+          setCreatingId(null)
+        }
+      }
+    } else {
+      // Ligne existante, utiliser la logique existante
+      await saveWorkforce(index)
+    }
+  }
 
-    try {
-      setCreatingId(workforce.uid)
-      
-      // Préparer les données pour l'API
-      const createData = {
-        shock_id: shockId,
-        workforce_type_id: getWorkforceTypeId(workforce).toString(),
-        nb_hours: Number(workforce.nb_hours),
-        discount: Number(workforce.discount),
-        hourly_rate_id: workforce.hourly_rate_id?.toString() || (_hourlyRates.length > 0 ? _hourlyRates[0].id.toString() : "1"),
-        paint_type_id: workforce.paint_type_id?.toString() || (_paintTypes.length > 0 ? _paintTypes[0].id.toString() : "1"),
-      }
-
-      // Appel API pour créer
-      const response = await workforceService.createWorkforce(createData)
-      
-      // Remplacer la ligne temporaire par la ligne créée
-      const updated = [...localWorkforces]
-      updated[index] = {
-        ...response.data,
-        workforce_type_id: response.data.workforce_type_id,
-        nb_hours: response.data.nb_hours,
-        discount: response.data.discount,
-        work_fee: response.data.work_fee || 0,
-        amount_excluding_tax: response.data.amount_excluding_tax || 0,
-        amount_tax: response.data.amount_tax || 0,
-        amount: response.data.amount || 0
-      }
-      
-      setLocalWorkforces(updated)
-      onUpdate(updated)
-      
-      // Sauvegarder les valeurs originales
-      setOriginalValues(prev => ({
-        ...prev,
-        [response.data.id]: { ...updated[index] }
-      }))
-      
-      toast.success('Main d\'œuvre créée avec succès')
-      
-      // Rafraîchir les données du dossier
-      if (onAssignmentRefresh) {
-        onAssignmentRefresh()
-      }
-    } catch (_error) {
-      toast.error('Erreur lors de la création de la main d\'œuvre')
-      
-      // Supprimer la ligne temporaire en cas d'erreur
+  // Fonction pour supprimer une ligne
+  const handleRemoveRow = async (index: number) => {
+    const workforce = localWorkforces[index]
+    
+    if (newRows.has(index)) {
+      // Ligne temporaire, la supprimer localement
       const updated = localWorkforces.filter((_, i) => i !== index)
       setLocalWorkforces(updated)
+      setNewRows(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
+      setModifiedRows(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
       onUpdate(updated)
-    } finally {
-      setCreatingId(null)
+    } else if (workforce.id) {
+      // Ligne existante, la supprimer via l'API
+      try {
+        await workforceService.deleteWorkforce(workforce.id)
+        const updated = localWorkforces.filter((_, i) => i !== index)
+        setLocalWorkforces(updated)
+        onUpdate(updated)
+        toast.success('Main d\'œuvre supprimée avec succès')
+      } catch (_error) {
+        toast.error('Erreur lors de la suppression de la main d\'œuvre')
+      }
     }
   }
 
@@ -238,10 +280,20 @@ export function ShockWorkforceTableV2({
   const cancelChanges = (index: number) => {
     const workforce = localWorkforces[index]
     
-    if (workforce.uid) {
+    if (newRows.has(index)) {
       // C'est une nouvelle ligne, la supprimer
       const updated = localWorkforces.filter((_, i) => i !== index)
       setLocalWorkforces(updated)
+      setNewRows(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
+      setModifiedRows(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
       onUpdate(updated)
     } else if (workforce.id) {
       // C'est une ligne existante, restaurer les valeurs originales
@@ -258,67 +310,7 @@ export function ShockWorkforceTableV2({
 
   // Fonction pour vérifier si une ligne a été modifiée
   const hasChanges = (index: number) => {
-    const workforce = localWorkforces[index]
-    
-    if (workforce.uid) {
-      // Nouvelle ligne, toujours considérée comme modifiée
-      return getWorkforceTypeId(workforce) !== 0 || Number(workforce.nb_hours) !== 0 || Number(workforce.discount) !== 0
-    }
-    
-    if (!workforce.id) return false
-
-    const original = originalValues[workforce.id]
-    if (!original) return true
-
-    return (
-      Number(workforce.nb_hours) !== Number(original.nb_hours) ||
-      Number(workforce.discount) !== Number(original.discount) ||
-      getWorkforceTypeId(workforce) !== getWorkforceTypeId(original as Workforce) ||
-      workforce.hourly_rate_id !== original.hourly_rate_id ||
-      workforce.paint_type_id !== original.paint_type_id
-    )
-  }
-
-  // Fonction pour ajouter une nouvelle ligne
-  const addWorkforce = () => {
-    const newWorkforce: Workforce = {
-      uid: `temp_${Date.now()}`,
-      workforce_type_id: 0,
-      nb_hours: 0,
-      discount: 0,
-      work_fee: 0,
-      amount_excluding_tax: 0,
-      amount_tax: 0,
-      amount: 0,
-      hourly_rate_id: _hourlyRates.length > 0 ? _hourlyRates[0].id : 0,
-      paint_type_id: _paintTypes.length > 0 ? _paintTypes[0].id : 0
-    }
-    const updated = [...localWorkforces, newWorkforce]
-    setLocalWorkforces(updated)
-    onUpdate(updated)
-  }
-
-  // Fonction pour supprimer une ligne
-  const removeWorkforce = async (index: number) => {
-    const workforce = localWorkforces[index]
-    
-    if (workforce.uid) {
-      // Ligne temporaire, la supprimer directement
-      const updated = localWorkforces.filter((_, i) => i !== index)
-      setLocalWorkforces(updated)
-      onUpdate(updated)
-    } else if (workforce.id) {
-      // Ligne existante, la supprimer via l'API
-      try {
-        await workforceService.deleteWorkforce(workforce.id)
-        const updated = localWorkforces.filter((_, i) => i !== index)
-        setLocalWorkforces(updated)
-        onUpdate(updated)
-        toast.success('Main d\'œuvre supprimée avec succès')
-      } catch (_error) {
-        toast.error('Erreur lors de la suppression de la main d\'œuvre')
-      }
-    }
+    return modifiedRows.has(index) || newRows.has(index)
   }
 
   const totals = calculateTotals(localWorkforces)
@@ -328,13 +320,13 @@ export function ShockWorkforceTableV2({
     <div className="space-y-4">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-lg flex items-center gap-2">
+        <h4 className="font-semibold text-[10px] flex items-center gap-2">
           <Calculator className="h-5 w-5 text-green-600" />
           Main d'œuvre - Choc #{shockId}
         </h4>
         <div className="flex gap-2">
           <Button 
-            onClick={addWorkforce}
+            onClick={handleAddNewRow}
             className="text-white"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -344,7 +336,7 @@ export function ShockWorkforceTableV2({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full border text-xs">
+        <table className="min-w-full border text-[10px]">
           <thead>
             <tr className="bg-gray-50 border-b">
               <th className="border px-3 py-2 text-left font-medium">
@@ -448,7 +440,7 @@ export function ShockWorkforceTableV2({
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => row.uid ? saveNewWorkforce(i) : saveWorkforce(i)}
+                          onClick={() => handleValidateRow(i)}
                           disabled={updatingId === row.id || creatingId === row.uid}
                           className="h-6 w-6 hover:bg-green-50 hover:text-green-600"
                         >
@@ -472,7 +464,7 @@ export function ShockWorkforceTableV2({
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => removeWorkforce(i)}
+                      onClick={() => handleRemoveRow(i)}
                       disabled={updatingId === row.id || creatingId === row.uid}
                       className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
                     >
@@ -488,26 +480,26 @@ export function ShockWorkforceTableV2({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-5 gap-4 text-sm">
+        <div className="grid grid-cols-5 gap-4 text-[10px]">
           <div className="text-center">
-            <div className="text-gray-600 font-medium">Total Heures</div>
-            <div className="text-xl font-bold text-gray-800">{totals.hours}</div>
+            <div className="text-gray-600 font-medium text-[10px]">Total Heures</div>
+            <div className="text-base font-bold text-gray-800">{totals.hours}</div>
           </div>
           <div className="text-center">
-            <div className="text-green-600 font-medium">Total HT</div>
-            <div className="text-lg font-bold text-green-700">{formatCurrency(totals.ht)}</div>
+            <div className="text-green-600 font-medium text-[10px]">Total HT</div>
+            <div className="text-[12px] font-bold text-green-700">{formatCurrency(totals.ht)}</div>
           </div>
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Total TVA</div>
-            <div className="text-lg font-bold text-blue-700">{formatCurrency(totals.tva)}</div>
+            <div className="text-blue-600 font-medium text-[10px]">Total TVA</div>
+            <div className="text-[12px] font-bold text-blue-700">{formatCurrency(totals.tva)}</div>
           </div>
           <div className="text-center">
-            <div className="text-purple-600 font-medium">Total TTC</div>
-            <div className="text-lg font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
+            <div className="text-purple-600 font-medium text-[10px]">Total TTC</div>
+            <div className="text-[12px] font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
           </div>
           <div className="text-center">
-            <div className="text-gray-600 font-medium">Récap</div>
-            <div className="text-lg font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
+            <div className="text-gray-600 font-medium text-[10px]">Récap</div>
+            <div className="text-[12px] font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
           </div>
         </div>
       </div>

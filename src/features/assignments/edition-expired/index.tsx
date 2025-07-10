@@ -17,12 +17,12 @@ import {
   Loader2
 } from 'lucide-react'
 import { AssignmentsDataTable } from '../components/assignments-data-table'
-import { useAssignmentsStore, getAllStatusTabs } from '@/stores/assignments'
 import { toast } from 'sonner'
 import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { getAllStatusTabs, useAssignmentsEditionExpiredStore } from '@/stores/assignmentEditionExpired'
 
 export default function AssignmentsEditionExpiredPage() {
   const navigate = useNavigate()
@@ -37,7 +37,7 @@ export default function AssignmentsEditionExpiredPage() {
     getFilteredAssignments,
     getStatusCounts,
     clearError,
-  } = useAssignmentsStore()
+  } = useAssignmentsEditionExpiredStore()
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['all'])
@@ -350,27 +350,7 @@ export default function AssignmentsEditionExpiredPage() {
             ) : (
               <div>
                 {/* Active Tab Summary */}
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{getStatusIcon(activeTab)}</span>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {allStatusTabs.find(tab => tab.value === activeTab)?.label}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {activeTab === 'all' 
-                            ? 'Tous les dossiers d\'expertise' 
-                            : `${statusCounts[activeTab] || 0} dossier(s) avec ce statut`
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-sm">
-                      {statusCounts[activeTab] || 0} résultat(s)
-                    </Badge>
-                  </div>
-                </div>
+              
 
                 {/* DataTable */}
                 <div className=" overflow-hidden">

@@ -33,6 +33,9 @@ export const API_CONFIG = {
     // Endpoints pour la gestion
     PHOTO_TYPES: '/photo-types',
     PHOTOS: '/photos',
+    SHOCK_WORKS: "/shock-works",
+    WORKFORCES: "/workforces",
+    OTHER_COSTS: "/other-costs",
   },
 } as const
 

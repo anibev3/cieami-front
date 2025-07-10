@@ -22,6 +22,7 @@ import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { useAssignmentsRecoveryExpiredStore } from '@/stores/assignmentsRecoveryExpired'
 
 export default function AssignmentsRecoveryExpiredPage() {
   const navigate = useNavigate()
@@ -36,7 +37,7 @@ export default function AssignmentsRecoveryExpiredPage() {
     getFilteredAssignments,
     getStatusCounts,
     clearError,
-  } = useAssignmentsStore()
+  } = useAssignmentsRecoveryExpiredStore()
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['all'])
@@ -275,38 +276,6 @@ export default function AssignmentsRecoveryExpiredPage() {
                 ))}
               </div>
             </div>
-
-            {/* Status Tabs */}
-            {/* <div className="mt-6">
-              <div className="flex gap-1 p-1 bg-gray-100/50 rounded-lg w-fit">
-                {allStatusTabs.map((tab) => (
-                  <button
-                    key={tab.value}
-                    onClick={() => handleStatusChange(tab.value)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                      activeTab === tab.value
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>{getStatusIcon(tab.value)}</span>
-                      <span>{tab.label}</span>
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-xs ${
-                          activeTab === tab.value 
-                            ? 'bg-gray-100 text-gray-700' 
-                            : 'bg-gray-200/50 text-gray-600'
-                        }`}
-                      >
-                        {statusCounts[tab.value] || 0}
-                      </Badge>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div> */}
           </div>
 
           {/* Active Filters Display */}
@@ -349,27 +318,7 @@ export default function AssignmentsRecoveryExpiredPage() {
             ) : (
               <div>
                 {/* Active Tab Summary */}
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{getStatusIcon(activeTab)}</span>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {allStatusTabs.find(tab => tab.value === activeTab)?.label}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {activeTab === 'all' 
-                            ? 'Tous les dossiers d\'expertise' 
-                            : `${statusCounts[activeTab] || 0} dossier(s) avec ce statut`
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-sm">
-                      {statusCounts[activeTab] || 0} résultat(s)
-                    </Badge>
-                  </div>
-                </div>
+               
 
                 {/* DataTable */}
                 <div className=" overflow-hidden">
