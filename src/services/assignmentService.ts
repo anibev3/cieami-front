@@ -1,6 +1,16 @@
 /* eslint-disable no-console */
 import axiosInstance from '@/lib/axios'
-import { Assignment, AssignmentCreate, AssignmentUpdate, AssignmentApiResponse, AssignmentFilters } from '@/types/assignments'
+import { 
+  Assignment, 
+  AssignmentCreate, 
+  AssignmentUpdate, 
+  AssignmentApiResponse, 
+  AssignmentFilters,
+  EvaluationCalculationRequest,
+  EvaluationCalculationResponse,
+  EvaluationSubmissionRequest,
+  EvaluationSubmissionResponse
+} from '@/types/assignments'
 import { API_CONFIG } from '@/config/api'
 
 class AssignmentService {
@@ -38,7 +48,7 @@ class AssignmentService {
     console.log("================================================");
     console.log(response.data.data)
     console.log("================================================");
-    return response.data.data
+    return response.data
   }
 
   async getAssignmentsRecoveryExpired(page: number = 1, filters?: AssignmentFilters): Promise<AssignmentApiResponse> {
@@ -53,7 +63,7 @@ class AssignmentService {
       ...(filters?.date_to && { date_to: filters.date_to }),
     })
     const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_RECOVERY_EXPIRED}?${params}`)
-    return response.data.data
+    return response.data
   }
 
   /**
@@ -94,6 +104,28 @@ class AssignmentService {
     const response = await axiosInstance.patch<Assignment>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}/status`, {
       status_id: statusId
     })
+    return response.data
+  }
+
+  /**
+   * Calculer l'évaluation d'une assignation
+   */
+  async calculateEvaluation(data: EvaluationCalculationRequest): Promise<EvaluationCalculationResponse> {
+    const response = await axiosInstance.post<EvaluationCalculationResponse>(
+      API_CONFIG.ENDPOINTS.CALCULATE_EVALUATION, 
+      data
+    )
+    return response.data
+  }
+
+  /**
+   * Soumettre l'évaluation d'une assignation
+   */
+  async submitEvaluation(assignmentId: number, data: EvaluationSubmissionRequest): Promise<EvaluationSubmissionResponse> {
+    const response = await axiosInstance.post<EvaluationSubmissionResponse>(
+      `${API_CONFIG.ENDPOINTS.EVALUATE}/${assignmentId}`, 
+      data
+    )
     return response.data
   }
 }

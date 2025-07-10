@@ -41,7 +41,7 @@ export function AssignmentActions({
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
   
   // Fonction pour déterminer les actions disponibles selon le statut
-  const getAvailableActions = (statusCode: string) => {
+  const getAvailableActions = (statusCode: string, assignment: Assignment) => {
     const baseActions = [
       {
         key: 'view-detail',
@@ -136,9 +136,15 @@ export function AssignmentActions({
         // },
         {
           key: 'write-report',
-          label: 'Rédiger le rapport',
+          label: 'Rédiger  ' + (assignment.expertise_type.code === '005' ? 'l\'évaluation' : '    le rapport'), 
           icon: FileText,
-          onClick: () => navigate({ to: `/assignments/edite-report/${assignment.id}` }),
+          onClick: () => {
+            if (assignment.expertise_type.code === '005') {
+              navigate({ to: `/assignments/evaluate-report/${assignment.id}` })
+            } else {
+              navigate({ to: `/assignments/edit-report/${assignment.id}` })
+            }
+          },
           show: true,
           destructive: false
         }
@@ -275,7 +281,7 @@ export function AssignmentActions({
     ]
   }
 
-  const availableActions = getAvailableActions(assignment.status.code)
+  const availableActions = getAvailableActions(assignment.status.code, assignment)
 
   return (
     <>

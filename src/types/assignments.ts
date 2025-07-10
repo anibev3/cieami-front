@@ -573,4 +573,140 @@ export interface AssignmentStatisticsFilters {
   start_date: string
   end_date: string
   assignment_id?: number
+}
+
+// Types pour le calcul d'évaluation
+export interface EvaluationCalculationRequest {
+  vehicle_id: string
+  expertise_date: string
+  market_incidence_rate: number
+  ascertainments: Array<{
+    ascertainment_type_id: string
+    very_good: boolean
+    good: boolean
+    acceptable: boolean
+    less_good: boolean
+    bad: boolean
+    very_bad: boolean
+    comment: string
+  }>
+  shocks: Array<{
+    shock_point_id: number
+    shock_works: Array<{
+      supply_id: string
+      disassembly: boolean
+      replacement: boolean
+      repair: boolean
+      paint: boolean
+      control: boolean
+      comment: string
+      obsolescence_rate: number
+      recovery_rate: number
+      discount: number
+      amount: number
+    }>
+    paint_type_id: number
+    hourly_rate_id: number
+    with_tax: boolean
+    workforces: Array<{
+      workforce_type_id: number
+      amount: number
+    }>
+  }>
+  other_costs: Array<{
+    other_cost_type_id: number
+    amount: number
+  }>
+}
+
+export interface EvaluationCalculationResponse {
+  status: number
+  message: string
+  data: {
+    total_amount_excluding_tax: number
+    total_amount_tax: number
+    total_amount: number
+    market_value: number
+    salvage_value: number
+    depreciation_amount: number
+    final_amount: number
+    calculations: {
+      shocks: Array<{
+        shock_point_id: number
+        shock_works: Array<{
+          supply_id: string
+          amount_excluding_tax: number
+          amount_tax: number
+          amount: number
+        }>
+        workforces: Array<{
+          workforce_type_id: number
+          amount_excluding_tax: number
+          amount_tax: number
+          amount: number
+        }>
+        total_amount_excluding_tax: number
+        total_amount_tax: number
+        total_amount: number
+      }>
+      other_costs: Array<{
+        other_cost_type_id: number
+        amount_excluding_tax: number
+        amount_tax: number
+        amount: number
+      }>
+    }
+  }
+}
+
+// Types pour la soumission d'évaluation
+export interface EvaluationSubmissionRequest {
+  market_incidence_rate: number
+  ascertainments: Array<{
+    ascertainment_type_id: string
+    very_good: boolean
+    good: boolean
+    acceptable: boolean
+    less_good: boolean
+    bad: boolean
+    very_bad: boolean
+    comment: string
+  }>
+  shocks: Array<{
+    shock_point_id: number
+    shock_works: Array<{
+      supply_id: string
+      disassembly: boolean
+      replacement: boolean
+      repair: boolean
+      paint: boolean
+      control: boolean
+      comment: string
+      obsolescence_rate: number
+      recovery_rate: number
+      discount: number
+      amount: number
+    }>
+    workforces: Array<{
+      workforce_type_id: number
+      amount: number
+    }>
+  }>
+  other_costs: Array<{
+    other_cost_type_id: number
+    amount: number
+  }>
+}
+
+export interface EvaluationSubmissionResponse {
+  status: number
+  message: string
+  data: {
+    assignment_id: number
+    evaluation_id: number
+    total_amount: number
+    market_value: number
+    salvage_value: number
+    created_at: string
+  }
 } 

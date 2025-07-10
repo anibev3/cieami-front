@@ -30,6 +30,8 @@ export const API_CONFIG = {
     PAINT_TYPES: '/paint-types',
     HOURLY_RATES: '/hourly-rates',
     CALCULATIONS: '/assignments/calculate',
+    CALCULATE_EVALUATION: '/assignments/calculate-evaluation',
+    EVALUATE: '/assignments/evaluate',
     // Endpoints pour la gestion
     PHOTO_TYPES: '/photo-types',
     PHOTOS: '/photos',
