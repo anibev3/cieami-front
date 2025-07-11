@@ -184,7 +184,7 @@ export function ShockSuppliesTable({
               <th className="border px-2 py-2 text-left font-medium text-xs">
                 Commentaire
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-blue-600 text-xs">
+              {/* <th className="border px-2 py-2 text-center font-medium text-blue-600 text-xs">
                 Vetusté
               </th>
               <th className="border px-2 py-2 text-center font-medium text-green-600 text-xs">
@@ -192,7 +192,7 @@ export function ShockSuppliesTable({
               </th>
               <th className="border px-2 py-2 text-center font-medium text-purple-600 text-xs">
                 Montant Final
-              </th>
+              </th> */}
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Actions
               </th>
@@ -250,7 +250,7 @@ export function ShockSuppliesTable({
                 <td className="border px-2 text-center text-xs">
                   <Input
                     type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.obsolescence_rate}
                     onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
                   />
@@ -258,7 +258,7 @@ export function ShockSuppliesTable({
                 <td className="border px-2 text-center text-xs">
                   <Input
                     type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.recovery_rate}
                     onChange={e => updateLocalShockWork(i, 'recovery_rate', Number(e.target.value))}
                   />
@@ -266,7 +266,7 @@ export function ShockSuppliesTable({
                 <td className="border px-2 py-2 text-center text-xs">
                   <Input
                     type="number"
-                    className="rounded w-25 p-1 text-center border-none focus:border-none focus:ring-0"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.amount}
                     onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
                   />
@@ -274,13 +274,13 @@ export function ShockSuppliesTable({
                 <td className="border px-2 py-2 text-xs">
                   <Input
                     type="text"
-                    className="rounded w-20 p-1 border-none focus:border-none focus:ring-0"
+                    className="rounded p-1 border-none focus:border-none focus:ring-0"
                     value={row.comment}
                     placeholder="Commentaire..."
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
                 </td>
-                <td className="border w-35 px-2 py-2 text-center text-xs">
+                {/* <td className="border w-35 px-2 py-2 text-center text-xs">
                   <div className="text-blue-600 font-medium">
                     {formatCurrency(row.obsolescence_amount || 0)}
                   </div>
@@ -315,7 +315,7 @@ export function ShockSuppliesTable({
                   <div className="text-[8px] text-gray-500">
                     TVA: {formatCurrency(row.new_amount_tax || 0)}
                   </div>
-                </td>
+                </td> */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (
@@ -352,7 +352,7 @@ export function ShockSuppliesTable({
       </div>
 
       {/* Récapitulatif moderne */}
-      <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
+      {/* <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
         <div className="grid grid-cols-9 gap-4 text-xs">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
@@ -395,7 +395,7 @@ export function ShockSuppliesTable({
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 } 

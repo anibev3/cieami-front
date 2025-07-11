@@ -202,7 +202,7 @@ export default function EvaluateReportPage() {
   const { calculateEvaluation, submitEvaluation, calculating, submitting, calculationResult, submissionResult } = useEvaluationStore()
   const { ascertainmentTypes, fetchAscertainmentTypes } = useAscertainmentTypeStore()
   
-  const [marketIncidenceRate, setMarketIncidenceRate] = useState(10) // Valeur par défaut de 10%
+  const [marketIncidenceRate, setMarketIncidenceRate] = useState(0) // Valeur par défaut de 10%
   const [expertiseDate, setExpertiseDate] = useState(new Date().toISOString().split('T')[0])
   
   const [ascertainments, setAscertainments] = useState<Array<{
@@ -265,10 +265,10 @@ export default function EvaluateReportPage() {
       }
       
       // Initialiser le taux d'incidence marché avec une valeur par défaut si pas définie
-      if (marketIncidenceRate === 10) {
-        // On garde la valeur par défaut de 10% si pas de valeur spécifique
-        setMarketIncidenceRate(10)
-      }
+      // if (marketIncidenceRate === 10) {
+      //   // On garde la valeur par défaut de 10% si pas de valeur spécifique
+      //   setMarketIncidenceRate(10)
+      // }
     }
   }, [assignment, marketIncidenceRate])
 
@@ -288,7 +288,25 @@ export default function EvaluateReportPage() {
   // Fonctions pour gérer les constats
   const updateAscertainment = (index: number, field: string, value: any) => {
     const newAscertainments = [...ascertainments]
-    newAscertainments[index] = { ...newAscertainments[index], [field]: value }
+    
+    // Si c'est un champ de qualité et qu'on coche une option
+    if (['very_good', 'good', 'acceptable', 'less_good', 'bad', 'very_bad'].includes(field) && value === true) {
+      // Décocher toutes les autres options
+      newAscertainments[index] = {
+        ...newAscertainments[index],
+        very_good: false,
+        good: false,
+        acceptable: false,
+        less_good: false,
+        bad: false,
+        very_bad: false,
+        [field]: value
+      }
+    } else {
+      // Mise à jour normale
+      newAscertainments[index] = { ...newAscertainments[index], [field]: value }
+    }
+    
     setAscertainments(newAscertainments)
     
     // Déclencher le calcul automatique si c'est un champ de qualité
@@ -357,10 +375,10 @@ export default function EvaluateReportPage() {
       return false
     }
 
-    if (marketIncidenceRate <= 0) {
-      toast.error('Le taux d\'incidence marché doit être supérieur à 0')
-      return false
-    }
+    // if (marketIncidenceRate <= 0) {
+    //   toast.error('Le taux d\'incidence marché doit être supérieur à 0')
+    //   return false
+    // }
 
 
 
@@ -418,10 +436,10 @@ export default function EvaluateReportPage() {
       return false
     }
 
-    if (!calculationData.market_incidence_rate || calculationData.market_incidence_rate <= 0) {
-      toast.error('Taux d\'incidence marché invalide')
-      return false
-    }
+    // if (!calculationData.market_incidence_rate || calculationData.market_incidence_rate <= 0) {
+    //   toast.error('Taux d\'incidence marché invalide')
+    //   return false
+    // }
 
     return await calculateEvaluation(calculationData)
   }, [assignment, expertiseDate, marketIncidenceRate, ascertainments, shocks, otherCosts, calculateEvaluation])
@@ -489,10 +507,10 @@ export default function EvaluateReportPage() {
       return false
     }
 
-    if (marketIncidenceRate <= 0) {
-      toast.error('Le taux d\'incidence marché doit être supérieur à 0')
-      return false
-    }
+    // if (marketIncidenceRate <= 0) {
+    //   toast.error(`Attention! Le taux d'incidence marché ${marketIncidenceRate ? marketIncidenceRate : 'qqchose'} est supérieur à 0`)
+    //   // return false
+    // }
 
     const cleanedShocks = shocks
       .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
@@ -1102,9 +1120,9 @@ export default function EvaluateReportPage() {
                     Véhicule
                     {!assignment?.vehicle?.id && <span className="text-red-500 ml-1">*</span>}
                   </Label>
-                  <div className={`p-4 rounded-lg border-2 ${!assignment?.vehicle?.id ? 'bg-red-50 border-red-200' : 'bg-white border-blue-200'}`}>
+                  <div className={`p-2 rounded-lg border-2 ${!assignment?.vehicle?.id ? 'bg-red-50 border-red-200' : 'bg-white border-blue-200'}`}>
                     {assignment?.vehicle ? (
-                      <div className="space-y-2">
+                      <div className="">
                         <div className="flex items-center justify-between">
                           <div className="font-bold text-lg text-gray-800">{assignment.vehicle.license_plate}</div>
                           <Badge variant="outline" className="bg-green-100 text-green-800">
@@ -1112,10 +1130,11 @@ export default function EvaluateReportPage() {
                             Valide
                           </Badge>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {assignment.vehicle.brand?.label} {assignment.vehicle.vehicle_model?.label}
-                        </div>
-                        <div className="text-xs text-gray-500">ID: {assignment.vehicle.id}</div>
+                        {/* <div className="text-sm text-gray-600">
+                          {assignment.vehicle.brand?.label}
+                          {assignment.vehicle.vehicle_model?.label}
+                        </div> */}
+                        {/* <div className="text-xs text-gray-500">ID: {assignment.vehicle.id}</div> */}
                       </div>
                     ) : (
                       <div className="text-red-600 flex items-center gap-2">
@@ -1423,7 +1442,7 @@ export default function EvaluateReportPage() {
             </div>
             <div className="border-b border-gray-200 mb-4"></div>
             
-            <div className="space-y-4">
+            <div className="space-y-4 grid grid-cols-2 gap-4">
               {ascertainments.map((ascertainment, index) => (
                 <AscertainmentItem
                   key={index}
@@ -1464,7 +1483,7 @@ export default function EvaluateReportPage() {
 
           {/* Résultats de calcul d'évaluation */}
           {calculationResult && (
-            <div className="space-y-6 mt-10">
+            <div className="space-y-6 mt-10 mx-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold flex items-center gap-2">
                   <Calculator className="h-5 w-5 text-green-600" />
@@ -1481,6 +1500,11 @@ export default function EvaluateReportPage() {
             </div>
           )}
 
+         
+          
+
+      <div className="mb-30">
+
           {/* Récapitulatif global */}
           <GlobalRecap
             shocks={shocks}
@@ -1488,6 +1512,7 @@ export default function EvaluateReportPage() {
             calculationResults={calculationResults}
           />
 
+          </div>
           {/* Modal d'ajout de point de choc */}
           <Dialog open={showShockModal} onOpenChange={setShowShockModal}>
             <DialogContent className="sm:max-w-md">
@@ -1908,25 +1933,17 @@ function AscertainmentItem({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-          <Star className="h-4 w-4 text-yellow-600" />
-          Constat d'évaluation
-        </h4>
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
+          <Star className="h-4 w-4 text-yellow-600" />
+          <h4 className="text-sm font-semibold text-gray-800">Constat d'évaluation</h4>
           {qualityScore > 0 && (
             <Badge variant="outline" className={`text-xs ${qualityColor}`}>
               {qualityLabel} ({qualityScore}/6)
             </Badge>
           )}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onRemove}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        </div>
+        <div className="flex items-center gap-2">
           {qualityScore > 0 && ascertainment.ascertainment_type_id && (
             <Button 
               variant="outline" 
@@ -1939,6 +1956,14 @@ function AscertainmentItem({
               Confirmer
             </Button>
           )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onRemove}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
       
@@ -1965,137 +1990,99 @@ function AscertainmentItem({
         <div>
           <Label className="text-xs font-medium text-gray-700 mb-2">Qualité</Label>
           <div className="grid grid-cols-3 gap-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`ascertainment_${index}_very_good`}
-                checked={ascertainment.very_good}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true
-                  onUpdate('very_good', isChecked)
-                  if (isChecked) {
-                    onUpdate('good', false)
-                    onUpdate('acceptable', false)
-                    onUpdate('less_good', false)
-                    onUpdate('bad', false)
-                    onUpdate('very_bad', false)
-                  }
-                }}
-              />
-              <Label htmlFor={`ascertainment_${index}_very_good`} className="text-xs">
-                Très bon
-              </Label>
+            <div className="col-span-2 grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`very_good_${index}`}
+                    checked={ascertainment.very_good}
+                    onCheckedChange={(checked) => onUpdate('very_good', checked)}
+                  />
+                  <Label htmlFor={`very_good_${index}`} className="flex items-center space-x-2 cursor-pointer text-xs">
+                    <Star className="h-4 w-4 text-green-600" />
+                    <span>Très bon</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`good_${index}`}
+                    checked={ascertainment.good}
+                    onCheckedChange={(checked) => onUpdate('good', checked)}
+                  />
+                  <Label htmlFor={`good_${index}`} className="flex items-center space-x-2 cursor-pointer text-xs">
+                    <Star className="h-4 w-4 text-blue-600" />
+                    <span>Bon</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`acceptable_${index}`}
+                    checked={ascertainment.acceptable}
+                    onCheckedChange={(checked) => onUpdate('acceptable', checked)}
+                  />
+                  <Label htmlFor={`acceptable_${index}`} className="flex items-center space-x-2 cursor-pointer text-xs">
+                    <Star className="h-4 w-4 text-yellow-600" />
+                    <span>Acceptable</span>
+                  </Label>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`less_good_${index}`}
+                    checked={ascertainment.less_good}
+                    onCheckedChange={(checked) => onUpdate('less_good', checked)}
+                  />
+                  <Label htmlFor={`less_good_${index}`} className="flex items-center space-x-2 cursor-pointer text-xs">
+                    <StarOff className="h-4 w-4 text-orange-600" />
+                    <span>Moins bon</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`bad_${index}`}
+                    checked={ascertainment.bad}
+                    onCheckedChange={(checked) => onUpdate('bad', checked)}
+                  />
+                  <Label htmlFor={`bad_${index}`} className="flex items-center space-x-2 cursor-pointer text-xs">
+                    <StarOff className="h-4 w-4 text-red-600" />
+                    <span>Mauvais</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`very_bad_${index}`}
+                    checked={ascertainment.very_bad}
+                    onCheckedChange={(checked) => onUpdate('very_bad', checked)}
+                  />
+                  <Label htmlFor={`very_bad_${index}`} className="flex items-center space-x-2 cursor-pointer text-xs">
+                    <StarOff className="h-4 w-4 text-red-800" />
+                    <span>Très mauvais</span>
+                  </Label>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`ascertainment_${index}_good`}
-                checked={ascertainment.good}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true
-                  onUpdate('good', isChecked)
-                  if (isChecked) {
-                    onUpdate('very_good', false)
-                    onUpdate('acceptable', false)
-                    onUpdate('less_good', false)
-                    onUpdate('bad', false)
-                    onUpdate('very_bad', false)
-                  }
-                }}
-              />
-              <Label htmlFor={`ascertainment_${index}_good`} className="text-xs">
-                Bon
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`ascertainment_${index}_acceptable`}
-                checked={ascertainment.acceptable}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true
-                  onUpdate('acceptable', isChecked)
-                  if (isChecked) {
-                    onUpdate('very_good', false)
-                    onUpdate('good', false)
-                    onUpdate('less_good', false)
-                    onUpdate('bad', false)
-                    onUpdate('very_bad', false)
-                  }
-                }}
-              />
-              <Label htmlFor={`ascertainment_${index}_acceptable`} className="text-xs">
-                Acceptable
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`ascertainment_${index}_less_good`}
-                checked={ascertainment.less_good}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true
-                  onUpdate('less_good', isChecked)
-                  if (isChecked) {
-                    onUpdate('very_good', false)
-                    onUpdate('good', false)
-                    onUpdate('acceptable', false)
-                    onUpdate('bad', false)
-                    onUpdate('very_bad', false)
-                  }
-                }}
-              />
-              <Label htmlFor={`ascertainment_${index}_less_good`} className="text-xs">
-                Moins bon
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`ascertainment_${index}_bad`}
-                checked={ascertainment.bad}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true
-                  onUpdate('bad', isChecked)
-                  if (isChecked) {
-                    onUpdate('very_good', false)
-                    onUpdate('good', false)
-                    onUpdate('acceptable', false)
-                    onUpdate('less_good', false)
-                    onUpdate('very_bad', false)
-                  }
-                }}
-              />
-              <Label htmlFor={`ascertainment_${index}_bad`} className="text-xs">
-                Mauvais
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id={`ascertainment_${index}_very_bad`}
-                checked={ascertainment.very_bad}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked === true
-                  onUpdate('very_bad', isChecked)
-                  if (isChecked) {
-                    onUpdate('very_good', false)
-                    onUpdate('good', false)
-                    onUpdate('acceptable', false)
-                    onUpdate('less_good', false)
-                    onUpdate('bad', false)
-                  }
-                }}
-              />
-              <Label htmlFor={`ascertainment_${index}_very_bad`} className="text-xs">
-                Très mauvais
-              </Label>
-            </div>
+            
+            {/* Score de qualité */}
+            {qualityScore > 0 && (
+              <div className="items-center justify-between p-3 bg-white border rounded-lg">
+                <span className="text-sm font-medium">Score de qualité :</span>
+                <Badge className={`${qualityColor} border-0`}>
+                  {qualityLabel} ({qualityScore}/6)
+                </Badge>
+              </div>
+            )}
           </div>
-        </div>
 
-        <div>
-          <Label className="text-xs font-medium text-gray-700 mb-2">Commentaire</Label>
-          <RichTextEditor
-            value={ascertainment.comment}
-            onChange={(value) => onUpdate('comment', value)}
-            placeholder="Ajouter un commentaire sur ce constat..."
-            className="min-h-[100px]"
-          />
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-2">Commentaire</Label>
+            <RichTextEditor
+              value={ascertainment.comment}
+              onChange={(value) => onUpdate('comment', value)}
+              placeholder="Ajouter un commentaire sur ce constat..."
+              className="min-h-[100px]"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -2499,7 +2486,7 @@ function GlobalRecap({
   }
 
   return (
-    <Card className="shadow-none">
+    <Card className="shadow-none my-6 mx-5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calculator className="h-5 w-5" />
