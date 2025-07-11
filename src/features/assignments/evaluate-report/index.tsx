@@ -781,10 +781,11 @@ export default function EvaluateReportPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        calculateAllShocks()
+        // calculateAllShocks()
+        handleCalculateEvaluation()
       }, 4000)
     }
-  }, [updateShock, calculateAllShocks])
+  }, [updateShock, handleCalculateEvaluation])
 
   // Fonction de mise à jour des fournitures avec calcul automatique global
   const updateShockWork = useCallback((shockIndex: number, workIndex: number, field: string, value: any) => {
@@ -797,12 +798,12 @@ export default function EvaluateReportPage() {
     
     updateShock(shockIndex, updatedShock)
     
-    if (hasValidData) {
-      // Déclencher le calcul global automatique après un délai
-      setTimeout(() => {
-        calculateAllShocks()
-      }, 4000)
-    }
+    // if (hasValidData) {
+    //   // Déclencher le calcul global automatique après un délai
+    //   setTimeout(() => {
+    //     calculateAllShocks()
+    //   }, 4000)
+    // }
   }, [shocks, updateShock, calculateAllShocks])
 
   // Fonction de mise à jour de la main d'œuvre avec calcul automatique global
@@ -816,12 +817,12 @@ export default function EvaluateReportPage() {
     
     updateShock(shockIndex, updatedShock)
     
-    if (hasValidData) {
-      // Déclencher le calcul global automatique après un délai
-      setTimeout(() => {
-        calculateAllShocks()
-      }, 4000)
-    }
+    // if (hasValidData) {
+    //   // Déclencher le calcul global automatique après un délai
+    //   setTimeout(() => {
+    //     calculateAllShocks()
+    //   }, 4000)
+    // }
   }, [shocks, updateShock, calculateAllShocks])
 
   // Fonction de mise à jour des autres coûts avec calcul automatique global
@@ -836,10 +837,11 @@ export default function EvaluateReportPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        calculateAllShocks()
+        // calculateAllShocks() 
+        handleCalculateEvaluation()
       }, 4000)
     }
-  }, [updateOtherCost, otherCosts, calculateAllShocks])
+  }, [updateOtherCost, otherCosts, handleCalculateEvaluation])
 
   // Fonction d'ajout d'autres coûts avec calcul automatique global
   const addOtherCostWithCalculation = useCallback(() => {
@@ -860,147 +862,11 @@ export default function EvaluateReportPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        calculateAllShocks()
+        // calculateAllShocks()
+        handleCalculateEvaluation()
       }, 4000)
     }
-  }, [removeOtherCost, otherCosts, calculateAllShocks])
-
-  // Fonction de calcul d'un seul point de choc
-  const calculateSingleShock = useCallback(async (shockIndex: number) => {
-    const shock = shocks[shockIndex]
-    if (!shock || !shock.shock_point_id || shock.shock_point_id === 0) {
-      return
-    }
-
-    // Vérifier s'il y a des données valides dans ce choc
-    const hasValidData = shock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
-                        shock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
-    
-    if (!hasValidData) {
-      return
-    }
-
-    // Marquer ce point de choc comme en cours de calcul
-    setCalculatingShocks(prev => new Set([...prev, shockIndex]))
-
-    try {
-      // Préparer le payload pour ce choc uniquement
-      const validShock = {
-        shock_point_id: shock.shock_point_id,
-        shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
-          supply_id: work.supply_id,
-          disassembly: work.disassembly,
-          replacement: work.replacement,
-          repair: work.repair,
-          paint: work.paint,
-          control: work.control,
-          comment: work.comment,
-          obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
-          amount: work.amount || 0
-        })),
-        paint_type_id: shock.paint_type_id,
-        hourly_rate_id: shock.hourly_rate_id,
-        with_tax: shock.with_tax,
-        workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
-          workforce_type_id: workforce.workforce_type_id,
-          nb_hours: workforce.nb_hours,
-          discount: workforce.discount
-        }))
-      }
-
-      // Vérifier que le choc a des données valides
-      if ((validShock.shock_works.length === 0 && validShock.workforces.length === 0) || !validShock.paint_type_id || !validShock.hourly_rate_id) {
-        return
-      }
-
-      const payload = {
-        shocks: [validShock],
-        other_costs: [] // Pas d'autres coûts pour le calcul d'un seul choc
-      }
-
-      const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATE_EVALUATION}`, payload)
-      
-      if (response.data.status === 200) {
-        const calculatedData = response.data.data
-        
-        // Mettre à jour seulement ce point de choc avec les montants calculés
-        const calculatedShock = calculatedData.shocks[0]
-        if (calculatedShock) {
-          // Mettre à jour les fournitures avec les montants calculés
-          const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
-            ...work,
-            ...calculatedShock.shock_works[index]
-          }))
-
-          // Mettre à jour la main d'œuvre avec les montants calculés
-          const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
-            ...workforce,
-            ...calculatedShock.workforces[index]
-          }))
-
-          // Mettre à jour le point de choc
-          const updatedShock = {
-            ...shock,
-            shock_works: updatedShockWorks,
-            workforces: updatedWorkforces
-          }
-
-          updateShock(shockIndex, updatedShock)
-        }
-        
-        // Mettre à jour les résultats de calcul avec les montants globaux
-        if (calculatedData) {
-          updateCalculation(shockIndex, {
-            shocks: calculatedData.shocks || [],
-            other_costs: calculatedData.other_costs || [],
-            shock_works: calculatedData.shocks?.[0]?.shock_works || [],
-            workforces: calculatedData.shocks?.[0]?.workforces || [],
-            // Montants globaux des chocs
-            total_shock_amount_excluding_tax: calculatedData.total_shock_amount_excluding_tax,
-            total_shock_amount_tax: calculatedData.total_shock_amount_tax,
-            total_shock_amount: calculatedData.total_shock_amount,
-            // Montants globaux de la main d'œuvre
-            total_workforce_amount_excluding_tax: calculatedData.total_workforce_amount_excluding_tax,
-            total_workforce_amount_tax: calculatedData.total_workforce_amount_tax,
-            total_workforce_amount: calculatedData.total_workforce_amount,
-            // Montants globaux des produits peinture
-            total_paint_product_amount_excluding_tax: calculatedData.total_paint_product_amount_excluding_tax,
-            total_paint_product_amount_tax: calculatedData.total_paint_product_amount_tax,
-            total_paint_product_amount: calculatedData.total_paint_product_amount,
-            // Montants globaux des petites fournitures
-            total_small_supply_amount_excluding_tax: calculatedData.total_small_supply_amount_excluding_tax,
-            total_small_supply_amount_tax: calculatedData.total_small_supply_amount_tax,
-            total_small_supply_amount: calculatedData.total_small_supply_amount,
-            // Montants globaux des autres coûts
-            total_other_costs_amount_excluding_tax: calculatedData.total_other_costs_amount_excluding_tax,
-            total_other_costs_amount_tax: calculatedData.total_other_costs_amount_tax,
-            total_other_costs_amount: calculatedData.total_other_costs_amount,
-            // Montants globaux totaux
-            shocks_amount_excluding_tax: calculatedData.shocks_amount_excluding_tax,
-            shocks_amount_tax: calculatedData.shocks_amount_tax,
-            shocks_amount: calculatedData.shocks_amount,
-            total_amount_excluding_tax: calculatedData.total_amount_excluding_tax,
-            total_amount_tax: calculatedData.total_amount_tax,
-            total_amount: calculatedData.total_amount,
-          })
-        }
-        
-        setHasUnsavedChanges(true)
-        toast.success('Calcul effectué avec succès')
-      }
-    } catch (error) {
-      console.error('Erreur lors du calcul:', error)
-      toast.error('Erreur lors du calcul')
-    } finally {
-      // Retirer ce point de choc du calcul en cours
-      setCalculatingShocks(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(shockIndex)
-        return newSet
-      })
-    }
-  }, [shocks, updateShock, setHasUnsavedChanges])
+  }, [removeOtherCost, otherCosts, handleCalculateEvaluation])
 
   if (loading || loadingData) {
     return (
@@ -1196,7 +1062,13 @@ export default function EvaluateReportPage() {
                     <ShockSuppliesTable
                       supplies={supplies}
                       shockWorks={s.shock_works}
-                      onUpdate={(i, field, value) => updateShockWork(index, i, field, value)}
+                      onUpdate={(i, field, value) => {
+                        updateShockWork(index, i, field, value)
+                        // setTimeout(() => {
+                        //   handleCalculateEvaluation()
+                        // }, 4000)
+                      }}
+
                       onAdd={() => {
                         const newWork = {
                           uid: crypto.randomUUID(),
@@ -1217,6 +1089,15 @@ export default function EvaluateReportPage() {
                         // Le calcul se déclenchera quand l'utilisateur sélectionnera une fourniture
                       }}
                       onRemove={(i) => {
+
+                        console.log('🔘 tannnnnnn Bouton Remove cliqué - État actuel:', {
+                          assignment: !!assignment,
+                          vehicle: !!assignment?.vehicle,
+                          vehicle_id: assignment?.vehicle?.id,
+                          expertise_date: expertiseDate,
+                          market_incidence_rate: marketIncidenceRate,
+                          loading: loading
+                        })
                         const updatedShock = { ...s }
                         updatedShock.shock_works.splice(i, 1)
                         
@@ -1228,7 +1109,7 @@ export default function EvaluateReportPage() {
                         
                         if (hasValidData) {
                           setTimeout(() => {
-                            calculateAllShocks()
+                            handleCalculateEvaluation()
                           }, 4000)
                         }
                       }}
