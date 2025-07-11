@@ -1234,7 +1234,18 @@ export default function EvaluateReportPage() {
                       }}
                       onValidateRow={async (workIndex) => {
                         // Déclencher le calcul pour ce choc uniquement
-                        await calculateSingleShock(index)
+                        // await calculateSingleShock(index)
+
+                        console.log('🔘 tannnnnnn Bouton Calculer cliqué - État actuel:', {
+                          assignment: !!assignment,
+                          vehicle: !!assignment?.vehicle,
+                          vehicle_id: assignment?.vehicle?.id,
+                          expertise_date: expertiseDate,
+                          market_incidence_rate: marketIncidenceRate,
+                          loading: loading
+                        })
+
+                        handleCalculateEvaluation()
                       }}
                     />
 
@@ -1291,9 +1302,20 @@ export default function EvaluateReportPage() {
                         const updatedShock = { ...s, with_tax: value }
                         updateShockWithGlobalCalculation(index, updatedShock)
                       }}
-                      onValidateRow={async (workforceIndex) => {
-                        // Déclencher le calcul pour ce choc uniquement
-                        await calculateSingleShock(index)
+                              onValidateRow={async (workforceIndex) => {
+                                  // // Déclencher le calcul pour ce choc uniquement
+                                  // await calculateSingleShock(index)
+
+                                  console.log('🔘 tannnnnnn Bouton Calculer cliqué - État actuel:', {
+                                    assignment: !!assignment,
+                                    vehicle: !!assignment?.vehicle,
+                                    vehicle_id: assignment?.vehicle?.id,
+                                    expertise_date: expertiseDate,
+                                    market_incidence_rate: marketIncidenceRate,
+                                    loading: loading
+                                  })
+                          
+                          handleCalculateEvaluation()
                       }}
                     />
 

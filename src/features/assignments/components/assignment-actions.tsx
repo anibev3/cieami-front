@@ -142,7 +142,7 @@ export function AssignmentActions({
             if (assignment.expertise_type.code === '005') {
               navigate({ to: `/assignments/evaluate-report/${assignment.id}` })
             } else {
-              navigate({ to: `/assignments/edit-report/${assignment.id}` })
+              navigate({ to: `/assignments/edite-report/${assignment.id}` })
             }
           },
           show: true,

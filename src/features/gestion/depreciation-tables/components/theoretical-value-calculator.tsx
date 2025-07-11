@@ -244,9 +244,9 @@ export function TheoreticalValueCalculator() {
                 <Input
                   id="new_value"
                   type="number"
-                  min="0"
-                  step="1000"
-                  value={formData.vehicle_new_value || ''}
+                  // min="0"
+                  // step="1000"
+                  value={formData.vehicle_new_value || '1'}
                   onChange={(e) => setFormData(f => ({ ...f, vehicle_new_value: Number(e.target.value) || 0 }))}
                   placeholder="Ex: 10000000"
                   className={cn(
@@ -271,7 +271,7 @@ export function TheoreticalValueCalculator() {
                   type="number"
                   min="0"
                   step="1000"
-                  value={formData.vehicle_mileage || ''}
+                  value={formData.vehicle_mileage || 0}
                   onChange={(e) => setFormData(f => ({ ...f, vehicle_mileage: Number(e.target.value) || 0 }))}
                   placeholder="Ex: 50000"
                   className={cn(
