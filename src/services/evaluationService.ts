@@ -12,20 +12,11 @@ class EvaluationService {
    * Calculer l'évaluation d'une assignation
    */
   async calculateEvaluation(data: EvaluationCalculationRequest): Promise<EvaluationCalculationResponse> {
-    console.log('🚀 EvaluationService - Données envoyées à CALCULATE_EVALUATION:', {
-      endpoint: API_CONFIG.ENDPOINTS.CALCULATE_EVALUATION,
-      data: data,
-      vehicle_id: data.vehicle_id,
-      expertise_date: data.expertise_date,
-      market_incidence_rate: data.market_incidence_rate
-    })
-    
     const response = await axiosInstance.post<EvaluationCalculationResponse>(
       API_CONFIG.ENDPOINTS.CALCULATE_EVALUATION, 
       data
     )
     
-    console.log('✅ EvaluationService - Réponse reçue:', response.data)
     return response.data
   }
 

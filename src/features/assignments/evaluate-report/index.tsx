@@ -36,7 +36,10 @@ import {
   Star,
   StarOff,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  Calendar as CalendarIcon,
+  Car,
+  AlertCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 import axiosInstance from '@/lib/axios'
@@ -65,6 +68,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 
 interface OtherCostType {
@@ -155,10 +163,14 @@ export default function EvaluateReportPage() {
     removeOtherCost,
     updateOtherCost,
     cleanOtherCosts
-  } = useOtherCosts(assignment?.other_costs?.map(cost => ({
+  } = useOtherCosts(
+    assignment?.other_costs && assignment.other_costs.length > 0
+      ? assignment.other_costs.map(cost => ({
     other_cost_type_id: cost.other_cost_type_id,
     amount: parseFloat(cost.amount) || 0
-  })))
+        }))
+      : undefined
+  )
   
   const {
     calculationResults,
@@ -202,16 +214,7 @@ export default function EvaluateReportPage() {
     bad: boolean
     very_bad: boolean
     comment: string
-  }>>([{
-    ascertainment_type_id: '',
-    very_good: false,
-    good: false,
-    acceptable: false,
-    less_good: false,
-    bad: false,
-    very_bad: false,
-    comment: ''
-  }])
+  }>>([])
 
   // États pour les modals d'évaluation
   const [showEvaluationCalculationModal, setShowEvaluationCalculationModal] = useState(false)
@@ -239,6 +242,13 @@ export default function EvaluateReportPage() {
     }
   }, [assignment?.shocks])
 
+  // Vérifier si des coûts autres pré-remplis ont été chargés
+  useEffect(() => {
+    if (assignment?.other_costs && assignment.other_costs.length > 0) {
+      toast.success(`${assignment.other_costs.length} coût(s) autre(s) pré-rempli(s) chargé(s)`)
+    }
+  }, [assignment?.other_costs])
+
   // Charger les types de constat
   useEffect(() => {
     if (ascertainmentTypes.length === 0) {
@@ -248,27 +258,16 @@ export default function EvaluateReportPage() {
 
   // Initialiser les valeurs d'évaluation quand l'assignment est chargé
   useEffect(() => {
-    console.log('📋 useEffect - Assignment chargé:', {
-      assignment: !!assignment,
-      vehicle: !!assignment?.vehicle,
-      vehicle_id: assignment?.vehicle?.id,
-      expertise_date: assignment ? (assignment as any).expertise_date : null,
-      current_expertise_date: expertiseDate,
-      current_market_rate: marketIncidenceRate
-    })
-
     if (assignment) {
       // Initialiser la date d'expertise
       if ((assignment as any).expertise_date) {
         setExpertiseDate((assignment as any).expertise_date)
-        console.log('📅 Date d\'expertise mise à jour:', (assignment as any).expertise_date)
       }
       
       // Initialiser le taux d'incidence marché avec une valeur par défaut si pas définie
       if (marketIncidenceRate === 10) {
         // On garde la valeur par défaut de 10% si pas de valeur spécifique
         setMarketIncidenceRate(10)
-        console.log('📊 Taux d\'incidence marché initialisé à 10%')
       }
     }
   }, [assignment, marketIncidenceRate])
@@ -281,6 +280,10 @@ export default function EvaluateReportPage() {
       }
     }
   }, [autoCalculationTimeout])
+
+
+
+
 
   // Fonctions pour gérer les constats
   const updateAscertainment = (index: number, field: string, value: any) => {
@@ -308,10 +311,8 @@ export default function EvaluateReportPage() {
   }
 
   const removeAscertainment = (index: number) => {
-    if (ascertainments.length > 1) {
-      const newAscertainments = ascertainments.filter((_, i) => i !== index)
-      setAscertainments(newAscertainments)
-    }
+    const newAscertainments = ascertainments.filter((_, i) => i !== index)
+    setAscertainments(newAscertainments)
   }
 
   const getQualityScore = (ascertainment: any) => {
@@ -361,15 +362,7 @@ export default function EvaluateReportPage() {
       return false
     }
 
-    console.log('🔍 handleCalculateEvaluation - Vérifications:', {
-      assignment_exists: !!assignment,
-      vehicle_exists: !!assignment.vehicle,
-      vehicle_id: assignment.vehicle?.id,
-      expertise_date: expertiseDate,
-      market_incidence_rate: marketIncidenceRate,
-      assignment_type: typeof assignment,
-      vehicle_type: typeof assignment.vehicle
-    })
+
 
     const calculationData = {
       vehicle_id: assignment.vehicle.id.toString(),
@@ -414,31 +407,18 @@ export default function EvaluateReportPage() {
       }))
     }
 
-    console.log('📤 handleCalculateEvaluation - Données finales envoyées:', calculationData)
-    console.log('🔍 Vérification des types:', {
-      vehicle_id_type: typeof calculationData.vehicle_id,
-      vehicle_id_value: calculationData.vehicle_id,
-      expertise_date_type: typeof calculationData.expertise_date,
-      expertise_date_value: calculationData.expertise_date,
-      market_incidence_rate_type: typeof calculationData.market_incidence_rate,
-      market_incidence_rate_value: calculationData.market_incidence_rate
-    })
-
     // Vérification finale avant envoi
     if (!calculationData.vehicle_id || calculationData.vehicle_id === 'undefined' || calculationData.vehicle_id === 'null') {
-      console.error('❌ vehicle_id invalide:', calculationData.vehicle_id)
       toast.error('ID du véhicule invalide')
       return false
     }
 
     if (!calculationData.expertise_date) {
-      console.error('❌ expertise_date invalide:', calculationData.expertise_date)
       toast.error('Date d\'expertise invalide')
       return false
     }
 
     if (!calculationData.market_incidence_rate || calculationData.market_incidence_rate <= 0) {
-      console.error('❌ market_incidence_rate invalide:', calculationData.market_incidence_rate)
       toast.error('Taux d\'incidence marché invalide')
       return false
     }
@@ -453,18 +433,8 @@ export default function EvaluateReportPage() {
       clearTimeout(autoCalculationTimeout)
     }
 
-    console.log('🔄 triggerAutoCalculation - Vérifications:', {
-      assignment_exists: !!assignment,
-      vehicle_exists: !!assignment?.vehicle,
-      vehicle_id: assignment?.vehicle?.id,
-      expertise_date: expertiseDate,
-      market_incidence_rate: marketIncidenceRate,
-      loading: loading
-    })
-
     // Vérifier si on peut faire un calcul
     if (!assignment?.vehicle?.id || !expertiseDate || marketIncidenceRate <= 0) {
-      console.log('❌ triggerAutoCalculation - Conditions non remplies, calcul annulé')
       return
     }
 
@@ -632,141 +602,141 @@ export default function EvaluateReportPage() {
     navigate({ to: '/assignments' })
   }, [navigate])
 
-  // Fonction de calcul global automatique pour tous les points de choc
-  const calculateAllShocks = useCallback(async () => {
-    // Vérifier s'il y a au moins une fourniture, une main d'œuvre ou des autres coûts
-    const hasSupplies = shocks.some(shock => shock.shock_works.length > 0)
-    const hasWorkforce = shocks.some(shock => shock.workforces.length > 0)
-    const hasOtherCosts = otherCosts.some(cost => cost.other_cost_type_id > 0)
+  // // Fonction de calcul global automatique pour tous les points de choc
+  // const calculateAllShocks = useCallback(async () => {
+  //   // Vérifier s'il y a au moins une fourniture, une main d'œuvre ou des autres coûts
+  //   const hasSupplies = shocks.some(shock => shock.shock_works.length > 0)
+  //   const hasWorkforce = shocks.some(shock => shock.workforces.length > 0)
+  //   const hasOtherCosts = otherCosts.some(cost => cost.other_cost_type_id > 0)
     
-    if (!hasSupplies && !hasWorkforce && !hasOtherCosts) {
-      return // Pas de calcul si aucune donnée
-    }
+  //   if (!hasSupplies && !hasWorkforce && !hasOtherCosts) {
+  //     return // Pas de calcul si aucune donnée
+  //   }
 
-    // Marquer tous les points de choc comme en cours de calcul
-    setCalculatingShocks(new Set(shocks.map((_, index) => index)))
+  //   // Marquer tous les points de choc comme en cours de calcul
+  //   setCalculatingShocks(new Set(shocks.map((_, index) => index)))
 
-    try {
-      // Filtrer les autres coûts valides (avec other_cost_type_id > 0)
-      const validOtherCosts = otherCosts.filter(cost => cost.other_cost_type_id > 0)
+  //   try {
+  //     // Filtrer les autres coûts valides (avec other_cost_type_id > 0)
+  //     const validOtherCosts = otherCosts.filter(cost => cost.other_cost_type_id > 0)
 
-      // Filtrer les chocs avec des données valides
-      const validShocks = shocks
-        .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
-        .map(shock => ({
-          shock_point_id: shock.shock_point_id,
-          shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
-            supply_id: work.supply_id,
-            disassembly: work.disassembly,
-            replacement: work.replacement,
-            repair: work.repair,
-            paint: work.paint,
-            control: work.control,
-            comment: work.comment,
-            obsolescence_rate: work.obsolescence_rate,
-            recovery_rate: work.recovery_rate,
-            amount: work.amount || 0
-          })),
-          paint_type_id: shock.paint_type_id,
-          hourly_rate_id: shock.hourly_rate_id,
-          with_tax: shock.with_tax,
-          workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
-            workforce_type_id: workforce.workforce_type_id,
-            nb_hours: workforce.nb_hours,
-            discount: workforce.discount
-          }))
-        }))
-        .filter(shock => (shock.shock_works.length > 0 || shock.workforces.length > 0) && shock.paint_type_id && shock.hourly_rate_id)
+  //     // Filtrer les chocs avec des données valides
+  //     const validShocks = shocks
+  //       .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
+  //       .map(shock => ({
+  //         shock_point_id: shock.shock_point_id,
+  //         shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
+  //           supply_id: work.supply_id,
+  //           disassembly: work.disassembly,
+  //           replacement: work.replacement,
+  //           repair: work.repair,
+  //           paint: work.paint,
+  //           control: work.control,
+  //           comment: work.comment,
+  //           obsolescence_rate: work.obsolescence_rate,
+  //           recovery_rate: work.recovery_rate,
+  //           amount: work.amount || 0
+  //         })),
+  //         paint_type_id: shock.paint_type_id,
+  //         hourly_rate_id: shock.hourly_rate_id,
+  //         with_tax: shock.with_tax,
+  //         workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
+  //           workforce_type_id: workforce.workforce_type_id,
+  //           nb_hours: workforce.nb_hours,
+  //           discount: workforce.discount
+  //         }))
+  //       }))
+  //       .filter(shock => (shock.shock_works.length > 0 || shock.workforces.length > 0) && shock.paint_type_id && shock.hourly_rate_id)
 
-      const payload = {
-        shocks: validShocks,
-        other_costs: validOtherCosts.map(cost => ({
-          other_cost_type_id: cost.other_cost_type_id,
-          amount: cost.amount
-        }))
-      }
+  //     const payload = {
+  //       shocks: validShocks,
+  //       other_costs: validOtherCosts.map(cost => ({
+  //         other_cost_type_id: cost.other_cost_type_id,
+  //         amount: cost.amount
+  //       }))
+  //     }
 
-      const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATE_EVALUATION}`, payload)
+  //     const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATE_EVALUATION}`, payload)
       
-      if (response.data.status === 200) {
-        const calculatedData = response.data.data
+  //     if (response.data.status === 200) {
+  //       const calculatedData = response.data.data
         
-        // Mettre à jour tous les points de choc avec les montants calculés
-        shocks.forEach((shock, shockIndex) => {
-          const calculatedShock = calculatedData.shocks[shockIndex]
-          if (calculatedShock) {
-            // Mettre à jour les fournitures avec les montants calculés
-            const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
-              ...work,
-              ...calculatedShock.shock_works[index]
-            }))
+  //       // Mettre à jour tous les points de choc avec les montants calculés
+  //       shocks.forEach((shock, shockIndex) => {
+  //         const calculatedShock = calculatedData.shocks[shockIndex]
+  //         if (calculatedShock) {
+  //           // Mettre à jour les fournitures avec les montants calculés
+  //           const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
+  //             ...work,
+  //             ...calculatedShock.shock_works[index]
+  //           }))
 
-            // Mettre à jour la main d'œuvre avec les montants calculés
-            const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
-              ...workforce,
-              ...calculatedShock.workforces[index]
-            }))
+  //           // Mettre à jour la main d'œuvre avec les montants calculés
+  //           const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
+  //             ...workforce,
+  //             ...calculatedShock.workforces[index]
+  //           }))
 
-            // Mettre à jour le point de choc
-            const updatedShock = {
-              ...shock,
-              shock_works: updatedShockWorks,
-              workforces: updatedWorkforces
-            }
+  //           // Mettre à jour le point de choc
+  //           const updatedShock = {
+  //             ...shock,
+  //             shock_works: updatedShockWorks,
+  //             workforces: updatedWorkforces
+  //           }
 
-            updateShock(shockIndex, updatedShock)
-          }
-        })
+  //           updateShock(shockIndex, updatedShock)
+  //         }
+  //       })
         
-        // Mettre à jour les résultats de calcul avec les montants globaux
-        // Stocker les montants globaux dans le premier calcul (index 0)
-        if (calculatedData) {
-          updateCalculation(0, {
-            shocks: calculatedData.shocks || [],
-            other_costs: calculatedData.other_costs || [],
-            shock_works: calculatedData.shocks?.[0]?.shock_works || [],
-            workforces: calculatedData.shocks?.[0]?.workforces || [],
-            // Montants globaux des chocs
-            total_shock_amount_excluding_tax: calculatedData.total_shock_amount_excluding_tax,
-            total_shock_amount_tax: calculatedData.total_shock_amount_tax,
-            total_shock_amount: calculatedData.total_shock_amount,
-            // Montants globaux de la main d'œuvre
-            total_workforce_amount_excluding_tax: calculatedData.total_workforce_amount_excluding_tax,
-            total_workforce_amount_tax: calculatedData.total_workforce_amount_tax,
-            total_workforce_amount: calculatedData.total_workforce_amount,
-            // Montants globaux des produits peinture
-            total_paint_product_amount_excluding_tax: calculatedData.total_paint_product_amount_excluding_tax,
-            total_paint_product_amount_tax: calculatedData.total_paint_product_amount_tax,
-            total_paint_product_amount: calculatedData.total_paint_product_amount,
-            // Montants globaux des petites fournitures
-            total_small_supply_amount_excluding_tax: calculatedData.total_small_supply_amount_excluding_tax,
-            total_small_supply_amount_tax: calculatedData.total_small_supply_amount_tax,
-            total_small_supply_amount: calculatedData.total_small_supply_amount,
-            // Montants globaux des autres coûts
-            total_other_costs_amount_excluding_tax: calculatedData.total_other_costs_amount_excluding_tax,
-            total_other_costs_amount_tax: calculatedData.total_other_costs_amount_tax,
-            total_other_costs_amount: calculatedData.total_other_costs_amount,
-            // Montants globaux totaux
-            shocks_amount_excluding_tax: calculatedData.shocks_amount_excluding_tax,
-            shocks_amount_tax: calculatedData.shocks_amount_tax,
-            shocks_amount: calculatedData.shocks_amount,
-            total_amount_excluding_tax: calculatedData.total_amount_excluding_tax,
-            total_amount_tax: calculatedData.total_amount_tax,
-            total_amount: calculatedData.total_amount,
-          })
-        }
+  //       // Mettre à jour les résultats de calcul avec les montants globaux
+  //       // Stocker les montants globaux dans le premier calcul (index 0)
+  //       if (calculatedData) {
+  //         updateCalculation(0, {
+  //           shocks: calculatedData.shocks || [],
+  //           other_costs: calculatedData.other_costs || [],
+  //           shock_works: calculatedData.shocks?.[0]?.shock_works || [],
+  //           workforces: calculatedData.shocks?.[0]?.workforces || [],
+  //           // Montants globaux des chocs
+  //           total_shock_amount_excluding_tax: calculatedData.total_shock_amount_excluding_tax,
+  //           total_shock_amount_tax: calculatedData.total_shock_amount_tax,
+  //           total_shock_amount: calculatedData.total_shock_amount,
+  //           // Montants globaux de la main d'œuvre
+  //           total_workforce_amount_excluding_tax: calculatedData.total_workforce_amount_excluding_tax,
+  //           total_workforce_amount_tax: calculatedData.total_workforce_amount_tax,
+  //           total_workforce_amount: calculatedData.total_workforce_amount,
+  //           // Montants globaux des produits peinture
+  //           total_paint_product_amount_excluding_tax: calculatedData.total_paint_product_amount_excluding_tax,
+  //           total_paint_product_amount_tax: calculatedData.total_paint_product_amount_tax,
+  //           total_paint_product_amount: calculatedData.total_paint_product_amount,
+  //           // Montants globaux des petites fournitures
+  //           total_small_supply_amount_excluding_tax: calculatedData.total_small_supply_amount_excluding_tax,
+  //           total_small_supply_amount_tax: calculatedData.total_small_supply_amount_tax,
+  //           total_small_supply_amount: calculatedData.total_small_supply_amount,
+  //           // Montants globaux des autres coûts
+  //           total_other_costs_amount_excluding_tax: calculatedData.total_other_costs_amount_excluding_tax,
+  //           total_other_costs_amount_tax: calculatedData.total_other_costs_amount_tax,
+  //           total_other_costs_amount: calculatedData.total_other_costs_amount,
+  //           // Montants globaux totaux
+  //           shocks_amount_excluding_tax: calculatedData.shocks_amount_excluding_tax,
+  //           shocks_amount_tax: calculatedData.shocks_amount_tax,
+  //           shocks_amount: calculatedData.shocks_amount,
+  //           total_amount_excluding_tax: calculatedData.total_amount_excluding_tax,
+  //           total_amount_tax: calculatedData.total_amount_tax,
+  //           total_amount: calculatedData.total_amount,
+  //         })
+  //       }
         
-        setHasUnsavedChanges(true)
-        toast.success('Calcul global effectué avec succès')
-      }
-    } catch (error) {
-      console.error('Erreur lors du calcul global:', error)
-      toast.error('Erreur lors du calcul global')
-    } finally {
-      // Retirer tous les points de choc du calcul en cours
-      setCalculatingShocks(new Set())
-    }
-  }, [shocks, otherCosts, assignmentId, calculationResults, updateShock, setHasUnsavedChanges])
+  //       setHasUnsavedChanges(true)
+  //       toast.success('Calcul global effectué avec succès')
+  //     }
+  //   } catch (error) {
+  //     console.error('Erreur lors du calcul global:', error)
+  //     toast.error('Erreur lors du calcul global')
+  //   } finally {
+  //     // Retirer tous les points de choc du calcul en cours
+  //     setCalculatingShocks(new Set())
+  //   }
+  // }, [shocks, otherCosts, assignmentId, calculationResults, updateShock, setHasUnsavedChanges])
 
   // Fonction de mise à jour avec calcul automatique global
   const updateShockWithGlobalCalculation = useCallback((shockIndex: number, updatedShock: Shock) => {
@@ -781,7 +751,6 @@ export default function EvaluateReportPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        // calculateAllShocks()
         handleCalculateEvaluation()
       }, 4000)
     }
@@ -804,7 +773,7 @@ export default function EvaluateReportPage() {
     //     calculateAllShocks()
     //   }, 4000)
     // }
-  }, [shocks, updateShock, calculateAllShocks])
+  }, [shocks, updateShock])
 
   // Fonction de mise à jour de la main d'œuvre avec calcul automatique global
   const updateWorkforce = useCallback((shockIndex: number, workforceIndex: number, field: string, value: any) => {
@@ -823,7 +792,7 @@ export default function EvaluateReportPage() {
     //     calculateAllShocks()
     //   }, 4000)
     // }
-  }, [shocks, updateShock, calculateAllShocks])
+  }, [shocks, updateShock])
 
   // Fonction de mise à jour des autres coûts avec calcul automatique global
   const updateOtherCostWithCalculation = useCallback((index: number, field: 'other_cost_type_id' | 'amount', value: number) => {
@@ -837,7 +806,6 @@ export default function EvaluateReportPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        // calculateAllShocks() 
         handleCalculateEvaluation()
       }, 4000)
     }
@@ -864,7 +832,7 @@ export default function EvaluateReportPage() {
       setTimeout(() => {
         // calculateAllShocks()
         handleCalculateEvaluation()
-      }, 4000)
+      }, 1000)
     }
   }, [removeOtherCost, otherCosts, handleCalculateEvaluation])
 
@@ -927,13 +895,13 @@ export default function EvaluateReportPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button 
-                onClick={() => setShowShockModal(true)}
-                className=" from-black-600 to-black-600 hover:from-black-700 hover:to-black-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-              >
-                <Plus className="mr-2 h-5 w-5" />
-                <span className="font-semibold">Ajouter un point de choc</span>
-              </Button>
+            <Button 
+              onClick={() => setShowShockModal(true)}
+              className=" from-black-600 to-black-600 hover:from-black-700 hover:to-black-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              <span className="font-semibold">Ajouter un point de choc</span>
+            </Button>
 
               {/* Boutons d'évaluation */}
               <Button 
@@ -960,7 +928,7 @@ export default function EvaluateReportPage() {
                 )}
               </Button>
 
-                              <Button 
+              <Button 
                   onClick={async () => {
                     const success = await handleSubmitEvaluation()
                     if (success) {
@@ -968,7 +936,7 @@ export default function EvaluateReportPage() {
                     }
                   }}
                   disabled={submitting || !calculationResult || !assignment?.vehicle?.id || !expertiseDate || marketIncidenceRate <= 0}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  className="outline"
                 >
                 {submitting ? (
                   <>
@@ -984,7 +952,7 @@ export default function EvaluateReportPage() {
               </Button>
 
               {/* Bouton de soumission d'évaluation */}
-              <Button 
+              {/* <Button 
                 disabled={!hasUnsavedChanges || submitting} 
                 onClick={() => setShowVerificationModal(true)}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
@@ -1000,11 +968,166 @@ export default function EvaluateReportPage() {
                     Soumettre l'évaluation
                   </>
                 )}
-              </Button>
+              </Button> */}
             </div>
           </div>
 
-
+          {/* Section des paramètres d'évaluation - EN PREMIER PLAN */}
+          <div className="space-y-4 mt-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+                Paramètres d'évaluation
+                {isAutoCalculating && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    Calcul automatique...
+                  </Badge>
+                )}
+              </h2>
+              {/* <div className="flex items-center gap-4">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const success = await handleCalculateEvaluation()
+                    if (success) {
+                      setShowEvaluationCalculationModal(true)
+                    }
+                  }}
+                  disabled={calculating || loading || !assignment?.vehicle?.id || !expertiseDate || marketIncidenceRate <= 0}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  {calculating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Calcul en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Calculator className="mr-2 h-4 w-4" />
+                      Calculer l'évaluation
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    const success = await handleSubmitEvaluation()
+                    if (success) {
+                      setShowEvaluationSubmissionModal(true)
+                    }
+                  }}
+                  disabled={submitting || !calculationResult}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Soumission en cours...
+                    </>
+                  ) : (
+                    <>
+                      <DollarSign className="mr-2 h-4 w-4" />
+                      Soumettre l'évaluation
+                    </>
+                  )}
+                </Button>
+              </div> */}
+            </div>
+            <div className="border-b border-gray-200 mb-4"></div>
+            
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-3">
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-blue-600" />
+                    Date d'expertise
+                    {!expertiseDate && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left text-sm",
+                          !expertiseDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {expertiseDate ? (
+                          format(new Date(expertiseDate), "EEEE, d MMMM yyyy", { locale: fr })
+                        ) : (
+                          <span>Sélectionner une date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={expertiseDate ? new Date(expertiseDate) : undefined}
+                        initialFocus
+                        onSelect={(date) => {
+                          if (date) {
+                            setExpertiseDate(date.toISOString().split('T')[0])
+                            // Déclencher le calcul automatique après un délai
+                            setTimeout(() => triggerAutoCalculation(), 1000)
+                          }
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    Taux d'incidence marché (%)
+                    {marketIncidenceRate <= 0 && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  <Input
+                    type="number"
+                    value={marketIncidenceRate}
+                    onChange={(e) => {
+                      setMarketIncidenceRate(Number(e.target.value))
+                      // Déclencher le calcul automatique après un délai
+                      setTimeout(() => handleCalculateEvaluation(), 1000)
+                    }}
+                    placeholder="10"
+                    className={`border-gray-300 focus:border-blue-500 focus:ring-blue-200 ${marketIncidenceRate <= 0 ? 'border-red-300' : ''}`}
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <Car className="h-4 w-4 text-purple-600" />
+                    Véhicule
+                    {!assignment?.vehicle?.id && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  <div className={`p-4 rounded-lg border-2 ${!assignment?.vehicle?.id ? 'bg-red-50 border-red-200' : 'bg-white border-blue-200'}`}>
+                    {assignment?.vehicle ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-lg text-gray-800">{assignment.vehicle.license_plate}</div>
+                          <Badge variant="outline" className="bg-green-100 text-green-800">
+                            <Check className="mr-1 h-3 w-3" />
+                            Valide
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {assignment.vehicle.brand?.label} {assignment.vehicle.vehicle_model?.label}
+                        </div>
+                        <div className="text-xs text-gray-500">ID: {assignment.vehicle.id}</div>
+                      </div>
+                    ) : (
+                      <div className="text-red-600 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        Aucun véhicule sélectionné
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Liste des points de choc */}
           <div className="space-y-6 mt-10">
@@ -1058,17 +1181,26 @@ export default function EvaluateReportPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {/* <div>
+                      <pre>{JSON.stringify(s, null, 2)}</pre>
+                    </div>
+                    <div>
+                      <pre>{JSON.stringify(s.shock_works, null, 2)}</pre>
+                    </div>
+                    <div>
+                      <pre>{JSON.stringify(s.workforces, null, 2)}</pre>
+                    </div>
+                    <div>
+                      <pre>{JSON.stringify(s.paint_type_id, null, 2)}</pre>
+                    </div> */}
+                    
                     {/* Fournitures */}
                     <ShockSuppliesTable
                       supplies={supplies}
                       shockWorks={s.shock_works}
                       onUpdate={(i, field, value) => {
                         updateShockWork(index, i, field, value)
-                        // setTimeout(() => {
-                        //   handleCalculateEvaluation()
-                        // }, 4000)
                       }}
-
                       onAdd={() => {
                         const newWork = {
                           uid: crypto.randomUUID(),
@@ -1085,28 +1217,13 @@ export default function EvaluateReportPage() {
                         }
                         const updatedShock = { ...s, shock_works: [...s.shock_works, newWork] }
                         updateShock(index, updatedShock)
-                        // Ne pas déclencher le calcul automatiquement lors de l'ajout d'une ligne vide
-                        // Le calcul se déclenchera quand l'utilisateur sélectionnera une fourniture
                       }}
                       onRemove={(i) => {
-
-                        console.log('🔘 tannnnnnn Bouton Remove cliqué - État actuel:', {
-                          assignment: !!assignment,
-                          vehicle: !!assignment?.vehicle,
-                          vehicle_id: assignment?.vehicle?.id,
-                          expertise_date: expertiseDate,
-                          market_incidence_rate: marketIncidenceRate,
-                          loading: loading
-                        })
                         const updatedShock = { ...s }
                         updatedShock.shock_works.splice(i, 1)
-                        
-                        // Vérifier s'il reste des données valides avant de déclencher le calcul
                         const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
                                            updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
-                        
                         updateShock(index, updatedShock)
-                        
                         if (hasValidData) {
                           setTimeout(() => {
                             handleCalculateEvaluation()
@@ -1114,18 +1231,6 @@ export default function EvaluateReportPage() {
                         }
                       }}
                       onValidateRow={async (workIndex) => {
-                        // Déclencher le calcul pour ce choc uniquement
-                        // await calculateSingleShock(index)
-
-                        console.log('🔘 tannnnnnn Bouton Calculer cliqué - État actuel:', {
-                          assignment: !!assignment,
-                          vehicle: !!assignment?.vehicle,
-                          vehicle_id: assignment?.vehicle?.id,
-                          expertise_date: expertiseDate,
-                          market_incidence_rate: marketIncidenceRate,
-                          loading: loading
-                        })
-
                         handleCalculateEvaluation()
                       }}
                     />
@@ -1167,7 +1272,8 @@ export default function EvaluateReportPage() {
                         
                         if (hasValidData) {
                           setTimeout(() => {
-                            calculateAllShocks()
+                            // calculateAllShocks()
+                            handleCalculateEvaluation()
                           }, 4000)
                         }
                       }}
@@ -1183,19 +1289,7 @@ export default function EvaluateReportPage() {
                         const updatedShock = { ...s, with_tax: value }
                         updateShockWithGlobalCalculation(index, updatedShock)
                       }}
-                              onValidateRow={async (workforceIndex) => {
-                                  // // Déclencher le calcul pour ce choc uniquement
-                                  // await calculateSingleShock(index)
-
-                                  console.log('🔘 tannnnnnn Bouton Calculer cliqué - État actuel:', {
-                                    assignment: !!assignment,
-                                    vehicle: !!assignment?.vehicle,
-                                    vehicle_id: assignment?.vehicle?.id,
-                                    expertise_date: expertiseDate,
-                                    market_incidence_rate: marketIncidenceRate,
-                                    loading: loading
-                                  })
-                          
+                      onValidateRow={async (workforceIndex) => {
                           handleCalculateEvaluation()
                       }}
                     />
@@ -1274,6 +1368,7 @@ export default function EvaluateReportPage() {
                     otherCostTypes={otherCostTypes}
                     onUpdate={(field, value) => updateOtherCostWithCalculation(index, field, value)}
                     onRemove={() => removeOtherCostWithCalculation(index)}
+                    onConfirm={handleCalculateEvaluation}
                   />
                 ))}
               </div>
@@ -1340,139 +1435,51 @@ export default function EvaluateReportPage() {
                   getQualityScore={getQualityScore}
                   getQualityColor={getQualityColor}
                   getQualityLabel={getQualityLabel}
+                  onConfirm={handleCalculateEvaluation}
+                  index={index}
                 />
               ))}
             </div>
-          </div>
 
-          {/* Section des paramètres d'évaluation */}
-          <div className="space-y-4 mt-10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                Paramètres d'évaluation
-                {isAutoCalculating && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                    Calcul automatique...
-                  </Badge>
-                )}
-              </h2>
-              <div className="flex items-center gap-4">
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    console.log('🔘 Bouton Calculer cliqué - État actuel:', {
-                      assignment: !!assignment,
-                      vehicle: !!assignment?.vehicle,
-                      vehicle_id: assignment?.vehicle?.id,
-                      expertise_date: expertiseDate,
-                      market_incidence_rate: marketIncidenceRate,
-                      loading: loading
-                    })
-                    
-                    const success = await handleCalculateEvaluation()
-                    if (success) {
-                      setShowEvaluationCalculationModal(true)
-                    }
-                  }}
-                  disabled={calculating || loading || !assignment?.vehicle?.id || !expertiseDate || marketIncidenceRate <= 0}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                >
-                  {calculating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Calcul en cours...
-                    </>
-                  ) : (
-                    <>
-                      <Calculator className="mr-2 h-4 w-4" />
-                      Calculer l'évaluation
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  onClick={async () => {
-                    const success = await handleSubmitEvaluation()
-                    if (success) {
-                      setShowEvaluationSubmissionModal(true)
-                    }
-                  }}
-                  disabled={submitting || !calculationResult}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Soumission en cours...
-                    </>
-                  ) : (
-                    <>
-                      <DollarSign className="mr-2 h-4 w-4" />
-                      Soumettre l'évaluation
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-            <div className="border-b border-gray-200 mb-4"></div>
-            
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div>
-                <Label className="text-xs font-medium text-gray-700 mb-2">
-                  Date d'expertise
-                  {!expertiseDate && <span className="text-red-500 ml-1">*</span>}
-                </Label>
-                <Input
-                  type="date"
-                  value={expertiseDate}
-                  onChange={(e) => {
-                    setExpertiseDate(e.target.value)
-                    // Déclencher le calcul automatique après un délai
-                    setTimeout(() => triggerAutoCalculation(), 1000)
-                  }}
-                  className={`border-gray-300 focus:border-blue-500 focus:ring-blue-200 ${!expertiseDate ? 'border-red-300' : ''}`}
-                />
-              </div>
-              <div>
-                <Label className="text-xs font-medium text-gray-700 mb-2">
-                  Taux d'incidence marché (%)
-                  {marketIncidenceRate <= 0 && <span className="text-red-500 ml-1">*</span>}
-                </Label>
-                <Input
-                  type="number"
-                  value={marketIncidenceRate}
-                  onChange={(e) => {
-                    setMarketIncidenceRate(Number(e.target.value))
-                    // Déclencher le calcul automatique après un délai
-                    setTimeout(() => triggerAutoCalculation(), 1000)
-                  }}
-                  placeholder="10"
-                  className={`border-gray-300 focus:border-blue-500 focus:ring-blue-200 ${marketIncidenceRate <= 0 ? 'border-red-300' : ''}`}
-                />
-              </div>
-              <div>
-                <Label className="text-xs font-medium text-gray-700 mb-2">
-                  Véhicule
-                  {!assignment?.vehicle?.id && <span className="text-red-500 ml-1">*</span>}
-                </Label>
-                <div className={`p-2 rounded border text-xs ${!assignment?.vehicle?.id ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
-                  {assignment?.vehicle ? (
-                    <div>
-                      <div className="font-medium">{assignment.vehicle.license_plate}</div>
-                      <div className="text-gray-600">
-                        {assignment.vehicle.brand?.label} {assignment.vehicle.vehicle_model?.label}
-                      </div>
-                      <div className="text-gray-500">ID: {assignment.vehicle.id}</div>
-                    </div>
-                  ) : (
-                    <div className="text-red-600">Aucun véhicule sélectionné</div>
-                  )}
+            {/* Message quand aucun constat */}
+            {ascertainments.length === 0 && (
+              <div className="text-center py-8">
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                  <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+                  <h3 className="text-base font-semibold text-gray-700 mb-2">Aucun constat d'évaluation</h3>
+                  <p className="text-sm text-gray-500 mb-4">Ajoutez des constats pour évaluer la qualité du véhicule</p>
+                  <Button 
+                    onClick={addAscertainment}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter un constat d'évaluation
+                  </Button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
+        </div>
+      </Main>
+
+          {/* Résultats de calcul d'évaluation */}
+          {calculationResult && (
+            <div className="space-y-6 mt-10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-green-600" />
+                  Résultats du calcul d'évaluation
+                  <Badge variant="default" className="bg-green-100 text-green-800">
+                    <Check className="mr-1 h-3 w-3" />
+                    Calculé
+                  </Badge>
+                </h2>
+              </div>
+              <div className="border-b border-gray-200 mb-4"></div>
+              
+              <EvaluationResults calculationResult={calculationResult} />
+            </div>
+          )}
 
           {/* Récapitulatif global */}
           <GlobalRecap
@@ -1509,8 +1516,6 @@ export default function EvaluateReportPage() {
                     showSelectedInfo={true}
                   />
                 </div>
-
-
 
                 {/* Statistiques */}
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -1560,12 +1565,12 @@ export default function EvaluateReportPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3 text-lg">
                   <div className="p-2 bg-green-100 rounded-full">
-                    <DollarSign className="h-6 w-6 text-green-600" />
+                <DollarSign className="h-6 w-6 text-green-600" />
                   </div>
-                  Confirmer la soumission de l'évaluation
+              Confirmer la soumission de l'évaluation
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-600">
-                  Vérifiez les informations avant de procéder à la soumission de l'évaluation
+              Vérifiez les informations avant de procéder à la soumission de l'évaluation
                 </DialogDescription>
               </DialogHeader>
               
@@ -1574,7 +1579,7 @@ export default function EvaluateReportPage() {
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
                   <h4 className="flex items-center gap-2 text-base font-semibold text-blue-800 mb-4">
                     <Calculator className="h-5 w-5" />
-                    Résumé de l'évaluation
+                Résumé de l'évaluation
                   </h4>
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -1656,7 +1661,7 @@ export default function EvaluateReportPage() {
                     <div className="text-xs">
                       <p className="font-medium text-amber-800 mb-1">Action irréversible</p>
                       <p className="text-amber-700">
-                        La soumission de l'évaluation va sauvegarder définitivement toutes les modifications et soumettre l'évaluation finale.
+                    La soumission de l'évaluation va sauvegarder définitivement toutes les modifications et soumettre l'évaluation finale.
                       </p>
                     </div>
                   </div>
@@ -1672,22 +1677,22 @@ export default function EvaluateReportPage() {
                   Annuler
                 </Button>
                 <Button 
-                  disabled={submitting || shocks.length === 0} 
+              disabled={submitting || shocks.length === 0} 
                   onClick={() => {
                     setRedirectToReport(true)
-                    handleSubmitEvaluation()
+                handleSubmitEvaluation()
                   }}
                   className="px-6 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 >
-                  {submitting ? (
+              {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Soumission en cours...
+                  Soumission en cours...
                     </>
                   ) : (
                     <>
-                      <DollarSign className="mr-2 h-4 w-4" />
-                      Confirmer et soumettre
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Confirmer et soumettre
                     </>
                   )}
                 </Button>
@@ -1704,164 +1709,162 @@ export default function EvaluateReportPage() {
             onClose={handleReceiptClose}
           />
 
-          {/* Modal de calcul d'évaluation */}
-          <Dialog open={showEvaluationCalculationModal} onOpenChange={setShowEvaluationCalculationModal}>
-            <DialogContent className="sm:max-w-2xl">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-3 text-lg">
-                  <div className="p-2 bg-blue-100 rounded-full">
-                    <Calculator className="h-6 w-6 text-blue-600" />
-                  </div>
-                  Résultat du calcul d'évaluation
-                </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600">
-                  Détails du calcul d'évaluation effectué
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-6 py-4">
-                {calculationResult && (
-                  <div className="space-y-4">
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
-                      <h4 className="flex items-center gap-2 text-base font-semibold text-blue-800 mb-4">
-                        <DollarSign className="h-5 w-5" />
-                        Résultats de l'évaluation
-                      </h4>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white rounded-lg p-3 text-center">
-                          <div className="text-xl font-bold text-blue-600">
-                            {calculationResult.market_value?.toLocaleString('fr-FR')} F CFA
-                          </div>
-                          <div className="text-xs text-gray-600">Valeur marché</div>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 text-center">
-                          <div className="text-xl font-bold text-green-600">
-                            {calculationResult.total_amount?.toLocaleString('fr-FR')} F CFA
-                          </div>
-                          <div className="text-xs text-gray-600">Coût total</div>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 text-center">
-                          <div className="text-xl font-bold text-purple-600">
-                            {calculationResult.salvage_value?.toLocaleString('fr-FR')} F CFA
-                          </div>
-                          <div className="text-xs text-gray-600">Valeur de récupération</div>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 text-center">
-                          <div className="text-xl font-bold text-orange-600">
-                            {calculationResult.final_amount?.toLocaleString('fr-FR')} F CFA
-                          </div>
-                          <div className="text-xs text-gray-600">Montant final</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h4 className="flex items-center gap-2 text-base font-semibold text-gray-800">
-                        <Calculator className="h-5 w-5 text-blue-600" />
-                        Détails des calculs
-                      </h4>
-                      
-                      <div className="bg-gray-50 p-3 rounded-lg">
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <span className="text-gray-600">Montant HT:</span>
-                            <p className="font-semibold">{calculationResult.total_amount_excluding_tax?.toLocaleString('fr-FR')} F CFA</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">TVA:</span>
-                            <p className="font-semibold">{calculationResult.total_amount_tax?.toLocaleString('fr-FR')} F CFA</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Dépréciation:</span>
-                            <p className="font-semibold">{calculationResult.depreciation_amount?.toLocaleString('fr-FR')} F CFA</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Calculs effectués:</span>
-                            <p className="font-semibold">{Object.keys(calculationResult.calculations || {}).length}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowEvaluationCalculationModal(false)}
-                  className="px-6"
-                >
-                  Fermer
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Modal de soumission d'évaluation */}
-          <Dialog open={showEvaluationSubmissionModal} onOpenChange={setShowEvaluationSubmissionModal}>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-3 text-lg">
-                  <div className="p-2 bg-green-100 rounded-full">
-                    <DollarSign className="h-6 w-6 text-green-600" />
-                  </div>
-                  Évaluation soumise avec succès
-                </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600">
-                  L'évaluation a été soumise et enregistrée dans le système
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-6 py-4">
-                {submissionResult && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
-                    <h4 className="flex items-center gap-2 text-base font-semibold text-green-800 mb-4">
-                      <Check className="h-5 w-5" />
-                      Confirmation de soumission
-                    </h4>
-                    
-                    <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-3">
-                        <div className="text-sm font-medium text-gray-800 mb-1">ID de l'évaluation</div>
-                        <div className="text-lg font-bold text-green-600">{submissionResult.evaluation_id}</div>
-                      </div>
-                      
-                      <div className="bg-white rounded-lg p-3">
-                        <div className="text-sm font-medium text-gray-800 mb-1">ID du dossier</div>
-                        <div className="text-lg font-bold text-blue-600">{submissionResult.assignment_id}</div>
-                      </div>
-                      
-                      <div className="bg-white rounded-lg p-3">
-                        <div className="text-sm font-medium text-gray-800 mb-1">Montant total</div>
-                        <div className="text-lg font-bold text-purple-600">{submissionResult.total_amount?.toLocaleString('fr-FR')} F CFA</div>
-                      </div>
-                      
-                      <div className="bg-white rounded-lg p-3">
-                        <div className="text-sm font-medium text-gray-800 mb-1">Date de création</div>
-                        <div className="text-sm text-gray-600">{new Date(submissionResult.created_at).toLocaleDateString('fr-FR')}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button 
-                  onClick={() => {
-                    setShowEvaluationSubmissionModal(false)
-                    navigate({ to: '/assignments' })
-                  }}
-                  className="px-6 bg-green-600 hover:bg-green-700"
-                >
-                  Retour aux dossiers
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+      {/* Modal de calcul d'évaluation */}
+      <Dialog open={showEvaluationCalculationModal} onOpenChange={setShowEvaluationCalculationModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-lg">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Calculator className="h-6 w-6 text-blue-600" />
         </div>
-      </Main>
+              Résultat du calcul d'évaluation
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              Détails du calcul d'évaluation effectué
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {calculationResult && (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                  <h4 className="flex items-center gap-2 text-base font-semibold text-blue-800 mb-4">
+                    <DollarSign className="h-5 w-5" />
+                    Résultats de l'évaluation
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xl font-bold text-blue-600">
+                        {calculationResult.market_value?.toLocaleString('fr-FR')} F CFA
+                      </div>
+                      <div className="text-xs text-gray-600">Valeur marché</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xl font-bold text-green-600">
+                        {calculationResult.total_amount?.toLocaleString('fr-FR')} F CFA
+                      </div>
+                      <div className="text-xs text-gray-600">Coût total</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xl font-bold text-purple-600">
+                        {calculationResult.salvage_value?.toLocaleString('fr-FR')} F CFA
+                      </div>
+                      <div className="text-xs text-gray-600">Valeur de récupération</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 text-center">
+                      <div className="text-xl font-bold text-orange-600">
+                        {calculationResult.final_amount?.toLocaleString('fr-FR')} F CFA
+                      </div>
+                      <div className="text-xs text-gray-600">Montant final</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="flex items-center gap-2 text-base font-semibold text-gray-800">
+                    <Calculator className="h-5 w-5 text-blue-600" />
+                    Détails des calculs
+                  </h4>
+                  
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-gray-600">Montant HT:</span>
+                        <p className="font-semibold">{calculationResult.total_amount_excluding_tax?.toLocaleString('fr-FR')} F CFA</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">TVA:</span>
+                        <p className="font-semibold">{calculationResult.total_amount_tax?.toLocaleString('fr-FR')} F CFA</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Dépréciation:</span>
+                        <p className="font-semibold">{calculationResult.depreciation_amount?.toLocaleString('fr-FR')} F CFA</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Calculs effectués:</span>
+                        <p className="font-semibold">{Object.keys(calculationResult.calculations || {}).length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowEvaluationCalculationModal(false)}
+              className="px-6"
+            >
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de soumission d'évaluation */}
+      <Dialog open={showEvaluationSubmissionModal} onOpenChange={setShowEvaluationSubmissionModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-lg">
+              <div className="p-2 bg-green-100 rounded-full">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+              Évaluation soumise avec succès
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              L'évaluation a été soumise et enregistrée dans le système
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {submissionResult && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+                <h4 className="flex items-center gap-2 text-base font-semibold text-green-800 mb-4">
+                  <Check className="h-5 w-5" />
+                  Confirmation de soumission
+                </h4>
+                
+                <div className="space-y-3">
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-sm font-medium text-gray-800 mb-1">ID de l'évaluation</div>
+                    <div className="text-lg font-bold text-green-600">{submissionResult.evaluation_id}</div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-sm font-medium text-gray-800 mb-1">ID du dossier</div>
+                    <div className="text-lg font-bold text-blue-600">{submissionResult.assignment_id}</div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-sm font-medium text-gray-800 mb-1">Montant total</div>
+                    <div className="text-lg font-bold text-purple-600">{submissionResult.total_amount?.toLocaleString('fr-FR')} F CFA</div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-sm font-medium text-gray-800 mb-1">Date de création</div>
+                    <div className="text-sm text-gray-600">{new Date(submissionResult.created_at).toLocaleDateString('fr-FR')}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button 
+              onClick={() => {
+                setShowEvaluationSubmissionModal(false)
+                navigate({ to: '/assignments' })
+              }}
+              className="px-6 bg-green-600 hover:bg-green-700"
+            >
+              Retour aux dossiers
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -1875,7 +1878,9 @@ function AscertainmentItem({
   onValidate,
   getQualityScore,
   getQualityColor,
-  getQualityLabel
+  getQualityLabel,
+  onConfirm,
+  index
 }: {
   ascertainment: {
     ascertainment_type_id: string
@@ -1894,6 +1899,8 @@ function AscertainmentItem({
   getQualityScore: (ascertainment: any) => number
   getQualityColor: (score: number) => string
   getQualityLabel: (score: number) => string
+  onConfirm: () => void
+  index: number
 }) {
   const qualityScore = getQualityScore(ascertainment)
   const qualityColor = getQualityColor(qualityScore)
@@ -1922,18 +1929,14 @@ function AscertainmentItem({
           </Button>
           {qualityScore > 0 && ascertainment.ascertainment_type_id && (
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="sm" 
-              onClick={() => {
-                // Déclencher le calcul pour ce constat
-                if (typeof onValidate === 'function') {
-                  onValidate()
-                }
-              }}
-              className="text-green-600 hover:text-green-700 hover:bg-green-50"
-              title="Valider et calculer l'évaluation"
+              onClick={onConfirm}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+              title="Confirmer et calculer l'évaluation"
             >
-              <Check className="h-4 w-4" />
+              <Calculator className="h-3 w-3 mr-1" />
+              Confirmer
             </Button>
           )}
         </div>
@@ -1964,11 +1967,12 @@ function AscertainmentItem({
           <div className="grid grid-cols-3 gap-2">
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`very_good_${ascertainment.ascertainment_type_id}`}
+                id={`ascertainment_${index}_very_good`}
                 checked={ascertainment.very_good}
                 onCheckedChange={(checked) => {
-                  onUpdate('very_good', checked)
-                  if (checked) {
+                  const isChecked = checked === true
+                  onUpdate('very_good', isChecked)
+                  if (isChecked) {
                     onUpdate('good', false)
                     onUpdate('acceptable', false)
                     onUpdate('less_good', false)
@@ -1977,17 +1981,18 @@ function AscertainmentItem({
                   }
                 }}
               />
-              <Label htmlFor={`very_good_${ascertainment.ascertainment_type_id}`} className="text-xs">
+              <Label htmlFor={`ascertainment_${index}_very_good`} className="text-xs">
                 Très bon
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`good_${ascertainment.ascertainment_type_id}`}
+                id={`ascertainment_${index}_good`}
                 checked={ascertainment.good}
                 onCheckedChange={(checked) => {
-                  onUpdate('good', checked)
-                  if (checked) {
+                  const isChecked = checked === true
+                  onUpdate('good', isChecked)
+                  if (isChecked) {
                     onUpdate('very_good', false)
                     onUpdate('acceptable', false)
                     onUpdate('less_good', false)
@@ -1996,17 +2001,18 @@ function AscertainmentItem({
                   }
                 }}
               />
-              <Label htmlFor={`good_${ascertainment.ascertainment_type_id}`} className="text-xs">
+              <Label htmlFor={`ascertainment_${index}_good`} className="text-xs">
                 Bon
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`acceptable_${ascertainment.ascertainment_type_id}`}
+                id={`ascertainment_${index}_acceptable`}
                 checked={ascertainment.acceptable}
                 onCheckedChange={(checked) => {
-                  onUpdate('acceptable', checked)
-                  if (checked) {
+                  const isChecked = checked === true
+                  onUpdate('acceptable', isChecked)
+                  if (isChecked) {
                     onUpdate('very_good', false)
                     onUpdate('good', false)
                     onUpdate('less_good', false)
@@ -2015,17 +2021,18 @@ function AscertainmentItem({
                   }
                 }}
               />
-              <Label htmlFor={`acceptable_${ascertainment.ascertainment_type_id}`} className="text-xs">
+              <Label htmlFor={`ascertainment_${index}_acceptable`} className="text-xs">
                 Acceptable
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`less_good_${ascertainment.ascertainment_type_id}`}
+                id={`ascertainment_${index}_less_good`}
                 checked={ascertainment.less_good}
                 onCheckedChange={(checked) => {
-                  onUpdate('less_good', checked)
-                  if (checked) {
+                  const isChecked = checked === true
+                  onUpdate('less_good', isChecked)
+                  if (isChecked) {
                     onUpdate('very_good', false)
                     onUpdate('good', false)
                     onUpdate('acceptable', false)
@@ -2034,17 +2041,18 @@ function AscertainmentItem({
                   }
                 }}
               />
-              <Label htmlFor={`less_good_${ascertainment.ascertainment_type_id}`} className="text-xs">
+              <Label htmlFor={`ascertainment_${index}_less_good`} className="text-xs">
                 Moins bon
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`bad_${ascertainment.ascertainment_type_id}`}
+                id={`ascertainment_${index}_bad`}
                 checked={ascertainment.bad}
                 onCheckedChange={(checked) => {
-                  onUpdate('bad', checked)
-                  if (checked) {
+                  const isChecked = checked === true
+                  onUpdate('bad', isChecked)
+                  if (isChecked) {
                     onUpdate('very_good', false)
                     onUpdate('good', false)
                     onUpdate('acceptable', false)
@@ -2053,17 +2061,18 @@ function AscertainmentItem({
                   }
                 }}
               />
-              <Label htmlFor={`bad_${ascertainment.ascertainment_type_id}`} className="text-xs">
+              <Label htmlFor={`ascertainment_${index}_bad`} className="text-xs">
                 Mauvais
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`very_bad_${ascertainment.ascertainment_type_id}`}
+                id={`ascertainment_${index}_very_bad`}
                 checked={ascertainment.very_bad}
                 onCheckedChange={(checked) => {
-                  onUpdate('very_bad', checked)
-                  if (checked) {
+                  const isChecked = checked === true
+                  onUpdate('very_bad', isChecked)
+                  if (isChecked) {
                     onUpdate('very_good', false)
                     onUpdate('good', false)
                     onUpdate('acceptable', false)
@@ -2072,7 +2081,7 @@ function AscertainmentItem({
                   }
                 }}
               />
-              <Label htmlFor={`very_bad_${ascertainment.ascertainment_type_id}`} className="text-xs">
+              <Label htmlFor={`ascertainment_${index}_very_bad`} className="text-xs">
                 Très mauvais
               </Label>
             </div>
@@ -2098,12 +2107,14 @@ function OtherCostItem({
   cost, 
   otherCostTypes, 
   onUpdate, 
-  onRemove 
+  onRemove, 
+  onConfirm
 }: {
   cost: { other_cost_type_id: number; amount: number }
   otherCostTypes: OtherCostType[]
   onUpdate: (field: 'other_cost_type_id' | 'amount', value: number) => void
   onRemove: () => void
+  onConfirm: () => void
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 m">
@@ -2112,6 +2123,19 @@ function OtherCostItem({
           <Calculator className="h-4 w-4 text-purple-600" />
           Coût supplémentaire
         </h4>
+        <div className="flex items-center gap-2">
+          {/* {cost.other_cost_type_id > 0 && cost.amount > 0 && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onConfirm}
+              // className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+              title="Confirmer et calculer l'évaluation"
+            >
+              <Calculator className="h-3 w-3 mr-1" />
+              Confirmer
+            </Button>
+          )} */}
         <Button 
           variant="ghost" 
           size="sm" 
@@ -2120,6 +2144,7 @@ function OtherCostItem({
         >
           <Trash2 className="h-4 w-4" />
         </Button>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <OtherCostTypeSelect
@@ -2139,6 +2164,296 @@ function OtherCostItem({
           />
         </div>
       </div>
+    </div>
+  )
+}
+
+// Composant EvaluationResults pour afficher les résultats détaillés
+function EvaluationResults({ 
+  calculationResult 
+}: {
+  calculationResult: any
+}) {
+  const formatCurrency = (amount: number) => {
+    return amount && typeof amount === 'number' ? amount.toLocaleString('fr-FR') : '0'
+  }
+
+  const formatPercentage = (value: number) => {
+    return value && typeof value === 'number' ? `${value.toFixed(2)}%` : '0%'
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Informations du véhicule */}
+      {calculationResult.evaluations?.[0] && (
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Car className="h-5 w-5 text-blue-600" />
+              Informations du véhicule
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="text-sm text-blue-600">Plaque d'immatriculation</div>
+                <div className="font-bold text-blue-900">{calculationResult.evaluations[0].vehicle?.license_plate}</div>
+              </div>
+              <div className="bg-green-50 p-3 rounded-lg">
+                <div className="text-sm text-green-600">Valeur neuve</div>
+                <div className="font-bold text-green-900">{formatCurrency(calculationResult.evaluations[0].vehicle_new_value)} F CFA</div>
+              </div>
+              <div className="bg-purple-50 p-3 rounded-lg">
+                <div className="text-sm text-purple-600">Âge du véhicule</div>
+                <div className="font-bold text-purple-900">{calculationResult.evaluations[0].vehicle_age} mois</div>
+              </div>
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <div className="text-sm text-orange-600">Taux d'incidence marché</div>
+                <div className="font-bold text-orange-900">{formatPercentage(calculationResult.evaluations[0].market_incidence_rate)}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Calculs de dépréciation */}
+      {calculationResult.evaluations?.[0] && (
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              Calculs de dépréciation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-purple-50 p-3 rounded-lg">
+                <div className="text-sm text-purple-600">Taux de dépréciation théorique</div>
+                <div className="font-bold text-purple-900">{formatPercentage(calculationResult.evaluations[0].theorical_depreciation_rate)}</div>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="text-sm text-blue-600">Valeur marché théorique</div>
+                <div className="font-bold text-blue-900">{formatCurrency(calculationResult.evaluations[0].theorical_vehicle_market_value)} F CFA</div>
+              </div>
+              <div className="bg-green-50 p-3 rounded-lg">
+                <div className="text-sm text-green-600">Incidence kilométrique</div>
+                <div className="font-bold text-green-900">{formatCurrency(calculationResult.evaluations[0].kilometric_incidence)} F CFA</div>
+              </div>
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <div className="text-sm text-orange-600">Incidence marché</div>
+                <div className="font-bold text-orange-900">{formatCurrency(calculationResult.evaluations[0].market_incidence)} F CFA</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Résultat final */}
+      {calculationResult.evaluations?.[0] && (
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-green-600" />
+              Résultat final
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-red-50 p-4 rounded-lg">
+                <div className="text-sm text-red-600">Moins-value travaux</div>
+                <div className="font-bold text-2xl text-red-900">{formatCurrency(calculationResult.evaluations[0].less_value_work)} F CFA</div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="text-sm text-green-600">Valeur marché finale</div>
+                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.evaluations[0].vehicle_market_value)} F CFA</div>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="text-sm text-blue-600">Évolution</div>
+                <div className={`font-bold text-2xl ${calculationResult.evaluations[0].is_up ? 'text-green-900' : 'text-red-900'}`}>
+                  {calculationResult.evaluations[0].is_up ? '↗️ Hausse' : '↘️ Baisse'}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Détail des points de choc */}
+      {calculationResult.shocks && calculationResult.shocks.length > 0 && (
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-blue-600" />
+              Détail des points de choc
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {calculationResult.shocks.map((shock: any, index: number) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-gray-800">{shock.shock_point_label}</h4>
+                    <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                      Point de choc #{index + 1}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <div className="text-sm text-blue-600">Montant HT</div>
+                      <div className="font-bold text-blue-900">{formatCurrency(shock.total_new_amount_excluding_tax)} F CFA</div>
+                    </div>
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <div className="text-sm text-green-600">TVA</div>
+                      <div className="font-bold text-green-900">{formatCurrency(shock.total_new_amount_tax)} F CFA</div>
+                    </div>
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <div className="text-sm text-purple-600">Montant TTC</div>
+                      <div className="font-bold text-purple-900">{formatCurrency(shock.total_new_amount)} F CFA</div>
+                    </div>
+                    <div className="bg-orange-50 p-3 rounded-lg">
+                      <div className="text-sm text-orange-600">Total choc</div>
+                      <div className="font-bold text-orange-900">{formatCurrency(shock.total_shock_amount)} F CFA</div>
+                    </div>
+                  </div>
+
+                  {/* Fournitures du choc */}
+                  {shock.shock_works && shock.shock_works.length > 0 && (
+                    <div className="mb-4">
+                      <h5 className="font-medium text-gray-700 mb-2">Fournitures</h5>
+                      <div className="space-y-2">
+                        {shock.shock_works.map((work: any, workIndex: number) => (
+                          <div key={workIndex} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-gray-800">{work.supply_label}</div>
+                                <div className="text-sm text-gray-600">
+                                  {work.disassembly && 'Démontage '}
+                                  {work.replacement && 'Remplacement '}
+                                  {work.repair && 'Réparation '}
+                                  {work.paint && 'Peinture '}
+                                  {work.control && 'Contrôle'}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-bold text-gray-900">{formatCurrency(work.new_amount)} F CFA</div>
+                                <div className="text-xs text-gray-600">
+                                  HT: {formatCurrency(work.new_amount_excluding_tax)} | TVA: {formatCurrency(work.new_amount_tax)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Main d'œuvre du choc */}
+                  {shock.workforces && shock.workforces.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-gray-700 mb-2">Main d'œuvre</h5>
+                      <div className="space-y-2">
+                        {shock.workforces.map((workforce: any, workforceIndex: number) => (
+                          <div key={workforceIndex} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="font-medium text-gray-800">{workforce.workforce_type_label}</div>
+                              <div className="text-right">
+                                <div className="font-bold text-gray-900">{formatCurrency(workforce.amount)} F CFA</div>
+                                <div className="text-xs text-gray-600">
+                                  HT: {formatCurrency(workforce.amount_excluding_tax)} | TVA: {formatCurrency(workforce.amount_tax)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Détail des autres coûts */}
+      {calculationResult.other_costs && calculationResult.other_costs.length > 0 && (
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-purple-600" />
+              Détail des autres coûts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {calculationResult.other_costs.map((cost: any, index: number) => (
+                <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-800">{cost.other_cost_type_label}</div>
+                    <div className="text-sm text-gray-600">Type de coût #{cost.other_cost_type_id}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-gray-900">{formatCurrency(cost.other_costs_amount)} F CFA</div>
+                    <div className="text-xs text-gray-600">
+                      HT: {formatCurrency(cost.other_costs_amount_excluding_tax)} | TVA: {formatCurrency(cost.other_costs_amount_tax)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Récapitulatif global des montants */}
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-green-600" />
+            Récapitulatif global des montants
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-sm text-blue-600">Total chocs HT</div>
+              <div className="font-bold text-xl text-blue-900">{formatCurrency(calculationResult.shocks_amount_excluding_tax)} F CFA</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-sm text-green-600">Total chocs TVA</div>
+              <div className="font-bold text-xl text-green-900">{formatCurrency(calculationResult.shocks_amount_tax)} F CFA</div>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="text-sm text-purple-600">Total chocs TTC</div>
+              <div className="font-bold text-xl text-purple-900">{formatCurrency(calculationResult.shocks_amount)} F CFA</div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg">
+              <div className="text-sm text-orange-600">Total autres coûts</div>
+              <div className="font-bold text-xl text-orange-900">{formatCurrency(calculationResult.total_other_costs_amount)} F CFA</div>
+            </div>
+          </div>
+          
+          <Separator className="my-6" />
+          
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <div className="text-sm text-green-600">Total général HT</div>
+                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.total_amount_excluding_tax)} F CFA</div>
+              </div>
+              <div>
+                <div className="text-sm text-green-600">Total général TVA</div>
+                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.total_amount_tax)} F CFA</div>
+              </div>
+              <div>
+                <div className="text-sm text-green-600">Total général TTC</div>
+                <div className="font-bold text-3xl text-green-900">{formatCurrency(calculationResult.total_amount)} F CFA</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

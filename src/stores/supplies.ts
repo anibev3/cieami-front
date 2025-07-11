@@ -61,7 +61,9 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des fournitures'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -72,7 +74,9 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement de la fourniture'
       set({ error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -87,7 +91,9 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -101,7 +107,9 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la modification'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -115,7 +123,9 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 }))
@@ -143,7 +153,9 @@ export const useSupplyPricesStore = create<SupplyPricesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des prix'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -161,7 +173,9 @@ export const useSupplyPricesStore = create<SupplyPricesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des prix'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 

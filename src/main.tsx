@@ -40,7 +40,9 @@ const queryClient = new QueryClient({
 
         if (error instanceof AxiosError) {
           if (error.response?.status === 304) {
-            toast.error('Content not modified!')
+            toast.error('Content not modified!', {
+              duration: 1000,
+            })
           }
         }
       },

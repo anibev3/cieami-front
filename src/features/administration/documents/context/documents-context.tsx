@@ -120,7 +120,9 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des documents'
       dispatch({ type: 'SET_ERROR', payload: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
@@ -137,7 +139,9 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       closeCreateDialog()
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -155,7 +159,9 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       closeEditDialog()
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -173,7 +179,9 @@ export function DocumentsProvider({ children }: DocumentsProviderProps) {
       closeDeleteDialog()
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })

@@ -30,7 +30,9 @@ export const useAssignmentStatisticsStore = create<AssignmentStatisticsState>((s
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des statistiques'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 

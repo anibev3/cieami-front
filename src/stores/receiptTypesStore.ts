@@ -32,7 +32,9 @@ export const useReceiptTypesStore = create<ReceiptTypesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -48,7 +50,9 @@ export const useReceiptTypesStore = create<ReceiptTypesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -65,7 +69,9 @@ export const useReceiptTypesStore = create<ReceiptTypesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la modification'
       set({ loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -82,7 +88,9 @@ export const useReceiptTypesStore = create<ReceiptTypesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
       set({ loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },

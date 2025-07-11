@@ -39,7 +39,9 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des énergies de véhicules'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -55,7 +57,9 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -74,7 +78,9 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
       set({ loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -91,7 +97,9 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
       set({ loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },

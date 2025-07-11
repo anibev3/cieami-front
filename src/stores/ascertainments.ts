@@ -65,7 +65,9 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la récupération des constats'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -79,7 +81,9 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la récupération du constat'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -101,7 +105,9 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création du constat'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       return false
     }
   },
@@ -129,7 +135,9 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour du constat'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       return false
     }
   },
@@ -155,7 +163,9 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression du constat'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       return false
     }
   },

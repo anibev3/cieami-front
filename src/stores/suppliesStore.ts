@@ -60,7 +60,9 @@ export const useSuppliesStore = create<SuppliesStore>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des fournitures'
       set({ error: errorMessage, loading: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 

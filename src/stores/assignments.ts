@@ -162,7 +162,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -174,7 +176,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -186,7 +190,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -199,7 +205,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement de l\'assignation'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
     }
   },
 
@@ -214,7 +222,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -230,7 +240,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -246,7 +258,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -262,7 +276,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du changement de statut'
       set({ loading: false, error: errorMessage })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -345,7 +361,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       return receipts
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des quittances'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -356,7 +374,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       toast.success('Quittance créée avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création de la quittance'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -367,7 +387,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       toast.success(`${receipts.length} quittance(s) créée(s) avec succès`)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création des quittances'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -378,7 +400,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       toast.success('Quittance mise à jour avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour de la quittance'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },
@@ -389,7 +413,9 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       toast.success('Quittance supprimée avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression de la quittance'
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       throw error
     }
   },

@@ -48,7 +48,7 @@ class AssignmentService {
     console.log("================================================");
     console.log(response.data.data)
     console.log("================================================");
-    return response.data
+    return response.data.data
   }
 
   async getAssignmentsRecoveryExpired(page: number = 1, filters?: AssignmentFilters): Promise<AssignmentApiResponse> {
@@ -63,7 +63,7 @@ class AssignmentService {
       ...(filters?.date_to && { date_to: filters.date_to }),
     })
     const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_RECOVERY_EXPIRED}?${params}`)
-    return response.data
+    return response.data.data
   }
 
   /**

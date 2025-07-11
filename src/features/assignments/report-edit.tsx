@@ -147,10 +147,14 @@ export default function ReportEditPage() {
     removeOtherCost,
     updateOtherCost,
     cleanOtherCosts
-  } = useOtherCosts(assignment?.other_costs?.map(cost => ({
-    other_cost_type_id: cost.other_cost_type_id,
-    amount: parseFloat(cost.amount) || 0
-  })))
+  } = useOtherCosts(
+    assignment?.other_costs && assignment.other_costs.length > 0
+      ? assignment.other_costs.map(cost => ({
+          other_cost_type_id: cost.other_cost_type_id,
+          amount: parseFloat(cost.amount) || 0
+        }))
+      : undefined
+  )
   
   const {
     calculationResults,
@@ -198,6 +202,13 @@ export default function ReportEditPage() {
       toast.success('Aucun point de choc pré-rempli chargé')
     }
   }, [assignment?.shocks])
+
+  // Vérifier si des coûts autres pré-remplis ont été chargés
+  useEffect(() => {
+    if (assignment?.other_costs && assignment.other_costs.length > 0) {
+      toast.success(`${assignment.other_costs.length} coût(s) autre(s) pré-rempli(s) chargé(s)`)
+    }
+  }, [assignment?.other_costs])
 
   // Fonction de sauvegarde avec option de redirection
   const handleSaveAssignment = useCallback(async () => {

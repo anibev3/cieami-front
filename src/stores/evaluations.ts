@@ -58,7 +58,9 @@ export const useEvaluationStore = create<EvaluationState>((set, _get) => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du calcul d\'évaluation'
       set({ error: errorMessage, calculating: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       return false
     }
   },
@@ -88,7 +90,9 @@ export const useEvaluationStore = create<EvaluationState>((set, _get) => ({
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la soumission de l\'évaluation'
       set({ error: errorMessage, submitting: false })
-      toast.error(errorMessage)
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
       return false
     }
   },

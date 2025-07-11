@@ -121,7 +121,9 @@ export function ReceiptModal({
 
       await axiosInstance.post(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, payload)
       
-      toast.success(`${validReceipts.length} quittance(s) ajoutée(s) avec succès`)
+      toast.success(`${validReceipts.length} quittance(s) ajoutée(s) avec succès`, {
+        duration: 1000,
+      })
       onSave(validReceipts)
     } catch (_error) {
       toast.error('Erreur lors de l\'ajout des quittances')

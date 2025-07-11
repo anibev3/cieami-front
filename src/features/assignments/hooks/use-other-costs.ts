@@ -6,14 +6,15 @@ interface OtherCost {
 }
 
 export function useOtherCosts(initialOtherCosts?: OtherCost[]) {
-  const [otherCosts, setOtherCosts] = useState<OtherCost[]>([
-    { other_cost_type_id: 0, amount: 0 }
-  ])
+  const [otherCosts, setOtherCosts] = useState<OtherCost[]>([])
 
   // Initialiser avec des données pré-remplies
   useEffect(() => {
     if (initialOtherCosts && initialOtherCosts.length > 0) {
       setOtherCosts(initialOtherCosts)
+    } else if (initialOtherCosts === undefined || initialOtherCosts.length === 0) {
+      // Si pas de données initiales ou tableau vide, s'assurer que otherCosts est vide
+      setOtherCosts([])
     }
   }, [initialOtherCosts])
 
