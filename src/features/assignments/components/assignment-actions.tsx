@@ -136,10 +136,10 @@ export function AssignmentActions({
         // },
         {
           key: 'write-report',
-          label: 'Rédiger  ' + (assignment.expertise_type.code === '005' ? 'l\'évaluation' : '    le rapport'), 
+          label: 'Rédiger  ' + (assignment.expertise_type.code === 'evaluation' ? 'l\'évaluation' : '    le rapport'), 
           icon: FileText,
           onClick: () => {
-            if (assignment.expertise_type.code === '005') {
+            if (assignment.expertise_type.code === 'evaluation') {
               navigate({ to: `/assignments/evaluate-report/${assignment.id}` })
             } else {
               navigate({ to: `/assignments/edite-report/${assignment.id}` })

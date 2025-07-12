@@ -24,7 +24,7 @@ class EvaluationService {
    * Soumettre l'évaluation d'une assignation
    */
   async submitEvaluation(assignmentId: number, data: EvaluationSubmissionRequest): Promise<EvaluationSubmissionResponse> {
-    const response = await axiosInstance.post<EvaluationSubmissionResponse>(
+    const response = await axiosInstance.put<EvaluationSubmissionResponse>(
       `${API_CONFIG.ENDPOINTS.EVALUATE}/${assignmentId}`, 
       data
     )

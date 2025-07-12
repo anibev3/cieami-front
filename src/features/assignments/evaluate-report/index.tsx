@@ -73,6 +73,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { ShockSuppliesEvaluateTable } from '../components/shock-supplies-evaluate-table'
+import { ShockWorkforceEvaluateTable } from '../components/shock-workforce-evaluate-table'
 
 
 interface OtherCostType {
@@ -953,7 +955,9 @@ export default function EvaluateReportPage() {
                       setShowEvaluationSubmissionModal(true)
                     }
                   }}
-                  disabled={submitting || !calculationResult || !assignment?.vehicle?.id || !expertiseDate || marketIncidenceRate <= 0}
+                disabled={submitting || !calculationResult || !assignment?.vehicle?.id || !expertiseDate
+                  // || marketIncidenceRate <= 0
+                }
                   className="outline"
                 >
                 {submitting ? (
@@ -1214,7 +1218,7 @@ export default function EvaluateReportPage() {
                     </div> */}
                     
                     {/* Fournitures */}
-                    <ShockSuppliesTable
+                    <ShockSuppliesEvaluateTable
                       supplies={supplies}
                       shockWorks={s.shock_works}
                       onUpdate={(i, field, value) => {
@@ -1255,8 +1259,9 @@ export default function EvaluateReportPage() {
                     />
 
 
+
                     {/* Main d'œuvre */}
-                    <ShockWorkforceTable
+                    <ShockWorkforceEvaluateTable
                       workforceTypes={workforceTypes}
                       workforces={s.workforces}
                       paintTypes={paintTypes}
@@ -1974,7 +1979,7 @@ function AscertainmentItem({
             value={ascertainment.ascertainment_type_id}
             onValueChange={(value) => onUpdate('ascertainment_type_id', value)}
           >
-            <SelectTrigger className="border-gray-300 focus:border-yellow-500 focus:ring-yellow-200">
+            <SelectTrigger className="border-gray-300 focus:border-yellow-500 focus:ring-yellow-200 w-full">
               <SelectValue placeholder="Sélectionner un type" />
             </SelectTrigger>
             <SelectContent>

@@ -62,7 +62,7 @@ interface ShockWorkforceTableProps {
   onValidateRow: (index: number) => Promise<void>
 }
 
-export function ShockWorkforceTable({
+export function ShockWorkforceEvaluateTable({
   workforceTypes,
   workforces,
   paintTypes,
@@ -251,7 +251,7 @@ export function ShockWorkforceTable({
               <th className="border px-2 py-2 text-center font-medium">
                 Remise (%)
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
+              {/* <th className="border px-2 py-2 text-center font-medium">
                 Tx horr (FCFA)
               </th>
               <th className="border px-2 py-2 text-center font-medium text-green-600">
@@ -262,7 +262,7 @@ export function ShockWorkforceTable({
               </th>
               <th className="border px-2 py-2 text-center font-medium text-purple-600">
                 Montant TTC
-              </th>
+              </th> */}
               <th className="border px-2 py-2 text-center font-medium">
                 Actions
               </th>
@@ -309,7 +309,7 @@ export function ShockWorkforceTable({
                     onChange={e => updateLocalWorkforce(i, 'discount', Number(e.target.value))}
                   />
                 </td>
-                <td className="border px-2 py-2 text-center">
+                {/* <td className="border px-2 py-2 text-center">
                   <div className="text-gray-600 font-medium">
                     {formatCurrency(Number(row.work_fee || 0))}
                   </div>
@@ -328,7 +328,7 @@ export function ShockWorkforceTable({
                   <div className="text-purple-600 font-bold">
                     {formatCurrency(row.amount || 0)}
                   </div>
-                </td>
+                </td> */}
                 <td className="border px-2 py-2 text-center">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (
@@ -365,7 +365,7 @@ export function ShockWorkforceTable({
       </div>
 
       {/* Récapitulatif moderne */}
-      <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
+      {/* <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
         <div className="grid grid-cols-7 gap-4 text-xs">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total Heures</div>
@@ -400,7 +400,7 @@ export function ShockWorkforceTable({
             <div className="text-base font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 } 

@@ -15,13 +15,6 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -264,6 +257,7 @@ export default function ReportEditPage() {
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
           recovery_rate: work.recovery_rate,
+          discount: work.discount,
           amount: work.amount || 0
         })),
         paint_type_id: shock.paint_type_id,
@@ -367,6 +361,7 @@ export default function ReportEditPage() {
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
           recovery_rate: work.recovery_rate,
+          discount: work.discount,
           amount: work.amount || 0
         })),
         paint_type_id: shock.paint_type_id,
@@ -453,6 +448,7 @@ export default function ReportEditPage() {
             comment: work.comment,
             obsolescence_rate: work.obsolescence_rate,
             recovery_rate: work.recovery_rate,
+            discount: work.discount,
             amount: work.amount || 0
           })),
           paint_type_id: shock.paint_type_id,
@@ -569,7 +565,7 @@ export default function ReportEditPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        calculateAllShocks()
+        // calculateAllShocks()
       }, 4000)
     }
   }, [updateShock, calculateAllShocks])
@@ -588,7 +584,7 @@ export default function ReportEditPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        calculateAllShocks()
+        // calculateAllShocks()
       }, 4000)
     }
   }, [shocks, updateShock, calculateAllShocks])
@@ -607,7 +603,7 @@ export default function ReportEditPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       setTimeout(() => {
-        calculateAllShocks()
+        // calculateAllShocks()
       }, 4000)
     }
   }, [shocks, updateShock, calculateAllShocks])
@@ -623,9 +619,9 @@ export default function ReportEditPage() {
     
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
-      setTimeout(() => {
-        calculateAllShocks()
-      }, 4000)
+      // setTimeout(() => {
+      //   calculateAllShocks()
+      // }, 4000)
     }
   }, [updateOtherCost, otherCosts, calculateAllShocks])
 
@@ -645,12 +641,12 @@ export default function ReportEditPage() {
     const remainingOtherCosts = otherCosts.filter((_, i) => i !== index)
     const hasValidData = remainingOtherCosts.some(cost => cost.other_cost_type_id > 0)
     
-    if (hasValidData) {
-      // Déclencher le calcul global automatique après un délai
-      setTimeout(() => {
-        calculateAllShocks()
-      }, 4000)
-    }
+    // if (hasValidData) {
+    //   // Déclencher le calcul global automatique après un délai
+    //   setTimeout(() => {
+    //     calculateAllShocks()
+    //   }, 4000)
+    // }
   }, [removeOtherCost, otherCosts, calculateAllShocks])
 
   // Fonction de calcul d'un seul point de choc
@@ -685,6 +681,7 @@ export default function ReportEditPage() {
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
           recovery_rate: work.recovery_rate,
+          discount: work.discount,
           amount: work.amount || 0
         })),
         paint_type_id: shock.paint_type_id,
@@ -958,6 +955,7 @@ export default function ReportEditPage() {
                           comment: '',
                           obsolescence_rate: 0,
                           recovery_rate: 0,
+                          discount: 0,
                           amount: 0
                         }
                         const updatedShock = { ...s, shock_works: [...s.shock_works, newWork] }
@@ -975,11 +973,11 @@ export default function ReportEditPage() {
                         
                         updateShock(index, updatedShock)
                         
-                        if (hasValidData) {
-                          setTimeout(() => {
-                            calculateAllShocks()
-                          }, 4000)
-                        }
+                        // if (hasValidData) {
+                        //   setTimeout(() => {
+                        //     calculateAllShocks()
+                        //   }, 4000)
+                        // }
                       }}
                       onValidateRow={async (workIndex) => {
                         // Déclencher le calcul pour ce choc uniquement
@@ -1022,11 +1020,11 @@ export default function ReportEditPage() {
                         
                         updateShock(index, updatedShock)
                         
-                        if (hasValidData) {
-                          setTimeout(() => {
-                            calculateAllShocks()
-                          }, 4000)
-                        }
+                        // if (hasValidData) {
+                        //   setTimeout(() => {
+                        //     calculateAllShocks()
+                        //   }, 4000)
+                        // }
                       }}
                       onPaintTypeChange={(value) => {
                         const updatedShock = { ...s, paint_type_id: value }

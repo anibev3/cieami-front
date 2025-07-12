@@ -11,6 +11,7 @@ export interface ShockWork {
   comment: string
   obsolescence_rate: number
   recovery_rate: number
+  discount: number
   amount: number
   // Données calculées
   obsolescence_amount_excluding_tax?: number
@@ -99,6 +100,7 @@ export function useShockManagement(initialShocks?: Shock[]) {
       comment: '',
       obsolescence_rate: 0,
       recovery_rate: 0,
+      discount: 0,
       amount: 0
     }
     
