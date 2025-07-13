@@ -62,10 +62,11 @@ import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
 import { VehicleGenreSelect } from '@/features/widgets/vehicle-genre-select'
-import { VehicleAgeSelect } from '@/features/widgets/vehicle-age-select'
 import { VehicleEnergySelect } from '@/features/widgets/vehicle-energy-select'
+import { BrandSelect } from '@/features/widgets'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { HtmlContent } from '@/components/ui/html-content'
+import { VehicleModelSelect } from '@/features/assignments/cost-of-supply/components/vehicle-model-select'
 
 // Types pour les experts
 interface Expert {
@@ -108,8 +109,8 @@ interface AssignmentCreatePayload {
   client_id: number
   vehicle_id: number
   vehicle_mileage: number | null
-  insurer_id: number
-  repairer_id: number
+  insurer_id: number | null
+  repairer_id: number | null
   assignment_type_id: number
   expertise_type_id: number
   document_transmitted_id: any[]
@@ -141,8 +142,8 @@ const assignmentSchema = z.object({
   client_id: z.string().min(1, 'Le client est requis'),
   vehicle_id: z.string().min(1, 'Le véhicule est requis'),
   vehicle_mileage: z.string().optional(),
-  insurer_id: z.string().min(1, 'L\'assureur est requis'),
-  repairer_id: z.string().min(1, 'Le réparateur est requis'),
+  insurer_id: z.string().optional(),
+  repairer_id: z.string().optional(),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
   document_transmitted_id: z.array(z.string()).min(1, 'Au moins un document transmis est requis'),
@@ -158,10 +159,10 @@ const assignmentSchema = z.object({
   damage_declared: z.string().optional(),
   observation: z.string().optional(),
   experts: z.array(z.object({
-    expert_id: z.string().min(1, 'L\'expert est requis'),
-    date: z.string().min(1, 'La date est requise'),
+    expert_id: z.string().optional(),
+    date: z.string().optional(),
     observation: z.string().optional()
-  })).min(1, 'Au moins un expert est requis')
+  })).optional()
 })
 
 export default function CreateAssignmentPage() {
@@ -208,14 +209,16 @@ export default function CreateAssignmentPage() {
     mileage: '',
     serial_number: '',
     fiscal_power: 0,
-    energy: '',
     nb_seats: 0,
+    new_market_value: 0,
+    payload: 0,
     vehicle_model_id: '',
     color_id: '',
     bodywork_id: '',
     vehicle_genre_id: '',
-    vehicle_age_id: '',
     vehicle_energy_id: '',
+    first_entry_into_circulation_date: '',
+    technical_visit_date: '',
   })
   
   const [createInsurerForm, setCreateInsurerForm] = useState({
@@ -239,6 +242,9 @@ export default function CreateAssignmentPage() {
     label: '',
     description: '',
   })
+  
+  // État pour la marque sélectionnée dans la création de véhicule
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('')
   
   // États pour les entités sélectionnées
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
@@ -384,6 +390,13 @@ export default function CreateAssignmentPage() {
     fetchBodyworks()
   }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks])
 
+  // Réinitialiser le modèle quand la marque change
+  useEffect(() => {
+    if (selectedBrandId !== '') {
+      setCreateVehicleForm(prev => ({ ...prev, vehicle_model_id: '' }))
+    }
+  }, [selectedBrandId])
+
   // Validations par étape
   const stepValidations = {
     1: () => {
@@ -394,8 +407,6 @@ export default function CreateAssignmentPage() {
       return (
         values.client_id?.toString().length > 0 &&
         values.vehicle_id?.toString().length > 0 &&
-        values.insurer_id?.toString().length > 0 &&
-        values.repairer_id?.toString().length > 0 &&
         isMileageValid
       )
     },
@@ -409,7 +420,7 @@ export default function CreateAssignmentPage() {
     },
     3: () => {
       const values = form.getValues()
-      return Boolean(values.experts.length > 0 && values.experts.every(expert => expert.expert_id && expert.date))
+      return true // Les experts sont maintenant optionnels
     },
     4: () => true,
   }
@@ -430,7 +441,7 @@ export default function CreateAssignmentPage() {
 
   // Fonctions pour les experts
   const addExpert = () => {
-    const currentExperts = form.getValues('experts')
+    const currentExperts = form.getValues('experts') || []
     form.setValue('experts', [...currentExperts, {
       expert_id: '',
       date: new Date().toISOString().split('T')[0],
@@ -439,7 +450,7 @@ export default function CreateAssignmentPage() {
   }
 
   const removeExpert = (index: number) => {
-    const currentExperts = form.getValues('experts')
+    const currentExperts = form.getValues('experts') || []
     if (currentExperts.length > 1) {
       form.setValue('experts', currentExperts.filter((_, i) => i !== index))
     }
@@ -572,12 +583,12 @@ export default function CreateAssignmentPage() {
     
     try {
       // Préparer les données pour l'API
-      const assignmentData: AssignmentCreatePayload = {
+      const assignmentData = {
         client_id: parseInt(values.client_id),
         vehicle_id: parseInt(values.vehicle_id),
         vehicle_mileage: values.vehicle_mileage ? parseInt(values.vehicle_mileage) : null,
-        insurer_id: parseInt(values.insurer_id),
-        repairer_id: parseInt(values.repairer_id),
+        insurer_id: values.insurer_id ? parseInt(values.insurer_id) : null,
+        repairer_id: values.repairer_id ? parseInt(values.repairer_id) : null,
         assignment_type_id: parseInt(values.assignment_type_id),
         expertise_type_id: parseInt(values.expertise_type_id),
         document_transmitted_id: values.document_transmitted_id.map(id => parseInt(id)),
@@ -592,12 +603,12 @@ export default function CreateAssignmentPage() {
         circumstance: values.circumstance || null,
         damage_declared: values.damage_declared || null,
         observation: values.observation || null,
-        experts: values.experts.map((expert) => ({
-          expert_id: parseInt(expert.expert_id),
-          date: expert.date,
+        experts: (values.experts || []).filter(expert => expert.expert_id && expert.date).map((expert) => ({
+          expert_id: parseInt(expert.expert_id!),
+          date: expert.date!,
           observation: expert.observation || null,
         })),
-      }
+      } as AssignmentCreatePayload
 
       if (isEditMode && assignmentId) {
         // Mode modification
@@ -656,16 +667,22 @@ export default function CreateAssignmentPage() {
         ...createVehicleForm,
         fiscal_power: Number(createVehicleForm.fiscal_power),
         nb_seats: Number(createVehicleForm.nb_seats),
+        new_market_value: Number(createVehicleForm.new_market_value),
+        payload: Number(createVehicleForm.payload),
         bodywork_id: createVehicleForm.bodywork_id,
+        first_entry_into_circulation_date: createVehicleForm.first_entry_into_circulation_date || undefined,
+        technical_visit_date: createVehicleForm.technical_visit_date || undefined,
       })
       toast.success('Véhicule créé avec succès')
       setShowCreateVehicleModal(false)
-      setCreateVehicleForm({
-        license_plate: '', usage: '', type: '', option: '', mileage: '',
-        serial_number: '', fiscal_power: 0, energy: '', nb_seats: 0,
-        vehicle_model_id: '', color_id: '', bodywork_id: '',
-        vehicle_genre_id: '', vehicle_age_id: '', vehicle_energy_id: '',
-      })
+              setCreateVehicleForm({
+          license_plate: '', usage: '', type: '', option: '', mileage: '',
+          serial_number: '', fiscal_power: 0, nb_seats: 0, new_market_value: 0, payload: 0,
+          vehicle_model_id: '', color_id: '', bodywork_id: '',
+          vehicle_genre_id: '', vehicle_energy_id: '',
+          first_entry_into_circulation_date: '', technical_visit_date: '',
+        })
+        setSelectedBrandId('')
       fetchVehicles() // Recharger la liste
     } catch (error) {
       toast.error('Erreur lors de la création du véhicule')
@@ -798,7 +815,7 @@ export default function CreateAssignmentPage() {
                         section.id === 2 ?
                         (form.watch('assignment_type_id') && form.watch('expertise_type_id') && form.watch('document_transmitted_id')?.length > 0) :
                         section.id === 3 ?
-                        (form.watch('received_at') && form.watch('experts')?.length > 0) :
+                        (form.watch('received_at') && (form.watch('experts') || [])?.length > 0) :
                         true
                       
                       return (
@@ -823,7 +840,7 @@ export default function CreateAssignmentPage() {
                   </CardContent>
                 </Card>
 
-                             {/* Navigation */}
+                {/* Navigation */}
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-semibold">Navigation</CardTitle>
@@ -850,7 +867,7 @@ export default function CreateAssignmentPage() {
                         Suivant
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </Button>
-            </div>
+                  </div>
                     <div className="text-center text-sm text-gray-500">
                       Étape {step} sur {totalSteps}
                     </div>
@@ -917,7 +934,7 @@ export default function CreateAssignmentPage() {
             <div className="flex-1 space-y-6">
               {/* Section 1: Informations générales */}
               <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-        <CardHeader>
+                <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <FileText className="h-5 w-5 text-blue-600" />
                     Informations générales
@@ -925,7 +942,7 @@ export default function CreateAssignmentPage() {
                   <CardDescription>
                     Renseignez les informations du client, véhicule, assureur et réparateur.
                   </CardDescription>
-        </CardHeader>
+                </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Client et Véhicule */}
@@ -1091,14 +1108,14 @@ export default function CreateAssignmentPage() {
                         <div className="grid grid-cols-2 gap-4">
                           <FormField control={form.control} name="claim_starts_at" render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Début du sinistre</FormLabel>
+                              <FormLabel>Date de sinistre</FormLabel>
                               <FormControl>
                                 <Input type="date" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )} />
-                          <FormField control={form.control} name="claim_ends_at" render={({ field }) => (
+                          {/* <FormField control={form.control} name="claim_ends_at" render={({ field }) => (
                             <FormItem>
                               <FormLabel>Fin du sinistre</FormLabel>
                               <FormControl>
@@ -1106,7 +1123,7 @@ export default function CreateAssignmentPage() {
                               </FormControl>
                               <FormMessage />
                             </FormItem>
-                          )} />
+                          )} /> */}
                         </div>
                       </div>
                   </div>
@@ -1260,7 +1277,7 @@ export default function CreateAssignmentPage() {
                             name="assignment_type_id"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Type d'assignation</FormLabel>
+                                <FormLabel>Type de mission</FormLabel>
                                 <div className="flex gap-2">
                                   <Select 
                                     onValueChange={(value) => {
@@ -1437,9 +1454,9 @@ export default function CreateAssignmentPage() {
                         )} />
                         <FormField control={form.control} name="administrator" render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Administrateur</FormLabel>
+                                <FormLabel>Gestionnaire</FormLabel>
                                 <FormControl>
-                              <Input placeholder="Administrateur" {...field} />
+                              <Input placeholder="Gestionnaire" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1508,7 +1525,7 @@ export default function CreateAssignmentPage() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                 <div className="space-y-4">
-                      {form.watch('experts').map((expert, idx) => (
+                      {(form.watch('experts') || []).map((expert, idx) => (
                         <div key={idx} className="space-y-4 border-b pb-4 mb-4">
                           <div className="flex gap-4 items-end">
                             <FormField
@@ -1560,7 +1577,7 @@ export default function CreateAssignmentPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => removeExpert(idx)}
-                              disabled={form.watch('experts').length === 1}
+                              disabled={(form.watch('experts') || []).length === 1}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -1767,11 +1784,11 @@ export default function CreateAssignmentPage() {
                         <User className="h-4 w-4 text-pink-600" />
                         <h3 className="text-lg font-semibold text-gray-900">Experts assignés</h3>
                         <Badge variant="secondary" className="ml-auto">
-                          {form.watch('experts').length} expert(s)
+                          {(form.watch('experts') || []).length} expert(s)
                         </Badge>
                       </div>
                       <div className="space-y-3">
-                        {form.watch('experts').map((expert, idx) => {
+                        {(form.watch('experts') || []).map((expert, idx) => {
                           const expertUser = users.find(u => u.id.toString() === expert.expert_id)
                           return (
                             <div key={idx} className="p-4 bg-pink-50 rounded-lg border border-pink-200">
@@ -1866,7 +1883,7 @@ export default function CreateAssignmentPage() {
                       </div>
                           </div>
                         <div className="space-y-2">
-                            <span className="font-medium text-gray-700">Administrateur</span>
+                            <span className="font-medium text-gray-700">Gestionnaire</span>
                             <div className="p-3 bg-gray-50 rounded-lg border">
                               <span className="text-gray-900">
                                 {form.watch('administrator') || 'Non renseigné'}
@@ -1935,17 +1952,40 @@ export default function CreateAssignmentPage() {
                           <div className="text-blue-700">Véhicule</div>
                         </div>
                         <div className="text-center">
-                          <div className="font-bold text-blue-900">{form.watch('experts').length > 0 ? '✓' : '✗'}</div>
+                          <div className="font-bold text-blue-900">{(form.watch('experts') || []).length > 0 ? '✓' : '✗'}</div>
                           <div className="text-blue-700">Experts</div>
                         </div>
                         <div className="text-center">
                           <div className="font-bold text-blue-900">{selectedDocuments.length > 0 ? '✓' : '✗'}</div>
                           <div className="text-blue-700">Documents</div>
                         </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                      </div>
+                    </div>
+
+                    {/* Bouton de création en bas du récapitulatif */}
+                    <div className="flex justify-center pt-6">
+                      <Button 
+                        type="submit" 
+                        onClick={form.handleSubmit(onSubmit)}
+                        disabled={loading}
+                        size="lg"
+                        className="px-8 py-3 text-lg"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Enregistrement...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-5 w-5" />
+                            {isEditMode ? 'Mettre à jour le dossier' : 'Créer le dossier'}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
             
@@ -2025,6 +2065,14 @@ export default function CreateAssignmentPage() {
           <form onSubmit={handleCreateVehicle} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label htmlFor="vehicle-brand">Marque *</Label>
+                <BrandSelect
+                  value={selectedBrandId}
+                  onValueChange={setSelectedBrandId}
+                  placeholder="Sélectionnez une marque"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="vehicle-license">Plaque d'immatriculation *</Label>
                 <Input 
                   id="vehicle-license" 
@@ -2100,30 +2148,33 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-energy">Énergie</Label>
+                <Label htmlFor="vehicle-new-value">Valeur neuve *</Label>
                 <Input 
-                  id="vehicle-energy" 
-                  value={createVehicleForm.energy} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, energy: e.target.value }))} 
+                  id="vehicle-new-value" 
+                  type="number"
+                  value={createVehicleForm.new_market_value} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, new_market_value: Number(e.target.value) }))} 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-payload-capacity">Charge utile *</Label>
+                <Input 
+                  id="vehicle-payload-capacity" 
+                  type="number"
+                  value={createVehicleForm.payload} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, payload: Number(e.target.value) }))} 
+                  required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="vehicle-model">Modèle de véhicule *</Label>
-                <Select 
-                  value={createVehicleForm.vehicle_model_id} 
+                <VehicleModelSelect
+                  value={createVehicleForm.vehicle_model_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_model_id: value }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un modèle" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vehicleModels.map((model: VehicleModel) => (
-                      <SelectItem key={model.id} value={model.id.toString()}>
-                        {model.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Sélectionner un modèle"
+                  brandId={selectedBrandId}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="vehicle-color">Couleur *</Label>
@@ -2161,7 +2212,6 @@ export default function CreateAssignmentPage() {
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="vehicle-genre">Genre de véhicule</Label>
                 <VehicleGenreSelect
@@ -2171,24 +2221,32 @@ export default function CreateAssignmentPage() {
                   showDescription={false}
                 />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="vehicle-age">Âge du véhicule</Label>
-                <VehicleAgeSelect
-                  value={createVehicleForm.vehicle_age_id}
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_age_id: value }))}
-                  placeholder="Sélectionner un âge de véhicule"
-                  showDescription={false}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-energy-type">Type d'énergie</Label>
+                <Label htmlFor="vehicle-energy-type">Énergie</Label>
                 <VehicleEnergySelect
                   value={createVehicleForm.vehicle_energy_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_energy_id: value }))}
                   placeholder="Sélectionner un type d'énergie"
                   showDescription={false}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-first-circulation">Date de première mise en circulation *</Label>
+                <Input 
+                  id="vehicle-first-circulation" 
+                  type="date"
+                  value={createVehicleForm.first_entry_into_circulation_date || ''} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, first_entry_into_circulation_date: e.target.value }))} 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-technical-visit">Date de visite technique</Label>
+                <Input 
+                  id="vehicle-technical-visit" 
+                  type="date"
+                  value={createVehicleForm.technical_visit_date || ''} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, technical_visit_date: e.target.value }))} 
                 />
               </div>
             </div>
@@ -2428,8 +2486,12 @@ export default function CreateAssignmentPage() {
                       <span className="font-medium">{selectedVehicle?.nb_seats || ''}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Énergie</span>
-                      <span className="font-medium">{selectedVehicle?.energy || 'Non spécifiée'}</span>
+                      <span className="text-muted-foreground">Valeur neuve</span>
+                      <span className="font-medium">{selectedVehicle?.new_market_value ? `${selectedVehicle.new_market_value} FCFA` : 'Non spécifiée'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Charge utile</span>
+                      <span className="font-medium">{selectedVehicle?.payload ? `${selectedVehicle.payload} kg` : 'Non spécifiée'}</span>
                     </div>
                   </div>
                 </div>

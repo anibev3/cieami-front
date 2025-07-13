@@ -31,30 +31,30 @@ import {
 import { VehicleCreate, VehicleUpdate } from '@/types/vehicles'
 import { useVehiclesStore } from '@/stores/vehicles'
 import { useBrandsStore } from '@/stores/brands'
-import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
 import { VehicleGenreSelect } from '@/features/widgets/vehicle-genre-select'
-import { VehicleAgeSelect } from '@/features/widgets/vehicle-age-select'
 import { VehicleEnergySelect } from '@/features/widgets/vehicle-energy-select'
+import { BrandSelect } from '@/features/widgets'
+import { VehicleModelSelect } from '@/features/assignments/cost-of-supply/components/vehicle-model-select'
 
 const vehicleSchema = z.object({
   license_plate: z.string().min(1, 'La plaque d\'immatriculation est requise'),
-  usage: z.string().min(1, 'L\'usage est requis'),
+  usage: z.string().optional(),
   type: z.string().min(1, 'Le type est requis'),
-  option: z.string().min(1, 'L\'option est requise'),
+  option: z.string().min(1, 'L\'option est requis'),
   bodywork_id: z.string().min(1, 'La carrosserie est requise'),
   mileage: z.string().min(1, 'Le kilométrage est requis'),
   serial_number: z.string().min(1, 'Le numéro de série est requis'),
   first_entry_into_circulation_date: z.string().optional(),
   technical_visit_date: z.string().optional(),
   fiscal_power: z.number().min(1, 'La puissance fiscale est requise'),
-  energy: z.string().optional(),
   nb_seats: z.number().min(1, 'Le nombre de places est requis'),
+  new_market_value: z.number().min(0, 'La valeur neuve doit être positive'),
+  payload: z.number().min(0, 'La charge utile doit être positive'),
   vehicle_model_id: z.string().min(1, 'Le modèle de véhicule est requis'),
   color_id: z.string().min(1, 'La couleur est requise'),
   vehicle_genre_id: z.string().optional(),
-  vehicle_age_id: z.string().optional(),
   vehicle_energy_id: z.string().optional(),
 })
 
@@ -67,12 +67,6 @@ interface VehicleMutateDialogProps {
 }
 
 // Types pour les modèles et couleurs
-interface VehicleModel {
-  id: number
-  label: string
-  code: string
-}
-
 interface Color {
   id: number
   label: string
@@ -87,9 +81,9 @@ interface Bodywork {
 
 export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDialogProps) {
   const [loading, setLoading] = useState(false)
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('')
   const { createVehicle, updateVehicle, currentVehicle, fetchVehicle } = useVehiclesStore()
   const { fetchBrands } = useBrandsStore()
-  const { vehicleModels, fetchVehicleModels } = useVehicleModelsStore()
   const { colors, fetchColors } = useColorsStore()
   const { bodyworks, fetchBodyworks } = useBodyworksStore()
 
@@ -106,12 +100,12 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
       first_entry_into_circulation_date: '',
       technical_visit_date: '',
       fiscal_power: 0,
-      energy: '',
       nb_seats: 0,
+      new_market_value: 0,
+      payload: 0,
       vehicle_model_id: '',
       color_id: '',
       vehicle_genre_id: '',
-      vehicle_age_id: '',
       vehicle_energy_id: '',
     },
   })
@@ -129,11 +123,17 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
   useEffect(() => {
     if (open) {
       fetchBrands()
-      fetchVehicleModels()
       fetchColors()
       fetchBodyworks()
     }
-  }, [open, fetchBrands, fetchVehicleModels, fetchColors, fetchBodyworks])
+  }, [open, fetchBrands, fetchColors, fetchBodyworks])
+
+  // Réinitialiser le modèle quand la marque change
+  useEffect(() => {
+    if (selectedBrandId !== '') {
+      form.setValue('vehicle_model_id', '')
+    }
+  }, [selectedBrandId, form])
 
   // Mettre à jour le formulaire avec les données du véhicule
   useEffect(() => {
@@ -149,18 +149,19 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
         first_entry_into_circulation_date: currentVehicle.first_entry_into_circulation_date || '',
         technical_visit_date: currentVehicle.technical_visit_date || '',
         fiscal_power: currentVehicle.fiscal_power,
-        energy: currentVehicle.energy || '',
         nb_seats: currentVehicle.nb_seats,
+        new_market_value: currentVehicle.new_market_value || 0,
+        payload: currentVehicle.payload || 0,
         vehicle_model_id: currentVehicle.vehicle_model.id.toString(),
         color_id: currentVehicle.color.id.toString(),
         vehicle_genre_id: '',
-        vehicle_age_id: '',
         vehicle_energy_id: '',
       })
     }
   }, [currentVehicle, isEditing, form])
 
   const onSubmit = async (data: VehicleFormData) => {
+    console.log('onSubmit called with data:', data)
     setLoading(true)
     
     try {
@@ -169,7 +170,10 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
           ...data,
           fiscal_power: Number(data.fiscal_power),
           nb_seats: Number(data.nb_seats),
+          new_market_value: Number(data.new_market_value),
+          payload: Number(data.payload),
         }
+        console.log('Updating vehicle with data:', updateData)
         await updateVehicle(id, updateData)
         toast.success('Véhicule mis à jour avec succès')
       } else {
@@ -177,14 +181,18 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
           ...data,
           fiscal_power: Number(data.fiscal_power),
           nb_seats: Number(data.nb_seats),
+          new_market_value: Number(data.new_market_value),
+          payload: Number(data.payload),
         }
+        console.log('Creating vehicle with data:', createData)
         await createVehicle(createData)
         toast.success('Véhicule créé avec succès')
       }
       
       onOpenChange(false)
       form.reset()
-    } catch (_error) {
+    } catch (error) {
+      console.error('Error in onSubmit:', error)
       // Error handled by store
     } finally {
       setLoading(false)
@@ -212,7 +220,9 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.log('Form validation errors:', errors)
+          })} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -228,7 +238,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="usage"
                 render={({ field }) => (
@@ -240,8 +250,165 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                     <FormMessage />
                   </FormItem>
                 )}
+              /> */}
+
+              <FormField
+                control={form.control}
+                name="vehicle_genre_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Genre de véhicule</FormLabel>
+                    <FormControl>
+                      <VehicleGenreSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Sélectionner un genre de véhicule"
+                        showDescription={true}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              /> 
+
+              {/* Sélection de marque */}
+              <div className="space-y-2">
+                <FormLabel>Marque</FormLabel>
+                <BrandSelect
+                  value={selectedBrandId}
+                  onValueChange={setSelectedBrandId}
+                  placeholder="Sélectionnez une marque"
+                />
+              </div>
+
+              
+              <FormField
+                control={form.control}
+                name="vehicle_model_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Modèle de véhicule</FormLabel>
+                    <VehicleModelSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Sélectionner un modèle"
+                      brandId={selectedBrandId}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
 
+
+              <FormField
+                control={form.control}
+                name="color_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Couleur</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger  className="w-full">
+                          <SelectValue placeholder="Sélectionner une couleur" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {colors.map((color: Color) => (
+                          <SelectItem key={color.id} value={color.id.toString()}>
+                            {color.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+
+              <FormField
+                control={form.control}
+                name="vehicle_energy_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Énergie</FormLabel>
+                    <FormControl>
+                      <VehicleEnergySelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Sélectionner un type d'énergie"
+                        showDescription={true}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="bodywork_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Carrosserie</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner une carrosserie" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {bodyworks.map((bodywork: Bodywork) => (
+                          <SelectItem key={bodywork.id} value={bodywork.id.toString()}>
+                            {bodywork.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="new_market_value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valeur neuve</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" onChange={(e) => field.onChange(Number(e.target.value))} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="first_entry_into_circulation_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date de première mise en circulation</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                            <FormField
+                control={form.control}
+                name="technical_visit_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date de visite technique</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="type"
@@ -311,7 +478,19 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                   </FormItem>
                 )}
               />
-
+              <FormField
+                control={form.control}
+                name="payload"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Charge utile</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" onChange={(e) => field.onChange(Number(e.target.value))} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="nb_seats"
@@ -320,180 +499,6 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                     <FormLabel>Nombre de places</FormLabel>
                     <FormControl>
                       <Input {...field} type="number" onChange={(e) => field.onChange(Number(e.target.value))} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="energy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Énergie (libre)</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="first_entry_into_circulation_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date de première mise en circulation</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="technical_visit_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date de visite technique</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="vehicle_model_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Modèle de véhicule</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger  className="w-full">
-                          <SelectValue placeholder="Sélectionner un modèle" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {vehicleModels.map((model: VehicleModel) => (
-                          <SelectItem key={model.id} value={model.id.toString()}>
-                            {model.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="color_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Couleur</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger  className="w-full">
-                          <SelectValue placeholder="Sélectionner une couleur" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {colors.map((color: Color) => (
-                          <SelectItem key={color.id} value={color.id.toString()}>
-                            {color.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="bodywork_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Carrosserie</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionner une carrosserie" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {bodyworks.map((bodywork: Bodywork) => (
-                          <SelectItem key={bodywork.id} value={bodywork.id.toString()}>
-                            {bodywork.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="vehicle_genre_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Genre de véhicule</FormLabel>
-                    <FormControl>
-                      <VehicleGenreSelect
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Sélectionner un genre de véhicule"
-                        showDescription={true}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="vehicle_age_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Âge du véhicule</FormLabel>
-                    <FormControl>
-                      <VehicleAgeSelect
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Sélectionner un âge de véhicule"
-                        showDescription={true}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="vehicle_energy_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type d'énergie</FormLabel>
-                    <FormControl>
-                      <VehicleEnergySelect
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Sélectionner un type d'énergie"
-                        showDescription={true}
-                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -32,7 +32,10 @@ class VehicleService {
    * Créer un nouveau véhicule
    */
   async createVehicle(vehicleData: VehicleCreate): Promise<Vehicle> {
+    console.log('vehicleService.createVehicle called with:', vehicleData)
+    console.log('API endpoint:', API_CONFIG.ENDPOINTS.VEHICLES)
     const response = await axiosInstance.post<Vehicle>(API_CONFIG.ENDPOINTS.VEHICLES, vehicleData)
+    console.log('API response:', response.data)
     return response.data
   }
 

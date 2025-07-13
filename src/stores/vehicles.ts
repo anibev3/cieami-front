@@ -81,14 +81,17 @@ export const useVehiclesStore = create<VehiclesStore>((set, get) => ({
   },
 
   createVehicle: async (vehicleData) => {
+    console.log('createVehicle called with data:', vehicleData)
     set({ loading: true, error: null })
     
     try {
-      await vehicleService.createVehicle(vehicleData)
+      const result = await vehicleService.createVehicle(vehicleData)
+      console.log('Vehicle created successfully:', result)
       // Recharger la liste après création
       await get().fetchVehicles(get().pagination.currentPage)
       set({ loading: false })
     } catch (error) {
+      console.error('Error in createVehicle:', error)
       set({
         loading: false,
         error: error instanceof Error ? error.message : 'Erreur lors de la création du véhicule',

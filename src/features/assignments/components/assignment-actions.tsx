@@ -136,7 +136,7 @@ export function AssignmentActions({
         // },
         {
           key: 'write-report',
-          label: 'Rédiger  ' + (assignment.expertise_type.code === 'evaluation' ? 'l\'évaluation' : '    le rapport'), 
+          label: 'Rédiger  ' + (assignment.expertise_type.code === 'evaluation' ? 'le rapport' : '    le rapport'), 
           icon: FileText,
           onClick: () => {
             if (assignment.expertise_type.code === 'evaluation') {

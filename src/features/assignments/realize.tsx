@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Calendar } from '@/components/ui/calendar'
@@ -562,11 +563,11 @@ export default function RealizeAssignmentPage() {
                       <FormItem>
                         <FormLabel>Points notés lors de l'expertise</FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
+                          <RichTextEditor
+                            value={field.value}
+                            onChange={field.onChange}
                             placeholder="Décrivez en détail les points notés lors de l'expertise, les constatations, les dégâts observés..."
-                            rows={6}
-                            className="w-full resize-none"
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />

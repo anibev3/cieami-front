@@ -492,17 +492,17 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     accessorKey: 'insurer',
     header: 'Assureur',
     cell: ({ row }) => {
-      const insurer = row.getValue('insurer') as Assignment['insurer']
-      const assignment = row.original
-      const isEditionDone = assignment.edition_status === 'done'
-      const isRecoveryDone = assignment.recovery_status === 'done'
+      const insurer = row?.getValue('insurer') as Assignment['insurer']
+      const assignment = row?.original || {}
+      const isEditionDone = assignment?.edition_status === 'done'
+      const isRecoveryDone = assignment?.recovery_status === 'done'
       const isDone = isEditionDone || isRecoveryDone
       
       return (
         <div className={`flex items-center justify-center space-x-2`}>
           {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
           <div>
-            <div className="font-medium">{insurer.name}</div>
+            <div className="font-medium">{insurer?.name}</div>
             {/* <div className="text-sm text-muted-foreground">{insurer.code}</div> */}
           </div>
         </div>

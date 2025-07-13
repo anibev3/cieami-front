@@ -9,8 +9,9 @@ export interface Vehicle {
   first_entry_into_circulation_date: string | null
   technical_visit_date: string | null
   fiscal_power: number
-  energy: string | null
   nb_seats: number
+  new_market_value: number | null
+  payload: number | null
   brand: {
     id: number
     code: string
@@ -62,7 +63,7 @@ export interface Vehicle {
 
 export interface VehicleCreate {
   license_plate: string
-  usage: string
+  usage?: string
   type: string
   option: string
   bodywork_id: string
@@ -71,10 +72,13 @@ export interface VehicleCreate {
   first_entry_into_circulation_date?: string
   technical_visit_date?: string
   fiscal_power: number
-  energy?: string
   nb_seats: number
+  new_market_value?: number
+  payload?: number
   vehicle_model_id: string
   color_id: string
+  vehicle_genre_id?: string
+  vehicle_energy_id?: string
 }
 
 export interface VehicleUpdate {
@@ -88,10 +92,13 @@ export interface VehicleUpdate {
   first_entry_into_circulation_date?: string
   technical_visit_date?: string
   fiscal_power?: number
-  energy?: string
   nb_seats?: number
+  new_market_value?: number
+  payload?: number
   vehicle_model_id?: string
   color_id?: string
+  vehicle_genre_id?: string
+  vehicle_energy_id?: string
 }
 
 export interface VehicleFilters {

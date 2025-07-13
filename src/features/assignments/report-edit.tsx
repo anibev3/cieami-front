@@ -203,110 +203,6 @@ export default function ReportEditPage() {
     }
   }, [assignment?.other_costs])
 
-  // Fonction de sauvegarde avec option de redirection
-  const handleSaveAssignment = useCallback(async () => {
-    const cleanedShocks = shocks
-      .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
-      .reduce((acc, shock) => {
-        const existingIndex = acc.findIndex(s => s.shock_point_id === shock.shock_point_id)
-        if (existingIndex === -1) {
-          acc.push(shock)
-        } else {
-          acc[existingIndex] = shock
-        }
-        return acc
-      }, [] as any[])
-      .map(shock => ({
-        ...shock,
-        shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0),
-        workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
-      }))
-      .filter(shock => shock.shock_works.length > 0 || shock.workforces.length > 0)
-
-    const cleanedOtherCosts = cleanOtherCosts()
-
-    if (cleanedShocks.length === 0) {
-      // Vérifier s'il y a des chocs avec des données invalides
-      const invalidShocks = shocks.filter(shock => {
-        const hasInvalidSupplies = shock.shock_works.some((work: any) => !work.supply_id || work.supply_id === 0)
-        const hasInvalidWorkforce = shock.workforces.some((workforce: any) => !workforce.workforce_type_id || workforce.workforce_type_id === 0)
-        const hasInvalidPaintType = !shock.paint_type_id || shock.paint_type_id === 0
-        const hasInvalidHourlyRate = !shock.hourly_rate_id || shock.hourly_rate_id === 0
-        return hasInvalidSupplies || hasInvalidWorkforce || hasInvalidPaintType || hasInvalidHourlyRate
-      })
-      
-      if (invalidShocks.length > 0) {
-        toast.error('Veuillez sélectionner toutes les fournitures, types de main d\'œuvre, types de peinture et taux horaires avant de sauvegarder')
-      } else {
-        toast.error('Aucun point de choc valide à sauvegarder')
-      }
-      return
-    }
-
-    const payload = {
-      fournitures: [],
-      shocks: cleanedShocks.map(shock => ({
-        shock_point_id: shock.shock_point_id,
-        shock_works: shock.shock_works.map((work: any) => ({
-          supply_id: work.supply_id,
-          disassembly: work.disassembly,
-          replacement: work.replacement,
-          repair: work.repair,
-          paint: work.paint,
-          control: work.control,
-          comment: work.comment,
-          obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
-          discount: work.discount,
-          amount: work.amount || 0
-        })),
-        paint_type_id: shock.paint_type_id,
-        hourly_rate_id: shock.hourly_rate_id,
-        with_tax: shock.with_tax,
-        workforces: shock.workforces.map((workforce: any) => ({
-          workforce_type_id: workforce.workforce_type_id,
-          nb_hours: workforce.nb_hours,
-          discount: workforce.discount
-        }))
-      })),
-      other_costs: cleanedOtherCosts.map(c => ({
-        other_cost_type_id: Number(c.other_cost_type_id),
-        amount: Number(c.amount) || 0
-      })),
-      repairer_id: 1,
-      general_state_id: 1,
-      technical_conclusion_id: 1
-    }
-
-    setEditPayload(payload)
-    setShowVerificationModal(true)
-  }, [shocks, cleanOtherCosts])
-
-  // Fonction de confirmation de sauvegarde
-  const confirmSave = useCallback(async (payload: any) => {
-    const success = await saveAssignment(payload, redirectToReport)
-    
-    if (success) {
-      // Calculer le montant total
-      let total = 0
-      payload.shocks.forEach((shock: any) => {
-        shock.shock_works.forEach((work: any) => {
-          total += work.amount || 0
-        })
-      })
-      payload.other_costs.forEach((cost: any) => {
-        total += cost.amount || 0
-      })
-      
-      setAssignmentTotalAmount(total)
-      setShowVerificationModal(false)
-      
-      if (!redirectToReport) {
-        setShowReceiptModal(true)
-      }
-    }
-  }, [saveAssignment, redirectToReport])
-
   // Fonction de rédaction directe du rapport
   const handleGenerateReport = useCallback(async () => {
     const cleanedShocks = shocks
@@ -620,8 +516,8 @@ export default function ReportEditPage() {
     if (hasValidData) {
       // Déclencher le calcul global automatique après un délai
       // setTimeout(() => {
-      //   calculateAllShocks()
-      // }, 4000)
+        calculateAllShocks()
+      // }, 1000)
     }
   }, [updateOtherCost, otherCosts, calculateAllShocks])
 
@@ -634,8 +530,8 @@ export default function ReportEditPage() {
   }, [addOtherCost])
 
   // Fonction de suppression d'autres coûts avec calcul automatique global
-  const removeOtherCostWithCalculation = useCallback((index: number) => {
-    removeOtherCost(index)
+  const removeOtherCostWithCalculation = useCallback(async (index: number) => {
+    await removeOtherCost(index)
     
     // Vérifier s'il reste des données valides avant de déclencher le calcul
     const remainingOtherCosts = otherCosts.filter((_, i) => i !== index)
@@ -644,7 +540,7 @@ export default function ReportEditPage() {
     // if (hasValidData) {
     //   // Déclencher le calcul global automatique après un délai
     //   setTimeout(() => {
-    //     calculateAllShocks()
+        calculateAllShocks()
     //   }, 4000)
     // }
   }, [removeOtherCost, otherCosts, calculateAllShocks])
@@ -1112,6 +1008,7 @@ export default function ReportEditPage() {
               <div className="border-b border-gray-200 mb-4"></div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 mb-4">
                 {otherCosts.map((cost, index) => (
+                  console.log('costPPPPPPP', cost),
                   <OtherCostItem
                     key={index}
                     cost={cost}
@@ -1142,13 +1039,38 @@ export default function ReportEditPage() {
             </div>
           )}
 
+
+
+
           {/* Récapitulatif global */}
           <GlobalRecap
             shocks={shocks}
             otherCosts={otherCosts}
             calculationResults={calculationResults}
           />
-
+          <Card className="mt-10">
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 mb-4">
+              <Button 
+                disabled={!hasUnsavedChanges || saving} 
+                onClick={() => setShowVerificationModal(true)}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Rédaction en cours...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Rédiger le rapport
+                  </>
+                )}
+              </Button>
+              </div>
+            </CardContent>
+          </Card>
           {/* Modal d'ajout de point de choc */}
           <Dialog open={showShockModal} onOpenChange={setShowShockModal}>
             <DialogContent className="sm:max-w-md">
