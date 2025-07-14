@@ -142,6 +142,7 @@ export interface FormattedShockData {
     comment: string
     obsolescence_rate: number
     recovery_rate: number
+    discount: number
     amount: number
     // Données calculées
     obsolescence_amount_excluding_tax?: number
@@ -153,6 +154,7 @@ export interface FormattedShockData {
     new_amount_excluding_tax?: number
     new_amount_tax?: number
     new_amount?: number
+    discount_amount?: number
   }>
   paint_type_id: number
   hourly_rate_id: number
@@ -184,29 +186,31 @@ export function useEditAssignment(assignmentId: number) {
     return apiShocks.map(shock => ({
       uid: crypto.randomUUID(), // Générer un UID unique
       shock_point_id: shock.shock_point?.id || 0,
-      shock_works: shock.shock_works?.map((work: ApiShockWork) => ({
-        uid: crypto.randomUUID(),
-        supply_id: work.supply?.id || 0,
-        disassembly: work.disassembly || false,
-        replacement: work.replacement || false,
-        repair: work.repair || false,
-        paint: work.paint || false,
-        control: work.control || false,
-        comment: work.comment || '',
-        obsolescence_rate: parseFloat(work.obsolescence_rate) || 0,
-        recovery_rate: parseFloat(work.recovery_rate) || 0,
-        amount: parseFloat(work.amount || '0') || 0,
-        // Données calculées
-        obsolescence_amount_excluding_tax: parseFloat(work.obsolescence_amount_excluding_tax) || 0,
-        obsolescence_amount_tax: parseFloat(work.obsolescence_amount_tax) || 0,
-        obsolescence_amount: parseFloat(work.obsolescence_amount) || 0,
-        recovery_amount_excluding_tax: parseFloat(work.recovery_amount_excluding_tax) || 0,
-        recovery_amount_tax: parseFloat(work.recovery_amount_tax) || 0,
-        recovery_amount: parseFloat(work.recovery_amount) || 0,
-        new_amount_excluding_tax: parseFloat(work.new_amount_excluding_tax) || 0,
-        new_amount_tax: parseFloat(work.new_amount_tax) || 0,
-        new_amount: parseFloat(work.new_amount) || 0,
-      })) || [],
+              shock_works: shock.shock_works?.map((work: ApiShockWork) => ({
+          uid: crypto.randomUUID(),
+          supply_id: work.supply?.id || 0,
+          disassembly: work.disassembly || false,
+          replacement: work.replacement || false,
+          repair: work.repair || false,
+          paint: work.paint || false,
+          control: work.control || false,
+          comment: work.comment || '',
+          obsolescence_rate: parseFloat(work.obsolescence_rate) || 0,
+          recovery_rate: parseFloat(work.recovery_rate) || 0,
+          discount: 0, // Valeur par défaut pour les données existantes
+          amount: parseFloat(work.amount || '0') || 0,
+          // Données calculées
+          obsolescence_amount_excluding_tax: parseFloat(work.obsolescence_amount_excluding_tax) || 0,
+          obsolescence_amount_tax: parseFloat(work.obsolescence_amount_tax) || 0,
+          obsolescence_amount: parseFloat(work.obsolescence_amount) || 0,
+          recovery_amount_excluding_tax: parseFloat(work.recovery_amount_excluding_tax) || 0,
+          recovery_amount_tax: parseFloat(work.recovery_amount_tax) || 0,
+          recovery_amount: parseFloat(work.recovery_amount) || 0,
+          new_amount_excluding_tax: parseFloat(work.new_amount_excluding_tax) || 0,
+          new_amount_tax: parseFloat(work.new_amount_tax) || 0,
+          new_amount: parseFloat(work.new_amount) || 0,
+          discount_amount: 0, // Valeur par défaut pour les données existantes
+        })) || [],
       paint_type_id: 1, // Valeur par défaut
       hourly_rate_id: 1, // Valeur par défaut
       workforces: shock.workforces?.map((workforce: ApiWorkforce) => ({

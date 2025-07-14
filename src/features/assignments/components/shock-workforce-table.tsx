@@ -366,7 +366,11 @@ export function ShockWorkforceTable({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-7 gap-4 text-xs">
+        <div className="flex justify-around text-xs">
+          <div className="text-center">
+            <div className="text-gray-600 font-medium">Récap</div>
+            <div className="text-base font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
+          </div>
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total Heures</div>
             <div className="text-lg font-bold text-gray-800">{totals.hours}</div>
@@ -387,18 +391,15 @@ export function ShockWorkforceTable({
             <div className="text-green-600 font-medium">Total HT</div>
             <div className="text-base font-bold text-green-700">{formatCurrency(totals.ht)}</div>
           </div>
-          <div className="text-center">
+          {/* <div className="text-center">
             <div className="text-blue-600 font-medium">Total TVA</div>
             <div className="text-base font-bold text-blue-700">{formatCurrency(totals.tva)}</div>
-          </div>
+          </div> */}
           <div className="text-center">
             <div className="text-purple-600 font-medium">Total TTC</div>
             <div className="text-base font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
           </div>
-          <div className="text-center">
-            <div className="text-gray-600 font-medium">Récap</div>
-            <div className="text-base font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
-          </div>
+
         </div>
       </div>
     </div>

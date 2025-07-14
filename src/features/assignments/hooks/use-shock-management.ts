@@ -23,6 +23,7 @@ export interface ShockWork {
   new_amount_excluding_tax?: number
   new_amount_tax?: number
   new_amount?: number
+  discount_amount?: number
 }
 
 export interface Workforce {

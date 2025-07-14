@@ -63,30 +63,13 @@ interface CalculationResult {
   other_costs: any[]
   shock_works?: any[]
   workforces?: any[]
-  // Montants globaux des chocs
-  total_shock_amount_excluding_tax?: number
-  total_shock_amount_tax?: number
-  total_shock_amount?: number
-  // Montants globaux de la main d'œuvre
-  total_workforce_amount_excluding_tax?: number
-  total_workforce_amount_tax?: number
-  total_workforce_amount?: number
-  // Montants globaux des produits peinture
-  total_paint_product_amount_excluding_tax?: number
-  total_paint_product_amount_tax?: number
-  total_paint_product_amount?: number
-  // Montants globaux des petites fournitures
-  total_small_supply_amount_excluding_tax?: number
-  total_small_supply_amount_tax?: number
-  total_small_supply_amount?: number
-  // Montants globaux des autres coûts
-  total_other_costs_amount_excluding_tax?: number
-  total_other_costs_amount_tax?: number
-  total_other_costs_amount?: number
-  // Montants globaux totaux
+  // Montants globaux (niveau global)
   shocks_amount_excluding_tax?: number
   shocks_amount_tax?: number
   shocks_amount?: number
+  total_other_costs_amount_excluding_tax?: number
+  total_other_costs_amount_tax?: number
+  total_other_costs_amount?: number
   total_amount_excluding_tax?: number
   total_amount_tax?: number
   total_amount?: number
@@ -946,32 +929,71 @@ export default function ReportEditPage() {
                     {/* Résultat du calcul */}
                     {calculationResults[index] && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        {/* <div className="flex items-center justify-between mb-3">
+                          <h4 className="flex items-center gap-2 text-sm text-green-800 font-semibold">
+                            <Check className="h-4 w-4" />
+                            Calcul terminé
+                          </h4>
+                        </div> */}
+
+
+                        {/* <pre className="text-xs">
+                          {JSON.stringify(calculationResults[index], null, 2)}
+                        </pre> */}
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="flex items-center gap-2 text-sm text-green-800 font-semibold">
                             <Check className="h-4 w-4" />
                             Calcul terminé
                           </h4>
-                          <Button variant="outline" size="sm" onClick={() => {
+                          {/* <Button variant="outline" size="sm" onClick={() => {
                             setSelectedShockIndex(index)
                             setShowCalculationModal(true)
                           }}>
                             <Eye className="mr-2 h-4 w-4" />
                             Voir détails
-                          </Button>
+                          </Button> */}
                         </div>
-                        <div className="grid grid-cols-3 gap-4 text-xs">
+                        <div className="grid grid-cols-3 gap-4 text-[13px]">
                           <div>
-                            <span className="text-green-600">Montant total :</span>
-                            <p className="font-semibold">{calculationResults[index].total_amount?.toLocaleString('fr-FR')} F CFA</p>
+                            <span className="text-green-600">Total Main d'œuvre :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_workforce_amount?.toLocaleString('fr-FR')} F CFA</p>
                           </div>
                           <div>
+                            <span className="text-green-600">Total Fournitures neuves :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_paint_product_amount?.toLocaleString('fr-FR')} F CFA</p>
+                          </div>
+                          <div>
+                            <span className="text-green-600">Total récuperation :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_recovery_amount?.toLocaleString('fr-FR')} F CFA</p>
+                          </div>
+                          <div>
+                            <span className="text-green-600">Total vetusté :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_obsolescence_amount?.toLocaleString('fr-FR')} F CFA</p>
+                          </div>
+                          <div>
+                            <span className="text-green-600">Total remise :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_discount_amount?.toLocaleString('fr-FR')} F CFA</p>
+                          </div>
+                          <div>
+                            <span className="text-green-600">Total produits de peinture :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_paint_product_amount?.toLocaleString('fr-FR')} F CFA</p>
+                          </div>
+                          <div>
+                            <span className="text-green-600">Total petite fourniture :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_small_supply_amount?.toLocaleString('fr-FR')} F CFA</p>
+                          </div>
+                          <div>
+                            <span className="text-green-600">Montant total :</span>
+                            <p className="font-semibold">{(calculationResults[index].shocks[0] as any)?.total_shock_amount?.toLocaleString('fr-FR')} F CFA</p>
+                          </div>
+                          {/* <div>
                             <span className="text-green-600">Fournitures :</span>
                             <p className="font-semibold">{(calculationResults[index] as CalculationResult).shock_works?.length || 0}</p>
                           </div>
                           <div>
                             <span className="text-green-600">Main d'œuvre :</span>
                             <p className="font-semibold">{(calculationResults[index] as CalculationResult).workforces?.length || 0}</p>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     )}

@@ -115,6 +115,19 @@ interface CalculationResult {
   total_amount_excluding_tax?: number
   total_amount_tax?: number
   total_amount?: number
+  // Nouveaux champs basés sur la réponse de l'API
+  total_obsolescence_amount_excluding_tax?: number
+  total_obsolescence_amount_tax?: number
+  total_obsolescence_amount?: number
+  total_recovery_amount_excluding_tax?: number
+  total_recovery_amount_tax?: number
+  total_recovery_amount?: number
+  total_discount_amount_excluding_tax?: number
+  total_discount_amount_tax?: number
+  total_discount_amount?: number
+  total_new_amount_excluding_tax?: number
+  total_new_amount_tax?: number
+  total_new_amount?: number
 }
 
 export default function EvaluateReportPage() {
