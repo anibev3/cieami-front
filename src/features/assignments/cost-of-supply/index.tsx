@@ -12,7 +12,7 @@ import { DatePicker } from '@/features/comptabilite/payments/components/date-pic
 import { BrandSelect } from '@/features/widgets'
 import { VehicleModelSelect } from './components/vehicle-model-select'
 import { SupplySelect } from './components/supply-select'
-import { AdvancedFilters } from './components/advanced-filters'
+
 import { DataTable } from './components/data-table'
 import { createColumns } from './components/columns'
 import { SupplyPriceDetailModal } from './components/supply-price-detail-modal'
@@ -135,8 +135,8 @@ export default function CostOfSupplyPage() {
       const hasStatusFilter = Object.values(filters.status).some(Boolean)
       if (hasStatusFilter) {
         const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
-        const hasObsolescence = parseFloat(supplyPrice.obsolescence_rate) > 0
-        const hasRecovery = parseFloat(supplyPrice.recovery_rate) > 0
+        const hasObsolescence = supplyPrice.obsolescence_rate ? parseFloat(supplyPrice.obsolescence_rate) > 0 : false
+        const hasRecovery = supplyPrice.recovery_rate ? parseFloat(supplyPrice.recovery_rate) > 0 : false
         const isStandard = !hasNewPrice && !hasObsolescence && !hasRecovery
 
         const statusMatches = 
@@ -154,7 +154,7 @@ export default function CostOfSupplyPage() {
     })
   }, [supplyPrices, filters])
 
-  const clearFilters = () => {
+  const _clearFilters = () => {
     setFilters({
       search: '',
       priceRange: {

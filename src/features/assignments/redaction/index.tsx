@@ -70,17 +70,31 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor'
 interface Assignment {
   id: number
   reference: string
-  policy_number: string
-  claim_number: string
-  claim_starts_at: string
-  claim_ends_at: string
+  policy_number: string | null
+  claim_number: string | null
+  claim_starts_at: string | null
+  claim_ends_at: string | null
   expertise_date: string
   expertise_place: string | null
   received_at: string
-  circumstance: string
-  damage_declared: string
+  insurer_id: number | null
+  repairer_id: number | null
+  administrator: string | null
+  circumstance: string | null
+  damage_declared: string | null
   observation: string | null
-  point_noted: string
+  point_noted: string | null
+  seen_before_work_date: string | null
+  seen_during_work_date: string | null
+  seen_after_work_date: string | null
+  contact_date: string | null
+  assured_value: string | null
+  salvage_value: string | null
+  new_market_value: string
+  depreciation_rate: string
+  market_value: string
+  work_duration: string | null
+  expert_remark: string | null
   shock_amount_excluding_tax: string
   shock_amount_tax: string
   shock_amount: string
@@ -93,6 +107,8 @@ interface Assignment {
   total_amount_excluding_tax: string
   total_amount_tax: string
   total_amount: string
+  emails: string | null
+  qr_codes: string | null
   insurer: {
     id: number
     code: string
@@ -100,7 +116,7 @@ interface Assignment {
     email: string
     telephone: string | null
     address: string | null
-  }
+  } | null
   repairer: {
     id: number
     code: string
@@ -108,19 +124,97 @@ interface Assignment {
     email: string
     telephone: string | null
     address: string | null
-  }
+  } | null
   vehicle: {
     id: number
     license_plate: string
-    usage: string
     type: string
     option: string
     mileage: string
     serial_number: string
+    first_entry_into_circulation_date: string
+    technical_visit_date: string | null
     fiscal_power: number
-    energy: string
     nb_seats: number
+    new_market_value: string
+    brand: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    vehicle_model: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    color: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+    bodywork: {
+      id: number
+      code: string
+      label: string
+      description: string
+      status: {
+        id: number
+        code: string
+        label: string
+        description: string
+      }
+    }
   }
+  assignment_type: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+  }
+  expertise_type: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+  }
+  document_transmitted: Array<{
+    id: number
+    code: string
+    label: string
+  }>
+  technical_conclusion: {
+    id: number
+    code: string
+    label: string
+    description: string
+  } | null
+  general_state: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+    }
+  } | null
   client: {
     id: number
     name: string
@@ -133,9 +227,25 @@ interface Assignment {
     id: number
     code: string
     label: string
+    description: string
   }
   shocks: Array<{
     id: number
+    obsolescence_amount_excluding_tax: string | null
+    obsolescence_amount_tax: string | null
+    obsolescence_amount: string | null
+    recovery_amount_excluding_tax: string | null
+    recovery_amount_tax: string | null
+    recovery_amount: string | null
+    new_amount_excluding_tax: string | null
+    new_amount_tax: string | null
+    new_amount: string | null
+    workforce_amount_excluding_tax: string
+    workforce_amount_tax: string
+    workforce_amount: string
+    amount_excluding_tax: string
+    amount_tax: string
+    amount: string
     shock_point: {
       id: number
       code: string
@@ -144,11 +254,6 @@ interface Assignment {
     }
     shock_works: Array<{
       id: number
-      supply: {
-        id: number
-        label: string
-        description: string
-      }
       disassembly: boolean
       replacement: boolean
       repair: boolean
@@ -156,38 +261,42 @@ interface Assignment {
       control: boolean
       comment: string | null
       obsolescence_rate: string
-      recovery_rate: string
       obsolescence_amount_excluding_tax: string
       obsolescence_amount_tax: string
       obsolescence_amount: string
+      recovery_rate: string
       recovery_amount_excluding_tax: string
       recovery_amount_tax: string
       recovery_amount: string
+      discount: string
       new_amount_excluding_tax: string
       new_amount_tax: string
       new_amount: string
       amount_excluding_tax: string | null
       amount_tax: string | null
       amount: string | null
+      supply: {
+        id: number
+        label: string
+        description: string
+      }
     }>
     workforces: Array<{
       id: number
+      nb_hours: string
+      work_fee: string
+      with_tax: number
+      discount: string
+      amount_excluding_tax: string
+      amount_tax: string
+      amount: string
       workforce_type: {
         id: number
         code: string
         label: string
         description: string
       }
-      nb_hours: string
-      work_fee: string
-      discount: string
-      amount_excluding_tax: string
-      amount_tax: string
-      amount: string
     }>
-    amount_excluding_tax: string
-    amount_tax: string
-    amount: string
   }>
   other_costs: Array<{
     id: number
@@ -212,6 +321,88 @@ interface Assignment {
       label: string
     }
   }>
+  payments: Array<any>
+  invoices: Array<any>
+  evaluations: any
+  experts: Array<any>
+  created_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+  }
+  updated_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+  }
+  deleted_by: any
+  realized_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+  } | null
+  edited_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+  } | null
+  validated_by: any
+  closed_by: any
+  cancelled_by: any
+  work_sheet_established_by: any
+  expertise_sheet: string | null
+  expertise_report: string | null
+  work_sheet: string | null
+  expert_signature: string | null
+  repairer_signature: string | null
+  customer_signature: string | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  closed_at: string | null
+  cancelled_at: string | null
+  edited_at: string | null
+  validated_at: string | null
+  realized_at: string | null
+  work_sheet_established_at: string | null
+  edition_time_expire_at: string | null
+  edition_status: string
+  edition_per_cent: number
+  recovery_time_expire_at: string | null
+  recovery_status: string
+  recovery_per_cent: number
 }
 
 interface Supply {
@@ -670,6 +861,19 @@ export default function EditReportPage() {
           }`}>
             <ScrollArea className="h-full">
               <div className="p-6">
+
+                <div className="space-y-4 mb-4">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button size="sm" onClick={() => navigate({ to: `/assignments/edit/${assignment.id}` })}>
+                      Modifier le dossier
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => navigate({ to: `/assignments/realize/${assignment.id}` }) }>
+                      Modifier la réalisation
+                    </Button>
+                  </div>
+                  <Separator />
+                </div>
+
                 {/* Vue d'ensemble */}
                 {activeTab === 'overview' && (
                   <div className="space-y-6">
@@ -693,6 +897,75 @@ export default function EditReportPage() {
                         )}
                       </Button>
                     </div>
+                    {/* Statuts et progression */}
+                    <Card className="shadow-none">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5" />
+                          Statuts et progression
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Statut édition</div>
+                            <div className="text-sm font-bold text-blue-600">{assignment.edition_status}</div>
+                            <div className="text-xs text-gray-500">{assignment.edition_per_cent}%</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Statut récupération</div>
+                            <div className="text-sm font-bold text-green-600">{assignment.recovery_status}</div>
+                            <div className="text-xs text-gray-500">{assignment.recovery_per_cent}%</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Expire édition</div>
+                            <div className="text-sm font-bold text-orange-600">
+                              {assignment.edition_time_expire_at ? formatDate(assignment.edition_time_expire_at) : 'Non défini'}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Expire récupération</div>
+                            <div className="text-sm font-bold text-red-600">
+                              {assignment.recovery_time_expire_at ? formatDate(assignment.recovery_time_expire_at) : 'Non défini'}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    {/* Récapitulatif financier */}
+                    <Card className="shadow-none">
+                      <CardHeader>
+                        <CardTitle>Récapitulatif financier</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Chocs</div>
+                            <div className="text-xl font-bold text-blue-600">
+                              {formatCurrency(assignment.shock_amount)}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Autres coûts</div>
+                            <div className="text-xl font-bold text-orange-600">
+                              {formatCurrency(assignment.other_cost_amount)}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Quittances</div>
+                            <div className="text-xl font-bold text-green-600">
+                              {formatCurrency(assignment.receipt_amount)}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 mb-1">Total</div>
+                            <div className="text-xl font-bold text-purple-600">
+                              {formatCurrency(assignment.total_amount)}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Informations générales */}
@@ -711,15 +984,31 @@ export default function EditReportPage() {
                             </div>
                             <div>
                               <label className="text-xs font-medium text-gray-600">Numéro de police</label>
-                              <p className="text-base font-semibold">{assignment.policy_number}</p>
+                              <p className="text-base font-semibold">{assignment.policy_number || 'Non renseigné'}</p>
                             </div>
                             <div>
                               <label className="text-xs font-medium text-gray-600">Numéro de sinistre</label>
-                              <p className="text-base font-semibold">{assignment.claim_number}</p>
+                              <p className="text-base font-semibold">{assignment.claim_number || 'Non renseigné'}</p>
                             </div>
                             <div>
                               <label className="text-xs font-medium text-gray-600">Date d'expertise</label>
                               <p className="text-base font-semibold">{formatDate(assignment.expertise_date)}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Lieu d'expertise</label>
+                              <p className="text-base font-semibold">{assignment.expertise_place || 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Date de réception</label>
+                              <p className="text-base font-semibold">{formatDate(assignment.received_at)}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Début de sinistre</label>
+                              <p className="text-base font-semibold">{assignment.claim_starts_at ? formatDate(assignment.claim_starts_at) : 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Fin de sinistre</label>
+                              <p className="text-base font-semibold">{assignment.claim_ends_at ? formatDate(assignment.claim_ends_at) : 'Non renseigné'}</p>
                             </div>
                           </div>
                           
@@ -750,7 +1039,6 @@ export default function EditReportPage() {
                               label="Points notés"
                               value={assignment.point_noted || ''}
                               onChange={(value) => {
-                                // Pour les points notés, on peut les rendre éditables aussi si nécessaire
                                 console.log('Points notés modifiés:', value)
                               }}
                               placeholder="Ajoutez des points notés..."
@@ -790,6 +1078,14 @@ export default function EditReportPage() {
                                 <p className="text-base font-semibold">{assignment.vehicle.serial_number}</p>
                               </div>
                               <div>
+                                <label className="text-xs font-medium text-gray-600">Type</label>
+                                <p className="text-base font-semibold">{assignment.vehicle.type}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Option</label>
+                                <p className="text-base font-semibold">{assignment.vehicle.option}</p>
+                              </div>
+                              <div>
                                 <label className="text-xs font-medium text-gray-600">Kilométrage</label>
                                 <p className="text-base font-semibold">{assignment.vehicle.mileage} km</p>
                               </div>
@@ -798,18 +1094,50 @@ export default function EditReportPage() {
                                 <p className="text-base font-semibold">{assignment.vehicle.fiscal_power} CV</p>
                               </div>
                               <div>
-                                <label className="text-xs font-medium text-gray-600">Énergie</label>
-                                <p className="text-base font-semibold">{assignment.vehicle.energy}</p>
-                              </div>
-                              <div>
                                 <label className="text-xs font-medium text-gray-600">Places</label>
                                 <p className="text-base font-semibold">{assignment.vehicle.nb_seats}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Valeur neuve</label>
+                                <p className="text-base font-semibold">{formatCurrency(assignment.vehicle.new_market_value)}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Date première circulation</label>
+                                <p className="text-base font-semibold">{formatDate(assignment.vehicle.first_entry_into_circulation_date)}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Visite technique</label>
+                                <p className="text-base font-semibold">{assignment.vehicle.technical_visit_date ? formatDate(assignment.vehicle.technical_visit_date) : 'Non renseigné'}</p>
+                              </div>
+                            </div>
+
+                            <Separator />
+
+                            {/* Informations détaillées du véhicule */}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Marque</label>
+                                <p className="text-base font-semibold">{assignment.vehicle.brand.label}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Modèle</label>
+                                <p className="text-base font-semibold">{assignment.vehicle.vehicle_model.label}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Couleur</label>
+                                <p className="text-base font-semibold">{assignment.vehicle.color.label}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-600">Carrosserie</label>
+                                <p className="text-base font-semibold">{assignment.vehicle.bodywork.label}</p>
                               </div>
                             </div>
                           </CardContent>
                         </Card>
                       )}
+                    </div>
 
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Client */}
                       {assignment.client && (
                         <Card className="shadow-none">
@@ -834,6 +1162,13 @@ export default function EditReportPage() {
                               <div className="flex items-center gap-2">
                                 <Phone className="h-4 w-4 text-gray-500" />
                                 <span className="text-sm">{assignment.client.phone_1}</span>
+                              </div>
+                            )}
+
+                            {assignment.client.phone_2 && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm">{assignment.client.phone_2}</span>
                               </div>
                             )}
                             
@@ -862,6 +1197,12 @@ export default function EditReportPage() {
                                   <p className="font-semibold">{assignment.insurer.name}</p>
                                   <p className="text-xs text-gray-600">{assignment.insurer.code}</p>
                                   <p className="text-xs text-gray-600">{assignment.insurer.email}</p>
+                                  {assignment.insurer.telephone && (
+                                    <p className="text-xs text-gray-600">{assignment.insurer.telephone}</p>
+                                  )}
+                                  {assignment.insurer.address && (
+                                    <p className="text-xs text-gray-600">{assignment.insurer.address}</p>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -873,6 +1214,12 @@ export default function EditReportPage() {
                                   <p className="font-semibold">{assignment.repairer.name}</p>
                                   <p className="text-xs text-gray-600">{assignment.repairer.code}</p>
                                   <p className="text-xs text-gray-600">{assignment.repairer.email}</p>
+                                  {assignment.repairer.telephone && (
+                                    <p className="text-xs text-gray-600">{assignment.repairer.telephone}</p>
+                                  )}
+                                  {assignment.repairer.address && (
+                                    <p className="text-xs text-gray-600">{assignment.repairer.address}</p>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -881,40 +1228,160 @@ export default function EditReportPage() {
                       )}
                     </div>
 
-                    {/* Récapitulatif financier */}
-                    <Card className="shadow-none">
-                      <CardHeader>
-                        <CardTitle>Récapitulatif financier</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                          <div className="text-center">
-                            <div className="text-xs text-gray-600 mb-1">Chocs</div>
-                            <div className="text-xl font-bold text-blue-600">
-                              {formatCurrency(assignment.shock_amount)}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Types et Documents */}
+                      <Card className="shadow-none">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Types et Documents
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Type de dossier</label>
+                              <p className="text-base font-semibold">{assignment.assignment_type.label}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Type d'expertise</label>
+                              <p className="text-base font-semibold">{assignment.expertise_type.label}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Conclusion technique</label>
+                              <p className="text-base font-semibold">{assignment.technical_conclusion?.label || 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">État général</label>
+                              <p className="text-base font-semibold">{assignment.general_state?.label || 'Non renseigné'}</p>
                             </div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-xs text-gray-600 mb-1">Autres coûts</div>
-                            <div className="text-xl font-bold text-orange-600">
-                              {formatCurrency(assignment.other_cost_amount)}
+
+                          <Separator />
+
+                          <div>
+                            <label className="text-xs font-medium text-gray-600 mb-2">Documents transmis</label>
+                            {assignment.document_transmitted && assignment.document_transmitted.length > 0 ? (
+                              <div className="space-y-2">
+                                {assignment.document_transmitted.map((doc) => (
+                                  <div key={doc.id} className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
+                                    <FileText className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm">{doc.label}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-500">Aucun document transmis</p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Valeurs et estimations */}
+                      <Card className="shadow-none">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Calculator className="h-5 w-5" />
+                            Valeurs et estimations
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Valeur assurée</label>
+                              <p className="text-base font-semibold">{assignment.assured_value ? formatCurrency(assignment.assured_value) : 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Valeur de récupération</label>
+                              <p className="text-base font-semibold">{assignment.salvage_value ? formatCurrency(assignment.salvage_value) : 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Valeur neuve</label>
+                              <p className="text-base font-semibold">{formatCurrency(assignment.new_market_value)}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Taux de dépréciation</label>
+                              <p className="text-base font-semibold">{assignment.depreciation_rate}%</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Valeur marchande</label>
+                              <p className="text-base font-semibold">{formatCurrency(assignment.market_value)}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Durée des travaux</label>
+                              <p className="text-base font-semibold">{assignment.work_duration || 'Non renseigné'}</p>
                             </div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-xs text-gray-600 mb-1">Quittances</div>
-                            <div className="text-xl font-bold text-green-600">
-                              {formatCurrency(assignment.receipt_amount)}
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Dates importantes */}
+                      <Card className="shadow-none">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Clock className="h-5 w-5" />
+                            Dates importantes
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Vu avant travaux</label>
+                              <p className="text-base font-semibold">{assignment.seen_before_work_date ? formatDate(assignment.seen_before_work_date) : 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Vu pendant travaux</label>
+                              <p className="text-base font-semibold">{assignment.seen_during_work_date ? formatDate(assignment.seen_during_work_date) : 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Vu après travaux</label>
+                              <p className="text-base font-semibold">{assignment.seen_after_work_date ? formatDate(assignment.seen_after_work_date) : 'Non renseigné'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Date de contact</label>
+                              <p className="text-base font-semibold">{assignment.contact_date ? formatDate(assignment.contact_date) : 'Non renseigné'}</p>
                             </div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-xs text-gray-600 mb-1">Total</div>
-                            <div className="text-xl font-bold text-purple-600">
-                              {formatCurrency(assignment.total_amount)}
-                            </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Informations sur les utilisateurs */}
+                      <Card className="shadow-none">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <User className="h-5 w-5" />
+                            Informations sur les utilisateurs
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div>
+                            <label className="text-xs font-medium text-gray-600">Créé par</label>
+                            <p className="text-base font-semibold">{assignment.created_by.name}</p>
+                            <p className="text-xs text-gray-600">{assignment.created_by.email}</p>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                          
+                          {assignment.realized_by && (
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Réalisé par</label>
+                              <p className="text-base font-semibold">{assignment.realized_by.name}</p>
+                              <p className="text-xs text-gray-600">{assignment.realized_by.email}</p>
+                            </div>
+                          )}
+
+                          {assignment.edited_by && (
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Modifié par</label>
+                              <p className="text-base font-semibold">{assignment.edited_by.name}</p>
+                              <p className="text-xs text-gray-600">{assignment.edited_by.email}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+
+
                   </div>
                 )}
 

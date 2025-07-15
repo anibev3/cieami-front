@@ -42,8 +42,6 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
-import axiosInstance from '@/lib/axios'
-import { API_CONFIG } from '@/config/api'
 import { ReceiptModal } from '@/components/receipt-modal'
 import { 
   useEditAssignment, 
@@ -52,8 +50,7 @@ import {
   useOtherCosts, 
   useCalculations 
 } from '../hooks'
-import { ShockSuppliesTable } from '../components/shock-supplies-table'
-import { ShockWorkforceTable } from '../components/shock-workforce-table'
+
 import { OtherCostTypeSelect } from '@/features/widgets/reusable-selects'   
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 import type { Shock } from '../hooks/use-shock-management'
@@ -83,39 +80,199 @@ interface OtherCostType {
   code: string
 }
 
+// Interfaces pour les constats
+interface Ascertainment {
+  ascertainment_type_id: string
+  very_good: boolean
+  good: boolean
+  acceptable: boolean
+  less_good: boolean
+  bad: boolean
+  very_bad: boolean
+  comment: string | null
+}
+
+// Interfaces pour les véhicules
+interface VehicleGenre {
+  id: number
+  code: string
+  max_mileage_essence_per_year: string
+  max_mileage_diesel_per_year: string
+  label: string
+  description: string
+  status_id: number
+  created_by: number | null
+  created_at: string
+  updated_by: number | null
+  updated_at: string
+  deleted_by: number | null
+  deleted_at: string | null
+}
+
+interface VehicleEnergy {
+  id: number
+  code: string
+  label: string
+  description: string
+  status_id: number
+  created_by: number | null
+  created_at: string
+  updated_by: number | null
+  updated_at: string
+  deleted_by: number | null
+  deleted_at: string | null
+}
+
+interface Vehicle {
+  id: number
+  license_plate: string
+  type: string
+  option: string
+  mileage: string
+  serial_number: string
+  first_entry_into_circulation_date: string
+  technical_visit_date: string | null
+  fiscal_power: number
+  payload: number
+  nb_seats: number
+  new_market_value: string
+  brand_id: number
+  vehicle_model_id: number
+  color_id: number
+  bodywork_id: number
+  vehicle_genre_id: number
+  vehicle_energy_id: number
+  status_id: number
+  created_by: number
+  created_at: string
+  updated_by: number
+  updated_at: string
+  deleted_by: number | null
+  deleted_at: string | null
+  vehicle_genre: VehicleGenre
+  vehicle_energy: VehicleEnergy
+}
+
+// Interfaces pour les évaluations
+interface Evaluation {
+  vehicle: Vehicle
+  expertise_date: string
+  first_entry_into_circulation_date: string
+  vehicle_new_value: string
+  vehicle_age: number | null
+  vehicle_max_mileage_essence_per_year: string
+  diff_year: number
+  diff_month: number
+  theorical_depreciation_rate: number
+  theorical_vehicle_market_value: number
+  market_incidence_rate: number
+  less_value_work: number
+  is_up: boolean
+  kilometric_incidence: number
+  market_incidence: number
+  vehicle_market_value: number
+}
+
+// Interfaces pour les fournitures de choc
+interface ShockWork {
+  uid?: string
+  supply_id: number | string
+  supply_label?: string
+  disassembly: boolean
+  replacement: boolean
+  repair: boolean
+  paint: boolean
+  control: boolean
+  comment: string | null
+  obsolescence_rate?: number
+  recovery_rate?: number
+  discount?: number
+  amount: number
+  new_amount_excluding_tax?: number
+  new_amount_tax?: number
+  new_amount?: number
+}
+
+// Interface pour les fournitures de choc dans le code existant
+interface ExistingShockWork {
+  uid: string
+  supply_id: number
+  disassembly: boolean
+  replacement: boolean
+  repair: boolean
+  paint: boolean
+  control: boolean
+  comment: string
+  obsolescence_rate: number
+  recovery_rate: number
+  amount: number
+}
+
+// Interfaces pour la main d'œuvre
+interface Workforce {
+  workforce_type_id: number
+  workforce_type_label: string
+  amount_excluding_tax: number
+  amount_tax: number
+  amount: number
+}
+
+// Interfaces pour les chocs (résultats de calcul)
+interface CalculatedShock {
+  shock_point_id: number
+  shock_point_label: string
+  total_new_amount_excluding_tax: number
+  total_new_amount_tax: number
+  total_new_amount: number
+  shock_works: ShockWork[]
+  total_workforce_amount_excluding_tax: number
+  total_workforce_amount_tax: number
+  total_workforce_amount: number
+  workforces: Workforce[]
+  total_shock_amount_excluding_tax: number
+  total_shock_amount_tax: number
+  total_shock_amount: number
+}
+
+// Interfaces pour les autres coûts
+interface OtherCost {
+  other_cost_type_id: number
+  other_cost_type_label: string
+  other_costs_amount_excluding_tax: number
+  other_costs_amount_tax: number
+  other_costs_amount: number
+}
+
+// Interface principale pour les résultats de calcul
 interface CalculationResult {
-  shocks: any[]
-  other_costs: any[]
+  ascertainments?: Ascertainment[]
+  shocks: CalculatedShock[]
+  other_costs: OtherCost[]
   shock_works?: any[]
   workforces?: any[]
-  // Montants globaux des chocs
+  shocks_amount_excluding_tax: number
+  shocks_amount_tax: number
+  shocks_amount: number
+  total_other_costs_amount_excluding_tax: number
+  total_other_costs_amount_tax: number
+  total_other_costs_amount: number
+  total_amount_excluding_tax: number
+  total_amount_tax: number
+  total_amount: number
+  evaluations?: Evaluation[]
+  // Champs pour compatibilité avec l'ancien format
   total_shock_amount_excluding_tax?: number
   total_shock_amount_tax?: number
   total_shock_amount?: number
-  // Montants globaux de la main d'œuvre
   total_workforce_amount_excluding_tax?: number
   total_workforce_amount_tax?: number
   total_workforce_amount?: number
-  // Montants globaux des produits peinture
   total_paint_product_amount_excluding_tax?: number
   total_paint_product_amount_tax?: number
   total_paint_product_amount?: number
-  // Montants globaux des petites fournitures
   total_small_supply_amount_excluding_tax?: number
   total_small_supply_amount_tax?: number
   total_small_supply_amount?: number
-  // Montants globaux des autres coûts
-  total_other_costs_amount_excluding_tax?: number
-  total_other_costs_amount_tax?: number
-  total_other_costs_amount?: number
-  // Montants globaux totaux
-  shocks_amount_excluding_tax?: number
-  shocks_amount_tax?: number
-  shocks_amount?: number
-  total_amount_excluding_tax?: number
-  total_amount_tax?: number
-  total_amount?: number
-  // Nouveaux champs basés sur la réponse de l'API
   total_obsolescence_amount_excluding_tax?: number
   total_obsolescence_amount_tax?: number
   total_obsolescence_amount?: number
@@ -1165,6 +1322,75 @@ export default function EvaluateReportPage() {
             </div>
           </div>
 
+
+          {/* Section des constats */}
+          <div className="space-y-4 mt-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-600" />
+                Constatation
+                {ascertainments.length > 0 && (
+                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                    {ascertainments.length} constatation(s)
+                  </Badge>
+                )}
+                {isAutoCalculating && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    Calcul automatique...
+                  </Badge>
+                )}
+              </h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={addAscertainment}
+                className="text-yellow-600 border-yellow-200 hover:bg-yellow-50"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter une constatation
+              </Button>
+            </div>
+            <div className="border-b border-gray-200 mb-4"></div>
+            
+            <div className="space-y-4 grid grid-cols-2 gap-4">
+              {ascertainments.map((ascertainment, index) => (
+                <AscertainmentItem
+                  key={index}
+                  ascertainment={ascertainment}
+                  ascertainmentTypes={ascertainmentTypes}
+                  onUpdate={(field, value) => updateAscertainment(index, field, value)}
+                  onRemove={() => removeAscertainment(index)}
+                  onValidate={() => triggerAutoCalculation()}
+                  getQualityScore={getQualityScore}
+                  getQualityColor={getQualityColor}
+                  getQualityLabel={getQualityLabel}
+                  onConfirm={handleCalculateEvaluation}
+                  index={index}
+                />
+              ))}
+            </div>
+
+            {/* Message quand aucun constat */}
+            {ascertainments.length === 0 && (
+              <div className="text-center pb-5">
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                  <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+                  <h3 className="text-base font-semibold text-gray-700 mb-2">Aucune constatation</h3>
+                  <p className="text-sm text-gray-500 mb-4">Ajoutez des constatations pour évaluer la qualité du véhicule</p>
+                  <Button 
+                    onClick={addAscertainment}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                      Ajouter une constatation
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+
           {/* Liste des points de choc */}
           <div className="space-y-6 mt-10">
             {hasPreloadedData && (
@@ -1430,72 +1656,7 @@ export default function EvaluateReportPage() {
             </div>
           )}
 
-          {/* Section des constats */}
-          <div className="space-y-4 mt-10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-600" />
-                Constats d'évaluation
-                {ascertainments.length > 0 && (
-                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                    {ascertainments.length} constat(s)
-                  </Badge>
-                )}
-                {isAutoCalculating && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                    Calcul automatique...
-                  </Badge>
-                )}
-              </h2>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={addAscertainment}
-                className="text-yellow-600 border-yellow-200 hover:bg-yellow-50"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter un constat
-              </Button>
-            </div>
-            <div className="border-b border-gray-200 mb-4"></div>
-            
-            <div className="space-y-4 grid grid-cols-2 gap-4">
-              {ascertainments.map((ascertainment, index) => (
-                <AscertainmentItem
-                  key={index}
-                  ascertainment={ascertainment}
-                  ascertainmentTypes={ascertainmentTypes}
-                  onUpdate={(field, value) => updateAscertainment(index, field, value)}
-                  onRemove={() => removeAscertainment(index)}
-                  onValidate={() => triggerAutoCalculation()}
-                  getQualityScore={getQualityScore}
-                  getQualityColor={getQualityColor}
-                  getQualityLabel={getQualityLabel}
-                  onConfirm={handleCalculateEvaluation}
-                  index={index}
-                />
-              ))}
-            </div>
 
-            {/* Message quand aucun constat */}
-            {ascertainments.length === 0 && (
-              <div className="text-center py-8">
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
-                  <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-                  <h3 className="text-base font-semibold text-gray-700 mb-2">Aucun constat d'évaluation</h3>
-                  <p className="text-sm text-gray-500 mb-4">Ajoutez des constats pour évaluer la qualité du véhicule</p>
-                  <Button 
-                    onClick={addAscertainment}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Ajouter un constat d'évaluation
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </Main>
 
@@ -1954,7 +2115,7 @@ function AscertainmentItem({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Star className="h-4 w-4 text-yellow-600" />
-          <h4 className="text-sm font-semibold text-gray-800">Constat d'évaluation</h4>
+          <h4 className="text-sm font-semibold text-gray-800">Constatation d'évaluation</h4>
           {qualityScore > 0 && (
             <Badge variant="outline" className={`text-xs ${qualityColor}`}>
               {qualityLabel} ({qualityScore}/6)
@@ -1987,7 +2148,7 @@ function AscertainmentItem({
       
       <div className="space-y-4">
         <div>
-          <Label className="text-xs font-medium text-gray-700 mb-2">Type de constat</Label>
+          <Label className="text-xs font-medium text-gray-700 mb-2">Type de constatation</Label>
           <Select
             value={ascertainment.ascertainment_type_id}
             onValueChange={(value) => onUpdate('ascertainment_type_id', value)}
@@ -2097,7 +2258,7 @@ function AscertainmentItem({
             <RichTextEditor
               value={ascertainment.comment}
               onChange={(value) => onUpdate('comment', value)}
-              placeholder="Ajouter un commentaire sur ce constat..."
+              placeholder="Ajouter un commentaire sur cette constatation..."
               className="min-h-[100px]"
             />
           </div>
@@ -2204,17 +2365,19 @@ function EvaluationResults({
                 <div className="text-sm text-blue-600">Plaque d'immatriculation</div>
                 <div className="font-bold text-blue-900">{calculationResult.evaluations[0].vehicle?.license_plate}</div>
               </div>
+
+
               <div className="bg-green-50 p-3 rounded-lg">
                 <div className="text-sm text-green-600">Valeur neuve</div>
-                <div className="font-bold text-green-900">{formatCurrency(calculationResult.evaluations[0].vehicle_new_value)} F CFA</div>
+                <div className="font-bold text-green-900">{formatCurrency(Number(calculationResult.evaluations[0].vehicle.new_market_value))} F CFA</div>
               </div>
               <div className="bg-purple-50 p-3 rounded-lg">
                 <div className="text-sm text-purple-600">Âge du véhicule</div>
-                <div className="font-bold text-purple-900">{calculationResult.evaluations[0].vehicle_age} mois</div>
+                <div className="font-bold text-purple-900">{calculationResult.evaluations[0].diff_month} mois</div>
               </div>
               <div className="bg-orange-50 p-3 rounded-lg">
                 <div className="text-sm text-orange-600">Taux d'incidence marché</div>
-                <div className="font-bold text-orange-900">{formatPercentage(calculationResult.evaluations[0].market_incidence_rate)}</div>
+                <div className="font-bold text-orange-900">{formatPercentage(calculationResult.evaluations[0].market_incidence)}</div>
               </div>
             </div>
           </CardContent>
@@ -2232,21 +2395,34 @@ function EvaluationResults({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              
               <div className="bg-purple-50 p-3 rounded-lg">
-                <div className="text-sm text-purple-600">Taux de dépréciation théorique</div>
+                <div className="text-sm text-purple-600">Coéfficient de dépréciation théorique</div>
                 <div className="font-bold text-purple-900">{formatPercentage(calculationResult.evaluations[0].theorical_depreciation_rate)}</div>
               </div>
               <div className="bg-blue-50 p-3 rounded-lg">
-                <div className="text-sm text-blue-600">Valeur marché théorique</div>
+                <div className="text-sm text-blue-600">Valeur vénale théorique</div>
                 <div className="font-bold text-blue-900">{formatCurrency(calculationResult.evaluations[0].theorical_vehicle_market_value)} F CFA</div>
               </div>
-              <div className="bg-green-50 p-3 rounded-lg">
-                <div className="text-sm text-green-600">Incidence kilométrique</div>
-                <div className="font-bold text-green-900">{formatCurrency(calculationResult.evaluations[0].kilometric_incidence)} F CFA</div>
+              <div className="bg-red-50 p-4 rounded-lg">
+                <div className="text-sm text-red-600">Moins-value travaux de remise en état</div>
+                <div className="font-bold text-2xl text-red-900">{formatCurrency(calculationResult.evaluations[0].less_value_work)} F CFA</div>
               </div>
+              <div className="bg-red-50 p-4 rounded-lg">
+                <div className="text-sm text-red-600">
+                  {calculationResult.evaluations[0].is_up ? 'Moins-value incidence kilométrique' : 'Moins-value insidence kilométrique'}
+                </div>
+                <div className="font-bold text-2xl text-red-900">{formatCurrency(calculationResult.evaluations[0].kilometric_incidence)} F CFA</div>
+              </div>
+
               <div className="bg-orange-50 p-3 rounded-lg">
-                <div className="text-sm text-orange-600">Incidence marché</div>
+                <div className="text-sm text-orange-600">Moins-value incidence du marché</div>
                 <div className="font-bold text-orange-900">{formatCurrency(calculationResult.evaluations[0].market_incidence)} F CFA</div>
+              </div>
+
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <div className="text-sm text-orange-600">Valeur vénale</div>
+                <div className="font-bold text-orange-900">{formatCurrency(calculationResult.evaluations[0].vehicle_market_value)} F CFA</div>
               </div>
             </div>
           </CardContent>
@@ -2264,13 +2440,14 @@ function EvaluationResults({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-red-50 p-4 rounded-lg">
-                <div className="text-sm text-red-600">Moins-value travaux</div>
-                <div className="font-bold text-2xl text-red-900">{formatCurrency(calculationResult.evaluations[0].less_value_work)} F CFA</div>
-              </div>
+
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-green-600">Valeur marché finale</div>
                 <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.evaluations[0].vehicle_market_value)} F CFA</div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="text-sm text-green-600">Traveaux de remise en état</div>
+                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.evaluations[0].reconditioning_work)} F CFA</div>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="text-sm text-blue-600">Évolution</div>

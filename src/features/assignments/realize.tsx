@@ -88,28 +88,39 @@ interface Assignment {
   id: number
   reference: string
   status: {
+    id: number
     code: string
     label: string
+    description: string
   }
-  client: UserType
+  client: {
+    id: number
+    name: string
+    email: string
+    phone_1?: string
+    phone_2?: string
+    address?: string
+  }
   vehicle: Vehicle
-  insurer: EntityType
-  repairer: EntityType
+  insurer: EntityType | null
+  repairer: EntityType | null
   assignment_type: {
     id: number
-    label: string
     code: string
+    label: string
+    description: string
   }
   expertise_type: {
     id: number
-    label: string
     code: string
+    label: string
+    description: string
   }
-  document_transmitted: {
+  document_transmitted: Array<{
     id: number
-    label: string
     code: string
-  }
+    label: string
+  }>
   policy_number: string | null
   claim_number: string | null
   claim_starts_at: string | null
@@ -121,19 +132,87 @@ interface Assignment {
   circumstance: string | null
   damage_declared: string | null
   observation: string | null
+  point_noted: string | null
+  seen_before_work_date: string | null
+  seen_during_work_date: string | null
+  seen_after_work_date: string | null
+  contact_date: string | null
+  assured_value: string | null
+  salvage_value: string | null
+  new_market_value: string | null
+  depreciation_rate: string | null
+  market_value: string | null
+  work_duration: string | null
+  expert_remark: string | null
+  shock_amount_excluding_tax: string | null
+  shock_amount_tax: string | null
+  shock_amount: string | null
+  other_cost_amount_excluding_tax: string | null
+  other_cost_amount_tax: string | null
+  other_cost_amount: string | null
+  receipt_amount_excluding_tax: string | null
+  receipt_amount_tax: string | null
+  receipt_amount: string | null
+  total_amount_excluding_tax: string | null
+  total_amount_tax: string | null
+  total_amount: string | null
   amount: number
   experts: Array<{
     expert_id: number
     date: string
     observation: string | null
   }>
-  created_at: string
-  updated_at: string
-  realized_at?: string
-  realized_by?: {
+  shocks: Array<unknown>
+  other_costs: Array<unknown>
+  receipts: Array<unknown>
+  payments: Array<unknown>
+  invoices: Array<unknown>
+  evaluations: unknown | null
+  created_by: {
     id: number
     name: string
+    email: string
   }
+  updated_by: {
+    id: number
+    name: string
+    email: string
+  }
+  realized_by: {
+    id: number
+    name: string
+    email: string
+  } | null
+  edited_by: {
+    id: number
+    name: string
+    email: string
+  } | null
+  validated_by: unknown | null
+  closed_by: unknown | null
+  cancelled_by: unknown | null
+  work_sheet_established_by: unknown | null
+  expertise_sheet: string | null
+  expertise_report: string | null
+  work_sheet: string | null
+  expert_signature: string | null
+  repairer_signature: string | null
+  customer_signature: string | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+  closed_at: string | null
+  cancelled_at: string | null
+  edited_at: string | null
+  validated_at: string | null
+  realized_at: string | null
+  work_sheet_established_at: string | null
+  edition_time_expire_at: string | null
+  edition_status: string | null
+  edition_per_cent: number | null
+  recovery_time_expire_at: string | null
+  recovery_status: string | null
+  recovery_per_cent: number | null
 }
 
 interface RealizePayload {
@@ -179,11 +258,24 @@ export default function RealizeAssignmentPage() {
         setAssignment(assignmentData)
         
         // Si le dossier est déjà réalisé, pré-remplir le formulaire
-        if (assignmentData.realized_at && assignmentData.expertise_date) {
-          const expertiseDate = new Date(assignmentData.expertise_date)
-          const hours = String(expertiseDate.getHours()).padStart(2, '0')
-          const minutes = String(expertiseDate.getMinutes()).padStart(2, '0')
-          const timeString = `${hours}:${minutes}`
+        if (assignmentData.realized_at) {
+          // Gérer la date d'expertise
+          let expertiseDate = new Date()
+          let timeString = '09:00'
+          
+          if (assignmentData.expertise_date) {
+            expertiseDate = new Date(assignmentData.expertise_date)
+            // Si la date contient une heure, l'extraire
+            if (assignmentData.expertise_date.includes('T')) {
+              const dateTime = new Date(assignmentData.expertise_date)
+              const hours = String(dateTime.getHours()).padStart(2, '0')
+              const minutes = String(dateTime.getMinutes()).padStart(2, '0')
+              timeString = `${hours}:${minutes}`
+            } else {
+              // Si c'est juste une date, utiliser l'heure par défaut
+              timeString = '09:00'
+            }
+          }
           
           form.reset({
             expertise_date: expertiseDate,
@@ -341,7 +433,9 @@ export default function RealizeAssignmentPage() {
                 <div>
                   <p className="font-semibold">{assignment.client.name}</p>
                   <p className="text-sm text-muted-foreground">{assignment.client.email}</p>
-                  <Badge variant="secondary">{assignment.client.role?.label}</Badge>
+                  {assignment.client.phone_1 && (
+                    <Badge variant="secondary">{assignment.client.phone_1}</Badge>
+                  )}
                 </div>
               </div>
             </CardContent>

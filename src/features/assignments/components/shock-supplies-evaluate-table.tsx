@@ -158,9 +158,7 @@ export function ShockSuppliesEvaluateTable({
               <th className="border px-3 py-2 text-left font-medium text-xs">
                 Fournitures
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-xs">
-                Dém
-              </th>
+
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remp
               </th>
@@ -171,10 +169,7 @@ export function ShockSuppliesEvaluateTable({
                 Peint
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
-                Vte (%)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-xs">
-                R (%)
+                Contrôle
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Montant HT
@@ -182,15 +177,6 @@ export function ShockSuppliesEvaluateTable({
               <th className="border px-2 py-2 text-left font-medium text-xs">
                 Commentaire
               </th>
-              {/* <th className="border px-2 py-2 text-center font-medium text-blue-600 text-xs">
-                Vetusté
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-green-600 text-xs">
-                Récupération
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-purple-600 text-xs">
-                Montant Final
-              </th> */}
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Actions
               </th>
@@ -221,12 +207,7 @@ export function ShockSuppliesEvaluateTable({
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="border px-2 py-2 text-center text-xs">
-                  <Checkbox 
-                    checked={row.disassembly} 
-                    onCheckedChange={v => updateLocalShockWork(i, 'disassembly', v)} 
-                  />
-                </td>
+
                 <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.replacement} 
@@ -245,20 +226,10 @@ export function ShockSuppliesEvaluateTable({
                     onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
                   />
                 </td>
-                <td className="border px-2 text-center text-xs">
-                  <Input
-                    type="number"
-                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.obsolescence_rate}
-                    onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
-                  />
-                </td>
-                <td className="border px-2 text-center text-xs">
-                  <Input
-                    type="number"
-                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.recovery_rate}
-                    onChange={e => updateLocalShockWork(i, 'recovery_rate', Number(e.target.value))}
+                <td className="border px-2 py-2 text-center text-xs">
+                  <Checkbox 
+                    checked={row.control} 
+                    onCheckedChange={v => updateLocalShockWork(i, 'control', v)} 
                   />
                 </td>
                 <td className="border px-2 py-2 text-center text-xs">
@@ -278,42 +249,7 @@ export function ShockSuppliesEvaluateTable({
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
                 </td>
-                {/* <td className="border w-35 px-2 py-2 text-center text-xs">
-                  <div className="text-blue-600 font-medium">
-                    {formatCurrency(row.obsolescence_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.obsolescence_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.obsolescence_amount_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center text-xs w-35">
-                  <div className="text-green-600 font-medium">
-                    {formatCurrency(row.recovery_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.recovery_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.recovery_amount_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center text-xs w-35">
-                  <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrency(row.new_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.new_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.new_amount_tax || 0)}
-                  </div>
-                </td> */}
+               
                 <td className="border px-2 py-2 text-center text-xs">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (
@@ -349,51 +285,7 @@ export function ShockSuppliesEvaluateTable({
         </table>
       </div>
 
-      {/* Récapitulatif moderne */}
-      {/* <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-9 gap-4 text-xs">
-          <div className="text-center">
-            <div className="text-gray-600 font-medium">Total lignes</div>
-            <div className="text-lg font-bold text-gray-800">{localShockWorks.length}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté HT</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_ht)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté TVA</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_tva)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté TTC</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération HT</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_ht)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération TVA</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_tva)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération TTC</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-purple-600 font-medium">Montant Final HT</div>
-            <div className={`text-base font-bold ${totals.new_ht >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
-              {formatCurrency(totals.new_ht)}
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-purple-600 font-medium">Montant Final TTC</div>
-            <div className={`text-base font-bold ${totals.new >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
-              {formatCurrency(totals.new)}
-            </div>
-          </div>
-        </div>
-      </div> */}
+    
     </div>
   )
 } 

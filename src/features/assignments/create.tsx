@@ -167,9 +167,9 @@ const assignmentSchema = z.object({
 
 export default function CreateAssignmentPage() {
   const navigate = useNavigate()
-    // const params = useParams({ from: '/assignments/create', })
     const { id } = useParams({ strict: false }) as { id: string }
   const [loading, setLoading] = useState(false)
+  const [loadingData, setLoadingData] = useState(false)
   const [step, setStep] = useState(1)
   const totalSteps = 4
   const [experts, setExperts] = useState<Expert[]>([
@@ -302,20 +302,22 @@ export default function CreateAssignmentPage() {
     const loadAssignmentData = async () => {
       if (isEditMode && assignmentId) {
         try {
-          setLoading(true)
+          setLoadingData(true)
           const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`)
           const assignment = response.data.data
           
+          console.log('Données du dossier chargées:', assignment)
+          
           // Pré-remplir le formulaire avec les données existantes
-          form.reset({
-            client_id: assignment.client_id?.toString() || '',
-            vehicle_id: assignment.vehicle_id?.toString() || '',
-            vehicle_mileage: assignment.vehicle_mileage?.toString() || '',
-            insurer_id: assignment.insurer_id?.toString() || '',
-            repairer_id: assignment.repairer_id?.toString() || '',
-            assignment_type_id: assignment.assignment_type_id?.toString() || '',
-            expertise_type_id: assignment.expertise_type_id?.toString() || '',
-            document_transmitted_id: assignment.document_transmitted_id?.map((id: number) => id.toString()) || [],
+          const formData = {
+            client_id: assignment.client?.id?.toString() || '',
+            vehicle_id: assignment.vehicle?.id?.toString() || '',
+            vehicle_mileage: assignment.vehicle?.mileage?.toString() || '',
+            insurer_id: assignment.insurer?.id?.toString() || '',
+            repairer_id: assignment.repairer?.id?.toString() || '',
+            assignment_type_id: assignment.assignment_type?.id?.toString() || '',
+            expertise_type_id: assignment.expertise_type?.id?.toString() || '',
+            document_transmitted_id: assignment.document_transmitted?.map((doc: any) => doc.id.toString()) || [],
             policy_number: assignment.policy_number || '',
             claim_number: assignment.claim_number || '',
             claim_starts_at: assignment.claim_starts_at || '',
@@ -332,43 +334,58 @@ export default function CreateAssignmentPage() {
               date: expert.date || '',
               observation: expert.observation || ''
             })) || [{ expert_id: '', date: '', observation: '' }]
-          })
+          }
+          
+          console.log('Données du formulaire à pré-remplir:', formData)
+          form.reset(formData)
 
           // Mettre à jour les états des entités sélectionnées
           if (assignment.client) {
             setSelectedClient(assignment.client)
+            console.log('Client sélectionné:', assignment.client)
           }
           if (assignment.vehicle) {
             setSelectedVehicle(assignment.vehicle)
+            console.log('Véhicule sélectionné:', assignment.vehicle)
           }
           if (assignment.insurer) {
             setSelectedInsurer(assignment.insurer)
+            console.log('Assureur sélectionné:', assignment.insurer)
           }
           if (assignment.repairer) {
             setSelectedRepairer(assignment.repairer)
+            console.log('Réparateur sélectionné:', assignment.repairer)
           }
           if (assignment.assignment_type) {
             setSelectedAssignmentType(assignment.assignment_type)
+            console.log('Type d\'assignation sélectionné:', assignment.assignment_type)
           }
           if (assignment.expertise_type) {
             setSelectedExpertiseType(assignment.expertise_type)
+            console.log('Type d\'expertise sélectionné:', assignment.expertise_type)
           }
-          if (assignment.documents_transmitted) {
-            setSelectedDocuments(assignment.documents_transmitted)
+          if (assignment.document_transmitted) {
+            setSelectedDocuments(assignment.document_transmitted)
+            console.log('Documents sélectionnés:', assignment.document_transmitted)
           }
 
           // Mettre à jour la liste des experts
-          setExperts(assignment.experts?.map((expert: { expert_id: number; date: string; observation: string | null }) => ({
+          const expertsData = assignment.experts?.map((expert: { expert_id: number; date: string; observation: string | null }) => ({
             expert_id: expert.expert_id?.toString() || '',
             date: expert.date || '',
             observation: expert.observation || ''
-          })) || [{ expert_id: '', date: '', observation: '' }])
+          })) || [{ expert_id: '', date: '', observation: '' }]
+          
+          setExperts(expertsData)
+          console.log('Experts mis à jour:', expertsData)
+
+          console.log('Formulaire pré-rempli avec succès')
 
         } catch (error) {
           console.error('Erreur lors du chargement du dossier:', error)
           toast.error('Erreur lors du chargement du dossier')
         } finally {
-          setLoading(false)
+          setLoadingData(false)
         }
       }
     }
@@ -582,6 +599,8 @@ export default function CreateAssignmentPage() {
     setLoading(true)
     
     try {
+      console.log('Données du formulaire à soumettre:', values)
+      
       // Préparer les données pour l'API
       const assignmentData = {
         client_id: parseInt(values.client_id),
@@ -610,6 +629,8 @@ export default function CreateAssignmentPage() {
         })),
       } as AssignmentCreatePayload
 
+      console.log('Données préparées pour l\'API:', assignmentData)
+
       if (isEditMode && assignmentId) {
         // Mode modification
         const updateData: AssignmentUpdatePayload = {
@@ -617,12 +638,16 @@ export default function CreateAssignmentPage() {
           id: assignmentId
         }
         
-        const response = await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`, updateData)
+        console.log('Mise à jour du dossier avec les données:', updateData)
+        const response = await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData)
+        console.log('Réponse de la mise à jour:', response.data)
         toast.success('Dossier modifié avec succès')
         navigate({ to: `/assignments/${assignmentId}` })
       } else {
         // Mode création
+        console.log('Création du dossier avec les données:', assignmentData)
         const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}`, assignmentData)
+        console.log('Réponse de la création:', response.data)
         toast.success('Dossier créé avec succès')
         navigate({ to: `/assignments/${response.data.data.id}` })
       }
@@ -752,21 +777,35 @@ export default function CreateAssignmentPage() {
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-gray-200/60">
         <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={handleCancel} className="shrink-0">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+                        <Button type="button" variant="outline" size="icon" onClick={handleCancel} className="shrink-0">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
+                {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
                 {isEditMode ? 'Modifiez les informations du dossier' : 'Créez un nouveau dossier d\'expertise'}
               </p>
+              {isEditMode && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    Mode édition
+                  </Badge>
+                  <span className="text-xs text-gray-500">ID: {assignmentId}</span>
+                  {loadingData && (
+                    <div className="flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+                      <span className="text-xs text-blue-600">Chargement des données...</span>
+                    </div>
+                  )}
+                </div>
+              )}
         </div>
       </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleCancel}>
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Annuler
             </Button>
             <Button 
@@ -793,42 +832,44 @@ export default function CreateAssignmentPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="flex gap-6 p-6">
+          <div className={`flex gap-6 p-6 ${loadingData ? 'pointer-events-none opacity-50' : ''}`}>
             {/* Sidebar */}
             <div className="w-80 shrink-0">
               <div className="sticky top-24 space-y-4">
                 {/* Progress Overview */}
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold">Progression</CardTitle>
+                    <CardTitle className="text-lg font-semibold">
+                      {isEditMode ? 'Vue d\'ensemble' : 'Progression'}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {[
                       { id: 1, title: 'Informations générales', icon: FileText, color: 'text-blue-600' },
                       { id: 2, title: 'Types et documents', icon: FileType, color: 'text-green-600' },
-                      { id: 3, title: 'Informations client', icon: User, color: 'text-purple-600' },
-                      { id: 4, title: 'Validation', icon: ClipboardCheck, color: 'text-orange-600' }
+                      { id: 3, title: 'Experts', icon: User, color: 'text-purple-600' },
+                      { id: 4, title: 'Récapitulatif', icon: ClipboardCheck, color: 'text-orange-600' }
                     ].map((section) => {
                       const Icon = section.icon
                       const isCompleted = section.id === 1 ? 
-                        (form.watch('client_id') && form.watch('vehicle_id') && form.watch('insurer_id') && form.watch('repairer_id')) :
+                        (form.watch('client_id') && form.watch('vehicle_id')) :
                         section.id === 2 ?
                         (form.watch('assignment_type_id') && form.watch('expertise_type_id') && form.watch('document_transmitted_id')?.length > 0) :
                         section.id === 3 ?
-                        (form.watch('received_at') && (form.watch('experts') || [])?.length > 0) :
+                        (form.watch('received_at')) :
                         true
                       
                       return (
-                        <div key={section.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50/50 border border-gray-200/40">
+                        <div key={section.id} className={`flex items-center gap-3 p-3 rounded-lg border ${isEditMode ? 'bg-blue-50/50 border-blue-200/40' : 'bg-gray-50/50 border-gray-200/40'}`}>
                           <div className={`p-2 rounded-lg bg-white shadow-sm ${section.color}`}>
                             <Icon className="h-4 w-4" />
-              </div>
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">
                               {section.title}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {isCompleted ? 'Complété' : 'À remplir'}
+                              {isEditMode ? 'Disponible' : (isCompleted ? 'Complété' : 'À remplir')}
                             </p>
                           </div>
                           {isCompleted && (
@@ -841,38 +882,42 @@ export default function CreateAssignmentPage() {
                 </Card>
 
                 {/* Navigation */}
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold">Navigation</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={prevStep}
-                        disabled={step === 1}
-                        className="flex-1"
-                      >
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Retour
-                      </Button>
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        onClick={nextStep}
-                        disabled={!canProceed || step === totalSteps}
-                        className="flex-1"
-                      >
-                        Suivant
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                  </div>
-                    <div className="text-center text-sm text-gray-500">
-                      Étape {step} sur {totalSteps}
+                {!isEditMode && (
+                  <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg font-semibold">Navigation</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          size="sm" 
+                          onClick={prevStep}
+                          disabled={step === 1}
+                          className="flex-1"
+                        >
+                          <ChevronLeft className="mr-2 h-4 w-4" />
+                          Retour
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant="default" 
+                          size="sm" 
+                          onClick={nextStep}
+                          disabled={!canProceed || step === totalSteps}
+                          className="flex-1"
+                        >
+                          Suivant
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                      <div className="text-center text-sm text-gray-500">
+                        Étape {step} sur {totalSteps}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Quick Actions */}
                 {/* <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
@@ -959,7 +1004,7 @@ export default function CreateAssignmentPage() {
                               <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Client</FormLabel>
-                                <Button variant="outline" size="icon" onClick={() => setShowCreateClientModal(true)} className="shrink-0 w-6 h-6">
+                                <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateClientModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -1011,7 +1056,7 @@ export default function CreateAssignmentPage() {
                               <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Véhicule</FormLabel>
-                                <Button variant="outline" size="icon" onClick={() => setShowCreateVehicleModal(true)} className="shrink-0 w-6 h-6">
+                                <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateVehicleModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -1142,7 +1187,7 @@ export default function CreateAssignmentPage() {
                               <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Assureur</FormLabel>
-                                <Button variant="outline" size="icon" onClick={() => setShowCreateInsurerModal(true)} className="shrink-0 w-6 h-6">
+                                <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateInsurerModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -1193,7 +1238,7 @@ export default function CreateAssignmentPage() {
                               <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Réparateur</FormLabel>
-                                <Button variant="outline" size="icon" onClick={() => setShowCreateRepairerModal(true)} className="shrink-0 w-6 h-6">
+                                <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateRepairerModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -1252,7 +1297,7 @@ export default function CreateAssignmentPage() {
               </Card>
 
               {/* Section 2: Types et Documents */}
-              {step >= 2 && (
+              {(step >= 2 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl">
@@ -1374,7 +1419,7 @@ export default function CreateAssignmentPage() {
                         </h3>  */}
                         <div className="flex items-center gap-2 justify-between">
                           <FormLabel>Documents transmis</FormLabel>
-                          <Button variant="outline" size="icon" onClick={() => setShowCreateDocumentModal(true)} className="shrink-0 w-6 h-6">
+                          <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateDocumentModal(true)} className="shrink-0 w-6 h-6">
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
@@ -1512,7 +1557,7 @@ export default function CreateAssignmentPage() {
               )}
 
               {/* Section 3: Experts */}
-              {step >= 3 && (
+              {(step >= 3 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl">
@@ -1611,7 +1656,7 @@ export default function CreateAssignmentPage() {
             )}
 
               {/* Section 4: Récapitulatif */}
-            {step === 4 && (
+            {(step === 4 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl">
@@ -1619,7 +1664,10 @@ export default function CreateAssignmentPage() {
                       Récapitulatif du dossier
                     </CardTitle>
                     <CardDescription>
-                      Vérifiez et validez toutes les informations avant la création du dossier
+                      {isEditMode 
+                        ? 'Vérifiez et validez toutes les informations avant la mise à jour du dossier'
+                        : 'Vérifiez et validez toutes les informations avant la création du dossier'
+                      }
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
@@ -1962,14 +2010,14 @@ export default function CreateAssignmentPage() {
                       </div>
                     </div>
 
-                    {/* Bouton de création en bas du récapitulatif */}
+                    {/* Bouton de soumission en bas du récapitulatif */}
                     <div className="flex justify-center pt-6">
                       <Button 
                         type="submit" 
                         onClick={form.handleSubmit(onSubmit)}
                         disabled={loading}
                         size="lg"
-                        className="px-8 py-3 text-lg"
+                        className="px-8 py-3 text-sm"
                       >
                         {loading ? (
                           <>

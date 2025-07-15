@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { 
   Plus, 
   Trash2, 
@@ -26,10 +27,14 @@ import {
   Check,
   Loader2,
   Edit,
-  Eye
+  Eye,
+  Calculator,
+  Save
 } from 'lucide-react'
 import { receiptService } from '@/services/receiptService'
 import { receiptTypeService } from '@/services/receiptTypeService'
+import axiosInstance from '@/lib/axios'
+import { API_CONFIG } from '@/config/api'
 
 interface ReceiptType {
   id: number
@@ -54,6 +59,21 @@ interface ReceiptFormData {
   amount: number
 }
 
+interface CalculatedReceipt {
+  assignment_id: string
+  receipt_type_id: string
+  amount_excluding_tax: number
+  amount_tax: number
+  amount: number
+}
+
+interface CalculationResult {
+  receipts: CalculatedReceipt[]
+  receipt_amount_excluding_tax: number
+  receipt_amount_tax: number
+  receipt_amount: number
+}
+
 interface ReceiptManagementProps {
   assignmentId: number
   receipts: Receipt[]
@@ -75,6 +95,11 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
   const [receiptsToCreate, setReceiptsToCreate] = useState<ReceiptFormData[]>([])
   const [_loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  
+  // Nouveaux états pour le calcul
+  const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null)
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [showCalculationResults, setShowCalculationResults] = useState(false)
 
   // Charger les types de quittances
   useEffect(() => {
@@ -97,11 +122,89 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
   const openCreateModal = () => {
     setFormData({ receipt_type_id: 0, amount: 0 })
     setReceiptsToCreate([])
+    setCalculationResult(null)
+    setShowCalculationResults(false)
     setIsCreateModalOpen(true)
+  }
+
+  // Fonction pour calculer les quittances
+  const calculateReceipts = async () => {
+    if (receiptsToCreate.length === 0) {
+      toast.error('Veuillez ajouter au moins une quittance avant de calculer')
+      return
+    }
+
+    try {
+      setIsCalculating(true)
+      
+      // Préparer le payload pour le calcul
+      const payload = {
+        assignment_id: String(assignmentId),
+        receipts: receiptsToCreate.map(receipt => ({
+          amount: receipt.amount,
+          receipt_type_id: String(receipt.receipt_type_id)
+        }))
+      }
+
+      const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.RECEIPTS}/calculate`, payload)
+      
+      if (response.data.status === 201) {
+        setCalculationResult(response.data.data)
+        setShowCalculationResults(true)
+        toast.success('Calcul effectué avec succès')
+      } else {
+        toast.error('Erreur lors du calcul')
+      }
+    } catch (_error) {
+      toast.error('Erreur lors du calcul des quittances')
+    } finally {
+      setIsCalculating(false)
+    }
+  }
+
+  // Fonction pour créer les quittances après calcul
+  const createReceiptsAfterCalculation = async () => {
+    if (!calculationResult) return
+
+    try {
+      setSaving(true)
+      
+      // Créer les quittances avec les montants calculés
+      const receiptsToCreateWithCalculatedAmounts = calculationResult.receipts.map(calculatedReceipt => ({
+        receipt_type_id: Number(calculatedReceipt.receipt_type_id),
+        amount: calculatedReceipt.amount
+      }))
+
+      await receiptService.createMultipleReceipts(assignmentId, receiptsToCreateWithCalculatedAmounts)
+      toast.success(`${calculationResult.receipts.length} quittance(s) créée(s) avec succès`)
+      
+      // Réinitialiser les états
+      setIsCreateModalOpen(false)
+      setReceiptsToCreate([])
+      setCalculationResult(null)
+      setShowCalculationResults(false)
+      
+      onRefresh()
+    } catch (_error) {
+      toast.error('Erreur lors de la création des quittances')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Vérifier si le type de quittance est automatique (ID = 1)
+  const isAutomaticReceiptType = (receiptTypeId: number) => {
+    return receiptTypeId === 1
   }
 
   // Ouvrir le modal de modification
   const openEditModal = (receipt: Receipt) => {
+    // Empêcher la modification des quittances automatiques (receipt_type_id = 1)
+    if (isAutomaticReceiptType(receipt.receipt_type.id)) {
+      toast.error('Les quittances de type automatique ne peuvent pas être modifiées')
+      return
+    }
+
     setSelectedReceipt(receipt)
     setFormData({
       receipt_type_id: receipt.receipt_type.id,
@@ -142,12 +245,31 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
 
   // Ajouter une quittance à la liste de création
   const addReceiptToCreate = () => {
-    if (!formData.receipt_type_id || !formData.amount) {
-      toast.error('Veuillez remplir tous les champs')
+    if (!formData.receipt_type_id) {
+      toast.error('Veuillez sélectionner un type de quittance')
+      return
+    }
+
+    // Pour les types automatiques (ID = 1), le montant est forcé à 0
+    const receiptToAdd = {
+      receipt_type_id: formData.receipt_type_id,
+      amount: isAutomaticReceiptType(formData.receipt_type_id) ? 0 : formData.amount
+    }
+
+    // Vérifier si le type est déjà dans la liste
+    const existingReceipt = receiptsToCreate.find(r => r.receipt_type_id === formData.receipt_type_id)
+    if (existingReceipt) {
+      toast.error('Ce type de quittance est déjà dans la liste')
+      return
+    }
+
+    // Pour les types non-automatiques, vérifier le montant
+    if (!isAutomaticReceiptType(formData.receipt_type_id) && !formData.amount) {
+      toast.error('Veuillez saisir un montant pour ce type de quittance')
       return
     }
     
-    setReceiptsToCreate([...receiptsToCreate, { ...formData }])
+    setReceiptsToCreate([...receiptsToCreate, receiptToAdd])
     setFormData({ receipt_type_id: 0, amount: 0 })
   }
 
@@ -241,7 +363,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
         <div className="space-y-4">
           {receipts.map((receipt) => (
             <Card key={receipt.id} className="shadow-none border-gray-200">
-              <CardContent className="p-4">
+              <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -301,7 +423,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
       {/* Récapitulatif */}
       {receipts.length > 0 && (
         <Card className="shadow-none bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-          <CardContent className="p-4">
+          <CardContent>
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-semibold text-green-800 mb-1">Récapitulatif</h4>
@@ -320,7 +442,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
 
       {/* Modal de création */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-full">
@@ -329,7 +451,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
               Ajouter des quittances
             </DialogTitle>
             <DialogDescription>
-              Créez une ou plusieurs quittances pour ce dossier
+              Créez une ou plusieurs quittances pour ce dossier. Les quittances de type automatique seront calculées automatiquement.
             </DialogDescription>
           </DialogHeader>
 
@@ -342,7 +464,13 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                   <Label className="text-sm font-medium text-gray-700 mb-2">Type de quittance</Label>
                   <Select 
                     value={formData.receipt_type_id.toString()} 
-                    onValueChange={(value) => setFormData({ ...formData, receipt_type_id: Number(value) })}
+                    onValueChange={(value) => {
+                      const newReceiptTypeId = Number(value)
+                      setFormData({ 
+                        receipt_type_id: newReceiptTypeId,
+                        amount: isAutomaticReceiptType(newReceiptTypeId) ? 0 : formData.amount
+                      })
+                    }}
                   >
                     <SelectTrigger className={!formData.receipt_type_id ? 'border-red-300 bg-red-50 w-full' : 'w-full'}>
                       <SelectValue placeholder="Sélectionner un type" />
@@ -350,7 +478,14 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                     <SelectContent className='w-full'>
                       {receiptTypes.map((type) => (
                         <SelectItem key={type.id} value={type.id.toString()}>
-                          {type.label}
+                          <div className="flex items-center gap-2">
+                            <span>{type.label}</span>
+                            {isAutomaticReceiptType(type.id) && (
+                              <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+                                Auto
+                              </Badge>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -358,21 +493,26 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                 </div>
                 
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2">Montant (FCFA)</Label>
+                  <Label className="text-sm font-medium text-gray-700 mb-2">
+                    Montant (FCFA)
+                    {isAutomaticReceiptType(formData.receipt_type_id) && (
+                      <span className="text-xs text-orange-600 ml-1">(Calculé automatiquement)</span>
+                    )}
+                  </Label>
                   <Input
                     type="number"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
                     placeholder="0"
-                    className={!formData.amount ? 'border-red-300 bg-red-50' : ''}
+                    disabled={isAutomaticReceiptType(formData.receipt_type_id)}
+                    className={`${isAutomaticReceiptType(formData.receipt_type_id) ? 'bg-gray-100 cursor-not-allowed' : ''} ${!formData.amount && !isAutomaticReceiptType(formData.receipt_type_id) ? 'border-red-300 bg-red-50' : ''}`}
                   />
                 </div>
               </div>
               
               <Button 
                 onClick={addReceiptToCreate}
-                disabled={!formData.receipt_type_id || !formData.amount}
-                
+                disabled={!formData.receipt_type_id || (!formData.amount && !isAutomaticReceiptType(formData.receipt_type_id))}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Ajouter à la liste
@@ -382,20 +522,41 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
             {/* Liste des quittances à créer */}
             {receiptsToCreate.length > 0 && (
               <div className="space-y-4">
-                <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                  Quittances à créer
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    {receiptsToCreate.length}
-                  </Badge>
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                    Quittances à créer
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {receiptsToCreate.length}
+                    </Badge>
+                  </h4>
+                  
+                  <Button 
+                    onClick={calculateReceipts}
+                    disabled={isCalculating}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isCalculating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Calcul en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Calculator className="mr-2 h-4 w-4" />
+                        Calculer
+                      </>
+                    )}
+                  </Button>
+                </div>
                 
                 <div className="space-y-3">
                   {receiptsToCreate.map((receipt, index) => {
                     const receiptType = receiptTypes.find(type => type.id === receipt.receipt_type_id)
                     return (
-                      <Card key={index} className="border-blue-200 bg-blue-50">
-                        <CardContent className="p-3">
-                          <div className="flex items-center justify-between">
+                      <Card key={index} className="border-blue-200 bg-blue-50 shadow-none w-1/2 flex justify-between">
+                        <CardContent className="">
+                          <div className=''>
+                            <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-1">
                                 <h5 className="font-semibold text-blue-800">
@@ -404,6 +565,11 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                                 <Badge variant="outline" className="text-xs">
                                   {receiptType?.code || 'N/A'}
                                 </Badge>
+                                {isAutomaticReceiptType(receipt.receipt_type_id) && (
+                                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+                                    Calcul automatique
+                                  </Badge>
+                                )}
                               </div>
                               <div className="text-sm text-blue-600">
                                 Montant: {formatCurrency(receipt.amount)}
@@ -419,6 +585,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+                          </div>
                         </CardContent>
                       </Card>
                     )
@@ -427,26 +594,76 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
               </div>
             )}
 
-            {/* Récapitulatif */}
-            {receiptsToCreate.length > 0 && (
-              <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-green-800 mb-1">Récapitulatif</h4>
-                      <p className="text-sm text-green-600">
-                        {receiptsToCreate.length} quittance(s) à créer
-                      </p>
+            {/* Résultats du calcul */}
+            {showCalculationResults && calculationResult && (
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-green-600" />
+                  Résultats du calcul
+                </h4>
+                
+                <Card className="border-green-200 bg-green-50 shadow-none">
+                  <CardContent className="p-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Type de quittance</TableHead>
+                          <TableHead>Montant HT</TableHead>
+                          <TableHead>TVA</TableHead>
+                          <TableHead>Montant TTC</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {calculationResult.receipts.map((calculatedReceipt, index) => {
+                          const receiptType = receiptTypes.find(type => type.id === Number(calculatedReceipt.receipt_type_id))
+                          return (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  <span>{receiptType?.label || 'Type inconnu'}</span>
+                                  {isAutomaticReceiptType(Number(calculatedReceipt.receipt_type_id)) && (
+                                    <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+                                      Auto
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>{formatCurrency(calculatedReceipt.amount_excluding_tax)}</TableCell>
+                              <TableCell>{formatCurrency(calculatedReceipt.amount_tax)}</TableCell>
+                              <TableCell className="font-bold text-green-600">
+                                {formatCurrency(calculatedReceipt.amount)}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                    
+                    <div className="mt-4 pt-4 border-t border-green-200">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-sm text-gray-600">Total HT</p>
+                          <p className="text-lg font-bold text-blue-600">
+                            {formatCurrency(calculationResult.receipt_amount_excluding_tax)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Total TVA</p>
+                          <p className="text-lg font-bold text-orange-600">
+                            {formatCurrency(calculationResult.receipt_amount_tax)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Total TTC</p>
+                          <p className="text-xl font-bold text-green-600">
+                            {formatCurrency(calculationResult.receipt_amount)}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Total</p>
-                      <p className="text-xl font-bold text-green-600">
-                        {formatCurrency(receiptsToCreate.reduce((sum, r) => sum + r.amount, 0))}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
 
@@ -456,28 +673,51 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
               onClick={() => {
                 setIsCreateModalOpen(false)
                 setReceiptsToCreate([])
+                setCalculationResult(null)
+                setShowCalculationResults(false)
               }}
               disabled={saving}
             >
               Annuler
             </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={saving || receiptsToCreate.length === 0}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sauvegarde...
-                </>
-              ) : (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Créer {receiptsToCreate.length > 0 ? `(${receiptsToCreate.length})` : ''}
-                </>
-              )}
-            </Button>
+            
+            {showCalculationResults && calculationResult ? (
+              <Button 
+                onClick={createReceiptsAfterCalculation}
+                disabled={saving}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Création...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Créer {calculationResult.receipts.length} quittance(s)
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleSave}
+                disabled={saving || receiptsToCreate.length === 0}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Créer {receiptsToCreate.length > 0 ? `(${receiptsToCreate.length})` : ''}
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

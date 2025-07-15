@@ -172,72 +172,6 @@ export function ShockWorkforceEvaluateTable({
         </div>
       </div>
 
-      {/* Autres informations */}
-      <div className="border rounded bg-gray-50 p-4 space-y-4">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div>
-            <Label className="text-xs font-medium mb-2">Type de peinture</Label>
-            <Select 
-              value={paintTypeId ? paintTypeId.toString() : ''} 
-              onValueChange={(value) => onPaintTypeChange(Number(value))}
-            >
-              <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''}`}>
-                <SelectValue placeholder={!paintTypeId ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
-              </SelectTrigger>
-              <SelectContent>
-                {paintTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs font-medium mb-2">Taux horaire</Label>
-            <Select 
-              value={hourlyRateId ? hourlyRateId.toString() : ''} 
-              onValueChange={(value) => onHourlyRateChange(Number(value))}
-            >
-              <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''}`}>
-                <SelectValue placeholder={!hourlyRateId ? "⚠️ Sélectionner un taux" : "Sélectionner..."} />
-              </SelectTrigger>
-              <SelectContent>
-                {hourlyRates.map((rate) => (
-                  <SelectItem key={rate.id} value={rate.id.toString()}>
-                    {rate.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="h-full">
-            <div className="h-full flex justify-between items-center space-y-2 p-3 bg-white rounded-lg border border-gray-200 w-full">
-              <div className="flex items-center gap-2 py-1 mt-2">
-                <Checkbox
-                  checked={withTax}
-                  onCheckedChange={(checked) => onWithTaxChange(checked as boolean)}
-                  className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                />
-                <span className="text-xs text-gray-600">
-                  {withTax ? 'Avec TVA (18%)' : 'Sans TVA'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 py-1 mt-2">
-                <div className={`w-3 h-3 rounded-full ${withTax ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <Label className="text-xs font-medium text-gray-700">Calcul TVA</Label>
-              </div>
-
-              {withTax && (
-                <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                  ✓ TVA incluse
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="overflow-x-auto">
         <table className="min-w-full border text-xs">
           <thead>
@@ -246,23 +180,9 @@ export function ShockWorkforceEvaluateTable({
                 Désignation
               </th>
               <th className="border px-2 py-2 text-center font-medium">
-                Tps(H)
+                Montant
               </th>
-              <th className="border px-2 py-2 text-center font-medium">
-                Remise (%)
-              </th>
-              {/* <th className="border px-2 py-2 text-center font-medium">
-                Tx horr (FCFA)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-green-600">
-                Montant HT
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-blue-600">
-                Montant TVA
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-purple-600">
-                Montant TTC
-              </th> */}
+             
               <th className="border px-2 py-2 text-center font-medium">
                 Actions
               </th>
@@ -294,41 +214,20 @@ export function ShockWorkforceEvaluateTable({
                   </Select>
                 </td>
                 <td className="border px-2 py-2 text-center">
-                  <Input
+                  {/* <Input
                     type="number"
                     className="w-full border rounded p-1 text-center"
                     value={row.nb_hours}
                     onChange={e => updateLocalWorkforce(i, 'nb_hours', Number(e.target.value))}
-                  />
-                </td>
-                <td className="border px-2 py-2 text-center">
+                  /> */}
                   <Input
                     type="number"
-                    className="w-full border rounded p-1 text-center"
-                    value={row.discount}
-                    onChange={e => updateLocalWorkforce(i, 'discount', Number(e.target.value))}
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.amount}
+                    onChange={e => updateLocalWorkforce(i, 'amount', Number(e.target.value))}
                   />
                 </td>
-                {/* <td className="border px-2 py-2 text-center">
-                  <div className="text-gray-600 font-medium">
-                    {formatCurrency(Number(row.work_fee || 0))}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="text-green-600 font-medium">
-                    {formatCurrency(row.amount_excluding_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="text-blue-600 font-medium">
-                    {formatCurrency(row.amount_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="text-purple-600 font-bold">
-                    {formatCurrency(row.amount || 0)}
-                  </div>
-                </td> */}
+               
                 <td className="border px-2 py-2 text-center">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (

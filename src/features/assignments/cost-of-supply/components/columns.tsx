@@ -43,6 +43,7 @@ export const getOperationIcons = (supplyPrice: SupplyPrice) => {
 }
 
 export const createColumns = (onViewDetails: (supplyPrice: SupplyPrice) => void): ColumnDef<SupplyPrice>[] => [
+
   {
     accessorKey: "supply.label",
     header: "Fourniture",
@@ -73,27 +74,23 @@ export const createColumns = (onViewDetails: (supplyPrice: SupplyPrice) => void)
     header: "Dossier",
     cell: ({ row }) => {
       const supplyPrice = row.original
-      const rate = parseFloat(supplyPrice.obsolescence_rate)
       return (
         <div className="flex flex-col">
-          -
-          {/* <span className="font-semibold text-red-600">{rate}%</span>
           <span className="text-xs text-muted-foreground">
-            {formatCurrency(supplyPrice.obsolescence_amount)}
-          </span> */}
+            {supplyPrice?.shock?.assignment?.reference}
+          </span>
         </div>
       )
     },
   },
   {
     accessorKey: "recovery_rate",
-    header: "-",
+    header: "Réparateur",
     cell: ({ row }) => {
       const supplyPrice = row.original
-      const rate = parseFloat(supplyPrice.recovery_rate)
       return (
         <div className="flex flex-col">
-          -
+          {supplyPrice?.shock?.assignment?.repairer?.name}
           {/* <span className="font-semibold text-blue-600">{rate}%</span>
           <span className="text-xs text-muted-foreground">
             {formatCurrency(supplyPrice.recovery_amount)}
@@ -119,14 +116,14 @@ export const createColumns = (onViewDetails: (supplyPrice: SupplyPrice) => void)
       )
     },
   },
-  {
-    accessorKey: "status",
-    header: "Statut",
-    cell: ({ row }) => {
-      const supplyPrice = row.original
-      return getStatusBadge(supplyPrice)
-    },
-  },
+  // {
+  //   accessorKey: "status",
+  //   header: "Statut",
+  //   cell: ({ row }) => {
+  //     const supplyPrice = row.original
+  //     return getStatusBadge(supplyPrice)
+  //   },
+  // },
   {
     id: "actions",
     header: "Actions",
