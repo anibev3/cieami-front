@@ -1680,18 +1680,6 @@ export default function EvaluateReportPage() {
           )}
 
          
-          
-
-      <div className="mb-30">
-
-          {/* Récapitulatif global */}
-          <GlobalRecap
-            shocks={shocks}
-            otherCosts={otherCosts}
-            calculationResults={calculationResults}
-          />
-
-          </div>
           {/* Modal d'ajout de point de choc */}
           <Dialog open={showShockModal} onOpenChange={setShowShockModal}>
             <DialogContent className="sm:max-w-md">
@@ -2386,7 +2374,8 @@ function EvaluationResults({
 
       {/* Calculs de dépréciation */}
       {calculationResult.evaluations?.[0] && (
-        <Card className="shadow-none">
+        <>
+        <Card className="shadow-none mb-5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-purple-600" />
@@ -2414,228 +2403,35 @@ function EvaluationResults({
                 </div>
                 <div className="font-bold text-2xl text-red-900">{formatCurrency(calculationResult.evaluations[0].kilometric_incidence)} F CFA</div>
               </div>
-
+            </div>
+          </CardContent>
+          </Card>
+                  <Card className="shadow-none mb-5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              Calculs de dépréciation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-orange-50 p-3 rounded-lg">
-                <div className="text-sm text-orange-600">Moins-value incidence du marché</div>
-                <div className="font-bold text-orange-900">{formatCurrency(calculationResult.evaluations[0].market_incidence)} F CFA</div>
+                <div className="text-sm text-green-600">Moins-value incidence du marché</div>
+                <div className="font-bold text-green-900 text-2xl">{formatCurrency(calculationResult.evaluations[0].market_incidence)} F CFA</div>
               </div>
 
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <div className="text-sm text-orange-600">Valeur vénale</div>
-                <div className="font-bold text-orange-900">{formatCurrency(calculationResult.evaluations[0].vehicle_market_value)} F CFA</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Résultat final */}
-      {calculationResult.evaluations?.[0] && (
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              Résultat final
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-sm text-green-600">Valeur marché finale</div>
-                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.evaluations[0].vehicle_market_value)} F CFA</div>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-sm text-green-600">Traveaux de remise en état</div>
-                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.evaluations[0].reconditioning_work)} F CFA</div>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-sm text-blue-600">Évolution</div>
-                <div className={`font-bold text-2xl ${calculationResult.evaluations[0].is_up ? 'text-green-900' : 'text-red-900'}`}>
-                  {calculationResult.evaluations[0].is_up ? '↗️ Hausse' : '↘️ Baisse'}
-                </div>
+              <div className="bg-green-50 p-3 rounded-lg">
+                <div className="text-sm text-green-600">Valeur vénale</div>
+                <div className="font-bold text-green-900 text-2xl">{formatCurrency(calculationResult.evaluations[0].vehicle_market_value)} F CFA</div>
               </div>
             </div>
           </CardContent>
         </Card>
+        </>        
       )}
 
-      {/* Détail des points de choc */}
-      {calculationResult.shocks && calculationResult.shocks.length > 0 && (
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-blue-600" />
-              Détail des points de choc
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {calculationResult.shocks.map((shock: any, index: number) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-gray-800">{shock.shock_point_label}</h4>
-                    <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                      Point de choc #{index + 1}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <div className="text-sm text-blue-600">Montant HT</div>
-                      <div className="font-bold text-blue-900">{formatCurrency(shock.total_new_amount_excluding_tax)} F CFA</div>
-                    </div>
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <div className="text-sm text-green-600">TVA</div>
-                      <div className="font-bold text-green-900">{formatCurrency(shock.total_new_amount_tax)} F CFA</div>
-                    </div>
-                    <div className="bg-purple-50 p-3 rounded-lg">
-                      <div className="text-sm text-purple-600">Montant TTC</div>
-                      <div className="font-bold text-purple-900">{formatCurrency(shock.total_new_amount)} F CFA</div>
-                    </div>
-                    <div className="bg-orange-50 p-3 rounded-lg">
-                      <div className="text-sm text-orange-600">Total choc</div>
-                      <div className="font-bold text-orange-900">{formatCurrency(shock.total_shock_amount)} F CFA</div>
-                    </div>
-                  </div>
 
-                  {/* Fournitures du choc */}
-                  {shock.shock_works && shock.shock_works.length > 0 && (
-                    <div className="mb-4">
-                      <h5 className="font-medium text-gray-700 mb-2">Fournitures</h5>
-                      <div className="space-y-2">
-                        {shock.shock_works.map((work: any, workIndex: number) => (
-                          <div key={workIndex} className="bg-gray-50 p-3 rounded-lg">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="font-medium text-gray-800">{work.supply_label}</div>
-                                <div className="text-sm text-gray-600">
-                                  {work.disassembly && 'Démontage '}
-                                  {work.replacement && 'Remplacement '}
-                                  {work.repair && 'Réparation '}
-                                  {work.paint && 'Peinture '}
-                                  {work.control && 'Contrôle'}
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-bold text-gray-900">{formatCurrency(work.new_amount)} F CFA</div>
-                                <div className="text-xs text-gray-600">
-                                  HT: {formatCurrency(work.new_amount_excluding_tax)} | TVA: {formatCurrency(work.new_amount_tax)}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Main d'œuvre du choc */}
-                  {shock.workforces && shock.workforces.length > 0 && (
-                    <div>
-                      <h5 className="font-medium text-gray-700 mb-2">Main d'œuvre</h5>
-                      <div className="space-y-2">
-                        {shock.workforces.map((workforce: any, workforceIndex: number) => (
-                          <div key={workforceIndex} className="bg-gray-50 p-3 rounded-lg">
-                            <div className="flex items-center justify-between">
-                              <div className="font-medium text-gray-800">{workforce.workforce_type_label}</div>
-                              <div className="text-right">
-                                <div className="font-bold text-gray-900">{formatCurrency(workforce.amount)} F CFA</div>
-                                <div className="text-xs text-gray-600">
-                                  HT: {formatCurrency(workforce.amount_excluding_tax)} | TVA: {formatCurrency(workforce.amount_tax)}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Détail des autres coûts */}
-      {calculationResult.other_costs && calculationResult.other_costs.length > 0 && (
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-purple-600" />
-              Détail des autres coûts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {calculationResult.other_costs.map((cost: any, index: number) => (
-                <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                  <div>
-                    <div className="font-medium text-gray-800">{cost.other_cost_type_label}</div>
-                    <div className="text-sm text-gray-600">Type de coût #{cost.other_cost_type_id}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-gray-900">{formatCurrency(cost.other_costs_amount)} F CFA</div>
-                    <div className="text-xs text-gray-600">
-                      HT: {formatCurrency(cost.other_costs_amount_excluding_tax)} | TVA: {formatCurrency(cost.other_costs_amount_tax)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Récapitulatif global des montants */}
-      <Card className="shadow-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
-            Récapitulatif global des montants
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-sm text-blue-600">Total chocs HT</div>
-              <div className="font-bold text-xl text-blue-900">{formatCurrency(calculationResult.shocks_amount_excluding_tax)} F CFA</div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-sm text-green-600">Total chocs TVA</div>
-              <div className="font-bold text-xl text-green-900">{formatCurrency(calculationResult.shocks_amount_tax)} F CFA</div>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <div className="text-sm text-purple-600">Total chocs TTC</div>
-              <div className="font-bold text-xl text-purple-900">{formatCurrency(calculationResult.shocks_amount)} F CFA</div>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <div className="text-sm text-orange-600">Total autres coûts</div>
-              <div className="font-bold text-xl text-orange-900">{formatCurrency(calculationResult.total_other_costs_amount)} F CFA</div>
-            </div>
-          </div>
-          
-          <Separator className="my-6" />
-          
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg">
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <div className="text-sm text-green-600">Total général HT</div>
-                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.total_amount_excluding_tax)} F CFA</div>
-              </div>
-              <div>
-                <div className="text-sm text-green-600">Total général TVA</div>
-                <div className="font-bold text-2xl text-green-900">{formatCurrency(calculationResult.total_amount_tax)} F CFA</div>
-              </div>
-              <div>
-                <div className="text-sm text-green-600">Total général TTC</div>
-                <div className="font-bold text-3xl text-green-900">{formatCurrency(calculationResult.total_amount)} F CFA</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
