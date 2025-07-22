@@ -433,9 +433,10 @@ export default function ReportEditPage() {
           repair: work.repair,
           paint: work.paint,
           control: work.control,
+          obsolescence: work.obsolescence,
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
-          recovery_amoun: work.recovery_amoun,
+          recovery_amount: work.recovery_amount,
           discount: work.discount,
           amount: work.amount || 0
         })),
@@ -755,28 +756,28 @@ export default function ReportEditPage() {
         // Mettre à jour tous les points de choc avec les montants calculés
         shocks.forEach((shock, shockIndex) => {
           const calculatedShock = calculatedData.shocks[shockIndex]
-          if (calculatedShock) {
-            // Mettre à jour les fournitures avec les montants calculés
-            const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
-              ...work,
-              ...calculatedShock.shock_works[index]
-            }))
+        if (calculatedShock) {
+          // Mettre à jour les fournitures avec les montants calculés
+          const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
+            ...work,
+            ...calculatedShock.shock_works[index]
+          }))
 
-            // Mettre à jour la main d'œuvre avec les montants calculés
-            const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
-              ...workforce,
-              ...calculatedShock.workforces[index]
-            }))
+          // Mettre à jour la main d'œuvre avec les montants calculés
+          const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
+            ...workforce,
+            ...calculatedShock.workforces[index]
+          }))
 
-            // Mettre à jour le point de choc
-            const updatedShock = {
-              ...shock,
-              shock_works: updatedShockWorks,
-              workforces: updatedWorkforces
-            }
-
-            updateShock(shockIndex, updatedShock)
+          // Mettre à jour le point de choc
+          const updatedShock = {
+            ...shock,
+            shock_works: updatedShockWorks,
+            workforces: updatedWorkforces
           }
+
+          updateShock(shockIndex, updatedShock)
+        }
         })
         
         // Mettre à jour les résultats de calcul avec les montants globaux
@@ -1482,7 +1483,7 @@ export default function ReportEditPage() {
           )}
 
           {/* Nouveaux champs requis par l'API */}
-          <div className="space-y-6 mt-10">
+          <div className="space-y-6 mt-10 mb-10">
             <h2 className="text-lg font-bold flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600" />
               Informations complémentaires

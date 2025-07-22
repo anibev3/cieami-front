@@ -89,6 +89,30 @@ class UserService {
   async getByRole(role: string): Promise<UserResponse> {
     return this.getAll({ role })
   }
+
+  /**
+   * Activer un utilisateur
+   */
+  async enable(id: number): Promise<User> {
+    const response = await axiosInstance.put<{status: number, message: string, data: User}>(`${this.baseUrl}/${id}/enable`)
+    return response.data.data
+  }
+
+  /**
+   * Désactiver un utilisateur
+   */
+  async disable(id: number): Promise<User> {
+    const response = await axiosInstance.put<{status: number, message: string, data: User}>(`${this.baseUrl}/${id}/disable`)
+    return response.data.data
+  }
+
+  /**
+   * Réinitialiser un utilisateur
+   */
+  async reset(id: number): Promise<User> {
+    const response = await axiosInstance.post<{status: number, message: string, data: User}>(`${this.baseUrl}/${id}/reset`)
+    return response.data.data
+  }
 }
 
 // Export d'une instance singleton

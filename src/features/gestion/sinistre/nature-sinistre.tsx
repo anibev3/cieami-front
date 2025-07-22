@@ -44,8 +44,8 @@ export default function ClaimNaturePage() {
     setIsDeleteOpen(true)
   }
 
-  return (
-    <>
+    return (
+      <>
       <Header fixed>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
@@ -84,6 +84,6 @@ export default function ClaimNaturePage() {
         onCloseView={() => setIsViewOpen(false)}
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
-    </>
+      </>
   )
 }

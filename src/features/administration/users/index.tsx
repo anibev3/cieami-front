@@ -14,7 +14,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 
 export default function UsersPage() {
-  const { fetchUsers } = useUsersStore()
+  const { fetchUsers, enableUser, disableUser, resetUser } = useUsersStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isViewOpen, setIsViewOpen] = useState(false)
@@ -47,6 +47,30 @@ export default function UsersPage() {
     setIsDeleteOpen(true)
   }
 
+  const handleEnable = async (user: User) => {
+    try {
+      await enableUser(user.id)
+    } catch (_error) {
+      // L'erreur est déjà gérée dans le store
+    }
+  }
+
+  const handleDisable = async (user: User) => {
+    try {
+      await disableUser(user.id)
+    } catch (_error) {
+      // L'erreur est déjà gérée dans le store
+    }
+  }
+
+  const handleReset = async (user: User) => {
+    try {
+      await resetUser(user.id)
+    } catch (_error) {
+      // L'erreur est déjà gérée dans le store
+    }
+  }
+
   return (
     <>
       <Header fixed>
@@ -72,6 +96,9 @@ export default function UsersPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onEnable={handleEnable}
+            onDisable={handleDisable}
+            onReset={handleReset}
           />
         </div>
       </Main>

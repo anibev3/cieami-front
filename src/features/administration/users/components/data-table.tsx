@@ -12,16 +12,19 @@ interface DataTableProps {
   onView: (user: User) => void
   onEdit: (user: User) => void
   onDelete: (user: User) => void
+  onEnable: (user: User) => Promise<void>
+  onDisable: (user: User) => Promise<void>
+  onReset: (user: User) => Promise<void>
 }
 
-export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
+export function DataTable({ onView, onEdit, onDelete, onEnable, onDisable, onReset }: DataTableProps) {
   const { users, loading } = useUsersStore()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
   const [rowSelection, setRowSelection] = useState({})
 
-  const columns = createColumns({ onView, onEdit, onDelete })
+  const columns = createColumns({ onView, onEdit, onDelete, onEnable, onDisable, onReset })
 
   const table = useReactTable({
     data: users,

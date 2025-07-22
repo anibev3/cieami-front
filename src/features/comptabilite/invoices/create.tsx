@@ -8,21 +8,21 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   ArrowLeft, 
   Plus, 
   Search, 
-  Eye, 
   Calendar,
   DollarSign,
   User,
   Car,
-  Building,
   Receipt,
   Wrench,
   CheckCircle,
   Loader2,
-  FileText
+  FileText,
+  Filter
 } from 'lucide-react'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { useInvoiceStore } from '@/stores/invoiceStore'
@@ -37,8 +37,10 @@ export default function CreateInvoicePage() {
   const { createInvoice } = useInvoiceStore()
   
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null)
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0])
+  const [invoiceObject, setInvoiceObject] = useState('')
   const [creating, setCreating] = useState(false)
   const [filteredAssignments, setFilteredAssignments] = useState<any[]>([])
 
@@ -49,15 +51,24 @@ export default function CreateInvoicePage() {
   }, [fetchAssignments, assignments.length])
 
   useEffect(() => {
-    // Filtrer les dossiers basés sur la recherche
-    const filtered = assignments.filter(assignment => 
-      assignment.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.vehicle.license_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.policy_number.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    // Filtrer les dossiers basés sur la recherche et le statut
+    const filtered = assignments.filter(assignment => {
+      // Filtre par recherche textuelle avec vérifications de sécurité
+      const searchLower = searchTerm.toLowerCase()
+      const matchesSearch = 
+        (assignment.reference?.toLowerCase() || '').includes(searchLower) ||
+        (assignment.client?.name?.toLowerCase() || '').includes(searchLower) ||
+        (assignment.vehicle?.license_plate?.toLowerCase() || '').includes(searchLower) ||
+        (assignment.policy_number?.toLowerCase() || '').includes(searchLower)
+      
+      // Filtre par statut
+      const matchesStatus = statusFilter === 'all' || assignment.status?.code === statusFilter
+      
+      return matchesSearch && matchesStatus
+    })
+    
     setFilteredAssignments(filtered)
-  }, [assignments, searchTerm])
+  }, [assignments, searchTerm, statusFilter])
 
   const handleCreateInvoice = async () => {
     if (!selectedAssignment) {
@@ -70,15 +81,21 @@ export default function CreateInvoicePage() {
       return
     }
 
+    if (!invoiceObject.trim()) {
+      toast.error('Veuillez saisir l\'objet de la facture')
+      return
+    }
+
     setCreating(true)
     try {
       await createInvoice({
         assignment_id: selectedAssignment.id.toString(),
-        date: invoiceDate
+        date: invoiceDate,
+        object: invoiceObject.trim()
       })
       toast.success('Facture créée avec succès')
       navigate({ to: '/comptabilite/invoices' })
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erreur lors de la création de la facture')
     } finally {
       setCreating(false)
@@ -93,6 +110,20 @@ export default function CreateInvoicePage() {
         return 'bg-green-100 text-green-800'
       case 'realized':
         return 'bg-purple-100 text-purple-800'
+      case 'active':
+        return 'bg-green-100 text-green-800'
+      case 'opened':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'closed':
+        return 'bg-gray-100 text-gray-800'
+      case 'paid':
+        return 'bg-green-100 text-green-800'
+      case 'cancelled':
+        return 'bg-red-100 text-red-800'
+      case 'inactive':
+        return 'bg-gray-100 text-gray-600'
+      case 'deleted':
+        return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -100,17 +131,23 @@ export default function CreateInvoicePage() {
 
   const renderAssignmentCard = (assignment: any) => {
     const isSelected = selectedAssignment?.id === assignment.id
+    const isEligible = assignment.status?.code === 'edited' && assignment.receipts && assignment.receipts.length > 0
     
     return (
       <Card 
         key={assignment.id} 
         className={cn(
-          "cursor-pointer transition-all duration-200 hover:shadow-md shadow-none",
+          "transition-all duration-200 shadow-none",
+          isEligible 
+            ? "cursor-pointer hover:shadow-md" 
+            : "cursor-not-allowed opacity-60",
           isSelected 
             ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200" 
-            : "hover:border-gray-300"
+            : isEligible 
+              ? "hover:border-gray-300" 
+              : "border-gray-200"
         )}
-        onClick={() => setSelectedAssignment(assignment)}
+        onClick={() => isEligible && setSelectedAssignment(assignment)}
       >
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
@@ -119,26 +156,31 @@ export default function CreateInvoicePage() {
                 <h3 className="text-lg font-semibold text-gray-900">
                   {assignment.reference}
                 </h3>
-                <Badge className={cn(getStatusColor(assignment.status.code), "text-xs")}>
-                  {assignment.status.label}
+                <Badge className={cn(getStatusColor(assignment.status?.code || ''), "text-xs")}>
+                  {assignment.status?.label || 'Statut inconnu'}
                 </Badge>
                 {isSelected && (
                   <CheckCircle className="h-5 w-5 text-blue-600" />
+                )}
+                {!isEligible && (
+                  <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                    {assignment.status?.code !== 'edited' ? 'Statut non éligible' : 'Aucune quittance'}
+                  </Badge>
                 )}
               </div>
               
               <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{assignment.client.name}</span>
+                  <span className="truncate">{assignment.client?.name || 'Client inconnu'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Car className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{assignment.vehicle.license_plate}</span>
+                  <span className="truncate">{assignment.vehicle?.license_plate || 'Plaque inconnue'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">Police: {assignment.policy_number}</span>
+                  <span className="truncate">Police: {assignment.policy_number || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
@@ -149,7 +191,7 @@ export default function CreateInvoicePage() {
               <div className="flex items-center gap-4 text-xs text-gray-600">
                 <div className="flex items-center gap-1">
                   <DollarSign className="h-3 w-3" />
-                  <span className="font-medium">{formatCurrency(Number(assignment.total_amount))}</span>
+                  <span className="font-medium">{formatCurrency(Number(assignment.total_amount || 0))}</span>
                 </div>
                 
                 {assignment.receipts && assignment.receipts.length > 0 && (
@@ -194,7 +236,7 @@ export default function CreateInvoicePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -227,8 +269,10 @@ export default function CreateInvoicePage() {
               </CardTitle>
             </CardHeader> */}
             <CardContent>
+              {/* Filtres */}
+              <div className="mb-4 space-y-3">
               {/* Barre de recherche */}
-              <div className="relative mb-4">
+                <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Rechercher par référence, client, plaque..."
@@ -236,6 +280,47 @@ export default function CreateInvoicePage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
+                </div>
+
+                {/* Filtre par statut */}
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-500" />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les statuts</SelectItem>
+                      <SelectItem value="active">Actives</SelectItem>
+                      <SelectItem value="opened">Ouvertes</SelectItem>
+                      <SelectItem value="realized">Réalisées</SelectItem>
+                      <SelectItem value="edited">Éditées</SelectItem>
+                      <SelectItem value="corrected">Corrigées</SelectItem>
+                      <SelectItem value="closed">Fermées</SelectItem>
+                      <SelectItem value="in_payment">En paiement</SelectItem>
+                      <SelectItem value="paid">Payées</SelectItem>
+                      <SelectItem value="inactive">Inactives</SelectItem>
+                      <SelectItem value="cancelled">Annulées</SelectItem>
+                      <SelectItem value="deleted">Supprimées</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Information sur les critères d'éligibilité */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">Critères d'éligibilité</span>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {filteredAssignments.filter(a => a.status?.code === 'edited' && a.receipts && a.receipts.length > 0).length} éligible{filteredAssignments.filter(a => a.status?.code === 'edited' && a.receipts && a.receipts.length > 0).length > 1 ? 's' : ''}
+                  </Badge>
+                </div>
+                <p className="text-xs text-blue-700">
+                  Seuls les dossiers avec le statut "Édité" et possédant au moins une quittance peuvent faire l'objet d'une facturation.
+                </p>
               </div>
 
               {/* Liste des dossiers */}
@@ -249,12 +334,12 @@ export default function CreateInvoicePage() {
                   <div className="text-center py-8">
                     <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      {searchTerm ? 'Aucun dossier trouvé' : 'Aucun dossier disponible'}
+                      {searchTerm ? 'Aucun dossier trouvé' : 'Aucun dossier éligible'}
                     </h3>
                     <p className="text-gray-500">
                       {searchTerm 
                         ? 'Aucun dossier ne correspond à votre recherche'
-                        : 'Tous les dossiers ont été traités'
+                        : 'Aucun dossier avec le statut "Édité" et des quittances n\'est disponible'
                       }
                     </p>
                   </div>
@@ -321,6 +406,21 @@ export default function CreateInvoicePage() {
                       type="date"
                       value={invoiceDate}
                       onChange={(e) => setInvoiceDate(e.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  {/* Objet de la facture */}
+                  <div>
+                    <Label htmlFor="invoice-object" className="text-sm font-medium text-gray-700">
+                      Objet de la facture
+                    </Label>
+                    <Input
+                      id="invoice-object"
+                      type="text"
+                      value={invoiceObject}
+                      onChange={(e) => setInvoiceObject(e.target.value)}
+                      placeholder="Ex: Expertise véhicule accidenté"
                       className="mt-2"
                     />
                   </div>

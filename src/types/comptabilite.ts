@@ -559,6 +559,7 @@ export interface InvoiceDetailResponse {
 export interface CreateInvoiceData {
   assignment_id: string
   date: string
+  object: string
 }
 
 export interface UpdateInvoiceData {

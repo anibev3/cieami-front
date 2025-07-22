@@ -64,6 +64,8 @@ export interface User {
   photo_url: string
   pending_verification: boolean
   role: UserRole
+  status: Status
+  signature: string | null
   created_at: string
   updated_at: string
 }

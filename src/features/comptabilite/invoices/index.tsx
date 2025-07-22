@@ -128,7 +128,7 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-6 relative w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

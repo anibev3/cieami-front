@@ -12,10 +12,15 @@ interface UserActionsProps {
   onView: (user: User) => void
   onEdit: (user: User) => void
   onDelete: (user: User) => void
+  onEnable: (user: User) => Promise<void>
+  onDisable: (user: User) => Promise<void>
+  onReset: (user: User) => Promise<void>
 }
 
 // Composant pour les actions
-function UserActions({ user, onView, onEdit, onDelete }: UserActionsProps) {
+function UserActions({ user, onView, onEdit, onDelete, onEnable, onDisable, onReset }: UserActionsProps) {
+  const isActive = user.status?.code === 'active'
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,6 +41,37 @@ function UserActions({ user, onView, onEdit, onDelete }: UserActionsProps) {
           Modifier
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        
+        {/* Options conditionnelles selon le statut */}
+        {!isActive && (
+          <DropdownMenuItem 
+            onClick={() => onEnable(user)}
+            className="text-green-600"
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            Activer
+          </DropdownMenuItem>
+        )}
+        
+        {isActive && (
+          <DropdownMenuItem 
+            onClick={() => onDisable(user)}
+            className="text-orange-600"
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            Désactiver
+          </DropdownMenuItem>
+        )}
+        
+        <DropdownMenuItem 
+          onClick={() => onReset(user)}
+          className="text-blue-600"
+        >
+          <Shield className="mr-2 h-4 w-4" />
+          Réinitialiser
+        </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
         <DropdownMenuItem 
           onClick={() => onDelete(user)}
           className="text-red-600"
@@ -53,9 +89,12 @@ interface ColumnsProps {
   onView: (user: User) => void
   onEdit: (user: User) => void
   onDelete: (user: User) => void
+  onEnable: (user: User) => Promise<void>
+  onDisable: (user: User) => Promise<void>
+  onReset: (user: User) => Promise<void>
 }
 
-export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): ColumnDef<User>[] => [
+export const createColumns = ({ onView, onEdit, onDelete, onEnable, onDisable, onReset }: ColumnsProps): ColumnDef<User>[] => [
   {
     accessorKey: 'username',
     header: 'Utilisateur',
@@ -134,13 +173,14 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
     },
   },
   {
-    accessorKey: 'pending_verification',
+    accessorKey: 'status',
     header: 'Statut',
     cell: ({ row }) => {
-      const pendingVerification = row.getValue('pending_verification') as boolean
+      const status = row.original.status
+      const isActive = status?.code === 'active'
       return (
-        <Badge variant={pendingVerification ? 'destructive' : 'default'}>
-          {pendingVerification ? 'En attente' : 'Vérifié'}
+        <Badge variant={isActive ? 'default' : 'destructive'}>
+          {status?.label || 'Inconnu'}
         </Badge>
       )
     },
@@ -167,6 +207,9 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
           onView={onView}
           onEdit={onEdit}
           onDelete={onDelete}
+          onEnable={onEnable}
+          onDisable={onDisable}
+          onReset={onReset}
         />
       )
     },
