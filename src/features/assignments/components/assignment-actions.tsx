@@ -136,14 +136,15 @@ export function AssignmentActions({
         // },
         {
           key: 'write-report',
-          label: 'Rédiger  ' + (assignment.expertise_type.code === 'evaluation' ? 'le rapport' : '    le rapport'), 
+          // label: 'Rédiger  ' + (assignment.expertise_type.code === 'evaluation' ? 'le rapport' : '    le rapport'), 
+          label: 'Rédiger le rapport', 
           icon: FileText,
           onClick: () => {
-            if (assignment.expertise_type.code === 'evaluation') {
-              navigate({ to: `/assignments/evaluate-report/${assignment.id}` })
-            } else {
+            // if (assignment.expertise_type.code === 'evaluation') {
+            //   navigate({ to: `/assignments/evaluate-report/${assignment.id}` })
+            // } else {
               navigate({ to: `/assignments/edite-report/${assignment.id}` })
-            }
+            // }
           },
           show: true,
           destructive: false

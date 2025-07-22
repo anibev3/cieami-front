@@ -35,6 +35,18 @@ interface Assignment {
     id: number
     name: string
   }
+  assignment_type: {
+    id: number
+    code: string
+    label: string
+    description: string
+  }
+  expertise_type: {
+    id: number
+    code: string
+    label: string
+    description: string
+  }
   total_amount: number
   created_at: string
   updated_at: string

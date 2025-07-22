@@ -243,6 +243,7 @@ export default function ReportEditPage() {
   const [selectedRemarkId, setSelectedRemarkId] = useState<number | null>(null)
   const [generalStateId, setGeneralStateId] = useState<number | null>(null)
   const [technicalConclusionId, setTechnicalConclusionId] = useState<number | null>(null)
+  const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
   
   const [ascertainments, setAscertainments] = useState<Array<{
     ascertainment_type_id: string
@@ -927,6 +928,19 @@ export default function ReportEditPage() {
               <Plus className="mr-2 h-5 w-5" />
               <span className="font-semibold">Ajouter un point de choc</span>
             </Button>
+            <Button variant="outline" disabled={!hasUnsavedChanges || saving} className="bg-gradient-to-r from-black-600 to-black-600 hover:from-black-700 hover:to-black-700 text-black shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 " onClick={() => calculateAllShocks()}>
+              {loadingCalculation ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Calcul en cours...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Effectuer le calcul
+                </>
+              )}
+            </Button>
 
               {/* Bouton de rédaction du rapport */}
               <Button 
@@ -949,224 +963,227 @@ export default function ReportEditPage() {
             </div>
           </div>
 
-          {/* Section des paramètres d'évaluation - EN PREMIER PLAN */}
-          <div className="space-y-4 mt-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                Paramètres d'évaluation
-              </h2>
-            </div>
-            <div className="border-b border-gray-200 mb-4"></div>
-            
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-3">
-                <div>
-                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-blue-600" />
-                    Date d'expertise
-                    {!expertiseDate && <span className="text-red-500 ml-1">*</span>}
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left text-sm",
-                          !expertiseDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {expertiseDate ? (
-                          format(new Date(expertiseDate), "EEEE, d MMMM yyyy", { locale: fr })
-                        ) : (
-                          <span>Sélectionner une date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={expertiseDate ? new Date(expertiseDate) : undefined}
-                        initialFocus
-                        onSelect={(date) => {
-                          if (date) {
-                            setExpertiseDate(date.toISOString().split('T')[0])
-                          }
+          {isEvaluation && (
+            <div>
+              {/* Section des paramètres d'évaluation - EN PREMIER PLAN */}
+              <div className="space-y-4 mt-8">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    Paramètres d'évaluation
+                  </h2>
+                </div>
+                <div className="border-b border-gray-200 mb-4"></div>
+                
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-3">
+                    <div>
+                      <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-blue-600" />
+                        Date d'expertise
+                        {!expertiseDate && <span className="text-red-500 ml-1">*</span>}
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left text-sm",
+                              !expertiseDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {expertiseDate ? (
+                              format(new Date(expertiseDate), "EEEE, d MMMM yyyy", { locale: fr })
+                            ) : (
+                              <span>Sélectionner une date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={expertiseDate ? new Date(expertiseDate) : undefined}
+                            initialFocus
+                            onSelect={(date) => {
+                              if (date) {
+                                setExpertiseDate(date.toISOString().split('T')[0])
+                              }
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        Taux d'incidence marché (%)
+                        {marketIncidenceRate <= 0 && <span className="text-red-500 ml-1">*</span>}
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={marketIncidenceRate}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0
+                          setMarketIncidenceRate(Math.max(0, value))
                         }}
+                        onBlur={(e) => {
+                          const value = parseFloat(e.target.value) || 0
+                          setMarketIncidenceRate(Math.max(0, value))
+                        }}
+                        placeholder="6"
+                        className={`border-gray-300 focus:border-blue-500 focus:ring-blue-200 ${marketIncidenceRate < 0 ? 'border-red-300' : ''}`}
                       />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                    Taux d'incidence marché (%)
-                    {marketIncidenceRate <= 0 && <span className="text-red-500 ml-1">*</span>}
-                  </Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={marketIncidenceRate}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0
-                      setMarketIncidenceRate(Math.max(0, value))
-                    }}
-                    onBlur={(e) => {
-                      const value = parseFloat(e.target.value) || 0
-                      setMarketIncidenceRate(Math.max(0, value))
-                    }}
-                    placeholder="6"
-                    className={`border-gray-300 focus:border-blue-500 focus:ring-blue-200 ${marketIncidenceRate < 0 ? 'border-red-300' : ''}`}
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <Car className="h-4 w-4 text-purple-600" />
-                    Véhicule
-                    {!assignment?.vehicle?.id && <span className="text-red-500 ml-1">*</span>}
-                  </Label>
-                  <div className={`p-2 rounded-lg border-2 ${!assignment?.vehicle?.id ? 'bg-red-50 border-red-200' : 'bg-white border-blue-200'}`}>
-                    {assignment?.vehicle ? (
-                      <div className="">
-                        <div className="flex items-center justify-between">
-                          <div className="font-bold text-lg text-gray-800">{assignment.vehicle.license_plate}</div>
-                          <Badge variant="outline" className="bg-green-100 text-green-800">
-                            <Check className="mr-1 h-3 w-3" />
-                            Valide
-                          </Badge>
-                        </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <Car className="h-4 w-4 text-purple-600" />
+                        Véhicule
+                        {!assignment?.vehicle?.id && <span className="text-red-500 ml-1">*</span>}
+                      </Label>
+                      <div className={`p-2 rounded-lg border-2 ${!assignment?.vehicle?.id ? 'bg-red-50 border-red-200' : 'bg-white border-blue-200'}`}>
+                        {assignment?.vehicle ? (
+                          <div className="">
+                            <div className="flex items-center justify-between">
+                              <div className="font-bold text-lg text-gray-800">{assignment.vehicle.license_plate}</div>
+                              <Badge variant="outline" className="bg-green-100 text-green-800">
+                                <Check className="mr-1 h-3 w-3" />
+                                Valide
+                              </Badge>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-red-600 flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" />
+                            Aucun véhicule sélectionné
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-red-600 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
-                        Aucun véhicule sélectionné
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Section des constats */}
-          <div className="space-y-4 mt-10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-600" />
-                Constatation
-                {ascertainments.length > 0 && (
-                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                    {ascertainments.length} constatation(s)
-                  </Badge>
-                )}
-              </h2>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={addAscertainment}
-                className="text-yellow-600 border-yellow-200 hover:bg-yellow-50"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter une constatation
-              </Button>
-            </div>
-            <div className="border-b border-gray-200 mb-4"></div>
-            
-            {/* Tableau des constats */}
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              {/* En-tête du tableau avec bouton de calcul */}
-              <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-600" />
-                  <span className="text-sm font-medium text-gray-700">Liste des constatations</span>
-                  {ascertainments.length > 0 && (
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      {ascertainments.length} constatation(s)
-                    </Badge>
-                  )}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={calculateAllShocks}
-                  disabled={ascertainments.length === 0 || loadingCalculation}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                >
-                  {loadingCalculation ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Calcul en cours...
-                    </>
-                  ) : (
-                    <>
-                      <Calculator className="mr-2 h-4 w-4" />
-                      Calculer avec constats
-                    </>
-                  )}
-                </Button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                        #
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                        Type de constat
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                        Qualité
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                        Commentaire
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {ascertainments.map((ascertainment, index) => (
-                      <AscertainmentItem
-                        key={index}
-                        ascertainment={ascertainment}
-                        ascertainmentTypes={ascertainmentTypes}
-                        onUpdate={(field, value) => updateAscertainment(index, field, value)}
-                        onRemove={() => removeAscertainment(index)}
-                        getQualityScore={getQualityScore}
-                        getQualityColor={getQualityColor}
-                        getQualityLabel={getQualityLabel}
-                        index={index}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Message quand aucun constat */}
-            {ascertainments.length === 0 && (
-              <div className="text-center pb-5">
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
-                  <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-                  <h3 className="text-base font-semibold text-gray-700 mb-2">Aucune constatation</h3>
-                  <p className="text-sm text-gray-500 mb-4">Ajoutez des constatations pour évaluer la qualité du véhicule</p>
+              {/* Section des constats */}
+              <div className="space-y-4 mt-10">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <Star className="h-5 w-5 text-yellow-600" />
+                    Constatation
+                    {ascertainments.length > 0 && (
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                        {ascertainments.length} constatation(s)
+                      </Badge>
+                    )}
+                  </h2>
                   <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={addAscertainment}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                    className="text-yellow-600 border-yellow-200 hover:bg-yellow-50"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                      Ajouter une constatation
+                    Ajouter une constatation
                   </Button>
                 </div>
-              </div>
-            )}
-          </div>
+                <div className="border-b border-gray-200 mb-4"></div>
+                
+                {/* Tableau des constats */}
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  {/* En-tête du tableau avec bouton de calcul */}
+                  <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-medium text-gray-700">Liste des constatations</span>
+                      {ascertainments.length > 0 && (
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                          {ascertainments.length} constatation(s)
+                        </Badge>
+                      )}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={calculateAllShocks}
+                      disabled={ascertainments.length === 0 || loadingCalculation}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      {loadingCalculation ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Calcul en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Calculator className="mr-2 h-4 w-4" />
+                          Calculer avec constats
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            #
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            Type de constat
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            Qualité
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            Commentaire
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {ascertainments.map((ascertainment, index) => (
+                          <AscertainmentItem
+                            key={index}
+                            ascertainment={ascertainment}
+                            ascertainmentTypes={ascertainmentTypes}
+                            onUpdate={(field, value) => updateAscertainment(index, field, value)}
+                            onRemove={() => removeAscertainment(index)}
+                            getQualityScore={getQualityScore}
+                            getQualityColor={getQualityColor}
+                            getQualityLabel={getQualityLabel}
+                            index={index}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
+                {/* Message quand aucun constat */}
+                {ascertainments.length === 0 && (
+                  <div className="text-center pb-5">
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                      <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+                      <h3 className="text-base font-semibold text-gray-700 mb-2">Aucune constatation</h3>
+                      <p className="text-sm text-gray-500 mb-4">Ajoutez des constatations pour évaluer la qualité du véhicule</p>
+                      <Button 
+                        onClick={addAscertainment}
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                          Ajouter une constatation
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {/* Liste des points de choc */}
           <div className="space-y-6 mt-10">
             {hasPreloadedData && (
@@ -1471,27 +1488,9 @@ export default function ReportEditPage() {
               Informations complémentaires
             </h2>
             
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Nature du sinistre */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Nature du sinistre</CardTitle>
-                  <CardDescription>
-                    Sélectionnez la nature du sinistre pour ce dossier
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ClaimNatureSelect
-                    value={claimNatureId}
-                    onValueChange={handleClaimNatureChange}
-                    placeholder="Choisir une nature de sinistre..."
-                    showStatus={true}
-                  />
-                </CardContent>
-              </Card>
-
+            <div className="">
               {/* Remarque d'expert */}
-              <Card>
+              <Card className='shadow-none'>
                 <CardHeader>
                   <CardTitle className="text-base">Remarque d'expert</CardTitle>
                   <CardDescription>
@@ -1499,13 +1498,27 @@ export default function ReportEditPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <RemarkSelect
-                    value={selectedRemarkId}
-                    onValueChange={handleRemarkChange}
-                    placeholder="Choisir une remarque prédéfinie..."
-                    showStatus={true}
-                    showDescription={true}
-                  />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        <ClaimNatureSelect
+                        value={claimNatureId}
+                        onValueChange={handleClaimNatureChange}
+                        placeholder="Choisir une nature de sinistre..."
+                        showStatus={true}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RemarkSelect
+                        value={selectedRemarkId}
+                        onValueChange={handleRemarkChange}
+                        placeholder="Choisir une remarque prédéfinie..."
+                        showStatus={true}
+                        showDescription={true}
+                      />
+                    </div>
+                  </div>
+                  
+                 
                   
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -1521,7 +1534,7 @@ export default function ReportEditPage() {
                       value={expertRemark}
                       onChange={handleExpertRemarkChange}
                       placeholder="Rédigez votre remarque d'expert..."
-                      className="min-h-[120px]"
+                      className="min-h-[220px]"
                     />
                     {selectedRemarkId && (
                       <p className="text-xs text-muted-foreground">
@@ -1533,7 +1546,7 @@ export default function ReportEditPage() {
               </Card>
 
               {/* État général */}
-              <Card>
+              {/* <Card className='shadow-none mt-4'>
                 <CardHeader>
                   <CardTitle className="text-base">État général</CardTitle>
                   <CardDescription>
@@ -1550,10 +1563,10 @@ export default function ReportEditPage() {
                     />
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               {/* Conclusion technique */}
-              <Card>
+              {/* <Card className='shadow-none mt-4 mb-4'>
                 <CardHeader>
                   <CardTitle className="text-base">Conclusion technique</CardTitle>
                   <CardDescription>
@@ -1570,7 +1583,7 @@ export default function ReportEditPage() {
                     />
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           </div>
 
