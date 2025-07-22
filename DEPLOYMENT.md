@@ -68,7 +68,7 @@ dist/
 Créez un fichier `.env.production` avec les variables nécessaires :
 
 ```env
-VITE_API_BASE_URL=https://e-expert-back.ddev.site/api/v1
+VITE_API_BASE_URL=https://back.roomcodetraining.com/api/v1
 VITE_APP_NAME=Expert Auto
 ```
 

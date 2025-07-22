@@ -157,7 +157,7 @@ function Header() {
 ### Variables d'environnement
 
 ```env
-VITE_API_BASE_URL=https://e-expert-back.ddev.site/api/v1
+VITE_API_BASE_URL=https://back.roomcodetraining.com/api/v1
 ```
 
 ### Configuration API
@@ -167,7 +167,7 @@ VITE_API_BASE_URL=https://e-expert-back.ddev.site/api/v1
 export const API_CONFIG = {
   BASE_URL:
     import.meta.env.VITE_API_BASE_URL ||
-    'https://e-expert-back.ddev.site/api/v1',
+    'https://back.roomcodetraining.com/api/v1',
   TIMEOUT: 10000,
   ENDPOINTS: {
     AUTH: {

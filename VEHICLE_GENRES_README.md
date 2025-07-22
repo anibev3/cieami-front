@@ -282,7 +282,7 @@ console.log('Error:', error)
 
 ## 📚 Ressources
 
-- [Documentation API](https://e-expert-back.ddev.site/api/v1/vehicle-genres)
+- [Documentation API](https://back.roomcodetraining.com/api/v1/vehicle-genres)
 - [Types TypeScript](./src/services/vehicleGenreService.ts)
 - [Store Zustand](./src/stores/vehicleGenresStore.ts)
 - [Composant de sélection](./src/features/widgets/vehicle-genre-select.tsx) 

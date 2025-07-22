@@ -1,7 +1,7 @@
 import axiosInstance from '@/lib/axios'
 import { Client, ClientApiResponse, ClientFilters } from './types'
 
-const API_URL = 'https://e-expert-back.ddev.site/api/v1/clients'
+const API_URL = 'https://back.roomcodetraining.com/api/v1/clients'
 
 export const getClients = async (filters?: ClientFilters, token?: string): Promise<ClientApiResponse> => {
   const { data } = await axiosInstance.get(API_URL, {

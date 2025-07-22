@@ -1,7 +1,7 @@
 import axiosInstance from '@/lib/axios'
 import { Reparateur, ReparateurApiResponse, ReparateurFilters } from './types'
 
-const API_URL = 'https://e-expert-back.ddev.site/api/v1/repairers'
+const API_URL = 'https://back.roomcodetraining.com/api/v1/repairers'
 
 export const getReparateurs = async (filters?: ReparateurFilters, token?: string): Promise<ReparateurApiResponse> => {
   const { data } = await axiosInstance.get(API_URL, {
