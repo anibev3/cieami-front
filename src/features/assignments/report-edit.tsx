@@ -1058,14 +1058,15 @@ export default function ReportEditPage() {
                 {/* Remarque d'expert */}
                 <Card className='shadow-none'>
                   <CardHeader>
-                    <CardTitle className="text-base">Remarque d'expert</CardTitle>
+                    <CardTitle className="text-base">Note d'expert</CardTitle>
                     <CardDescription>
-                      Sélectionnez une remarque prédéfinie ou créez-en une personnalisée
+                      {/* Sélectionnez une remarque prédéfinie ou créez-en une personnalisée */}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="claim-nature">Nature de sinistre</Label>
                         <ClaimNatureSelect
                           value={claimNatureId}
                           onValueChange={handleClaimNatureChange}
@@ -1073,13 +1074,34 @@ export default function ReportEditPage() {
                           showStatus={true}
                         />
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="technical-conclusion">Conclusion technique</Label>
+                        <TechnicalConclusionSelect
+                          value={technicalConclusionId || 0}
+                          onValueChange={setTechnicalConclusionId}
+                          technicalConclusions={technicalConclusions}
+                          placeholder="Sélectionner une conclusion..."
+                          showSelectedInfo={false}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="expert-remark">Note d'expert</Label>
                         <RemarkSelect
                           value={selectedRemarkId}
                           onValueChange={handleRemarkChange}
-                          placeholder="Choisir une remarque prédéfinie..."
+                          placeholder="Choisir une note d'expert..."
                           showStatus={true}
                           showDescription={true}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="general-state">État général</Label>
+                        <GeneralStateSelect
+                          value={generalStateId || 0}
+                          onValueChange={setGeneralStateId}
+                          generalStates={generalStates}
+                          placeholder="Sélectionner un état général..."
+                          showSelectedInfo={false}
                         />
                       </div>
                     </div>
@@ -1088,7 +1110,7 @@ export default function ReportEditPage() {
                     
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="expert-remark">Remarque personnalisée</Label>
+                        <Label htmlFor="expert-remark">Note d'expert</Label>
                         {selectedRemarkId && (
                           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                             <FileText className="mr-1 h-3 w-3" />
@@ -1099,59 +1121,17 @@ export default function ReportEditPage() {
                       <RichTextEditor
                         value={expertRemark}
                         onChange={handleExpertRemarkChange}
-                        placeholder="Rédigez votre remarque d'expert..."
+                        placeholder="Rédigez votre note d'expert..."
                         className="min-h-[220px]"
                       />
                       {selectedRemarkId && (
                         <p className="text-xs text-muted-foreground">
-                          Vous pouvez modifier cette remarque prédéfinie selon vos besoins
+                          Vous pouvez modifier cette note d'expert selon vos besoins
                         </p>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
 
-                {/* État général */}
-                <Card className='shadow-none mt-4'>
-                  <CardHeader>
-                    <CardTitle className="text-base">État général</CardTitle>
-                    <CardDescription>
-                      Sélectionnez l'état général du véhicule
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Label htmlFor="general-state">État général</Label>
-                      <GeneralStateSelect
-                        value={generalStateId || 0}
-                        onValueChange={setGeneralStateId}
-                        generalStates={generalStates}
-                        placeholder="Sélectionner un état général..."
-                        showSelectedInfo={false}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Conclusion technique */}
-                <Card className='shadow-none mt-4 mb-4'>
-                  <CardHeader>
-                    <CardTitle className="text-base">Conclusion technique</CardTitle>
-                    <CardDescription>
-                      Sélectionnez la conclusion technique
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Label htmlFor="technical-conclusion">Conclusion technique</Label>
-                      <TechnicalConclusionSelect
-                        value={technicalConclusionId || 0}
-                        onValueChange={setTechnicalConclusionId}
-                        technicalConclusions={technicalConclusions}
-                        placeholder="Sélectionner une conclusion technique..."
-                        showSelectedInfo={false}
-                      />
-                    </div>
+                      
                   </CardContent>
                 </Card>
               </div>
