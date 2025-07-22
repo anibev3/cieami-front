@@ -24,9 +24,10 @@ interface ShockWork {
   repair: boolean
   paint: boolean
   control: boolean
+  obsolescence?: boolean
   comment: string
   obsolescence_rate: number
-  recovery_rate: number
+  recovery_amount?: number
   discount: number
   amount: number
   // Calculated amounts from API
@@ -35,7 +36,6 @@ interface ShockWork {
   obsolescence_amount?: number
   recovery_amount_excluding_tax?: number
   recovery_amount_tax?: number
-  recovery_amount?: number
   new_amount_excluding_tax?: number
   new_amount_tax?: number
   new_amount?: number
@@ -177,10 +177,13 @@ export function ShockSuppliesTable({
                 Peint
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
+                Vétusté
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Vte (%)
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
-                R (%)
+                Montant TTC
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remise (%)
@@ -212,7 +215,7 @@ export function ShockSuppliesTable({
           <tbody>
             {localShockWorks.length === 0 && (
               <tr>
-                <td colSpan={15} className="text-center text-muted-foreground py-8 text-xs">
+                <td colSpan={16} className="text-center text-muted-foreground py-8 text-xs">
                   Aucune fourniture ajoutée
                 </td>
               </tr>
@@ -258,6 +261,12 @@ export function ShockSuppliesTable({
                     onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
                   />
                 </td>
+                <td className="border px-2 py-2 text-center text-xs">
+                  <Checkbox 
+                    checked={row.obsolescence} 
+                    onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
+                  />
+                </td>
                 <td className="border px-2 text-center text-xs">
                   <Input
                     type="number"
@@ -270,8 +279,8 @@ export function ShockSuppliesTable({
                   <Input
                     type="number"
                     className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.recovery_rate}
-                    onChange={e => updateLocalShockWork(i, 'recovery_rate', Number(e.target.value))}
+                    value={row.recovery_amount}
+                    onChange={e => updateLocalShockWork(i, 'recovery_amount', Number(e.target.value))}
                   />
                 </td>
                 <td className="border px-2 text-center text-xs">

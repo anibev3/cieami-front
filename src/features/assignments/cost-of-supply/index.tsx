@@ -136,7 +136,7 @@ export default function CostOfSupplyPage() {
       if (hasStatusFilter) {
         const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
         const hasObsolescence = supplyPrice.obsolescence_rate ? parseFloat(supplyPrice.obsolescence_rate) > 0 : false
-        const hasRecovery = supplyPrice.recovery_rate ? parseFloat(supplyPrice.recovery_rate) > 0 : false
+        const hasRecovery = supplyPrice.recovery_amoun ? parseFloat(supplyPrice.recovery_amoun) > 0 : false
         const isStandard = !hasNewPrice && !hasObsolescence && !hasRecovery
 
         const statusMatches = 

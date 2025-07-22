@@ -24,7 +24,7 @@ export const formatCurrency = (amount: string) => {
 export const getStatusBadge = (supplyPrice: SupplyPrice) => {
   const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
   const hasObsolescence = parseFloat(supplyPrice.obsolescence_rate) > 0
-  const hasRecovery = parseFloat(supplyPrice.recovery_rate) > 0
+  const hasRecovery = parseFloat(supplyPrice.recovery_amoun) > 0
 
   if (hasNewPrice) return <Badge className="bg-green-100 text-green-800">Nouveau</Badge>
   if (hasObsolescence) return <Badge className="bg-red-100 text-red-800">Obsolète</Badge>
@@ -84,7 +84,7 @@ export const createColumns = (onViewDetails: (supplyPrice: SupplyPrice) => void)
     },
   },
   {
-    accessorKey: "recovery_rate",
+    accessorKey: "recovery_amoun",
     header: "Réparateur",
     cell: ({ row }) => {
       const supplyPrice = row.original

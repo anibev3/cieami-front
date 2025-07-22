@@ -48,7 +48,7 @@ export function useEvaluation() {
         control: boolean
         comment: string
         obsolescence_rate: number
-        recovery_rate: number
+        recovery_amoun: number
         discount?: number
         amount: number
       }>
@@ -90,7 +90,7 @@ export function useEvaluation() {
           control: work.control,
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
+          recovery_amoun: work.recovery_amoun,
           discount: work.discount || 0,
           amount: work.amount
         })),
@@ -123,7 +123,7 @@ export function useEvaluation() {
         control: boolean
         comment: string
         obsolescence_rate: number
-        recovery_rate: number
+        recovery_amoun: number
         discount?: number
         amount: number
       }>
@@ -160,7 +160,7 @@ export function useEvaluation() {
           control: work.control,
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
+          recovery_amoun: work.recovery_amoun,
           discount: work.discount || 0,
           amount: work.amount
         })),
@@ -190,7 +190,7 @@ export function useEvaluation() {
         control: boolean
         comment: string
         obsolescence_rate: number
-        recovery_rate: number
+        recovery_amoun: number
         discount?: number
         amount: number
       }>
@@ -230,7 +230,7 @@ export function useEvaluation() {
         control: boolean
         comment: string
         obsolescence_rate: number
-        recovery_rate: number
+        recovery_amoun: number
         discount?: number
         amount: number
       }>

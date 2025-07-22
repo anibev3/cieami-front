@@ -73,7 +73,7 @@ export function SupplySelect({
   const getStatusBadge = (supplyPrice: SupplyPrice) => {
     const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
     const hasObsolescence = parseFloat(supplyPrice.obsolescence_rate) > 0
-    const hasRecovery = parseFloat(supplyPrice.recovery_rate) > 0
+    const hasRecovery = parseFloat(supplyPrice.recovery_amoun) > 0
 
     if (hasNewPrice) return 'Nouveau'
     if (hasObsolescence) return 'Obsolète'

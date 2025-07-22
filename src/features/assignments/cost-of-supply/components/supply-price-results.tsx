@@ -61,7 +61,7 @@ export function SupplyPriceResults({ supplyId, vehicleModelId, onSelectPrice }: 
   const getStatusBadge = (supplyPrice: SupplyPrice) => {
     const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
     const hasObsolescence = parseFloat(supplyPrice.obsolescence_rate) > 0
-    const hasRecovery = parseFloat(supplyPrice.recovery_rate) > 0
+    const hasRecovery = parseFloat(supplyPrice.recovery_amoun) > 0
 
     if (hasNewPrice) return <Badge className="bg-green-100 text-green-800">Nouveau</Badge>
     if (hasObsolescence) return <Badge className="bg-red-100 text-red-800">Obsolète</Badge>
@@ -212,7 +212,7 @@ export function SupplyPriceResults({ supplyId, vehicleModelId, onSelectPrice }: 
                       </div>
                       <div>
                         <span className="text-muted-foreground">Récupération:</span>
-                        <div className="font-medium text-blue-600">{selectedPrice.recovery_rate}%</div>
+                        <div className="font-medium text-blue-600">{selectedPrice.recovery_amoun}%</div>
                       </div>
                     </div>
 

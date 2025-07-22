@@ -359,7 +359,7 @@ interface AssignmentDetail {
       obsolescence_amount_excluding_tax: string
       obsolescence_amount_tax: string
       obsolescence_amount: string
-      recovery_rate: string
+      recovery_amoun: string
       recovery_amount_excluding_tax: string
       recovery_amount_tax: string
       recovery_amount: string
@@ -1484,7 +1484,7 @@ export default function AssignmentDetailPage() {
                                 <div>
                                   <p className="font-medium text-muted-foreground">Récupération (HT)</p>
                                   <p className="text-sm font-semibold">{formatCurrency(work.recovery_amount_excluding_tax)}</p>
-                                  <p className="text-xs text-muted-foreground">Taux: {work.recovery_rate}%</p>
+                                  <p className="text-xs text-muted-foreground">Taux: {work.recovery_amoun}%</p>
                                 </div>
                                 <div>
                                   <p className="font-medium text-muted-foreground">Récupération (TVA)</p>

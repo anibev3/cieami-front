@@ -68,7 +68,7 @@ interface ApiShockWork {
   obsolescence_amount_excluding_tax: string
   obsolescence_amount_tax: string
   obsolescence_amount: string
-  recovery_rate: string
+  recovery_amoun: string
   recovery_amount_excluding_tax: string
   recovery_amount_tax: string
   recovery_amount: string
@@ -141,7 +141,7 @@ export interface FormattedShockData {
     control: boolean
     comment: string
     obsolescence_rate: number
-    recovery_rate: number
+    // recovery_amount: number
     discount: number
     amount: number
     // Données calculées
@@ -196,7 +196,7 @@ export function useEditAssignment(assignmentId: number) {
         control: work.control || false,
         comment: work.comment || '',
         obsolescence_rate: parseFloat(work.obsolescence_rate) || 0,
-        recovery_rate: parseFloat(work.recovery_rate) || 0,
+        recovery_amoun: parseFloat(work.recovery_amoun) || 0,
           discount: 0, // Valeur par défaut pour les données existantes
         amount: parseFloat(work.amount || '0') || 0,
         // Données calculées

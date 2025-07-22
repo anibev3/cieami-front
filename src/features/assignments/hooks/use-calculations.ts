@@ -94,7 +94,7 @@ export function useCalculations() {
             control: work.control,
             comment: work.comment,
             obsolescence_rate: work.obsolescence_rate,
-            recovery_rate: work.recovery_rate,
+            recovery_amoun: work.recovery_amoun,
             amount: work.amount
           })),
           paint_type_id: shock.paint_type_id,

@@ -8,9 +8,10 @@ export interface ShockWork {
   repair: boolean
   paint: boolean
   control: boolean
+  obsolescence?: boolean
   comment: string
   obsolescence_rate: number
-  recovery_rate: number
+  recovery_amount?: number
   discount: number
   amount: number
   // Données calculées
@@ -19,7 +20,6 @@ export interface ShockWork {
   obsolescence_amount?: number
   recovery_amount_excluding_tax?: number
   recovery_amount_tax?: number
-  recovery_amount?: number
   new_amount_excluding_tax?: number
   new_amount_tax?: number
   new_amount?: number
@@ -98,9 +98,10 @@ export function useShockManagement(initialShocks?: Shock[]) {
       repair: false,
       paint: false,
       control: false,
+      obsolescence: false,
       comment: '',
       obsolescence_rate: 0,
-      recovery_rate: 0,
+      recovery_amount: 0,
       discount: 0,
       amount: 0
     }

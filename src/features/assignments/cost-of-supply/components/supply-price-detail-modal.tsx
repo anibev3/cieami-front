@@ -194,7 +194,7 @@ export function SupplyPriceDetailModal({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Taux:</span>
-                  <span className="font-medium text-blue-600">{supplyPrice.recovery_rate}%</span>
+                  <span className="font-medium text-blue-600">{supplyPrice.recovery_amoun}%</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Montant HT:</span>

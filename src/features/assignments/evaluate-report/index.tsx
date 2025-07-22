@@ -185,7 +185,7 @@ interface ShockWork {
   control: boolean
   comment: string | null
   obsolescence_rate?: number
-  recovery_rate?: number
+  recovery_amoun?: number
   discount?: number
   amount: number
   new_amount_excluding_tax?: number
@@ -204,7 +204,7 @@ interface ExistingShockWork {
   control: boolean
   comment: string
   obsolescence_rate: number
-  recovery_rate: number
+  recovery_amoun: number
   amount: number
 }
 
@@ -579,7 +579,7 @@ export default function EvaluateReportPage() {
           control: work.control,
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
+          recovery_amoun: work.recovery_amoun,
           discount: work.discount || 0,
           amount: work.amount
         })),
@@ -745,7 +745,7 @@ export default function EvaluateReportPage() {
           control: work.control,
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
+          recovery_amoun: work.recovery_amoun,
           discount: work.discount || 0,
           amount: work.amount
         })),
@@ -1309,7 +1309,7 @@ export default function EvaluateReportPage() {
                   <CardContent className="space-y-6">
                     
                     {/* Fournitures */}
-                    <ShockSuppliesEvaluateTable
+                    {/* <ShockSuppliesEvaluateTable
                       supplies={supplies}
                       shockWorks={s.shock_works}
                       onUpdate={(i, field, value) => {
@@ -1326,7 +1326,7 @@ export default function EvaluateReportPage() {
                           control: false,
                           comment: '',
                           obsolescence_rate: 0,
-                          recovery_rate: 0,
+                          recovery_amoun: 0,
                           amount: 0,
                           discount: 0,
                           new_amount_excluding_tax: 0,
@@ -1352,7 +1352,7 @@ export default function EvaluateReportPage() {
                       onValidateRow={async (workIndex) => {
                         handleCalculateEvaluation()
                       }}
-                    />
+                    /> */}
 
 
 

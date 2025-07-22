@@ -24,7 +24,7 @@ interface ShockWork {
   control: boolean
   comment: string
   obsolescence_rate: number
-  recovery_rate: number
+  recovery_amoun: number
   amount: number
   // Calculated amounts from API
   obsolescence_amount_excluding_tax?: number

@@ -178,7 +178,7 @@ export interface SupplyPrice {
   obsolescence_amount_excluding_tax: string | null
   obsolescence_amount_tax: string | null
   obsolescence_amount: string | null
-  recovery_rate: string | null
+  recovery_amoun: string | null
   recovery_amount_excluding_tax: string | null
   recovery_amount_tax: string | null
   recovery_amount: string | null

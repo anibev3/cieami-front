@@ -264,7 +264,7 @@ interface Assignment {
       obsolescence_amount_excluding_tax: string
       obsolescence_amount_tax: string
       obsolescence_amount: string
-      recovery_rate: string
+      recovery_amoun: string
       recovery_amount_excluding_tax: string
       recovery_amount_tax: string
       recovery_amount: string
@@ -1446,7 +1446,7 @@ export default function EditReportPage() {
                                   control: work.control || false,
                                   comment: work.comment || '',
                                   obsolescence_rate: Number(work.obsolescence_rate) || 0,
-                                  recovery_rate: Number(work.recovery_rate) || 0,
+                                  recovery_amoun: Number(work.recovery_amoun) || 0,
                                   amount: Number(work.amount) || 0,
                                   obsolescence_amount_excluding_tax: Number(work.obsolescence_amount_excluding_tax) || 0,
                                   obsolescence_amount_tax: Number(work.obsolescence_amount_tax) || 0,
@@ -1472,7 +1472,7 @@ export default function EditReportPage() {
                                         control: updatedWork.control,
                                         comment: updatedWork.comment,
                                         obsolescence_rate: updatedWork.obsolescence_rate,
-                                        recovery_rate: updatedWork.recovery_rate,
+                                        recovery_amoun: updatedWork.recovery_amoun,
                                         amount: updatedWork.amount
                                       })
                                       toast.success('Fourniture mise à jour')
@@ -1498,7 +1498,7 @@ export default function EditReportPage() {
                                         control: Boolean(shockWorkData?.control || false),
                                         comment: shockWorkData?.comment || null,
                                         obsolescence_rate: Number(shockWorkData?.obsolescence_rate || 0),
-                                        recovery_rate: Number(shockWorkData?.recovery_rate || 0),
+                                        recovery_amoun: Number(shockWorkData?.recovery_amoun || 0),
                                         amount: Number(shockWorkData?.amount || 0)
                                       }]
                                     }
@@ -1814,7 +1814,7 @@ function ShockWorkItem({
     control: work.control,
     comment: work.comment || '',
     obsolescence_rate: work.obsolescence_rate,
-    recovery_rate: work.recovery_rate
+    recovery_amoun: work.recovery_amoun
   })
 
   const handleSave = async () => {
@@ -1827,7 +1827,7 @@ function ShockWorkItem({
       await onUpdate('control', formData.control)
       await onUpdate('comment', formData.comment)
       await onUpdate('obsolescence_rate', formData.obsolescence_rate)
-      await onUpdate('recovery_rate', formData.recovery_rate)
+      await onUpdate('recovery_amoun', formData.recovery_amoun)
       setEditing(false)
     } catch (err) {
       console.error('Erreur lors de la sauvegarde:', err)
@@ -1938,8 +1938,8 @@ function ShockWorkItem({
                 <Label>Taux de récupération (%)</Label>
                 <Input
                   type="number"
-                  value={formData.recovery_rate}
-                  onChange={(e) => setFormData({...formData, recovery_rate: e.target.value})}
+                  value={formData.recovery_amoun}
+                  onChange={(e) => setFormData({...formData, recovery_amoun: e.target.value})}
                 />
               </div>
             </div>
@@ -1961,7 +1961,7 @@ function ShockWorkItem({
             </div>
             <div>
               <span className="text-gray-600">Taux de récupération:</span>
-              <p className="font-semibold">{work.recovery_rate}%</p>
+              <p className="font-semibold">{work.recovery_amoun}%</p>
             </div>
             <div>
               <span className="text-gray-600">Montant obsolescence:</span>

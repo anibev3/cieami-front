@@ -56,6 +56,7 @@ import {
   useCalculations 
 } from './hooks'
 import { useAscertainmentTypeStore } from '@/stores/ascertainmentTypes'
+import { useRemarkStore } from '@/stores/remarkStore'
 import { ShockSuppliesTable } from './components/shock-supplies-table'
 import { ShockWorkforceTable } from './components/shock-workforce-table'
 import { OtherCostTypeSelect } from '@/features/widgets/reusable-selects'   
@@ -210,6 +211,9 @@ export default function ReportEditPage() {
   // Hook pour les types de constat
   const { ascertainmentTypes, fetchAscertainmentTypes } = useAscertainmentTypeStore()
   
+  // Hook pour les remarques
+  const { remarks, fetchRemarks } = useRemarkStore()
+  
   // États pour les modals
   const [showShockModal, setShowShockModal] = useState(false)
   const [showCalculationModal, setShowCalculationModal] = useState(false)
@@ -236,6 +240,7 @@ export default function ReportEditPage() {
   // États pour les nouveaux champs requis par l'API
   const [claimNatureId, setClaimNatureId] = useState<number | null>(null)
   const [expertRemark, setExpertRemark] = useState('')
+  const [selectedRemarkId, setSelectedRemarkId] = useState<number | null>(null)
   const [generalStateId, setGeneralStateId] = useState<number | null>(null)
   const [technicalConclusionId, setTechnicalConclusionId] = useState<number | null>(null)
   
@@ -281,6 +286,13 @@ export default function ReportEditPage() {
       fetchAscertainmentTypes()
     }
   }, [ascertainmentTypes.length, fetchAscertainmentTypes])
+
+  // Charger les remarques
+  useEffect(() => {
+    if (remarks.length === 0) {
+      fetchRemarks()
+    }
+  }, [remarks.length, fetchRemarks])
 
   // Initialiser les valeurs d'évaluation quand l'assignment est chargé
   useEffect(() => {
@@ -422,7 +434,7 @@ export default function ReportEditPage() {
           control: work.control,
           comment: work.comment,
           obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
+          recovery_amoun: work.recovery_amoun,
           discount: work.discount,
           amount: work.amount || 0
         })),
@@ -494,82 +506,246 @@ export default function ReportEditPage() {
     navigate({ to: '/assignments' })
   }, [navigate])
 
-  // Fonction de calcul global automatique pour tous les points de choc
-  const calculateAllShocks = useCallback(async () => {
-    // Vérifier s'il y a au moins une fourniture, une main d'œuvre ou des autres coûts
-    // const hasSupplies = shocks.some(shock => shock.shock_works.length > 0)
-    // const hasWorkforce = shocks.some(shock => shock.workforces.length > 0)
-    // const hasOtherCosts = otherCosts.some(cost => cost.other_cost_type_id > 0)
+
+
+  // Fonction de mise à jour avec calcul automatique global
+  const updateShockWithGlobalCalculation = useCallback((shockIndex: number, updatedShock: Shock) => {
+    updateShock(shockIndex, updatedShock)
     
-    // if (!hasSupplies && !hasWorkforce && !hasOtherCosts) {
-    //   return // Pas de calcul si aucune donnée
+    // Vérifier s'il y a des données valides avant de déclencher le calcul
+    const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
+      updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
+    
+    
+    
+    if (hasValidData) {
+      // Déclencher le calcul global automatique après un délai
+      setTimeout(() => {
+        // calculateAllShocks()
+      }, 4000)
+    }
+  }, [updateShock])
+
+  // Fonction de mise à jour des fournitures avec calcul automatique global
+  const updateShockWork = useCallback((shockIndex: number, workIndex: number, field: string, value: any) => {
+    const updatedShock = { ...shocks[shockIndex] }
+    updatedShock.shock_works[workIndex] = { ...updatedShock.shock_works[workIndex], [field]: value }
+    
+    // Vérifier s'il y a des données valides avant de déclencher le calcul
+    const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
+                        updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
+    
+    updateShock(shockIndex, updatedShock)
+    
+    if (hasValidData) {
+      // Déclencher le calcul global automatique après un délai
+      setTimeout(() => {
+        // calculateAllShocks()
+      }, 4000)
+    }
+  }, [shocks, updateShock])
+
+  // Fonction de mise à jour de la main d'œuvre avec calcul automatique global
+  const updateWorkforce = useCallback((shockIndex: number, workforceIndex: number, field: string, value: any) => {
+    const updatedShock = { ...shocks[shockIndex] }
+    updatedShock.workforces[workforceIndex] = { ...updatedShock.workforces[workforceIndex], [field]: value }
+    
+    // Vérifier s'il y a des données valides avant de déclencher le calcul
+    const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
+                        updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
+    
+    updateShock(shockIndex, updatedShock)
+    
+    if (hasValidData) {
+      // Déclencher le calcul global automatique après un délai
+      setTimeout(() => {
+        // calculateAllShocks()
+      }, 4000)
+    }
+  }, [shocks, updateShock])
+
+  // Fonction de mise à jour des autres coûts avec calcul automatique global
+  const updateOtherCostWithCalculation = useCallback((index: number, field: 'other_cost_type_id' | 'amount', value: number) => {
+    updateOtherCost(index, field, value)
+    
+    // Vérifier s'il y a des données valides avant de déclencher le calcul
+    const updatedOtherCosts = [...otherCosts]
+    updatedOtherCosts[index] = { ...updatedOtherCosts[index], [field]: value }
+    const hasValidData = updatedOtherCosts.some(cost => cost.other_cost_type_id > 0)
+    
+    if (hasValidData) {
+      // Déclencher le calcul global automatique après un délai
+      // setTimeout(() => {
+        // calculateAllShocks()
+      // }, 1000)
+    }
+  }, [updateOtherCost, otherCosts])
+
+  // Fonction d'ajout d'autres coûts avec calcul automatique global
+  const addOtherCostWithCalculation = useCallback(() => {
+    addOtherCost()
+    
+    // Ne pas déclencher le calcul automatiquement lors de l'ajout d'une ligne vide
+    // Le calcul se déclenchera quand l'utilisateur sélectionnera un type de coût
+  }, [addOtherCost])
+
+  // Fonction de suppression d'autres coûts avec calcul automatique global
+  const removeOtherCostWithCalculation = useCallback(async (index: number) => {
+    await removeOtherCost(index)
+    
+    // Vérifier s'il reste des données valides avant de déclencher le calcul
+    const remainingOtherCosts = otherCosts.filter((_, i) => i !== index)
+    const hasValidData = remainingOtherCosts.some(cost => cost.other_cost_type_id > 0)
+    
+    // if (hasValidData) {
+    //   // Déclencher le calcul global automatique après un délai
+    //   setTimeout(() => {
+        // calculateAllShocks()
+    //   }, 4000)
+    // }
+  }, [removeOtherCost, otherCosts])
+
+  // Handlers pour les nouveaux champs
+  const handleClaimNatureChange = useCallback((value: number | null) => {
+    setClaimNatureId(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  const handleRemarkChange = useCallback((value: number | null) => {
+    setSelectedRemarkId(value)
+    
+    // Quand une remarque est sélectionnée, pré-remplir le champ expert_remark
+    if (value) {
+      const selectedRemark = remarks.find(remark => remark.id === value)
+      if (selectedRemark) {
+        setExpertRemark(selectedRemark.description)
+        toast.success(`Remarque "${selectedRemark.label}" chargée`)
+      }
+    } else {
+      // Si aucune remarque n'est sélectionnée, vider le champ
+      setExpertRemark('')
+    }
+    setHasUnsavedChanges(true)
+  }, [remarks, setHasUnsavedChanges])
+
+  const handleExpertRemarkChange = useCallback((value: string) => {
+    setExpertRemark(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  const handleGeneralStateChange = useCallback((value: number | null) => {
+    setGeneralStateId(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  const handleTechnicalConclusionChange = useCallback((value: number | null) => {
+    setTechnicalConclusionId(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  // Fonction unifiée pour préparer le payload complet
+  const prepareCompletePayload = useCallback(() => {
+    // Filtrer les chocs valides
+    const validShocks = shocks
+      .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
+      .map(shock => ({
+        shock_point_id: shock.shock_point_id,
+        shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
+          supply_id: work.supply_id,
+          disassembly: work.disassembly,
+          replacement: work.replacement,
+          repair: work.repair,
+          paint: work.paint,
+          control: work.control,
+          obsolescence: work.obsolescence,
+          comment: work.comment,
+          obsolescence_rate: work.obsolescence_rate,
+          recovery_amount: work.recovery_amount,
+          discount: work.discount,
+          amount: work.amount || 0
+        })),
+        paint_type_id: shock.paint_type_id,
+        hourly_rate_id: shock.hourly_rate_id,
+        with_tax: shock.with_tax,
+        workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
+          workforce_type_id: workforce.workforce_type_id,
+          nb_hours: workforce.nb_hours,
+          discount: workforce.discount
+        }))
+      }))
+      .filter(shock => (shock.shock_works.length > 0 || shock.workforces.length > 0) && shock.paint_type_id && shock.hourly_rate_id)
+
+    // Filtrer les autres coûts valides
+    const validOtherCosts = otherCosts
+      .filter(cost => cost.other_cost_type_id > 0)
+      .map(cost => ({
+        other_cost_type_id: cost.other_cost_type_id,
+        amount: cost.amount
+      }))
+
+    // Préparer les constats
+    const validAscertainments = ascertainments.map(ascertainment => ({
+      ascertainment_type_id: ascertainment.ascertainment_type_id,
+      very_good: ascertainment.very_good,
+      good: ascertainment.good,
+      acceptable: ascertainment.acceptable,
+      less_good: ascertainment.less_good,
+      bad: ascertainment.bad,
+      very_bad: ascertainment.very_bad,
+      comment: ascertainment.comment
+    }))
+
+    return {
+      shocks: validShocks,
+      other_costs: validOtherCosts,
+      // Paramètres d'évaluation
+      vehicle_id: assignment?.vehicle?.id?.toString(),
+      expertise_date: expertiseDate,
+      market_incidence_rate: marketIncidenceRate,
+      // Constats
+      ascertainments: validAscertainments,
+      // Nouveaux champs requis par l'API
+      assignment_id: assignmentId,
+      general_state_id: generalStateId || 1,
+      technical_conclusion_id: technicalConclusionId || 1,
+      claim_nature_id: claimNatureId,
+      expert_remark: expertRemark
+    }
+  }, [
+    shocks, 
+    otherCosts, 
+    ascertainments, 
+    assignment, 
+    expertiseDate, 
+    marketIncidenceRate, 
+    assignmentId, 
+    generalStateId, 
+    technicalConclusionId, 
+    claimNatureId, 
+    expertRemark
+  ])
+
+  // Fonction unifiée pour effectuer le calcul
+  const performCalculation = useCallback(async (targetShockIndex?: number) => {
+    const payload = prepareCompletePayload()
+    
+    // // Vérifier s'il y a des données valides
+    // const hasValidData = payload.shocks.length > 0 || payload.other_costs.length > 0
+    
+    // if (!hasValidData) {
+    //   console.log('Aucune donnée valide pour le calcul')
+    //   return
     // }
 
-    // Marquer tous les points de choc comme en cours de calcul
-    setCalculatingShocks(new Set(shocks.map((_, index) => index)))
+    // Si on calcule pour un choc spécifique, marquer seulement celui-ci
+    if (targetShockIndex !== undefined) {
+      setCalculatingShocks(new Set([targetShockIndex]))
+    } else {
+      // Sinon, marquer tous les chocs
+      setCalculatingShocks(new Set(shocks.map((_, index) => index)))
+    }
 
     try {
-      // Filtrer les autres coûts valides (avec other_cost_type_id > 0)
-      const validOtherCosts = otherCosts.filter(cost => cost.other_cost_type_id > 0)
-
-      // Filtrer les chocs avec des données valides
-      const validShocks = shocks
-        .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
-        .map(shock => ({
-          shock_point_id: shock.shock_point_id,
-          shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
-            supply_id: work.supply_id,
-            disassembly: work.disassembly,
-            replacement: work.replacement,
-            repair: work.repair,
-            paint: work.paint,
-            control: work.control,
-            comment: work.comment,
-            obsolescence_rate: work.obsolescence_rate,
-            recovery_rate: work.recovery_rate,
-            discount: work.discount,
-            amount: work.amount || 0
-          })),
-          paint_type_id: shock.paint_type_id,
-          hourly_rate_id: shock.hourly_rate_id,
-          with_tax: shock.with_tax,
-          workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
-            workforce_type_id: workforce.workforce_type_id,
-            nb_hours: workforce.nb_hours,
-            discount: workforce.discount
-          }))
-        }))
-        .filter(shock => (shock.shock_works.length > 0 || shock.workforces.length > 0) && shock.paint_type_id && shock.hourly_rate_id)
-
-      const payload = {
-        shocks: validShocks,
-        other_costs: validOtherCosts.map(cost => ({
-          other_cost_type_id: cost.other_cost_type_id,
-          amount: cost.amount
-        })),
-        // Paramètres d'évaluation
-        vehicle_id: assignment?.vehicle?.id?.toString(),
-        expertise_date: expertiseDate,
-        market_incidence_rate: marketIncidenceRate,
-        // Constats
-        ascertainments: ascertainments.map(ascertainment => ({
-          ascertainment_type_id: ascertainment.ascertainment_type_id,
-          very_good: ascertainment.very_good,
-          good: ascertainment.good,
-          acceptable: ascertainment.acceptable,
-          less_good: ascertainment.less_good,
-          bad: ascertainment.bad,
-          very_bad: ascertainment.very_bad,
-          comment: ascertainment.comment
-        })),
-        // Nouveaux champs requis par l'API
-        assignment_id: assignmentId,
-        general_state_id: generalStateId || 1,
-        technical_conclusion_id: technicalConclusionId || 1,
-        claim_nature_id: claimNatureId,
-        expert_remark: expertRemark
-      }
-
       const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATIONS}`, payload)
       
       if (response.data.status === 200) {
@@ -603,286 +779,8 @@ export default function ReportEditPage() {
         })
         
         // Mettre à jour les résultats de calcul avec les montants globaux
-        // Stocker les montants globaux dans le premier calcul (index 0)
         if (calculatedData) {
           updateCalculation(0, {
-            shocks: calculatedData.shocks || [],
-            other_costs: calculatedData.other_costs || [],
-            shock_works: calculatedData.shocks?.[0]?.shock_works || [],
-            workforces: calculatedData.shocks?.[0]?.workforces || [],
-            // Montants globaux des chocs
-            total_shock_amount_excluding_tax: calculatedData.total_shock_amount_excluding_tax,
-            total_shock_amount_tax: calculatedData.total_shock_amount_tax,
-            total_shock_amount: calculatedData.total_shock_amount,
-            // Montants globaux de la main d'œuvre
-            total_workforce_amount_excluding_tax: calculatedData.total_workforce_amount_excluding_tax,
-            total_workforce_amount_tax: calculatedData.total_workforce_amount_tax,
-            total_workforce_amount: calculatedData.total_workforce_amount,
-            // Montants globaux des produits peinture
-            total_paint_product_amount_excluding_tax: calculatedData.total_paint_product_amount_excluding_tax,
-            total_paint_product_amount_tax: calculatedData.total_paint_product_amount_tax,
-            total_paint_product_amount: calculatedData.total_paint_product_amount,
-            // Montants globaux des petites fournitures
-            total_small_supply_amount_excluding_tax: calculatedData.total_small_supply_amount_excluding_tax,
-            total_small_supply_amount_tax: calculatedData.total_small_supply_amount_tax,
-            total_small_supply_amount: calculatedData.total_small_supply_amount,
-            // Montants globaux des autres coûts
-            total_other_costs_amount_excluding_tax: calculatedData.total_other_costs_amount_excluding_tax,
-            total_other_costs_amount_tax: calculatedData.total_other_costs_amount_tax,
-            total_other_costs_amount: calculatedData.total_other_costs_amount,
-            // Montants globaux totaux
-            shocks_amount_excluding_tax: calculatedData.shocks_amount_excluding_tax,
-            shocks_amount_tax: calculatedData.shocks_amount_tax,
-            shocks_amount: calculatedData.shocks_amount,
-            total_amount_excluding_tax: calculatedData.total_amount_excluding_tax,
-            total_amount_tax: calculatedData.total_amount_tax,
-            total_amount: calculatedData.total_amount,
-          })
-        }
-        
-        setHasUnsavedChanges(true)
-        toast.success('Calcul global effectué avec succès')
-      }
-    } catch (error) {
-      console.error('Erreur lors du calcul global:', error)
-      toast.error('Erreur lors du calcul global')
-    } finally {
-      // Retirer tous les points de choc du calcul en cours
-      setCalculatingShocks(new Set())
-    }
-  }, [shocks, otherCosts, assignmentId, calculationResults, updateShock, setHasUnsavedChanges, claimNatureId, expertRemark, generalStateId, technicalConclusionId])
-
-  // Fonction de mise à jour avec calcul automatique global
-  const updateShockWithGlobalCalculation = useCallback((shockIndex: number, updatedShock: Shock) => {
-    updateShock(shockIndex, updatedShock)
-    
-    // Vérifier s'il y a des données valides avant de déclencher le calcul
-    const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
-      updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
-    
-    
-    
-    if (hasValidData) {
-      // Déclencher le calcul global automatique après un délai
-      setTimeout(() => {
-        // calculateAllShocks()
-      }, 4000)
-    }
-  }, [updateShock, calculateAllShocks])
-
-  // Fonction de mise à jour des fournitures avec calcul automatique global
-  const updateShockWork = useCallback((shockIndex: number, workIndex: number, field: string, value: any) => {
-    const updatedShock = { ...shocks[shockIndex] }
-    updatedShock.shock_works[workIndex] = { ...updatedShock.shock_works[workIndex], [field]: value }
-    
-    // Vérifier s'il y a des données valides avant de déclencher le calcul
-    const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
-                        updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
-    
-    updateShock(shockIndex, updatedShock)
-    
-    if (hasValidData) {
-      // Déclencher le calcul global automatique après un délai
-      setTimeout(() => {
-        // calculateAllShocks()
-      }, 4000)
-    }
-  }, [shocks, updateShock, calculateAllShocks])
-
-  // Fonction de mise à jour de la main d'œuvre avec calcul automatique global
-  const updateWorkforce = useCallback((shockIndex: number, workforceIndex: number, field: string, value: any) => {
-    const updatedShock = { ...shocks[shockIndex] }
-    updatedShock.workforces[workforceIndex] = { ...updatedShock.workforces[workforceIndex], [field]: value }
-    
-    // Vérifier s'il y a des données valides avant de déclencher le calcul
-    const hasValidData = updatedShock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
-                        updatedShock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
-    
-    updateShock(shockIndex, updatedShock)
-    
-    if (hasValidData) {
-      // Déclencher le calcul global automatique après un délai
-      setTimeout(() => {
-        // calculateAllShocks()
-      }, 4000)
-    }
-  }, [shocks, updateShock, calculateAllShocks])
-
-  // Fonction de mise à jour des autres coûts avec calcul automatique global
-  const updateOtherCostWithCalculation = useCallback((index: number, field: 'other_cost_type_id' | 'amount', value: number) => {
-    updateOtherCost(index, field, value)
-    
-    // Vérifier s'il y a des données valides avant de déclencher le calcul
-    const updatedOtherCosts = [...otherCosts]
-    updatedOtherCosts[index] = { ...updatedOtherCosts[index], [field]: value }
-    const hasValidData = updatedOtherCosts.some(cost => cost.other_cost_type_id > 0)
-    
-    if (hasValidData) {
-      // Déclencher le calcul global automatique après un délai
-      // setTimeout(() => {
-        calculateAllShocks()
-      // }, 1000)
-    }
-  }, [updateOtherCost, otherCosts, calculateAllShocks])
-
-  // Fonction d'ajout d'autres coûts avec calcul automatique global
-  const addOtherCostWithCalculation = useCallback(() => {
-    addOtherCost()
-    
-    // Ne pas déclencher le calcul automatiquement lors de l'ajout d'une ligne vide
-    // Le calcul se déclenchera quand l'utilisateur sélectionnera un type de coût
-  }, [addOtherCost])
-
-  // Fonction de suppression d'autres coûts avec calcul automatique global
-  const removeOtherCostWithCalculation = useCallback(async (index: number) => {
-    await removeOtherCost(index)
-    
-    // Vérifier s'il reste des données valides avant de déclencher le calcul
-    const remainingOtherCosts = otherCosts.filter((_, i) => i !== index)
-    const hasValidData = remainingOtherCosts.some(cost => cost.other_cost_type_id > 0)
-    
-    // if (hasValidData) {
-    //   // Déclencher le calcul global automatique après un délai
-    //   setTimeout(() => {
-        calculateAllShocks()
-    //   }, 4000)
-    // }
-  }, [removeOtherCost, otherCosts, calculateAllShocks])
-
-  // Handlers pour les nouveaux champs
-  const handleClaimNatureChange = useCallback((value: number | null) => {
-    setClaimNatureId(value)
-    setHasUnsavedChanges(true)
-  }, [setHasUnsavedChanges])
-
-  const handleRemarkChange = useCallback((value: number | null) => {
-    // Quand une remarque est sélectionnée, pré-remplir le champ expert_remark
-    if (value) {
-      // Ici on pourrait charger la remarque depuis le store et pré-remplir
-      // Pour l'instant, on laisse l'utilisateur modifier manuellement
-      // TODO: Implémenter le chargement de la remarque depuis le store
-    }
-    setHasUnsavedChanges(true)
-  }, [setHasUnsavedChanges])
-
-  const handleExpertRemarkChange = useCallback((value: string) => {
-    setExpertRemark(value)
-    setHasUnsavedChanges(true)
-  }, [setHasUnsavedChanges])
-
-  const handleGeneralStateChange = useCallback((value: number | null) => {
-    setGeneralStateId(value)
-    setHasUnsavedChanges(true)
-  }, [setHasUnsavedChanges])
-
-  const handleTechnicalConclusionChange = useCallback((value: number | null) => {
-    setTechnicalConclusionId(value)
-    setHasUnsavedChanges(true)
-  }, [setHasUnsavedChanges])
-
-  // Fonction de calcul d'un seul point de choc
-  const calculateSingleShock = useCallback(async (shockIndex: number) => {
-    const shock = shocks[shockIndex]
-    if (!shock || !shock.shock_point_id || shock.shock_point_id === 0) {
-      return
-    }
-
-    // Vérifier s'il y a des données valides dans ce choc
-    const hasValidData = shock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
-                        shock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
-    
-    if (!hasValidData) {
-      return
-    }
-
-    // Marquer ce point de choc comme en cours de calcul
-    setCalculatingShocks(prev => new Set([...prev, shockIndex]))
-
-    try {
-      // Préparer le payload pour ce choc uniquement
-      const validShock = {
-        shock_point_id: shock.shock_point_id,
-        shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
-          supply_id: work.supply_id,
-          disassembly: work.disassembly,
-          replacement: work.replacement,
-          repair: work.repair,
-          paint: work.paint,
-          control: work.control,
-          comment: work.comment,
-          obsolescence_rate: work.obsolescence_rate,
-          recovery_rate: work.recovery_rate,
-          discount: work.discount,
-          amount: work.amount || 0
-        })),
-        paint_type_id: shock.paint_type_id,
-        hourly_rate_id: shock.hourly_rate_id,
-        with_tax: shock.with_tax,
-        workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
-          workforce_type_id: workforce.workforce_type_id,
-          nb_hours: workforce.nb_hours,
-          discount: workforce.discount
-        }))
-      }
-
-      // Vérifier que le choc a des données valides
-      if ((validShock.shock_works.length === 0 && validShock.workforces.length === 0) || !validShock.paint_type_id || !validShock.hourly_rate_id) {
-        return
-      }
-
-      const payload = {
-        shocks: [validShock],
-        other_costs: [], // Pas d'autres coûts pour le calcul d'un seul choc
-        // Paramètres d'évaluation
-        vehicle_id: assignment?.vehicle?.id?.toString(),
-        expertise_date: expertiseDate,
-        market_incidence_rate: marketIncidenceRate,
-        // Constats
-        ascertainments: ascertainments.map(ascertainment => ({
-          ascertainment_type_id: ascertainment.ascertainment_type_id,
-          very_good: ascertainment.very_good,
-          good: ascertainment.good,
-          acceptable: ascertainment.acceptable,
-          less_good: ascertainment.less_good,
-          bad: ascertainment.bad,
-          very_bad: ascertainment.very_bad,
-          comment: ascertainment.comment
-        }))
-      }
-
-      const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATIONS}`, payload)
-      
-      if (response.data.status === 200) {
-        const calculatedData = response.data.data
-        
-        // Mettre à jour seulement ce point de choc avec les montants calculés
-        const calculatedShock = calculatedData.shocks[0]
-        if (calculatedShock) {
-          // Mettre à jour les fournitures avec les montants calculés
-          const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
-            ...work,
-            ...calculatedShock.shock_works[index]
-          }))
-
-          // Mettre à jour la main d'œuvre avec les montants calculés
-          const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
-            ...workforce,
-            ...calculatedShock.workforces[index]
-          }))
-
-          // Mettre à jour le point de choc
-          const updatedShock = {
-            ...shock,
-            shock_works: updatedShockWorks,
-            workforces: updatedWorkforces
-          }
-
-          updateShock(shockIndex, updatedShock)
-        }
-        
-        // Mettre à jour les résultats de calcul avec les montants globaux
-        if (calculatedData) {
-          updateCalculation(shockIndex, {
             shocks: calculatedData.shocks || [],
             other_costs: calculatedData.other_costs || [],
             shock_works: calculatedData.shocks?.[0]?.shock_works || [],
@@ -924,14 +822,35 @@ export default function ReportEditPage() {
       console.error('Erreur lors du calcul:', error)
       toast.error('Erreur lors du calcul')
     } finally {
-      // Retirer ce point de choc du calcul en cours
-      setCalculatingShocks(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(shockIndex)
-        return newSet
-      })
+      // Retirer tous les points de choc du calcul en cours
+      setCalculatingShocks(new Set())
     }
-  }, [shocks, updateShock, setHasUnsavedChanges])
+  }, [prepareCompletePayload, shocks, updateShock, updateCalculation, setHasUnsavedChanges])
+
+  // Fonction de calcul global automatique pour tous les points de choc
+  const calculateAllShocks = useCallback(async () => {
+    // Utiliser la fonction unifiée pour le calcul global
+    await performCalculation()
+  }, [performCalculation])
+
+  // Fonction de calcul d'un seul point de choc
+  const calculateSingleShock = useCallback(async (shockIndex: number) => {
+    const shock = shocks[shockIndex]
+    if (!shock || !shock.shock_point_id || shock.shock_point_id === 0) {
+      return
+    }
+
+    // Vérifier s'il y a des données valides dans ce choc
+    const hasValidData = shock.shock_works.some((work: any) => work.supply_id && work.supply_id !== 0) ||
+                        shock.workforces.some((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0)
+    
+    if (!hasValidData) {
+      return
+    }
+
+    // Utiliser la fonction unifiée pour le calcul
+    await performCalculation(shockIndex)
+  }, [shocks, performCalculation])
 
   if (loading || loadingData) {
     return (
@@ -1314,9 +1233,10 @@ export default function ReportEditPage() {
                           repair: false,
                           paint: false,
                           control: false,
+                          obsolescence: false,
                           comment: '',
                           obsolescence_rate: 0,
-                          recovery_rate: 0,
+                          recovery_amount: 0,
                           discount: 0,
                           amount: 0
                         }
@@ -1580,7 +1500,7 @@ export default function ReportEditPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <RemarkSelect
-                    value={null}
+                    value={selectedRemarkId}
                     onValueChange={handleRemarkChange}
                     placeholder="Choisir une remarque prédéfinie..."
                     showStatus={true}
@@ -1588,13 +1508,26 @@ export default function ReportEditPage() {
                   />
                   
                   <div className="space-y-2">
-                    <Label htmlFor="expert-remark">Remarque personnalisée</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="expert-remark">Remarque personnalisée</Label>
+                      {selectedRemarkId && (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                          <FileText className="mr-1 h-3 w-3" />
+                          Remarque prédéfinie chargée
+                        </Badge>
+                      )}
+                    </div>
                     <RichTextEditor
                       value={expertRemark}
                       onChange={handleExpertRemarkChange}
                       placeholder="Rédigez votre remarque d'expert..."
                       className="min-h-[120px]"
                     />
+                    {selectedRemarkId && (
+                      <p className="text-xs text-muted-foreground">
+                        Vous pouvez modifier cette remarque prédéfinie selon vos besoins
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

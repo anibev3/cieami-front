@@ -33,7 +33,7 @@ interface ShockWork {
   control: boolean
   comment: string
   obsolescence_rate: number
-  recovery_rate: number
+  recovery_amoun: number
   amount: number
   // Calculated amounts from API
   obsolescence_amount_excluding_tax?: number
@@ -93,7 +93,7 @@ export function ShockSuppliesEditTable({
       control: false,
       comment: '',
       obsolescence_rate: 0,
-      recovery_rate: 0,
+      recovery_amoun: 0,
       amount: 0
     }
     
@@ -309,8 +309,8 @@ export function ShockSuppliesEditTable({
                   <Input
                     type="number"
                     className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.recovery_rate}
-                    onChange={e => updateLocalShockWork(i, 'recovery_rate', Number(e.target.value))}
+                    value={row.recovery_amoun}
+                    onChange={e => updateLocalShockWork(i, 'recovery_amoun', Number(e.target.value))}
                   />
                 </td>
                 <td className="border px-2 py-2 text-center text-[10px]">

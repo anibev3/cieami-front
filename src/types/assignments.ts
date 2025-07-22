@@ -601,7 +601,7 @@ export interface EvaluationCalculationRequest {
       control: boolean
       comment: string
       obsolescence_rate: number
-      recovery_rate: number
+      recovery_amoun: number
       discount: number
       amount: number
     }>
@@ -683,7 +683,7 @@ export interface EvaluationSubmissionRequest {
       control: boolean
       comment: string
       obsolescence_rate: number
-      recovery_rate: number
+      recovery_amoun: number
       discount: number
       amount: number
     }>
