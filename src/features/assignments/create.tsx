@@ -67,6 +67,9 @@ import { BrandSelect } from '@/features/widgets'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { HtmlContent } from '@/components/ui/html-content'
 import { VehicleModelSelect } from '@/features/assignments/cost-of-supply/components/vehicle-model-select'
+import { useBrandsStore } from '@/stores/brands'
+import { ColorSelect } from '@/features/widgets/color-select'
+import { BodyworkSelect } from '@/features/widgets/bodywork-select'
 
 // Types pour les experts
 interface Expert {
@@ -191,6 +194,11 @@ export default function CreateAssignmentPage() {
   const [showCreateInsurerModal, setShowCreateInsurerModal] = useState(false)
   const [showCreateRepairerModal, setShowCreateRepairerModal] = useState(false)
   const [showCreateDocumentModal, setShowCreateDocumentModal] = useState(false)
+  const [showCreateBrandModal, setShowCreateBrandModal] = useState(false)
+  // Ajout de l'état pour la modal de création de modèle de véhicule
+  const [showCreateVehicleModelModal, setShowCreateVehicleModelModal] = useState(false)
+  const [showCreateColorModal, setShowCreateColorModal] = useState(false)
+  const [showCreateBodyworkModal, setShowCreateBodyworkModal] = useState(false)
   
   // États pour les formulaires de création rapide
   const [createClientForm, setCreateClientForm] = useState({
@@ -243,6 +251,31 @@ export default function CreateAssignmentPage() {
     description: '',
   })
   
+  const [createBrandForm, setCreateBrandForm] = useState({
+    code: '',
+    label: '',
+    description: '',
+  })
+  
+  const [createVehicleModelForm, setCreateVehicleModelForm] = useState({
+    code: '',
+    label: '',
+    description: '',
+    brand_id: '',
+  })
+  
+  const [createColorForm, setCreateColorForm] = useState({
+    code: '',
+    label: '',
+    description: '',
+  })
+  
+  const [createBodyworkForm, setCreateBodyworkForm] = useState({
+    code: '',
+    label: '',
+    description: '',
+  })
+  
   // État pour la marque sélectionnée dans la création de véhicule
   const [selectedBrandId, setSelectedBrandId] = useState<string>('')
   
@@ -267,9 +300,10 @@ export default function CreateAssignmentPage() {
   const { entities, fetchEntities, createEntity } = useEntitiesStore()
   const { expertiseTypes, fetchExpertiseTypes } = useExpertiseTypesStore()
   const { documents, fetchDocuments, createDocument } = useDocumentsStore()
-  const { vehicleModels, fetchVehicleModels } = useVehicleModelsStore()
-  const { colors, fetchColors } = useColorsStore()
-  const { bodyworks, fetchBodyworks } = useBodyworksStore()
+  const { vehicleModels, fetchVehicleModels, createVehicleModel, loading: loadingVehicleModels } = useVehicleModelsStore()
+  const { colors, fetchColors, createColor, loading: loadingColors } = useColorsStore()
+  const { bodyworks, fetchBodyworks, createBodywork, loading: loadingBodyworks } = useBodyworksStore()
+  const { createBrand, brands, fetchBrands, loading: loadingBrands } = useBrandsStore()
 
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(assignmentSchema),
@@ -405,7 +439,8 @@ export default function CreateAssignmentPage() {
     fetchVehicleModels()
     fetchColors()
     fetchBodyworks()
-  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks])
+    fetchBrands()
+  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
 
   // Réinitialiser le modèle quand la marque change
   useEffect(() => {
@@ -768,6 +803,95 @@ export default function CreateAssignmentPage() {
       fetchDocuments() // Recharger la liste
     } catch (error) {
       toast.error('Erreur lors de la création du document')
+    }
+  }
+
+  const handleCreateBrand = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createBrandForm.code || !createBrandForm.label) {
+      toast.error('Code et nom obligatoires')
+      return
+    }
+    try {
+      await createBrand(createBrandForm)
+      await fetchBrands() // Rafraîchir la liste
+      // Sélection automatique de la nouvelle marque
+      const newBrand = brands.find(b => b.code === createBrandForm.code && b.label === createBrandForm.label)
+      if (newBrand) {
+        setSelectedBrandId(newBrand.id.toString())
+      }
+      toast.success('Marque créée avec succès')
+      setShowCreateBrandModal(false)
+      setCreateBrandForm({ code: '', label: '', description: '' })
+    } catch (error) {
+      toast.error('Erreur lors de la création de la marque')
+    }
+  }
+
+  // Handler création rapide de modèle de véhicule
+  const handleCreateVehicleModel = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createVehicleModelForm.code || !createVehicleModelForm.label || !selectedBrandId) {
+      toast.error('Code, nom et marque obligatoires')
+      return
+    }
+    try {
+      await createVehicleModel({ ...createVehicleModelForm, brand_id: selectedBrandId })
+      await fetchVehicleModels(1, { brand_id: selectedBrandId }) // Rafraîchir la liste pour la marque
+      // Sélection automatique du nouveau modèle
+      const newModel = vehicleModels.find(m => m.code === createVehicleModelForm.code && m.label === createVehicleModelForm.label && m.brand.id.toString() === selectedBrandId)
+      if (newModel) {
+        setCreateVehicleForm(f => ({ ...f, vehicle_model_id: newModel.id.toString() }))
+      }
+      toast.success('Modèle créé avec succès')
+      setShowCreateVehicleModelModal(false)
+      setCreateVehicleModelForm({ code: '', label: '', description: '', brand_id: '' })
+    } catch (error) {
+      toast.error('Erreur lors de la création du modèle')
+    }
+  }
+
+  const handleCreateColor = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createColorForm.code || !createColorForm.label) {
+      toast.error('Code et nom obligatoires')
+      return
+    }
+    try {
+      await createColor(createColorForm)
+      await fetchColors() // Rafraîchir la liste
+      // Sélection automatique de la nouvelle couleur
+      const newColor = colors.find(c => c.code === createColorForm.code && c.label === createColorForm.label)
+      if (newColor) {
+        setCreateVehicleForm(f => ({ ...f, color_id: newColor.id.toString() }))
+      }
+      toast.success('Couleur créée avec succès')
+      setShowCreateColorModal(false)
+      setCreateColorForm({ code: '', label: '', description: '' })
+    } catch (error) {
+      toast.error('Erreur lors de la création de la couleur')
+    }
+  }
+
+  const handleCreateBodywork = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createBodyworkForm.code || !createBodyworkForm.label) {
+      toast.error('Code et nom obligatoires')
+      return
+    }
+    try {
+      await createBodywork(createBodyworkForm)
+      await fetchBodyworks() // Rafraîchir la liste
+      // Sélection automatique de la nouvelle carrosserie
+      const newBodywork = bodyworks.find(b => b.code === createBodyworkForm.code && b.label === createBodyworkForm.label)
+      if (newBodywork) {
+        setCreateVehicleForm(f => ({ ...f, bodywork_id: newBodywork.id.toString() }))
+      }
+      toast.success('Carrosserie créée avec succès')
+      setShowCreateBodyworkModal(false)
+      setCreateBodyworkForm({ code: '', label: '', description: '' })
+    } catch (error) {
+      toast.error('Erreur lors de la création de la carrosserie')
     }
   }
 
@@ -2062,7 +2186,7 @@ export default function CreateAssignmentPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="client-email">Email *</Label>
+              <Label htmlFor="client-email">Email</Label>
               <Input 
                 id="client-email" 
                 type="email" 
@@ -2113,14 +2237,6 @@ export default function CreateAssignmentPage() {
           <form onSubmit={handleCreateVehicle} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="vehicle-brand">Marque *</Label>
-                <BrandSelect
-                  value={selectedBrandId}
-                  onValueChange={setSelectedBrandId}
-                  placeholder="Sélectionnez une marque"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="vehicle-license">Plaque d'immatriculation *</Label>
                 <Input 
                   id="vehicle-license" 
@@ -2128,137 +2244,6 @@ export default function CreateAssignmentPage() {
                   onChange={e => setCreateVehicleForm(f => ({ ...f, license_plate: e.target.value }))} 
                   required 
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-usage">Usage *</Label>
-                <Input 
-                  id="vehicle-usage" 
-                  value={createVehicleForm.usage} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, usage: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-type">Type *</Label>
-                <Input 
-                  id="vehicle-type" 
-                  value={createVehicleForm.type} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, type: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-option">Option *</Label>
-                <Input 
-                  id="vehicle-option" 
-                  value={createVehicleForm.option} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, option: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-mileage">Kilométrage *</Label>
-                <Input 
-                  id="vehicle-mileage" 
-                  type="number" 
-                  value={createVehicleForm.mileage} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, mileage: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-serial">Numéro de série *</Label>
-                <Input 
-                  id="vehicle-serial" 
-                  value={createVehicleForm.serial_number} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, serial_number: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-power">Puissance fiscale *</Label>
-                <Input 
-                  id="vehicle-power" 
-                  type="number" 
-                  value={createVehicleForm.fiscal_power} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, fiscal_power: Number(e.target.value) }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-seats">Nombre de places *</Label>
-                <Input 
-                  id="vehicle-seats" 
-                  type="number" 
-                  value={createVehicleForm.nb_seats} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, nb_seats: Number(e.target.value) }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-new-value">Valeur neuve *</Label>
-                <Input 
-                  id="vehicle-new-value" 
-                  type="number"
-                  value={createVehicleForm.new_market_value} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, new_market_value: Number(e.target.value) }))} 
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-payload-capacity">Charge utile *</Label>
-                <Input 
-                  id="vehicle-payload-capacity" 
-                  type="number"
-                  value={createVehicleForm.payload} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, payload: Number(e.target.value) }))} 
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-model">Modèle de véhicule *</Label>
-                <VehicleModelSelect
-                  value={createVehicleForm.vehicle_model_id}
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_model_id: value }))}
-                  placeholder="Sélectionner un modèle"
-                  brandId={selectedBrandId}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-color">Couleur *</Label>
-                <Select 
-                  value={createVehicleForm.color_id} 
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, color_id: value }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une couleur" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {colors.map((color: Color) => (
-                      <SelectItem key={color.id} value={color.id.toString()}>
-                        {color.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-bodywork">Carrosserie *</Label>
-                <Select 
-                  value={createVehicleForm.bodywork_id} 
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, bodywork_id: value }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une carrosserie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bodyworks.map((bodywork: Bodywork) => (
-                      <SelectItem key={bodywork.id} value={bodywork.id.toString()}>
-                        {bodywork.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="vehicle-genre">Genre de véhicule</Label>
@@ -2270,12 +2255,82 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="vehicle-brand">Marque *</Label>
+                  <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBrandModal(true)} className="shrink-0 w-6 h-6">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <BrandSelect
+                  value={selectedBrandId}
+                  onValueChange={setSelectedBrandId}
+                  placeholder="Sélectionnez une marque"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="vehicle-model">Modèle de véhicule *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowCreateVehicleModelModal(true)}
+                    className="shrink-0 w-6 h-6"
+                    disabled={!selectedBrandId}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <VehicleModelSelect
+                  value={createVehicleForm.vehicle_model_id}
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_model_id: value }))}
+                  placeholder="Sélectionner un modèle"
+                  brandId={selectedBrandId}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <Label htmlFor="vehicle-color">Couleur *</Label>
+                  <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateColorModal(true)} className="shrink-0 w-6 h-6">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <ColorSelect
+                  value={createVehicleForm.color_id}
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, color_id: value }))}
+                  placeholder="Sélectionner une couleur"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <Label htmlFor="vehicle-bodywork">Carrosserie *</Label>
+                  <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBodyworkModal(true)} className="shrink-0 w-6 h-6">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <BodyworkSelect
+                  value={createVehicleForm.bodywork_id}
+                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, bodywork_id: value }))}
+                  placeholder="Sélectionner une carrosserie"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="vehicle-energy-type">Énergie</Label>
                 <VehicleEnergySelect
                   value={createVehicleForm.vehicle_energy_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_energy_id: value }))}
                   placeholder="Sélectionner un type d'énergie"
                   showDescription={false}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-mileage">Kilométrage *</Label>
+                <Input 
+                  id="vehicle-mileage" 
+                  type="number" 
+                  value={createVehicleForm.mileage} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, mileage: e.target.value }))} 
+                  required 
                 />
               </div>
               <div className="space-y-2">
@@ -2297,6 +2352,83 @@ export default function CreateAssignmentPage() {
                   onChange={e => setCreateVehicleForm(f => ({ ...f, technical_visit_date: e.target.value }))} 
                 />
               </div>
+              {/* <div className="space-y-2">
+                <Label htmlFor="vehicle-usage">Usage *</Label>
+                <Input 
+                  id="vehicle-usage" 
+                  value={createVehicleForm.usage} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, usage: e.target.value }))} 
+                  required 
+                />
+              </div> */}
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-type">Type *</Label>
+                <Input 
+                  id="vehicle-type" 
+                  value={createVehicleForm.type} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, type: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-option">Option *</Label>
+                <Input 
+                  id="vehicle-option" 
+                  value={createVehicleForm.option} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, option: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-power">Puissance fiscale *</Label>
+                <Input 
+                  id="vehicle-power" 
+                  type="number" 
+                  value={createVehicleForm.fiscal_power} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, fiscal_power: Number(e.target.value) }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-payload-capacity">Charge utile *</Label>
+                <Input 
+                  id="vehicle-payload-capacity" 
+                  type="number"
+                  value={createVehicleForm.payload} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, payload: Number(e.target.value) }))} 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-serial">Numéro de série *</Label>
+                <Input 
+                  id="vehicle-serial" 
+                  value={createVehicleForm.serial_number} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, serial_number: e.target.value }))} 
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-new-value">Valeur neuve *</Label>
+                <Input 
+                  id="vehicle-new-value" 
+                  type="number"
+                  value={createVehicleForm.new_market_value} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, new_market_value: Number(e.target.value) }))} 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vehicle-seats">Nombre de places *</Label>
+                <Input 
+                  id="vehicle-seats" 
+                  type="number" 
+                  value={createVehicleForm.nb_seats} 
+                  onChange={e => setCreateVehicleForm(f => ({ ...f, nb_seats: Number(e.target.value) }))} 
+                  required 
+                />
+              </div>
+              
             </div>
             <DialogFooter>
               <Button type="submit">Créer le véhicule</Button>
@@ -3291,6 +3423,186 @@ export default function CreateAssignmentPage() {
               </div>
             </div>
           {/* // )} */}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de création rapide de marque */}
+      <Dialog open={showCreateBrandModal} onOpenChange={setShowCreateBrandModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer une marque</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer une nouvelle marque.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateBrand} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="brand-code">Code *</Label>
+              <Input
+                id="brand-code"
+                value={createBrandForm.code}
+                onChange={e => setCreateBrandForm(f => ({ ...f, code: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brand-label">Nom *</Label>
+              <Input
+                id="brand-label"
+                value={createBrandForm.label}
+                onChange={e => setCreateBrandForm(f => ({ ...f, label: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brand-description">Description</Label>
+              <Input
+                id="brand-description"
+                value={createBrandForm.description}
+                onChange={e => setCreateBrandForm(f => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loadingBrands}>Créer la marque</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de création rapide de modèle de véhicule */}
+      <Dialog open={showCreateVehicleModelModal} onOpenChange={setShowCreateVehicleModelModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer un modèle de véhicule</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer un nouveau modèle. La marque sera pré-remplie.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateVehicleModel} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="vehicle-model-code">Code *</Label>
+              <Input
+                id="vehicle-model-code"
+                value={createVehicleModelForm.code}
+                onChange={e => setCreateVehicleModelForm(f => ({ ...f, code: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vehicle-model-label">Nom *</Label>
+              <Input
+                id="vehicle-model-label"
+                value={createVehicleModelForm.label}
+                onChange={e => setCreateVehicleModelForm(f => ({ ...f, label: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vehicle-model-description">Description</Label>
+              <Input
+                id="vehicle-model-description"
+                value={createVehicleModelForm.description}
+                onChange={e => setCreateVehicleModelForm(f => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vehicle-model-brand">Marque</Label>
+              <Input
+                id="vehicle-model-brand"
+                value={brands.find(b => b.id.toString() === selectedBrandId)?.label || ''}
+                disabled
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loadingVehicleModels || !selectedBrandId}>Créer le modèle</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de création rapide de couleur */}
+      <Dialog open={showCreateColorModal} onOpenChange={setShowCreateColorModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer une couleur</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer une nouvelle couleur.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateColor} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="color-code">Code *</Label>
+              <Input
+                id="color-code"
+                value={createColorForm.code}
+                onChange={e => setCreateColorForm(f => ({ ...f, code: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="color-label">Nom *</Label>
+              <Input
+                id="color-label"
+                value={createColorForm.label}
+                onChange={e => setCreateColorForm(f => ({ ...f, label: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="color-description">Description</Label>
+              <Input
+                id="color-description"
+                value={createColorForm.description}
+                onChange={e => setCreateColorForm(f => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loadingColors}>Créer la couleur</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de création rapide de carrosserie */}
+      <Dialog open={showCreateBodyworkModal} onOpenChange={setShowCreateBodyworkModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Créer une carrosserie</DialogTitle>
+            <DialogDescription>
+              Remplissez les informations pour créer une nouvelle carrosserie.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateBodywork} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="bodywork-code">Code *</Label>
+              <Input
+                id="bodywork-code"
+                value={createBodyworkForm.code}
+                onChange={e => setCreateBodyworkForm(f => ({ ...f, code: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bodywork-label">Nom *</Label>
+              <Input
+                id="bodywork-label"
+                value={createBodyworkForm.label}
+                onChange={e => setCreateBodyworkForm(f => ({ ...f, label: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bodywork-description">Description</Label>
+              <Input
+                id="bodywork-description"
+                value={createBodyworkForm.description}
+                onChange={e => setCreateBodyworkForm(f => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loadingBodyworks}>Créer la carrosserie</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
