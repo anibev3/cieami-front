@@ -30,7 +30,7 @@ interface AscertainmentTypeSelectProps {
 export function AscertainmentTypeSelect({
   value,
   onValueChange,
-  placeholder = "Sélectionner un type de constat...",
+  placeholder = "Sélectionner un type",
   disabled = false,
   className,
   showStatus = false

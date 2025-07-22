@@ -514,7 +514,7 @@ export default function RealizeAssignmentPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Date d'expertise</FormLabel>
-                          <FormControl>
+                              <FormControl>
                             <Input
                               type="date"
                               value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
@@ -525,7 +525,7 @@ export default function RealizeAssignmentPage() {
                               max={format(new Date(), 'yyyy-MM-dd')}
                               className="w-full"
                             />
-                          </FormControl>
+                              </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}

@@ -638,3 +638,156 @@ export interface VehicleAge {
   created_at: string
   updated_at: string
 } 
+
+// Types pour les natures de sinistres
+export interface ClaimNature {
+  id: number
+  code: string
+  label: string
+  description: string
+  status: {
+    id: number
+    code: string
+    label: string
+    description: string | null
+    deleted_at: string | null
+    created_at: string | null
+    updated_at: string | null
+  }
+  created_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  }
+  updated_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  } | null
+  deleted_by: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  } | null
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
+export interface CreateClaimNatureData {
+  code: string
+  label: string
+  description: string
+}
+
+export interface UpdateClaimNatureData {
+  code: string
+  label: string
+  description: string
+}
+
+export interface ClaimNatureResponse {
+  data: ClaimNature[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+// Types pour les remarques
+export interface Remark {
+  id: number
+  label: string
+  description: string
+  status: {
+    id: number
+    code: string | null
+    label: string
+    description: string | null
+    deleted_at: string | null
+    created_at: string | null
+    updated_at: string | null
+  }
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateRemarkData {
+  label: string
+  description: string
+}
+
+export interface UpdateRemarkData {
+  label: string
+  description: string
+}
+
+export interface RemarkResponse {
+  data: Remark[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+} 

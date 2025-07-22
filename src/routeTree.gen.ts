@@ -91,12 +91,15 @@ import { Route as AuthenticatedAdministrationDocumentsImport } from './routes/_a
 import { Route as AuthenticatedAdministrationColorsImport } from './routes/_authenticated/administration/colors'
 import { Route as AuthenticatedAdministrationBrandsImport } from './routes/_authenticated/administration/brands'
 import { Route as AuthenticatedAdministrationAssignmentTypesImport } from './routes/_authenticated/administration/assignment-types'
+import { Route as AuthenticatedGestionSinistreIndexImport } from './routes/_authenticated/gestion/sinistre/index'
+import { Route as AuthenticatedGestionRemarqueIndexImport } from './routes/_authenticated/gestion/remarque/index'
 import { Route as AuthenticatedGestionDepreciationTablesIndexImport } from './routes/_authenticated/gestion/depreciation-tables/index'
 import { Route as AuthenticatedComptabiliteInvoicesIndexImport } from './routes/_authenticated/comptabilite/invoices/index'
 import { Route as AuthenticatedAssignmentsRecoveryExpiredIndexImport } from './routes/_authenticated/assignments/recovery-expired/index'
 import { Route as AuthenticatedAssignmentsEditionExpiredIndexImport } from './routes/_authenticated/assignments/edition-expired/index'
 import { Route as AuthenticatedAssignmentsCostOfSupplyIndexImport } from './routes/_authenticated/assignments/cost-of-supply/index'
 import { Route as AuthenticatedAdministrationConstatIndexImport } from './routes/_authenticated/administration/constat/index'
+import { Route as AuthenticatedGestionSinistreNatureSinistreImport } from './routes/_authenticated/gestion/sinistre/nature-sinistre'
 import { Route as AuthenticatedGestionDepreciationTablesTheoreticalValueImport } from './routes/_authenticated/gestion/depreciation-tables/theoretical-value'
 import { Route as AuthenticatedGestionClientIdImport } from './routes/_authenticated/gestion/client.$id'
 import { Route as AuthenticatedComptabiliteStatisticsAssignmentsImport } from './routes/_authenticated/comptabilite/statistics/assignments'
@@ -664,6 +667,20 @@ const AuthenticatedAdministrationAssignmentTypesRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedGestionSinistreIndexRoute =
+  AuthenticatedGestionSinistreIndexImport.update({
+    id: '/gestion/sinistre/',
+    path: '/gestion/sinistre/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedGestionRemarqueIndexRoute =
+  AuthenticatedGestionRemarqueIndexImport.update({
+    id: '/gestion/remarque/',
+    path: '/gestion/remarque/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedGestionDepreciationTablesIndexRoute =
   AuthenticatedGestionDepreciationTablesIndexImport.update({
     id: '/gestion/depreciation-tables/',
@@ -703,6 +720,13 @@ const AuthenticatedAdministrationConstatIndexRoute =
   AuthenticatedAdministrationConstatIndexImport.update({
     id: '/administration/constat/',
     path: '/administration/constat/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedGestionSinistreNatureSinistreRoute =
+  AuthenticatedGestionSinistreNatureSinistreImport.update({
+    id: '/gestion/sinistre/nature-sinistre',
+    path: '/gestion/sinistre/nature-sinistre',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1571,6 +1595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGestionDepreciationTablesTheoreticalValueImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/gestion/sinistre/nature-sinistre': {
+      id: '/_authenticated/gestion/sinistre/nature-sinistre'
+      path: '/gestion/sinistre/nature-sinistre'
+      fullPath: '/gestion/sinistre/nature-sinistre'
+      preLoaderRoute: typeof AuthenticatedGestionSinistreNatureSinistreImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/administration/constat/': {
       id: '/_authenticated/administration/constat/'
       path: '/administration/constat'
@@ -1611,6 +1642,20 @@ declare module '@tanstack/react-router' {
       path: '/gestion/depreciation-tables'
       fullPath: '/gestion/depreciation-tables'
       preLoaderRoute: typeof AuthenticatedGestionDepreciationTablesIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/gestion/remarque/': {
+      id: '/_authenticated/gestion/remarque/'
+      path: '/gestion/remarque'
+      fullPath: '/gestion/remarque'
+      preLoaderRoute: typeof AuthenticatedGestionRemarqueIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/gestion/sinistre/': {
+      id: '/_authenticated/gestion/sinistre/'
+      path: '/gestion/sinistre'
+      fullPath: '/gestion/sinistre'
+      preLoaderRoute: typeof AuthenticatedGestionSinistreIndexImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/administration/constat/details/$id': {
@@ -1802,11 +1847,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsRealizeIdRoute: typeof AuthenticatedAssignmentsRealizeIdRoute
   AuthenticatedGestionClientIdRoute: typeof AuthenticatedGestionClientIdRoute
   AuthenticatedGestionDepreciationTablesTheoreticalValueRoute: typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
+  AuthenticatedGestionSinistreNatureSinistreRoute: typeof AuthenticatedGestionSinistreNatureSinistreRoute
   AuthenticatedAdministrationConstatIndexRoute: typeof AuthenticatedAdministrationConstatIndexRoute
   AuthenticatedAssignmentsCostOfSupplyIndexRoute: typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   AuthenticatedAssignmentsEditionExpiredIndexRoute: typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   AuthenticatedAssignmentsRecoveryExpiredIndexRoute: typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
   AuthenticatedGestionDepreciationTablesIndexRoute: typeof AuthenticatedGestionDepreciationTablesIndexRoute
+  AuthenticatedGestionRemarqueIndexRoute: typeof AuthenticatedGestionRemarqueIndexRoute
+  AuthenticatedGestionSinistreIndexRoute: typeof AuthenticatedGestionSinistreIndexRoute
   AuthenticatedAdministrationConstatDetailsIdRoute: typeof AuthenticatedAdministrationConstatDetailsIdRoute
   AuthenticatedAdministrationConstatCreateIndexRoute: typeof AuthenticatedAdministrationConstatCreateIndexRoute
 }
@@ -1912,6 +1960,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGestionClientIdRoute: AuthenticatedGestionClientIdRoute,
   AuthenticatedGestionDepreciationTablesTheoreticalValueRoute:
     AuthenticatedGestionDepreciationTablesTheoreticalValueRoute,
+  AuthenticatedGestionSinistreNatureSinistreRoute:
+    AuthenticatedGestionSinistreNatureSinistreRoute,
   AuthenticatedAdministrationConstatIndexRoute:
     AuthenticatedAdministrationConstatIndexRoute,
   AuthenticatedAssignmentsCostOfSupplyIndexRoute:
@@ -1922,6 +1972,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAssignmentsRecoveryExpiredIndexRoute,
   AuthenticatedGestionDepreciationTablesIndexRoute:
     AuthenticatedGestionDepreciationTablesIndexRoute,
+  AuthenticatedGestionRemarqueIndexRoute:
+    AuthenticatedGestionRemarqueIndexRoute,
+  AuthenticatedGestionSinistreIndexRoute:
+    AuthenticatedGestionSinistreIndexRoute,
   AuthenticatedAdministrationConstatDetailsIdRoute:
     AuthenticatedAdministrationConstatDetailsIdRoute,
   AuthenticatedAdministrationConstatCreateIndexRoute:
@@ -2073,12 +2127,15 @@ export interface FileRoutesByFullPath {
   '/comptabilite/statistics/assignments': typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
   '/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
+  '/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
   '/administration/constat': typeof AuthenticatedAdministrationConstatIndexRoute
   '/assignments/cost-of-supply': typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   '/assignments/edition-expired': typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   '/assignments/recovery-expired': typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
   '/comptabilite/invoices': typeof AuthenticatedComptabiliteInvoicesIndexRoute
   '/gestion/depreciation-tables': typeof AuthenticatedGestionDepreciationTablesIndexRoute
+  '/gestion/remarque': typeof AuthenticatedGestionRemarqueIndexRoute
+  '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
   '/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
@@ -2181,12 +2238,15 @@ export interface FileRoutesByTo {
   '/comptabilite/statistics/assignments': typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
   '/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
+  '/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
   '/administration/constat': typeof AuthenticatedAdministrationConstatIndexRoute
   '/assignments/cost-of-supply': typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   '/assignments/edition-expired': typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   '/assignments/recovery-expired': typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
   '/comptabilite/invoices': typeof AuthenticatedComptabiliteInvoicesIndexRoute
   '/gestion/depreciation-tables': typeof AuthenticatedGestionDepreciationTablesIndexRoute
+  '/gestion/remarque': typeof AuthenticatedGestionRemarqueIndexRoute
+  '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
   '/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
@@ -2295,12 +2355,15 @@ export interface FileRoutesById {
   '/_authenticated/comptabilite/statistics/assignments': typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   '/_authenticated/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
   '/_authenticated/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
+  '/_authenticated/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
   '/_authenticated/administration/constat/': typeof AuthenticatedAdministrationConstatIndexRoute
   '/_authenticated/assignments/cost-of-supply/': typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   '/_authenticated/assignments/edition-expired/': typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   '/_authenticated/assignments/recovery-expired/': typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
   '/_authenticated/comptabilite/invoices/': typeof AuthenticatedComptabiliteInvoicesIndexRoute
   '/_authenticated/gestion/depreciation-tables/': typeof AuthenticatedGestionDepreciationTablesIndexRoute
+  '/_authenticated/gestion/remarque/': typeof AuthenticatedGestionRemarqueIndexRoute
+  '/_authenticated/gestion/sinistre/': typeof AuthenticatedGestionSinistreIndexRoute
   '/_authenticated/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
   '/_authenticated/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
   '/_authenticated/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
@@ -2409,12 +2472,15 @@ export interface FileRouteTypes {
     | '/comptabilite/statistics/assignments'
     | '/gestion/client/$id'
     | '/gestion/depreciation-tables/theoretical-value'
+    | '/gestion/sinistre/nature-sinistre'
     | '/administration/constat'
     | '/assignments/cost-of-supply'
     | '/assignments/edition-expired'
     | '/assignments/recovery-expired'
     | '/comptabilite/invoices'
     | '/gestion/depreciation-tables'
+    | '/gestion/remarque'
+    | '/gestion/sinistre'
     | '/administration/constat/details/$id'
     | '/comptabilite/check/edit/$id'
     | '/comptabilite/invoices/details/$id'
@@ -2516,12 +2582,15 @@ export interface FileRouteTypes {
     | '/comptabilite/statistics/assignments'
     | '/gestion/client/$id'
     | '/gestion/depreciation-tables/theoretical-value'
+    | '/gestion/sinistre/nature-sinistre'
     | '/administration/constat'
     | '/assignments/cost-of-supply'
     | '/assignments/edition-expired'
     | '/assignments/recovery-expired'
     | '/comptabilite/invoices'
     | '/gestion/depreciation-tables'
+    | '/gestion/remarque'
+    | '/gestion/sinistre'
     | '/administration/constat/details/$id'
     | '/comptabilite/check/edit/$id'
     | '/comptabilite/invoices/details/$id'
@@ -2628,12 +2697,15 @@ export interface FileRouteTypes {
     | '/_authenticated/comptabilite/statistics/assignments'
     | '/_authenticated/gestion/client/$id'
     | '/_authenticated/gestion/depreciation-tables/theoretical-value'
+    | '/_authenticated/gestion/sinistre/nature-sinistre'
     | '/_authenticated/administration/constat/'
     | '/_authenticated/assignments/cost-of-supply/'
     | '/_authenticated/assignments/edition-expired/'
     | '/_authenticated/assignments/recovery-expired/'
     | '/_authenticated/comptabilite/invoices/'
     | '/_authenticated/gestion/depreciation-tables/'
+    | '/_authenticated/gestion/remarque/'
+    | '/_authenticated/gestion/sinistre/'
     | '/_authenticated/administration/constat/details/$id'
     | '/_authenticated/comptabilite/check/edit/$id'
     | '/_authenticated/comptabilite/invoices/details/$id'
@@ -2762,11 +2834,14 @@ export const routeTree = rootRoute
         "/_authenticated/assignments/realize/$id",
         "/_authenticated/gestion/client/$id",
         "/_authenticated/gestion/depreciation-tables/theoretical-value",
+        "/_authenticated/gestion/sinistre/nature-sinistre",
         "/_authenticated/administration/constat/",
         "/_authenticated/assignments/cost-of-supply/",
         "/_authenticated/assignments/edition-expired/",
         "/_authenticated/assignments/recovery-expired/",
         "/_authenticated/gestion/depreciation-tables/",
+        "/_authenticated/gestion/remarque/",
+        "/_authenticated/gestion/sinistre/",
         "/_authenticated/administration/constat/details/$id",
         "/_authenticated/administration/constat/create/"
       ]
@@ -3190,6 +3265,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/gestion/depreciation-tables/theoretical-value.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/gestion/sinistre/nature-sinistre": {
+      "filePath": "_authenticated/gestion/sinistre/nature-sinistre.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/administration/constat/": {
       "filePath": "_authenticated/administration/constat/index.tsx",
       "parent": "/_authenticated"
@@ -3212,6 +3291,14 @@ export const routeTree = rootRoute
     },
     "/_authenticated/gestion/depreciation-tables/": {
       "filePath": "_authenticated/gestion/depreciation-tables/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/gestion/remarque/": {
+      "filePath": "_authenticated/gestion/remarque/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/gestion/sinistre/": {
+      "filePath": "_authenticated/gestion/sinistre/index.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/administration/constat/details/$id": {

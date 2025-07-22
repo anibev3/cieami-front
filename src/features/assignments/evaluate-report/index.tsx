@@ -792,142 +792,6 @@ export default function EvaluateReportPage() {
     navigate({ to: '/assignments' })
   }, [navigate])
 
-  // // Fonction de calcul global automatique pour tous les points de choc
-  // const calculateAllShocks = useCallback(async () => {
-  //   // Vérifier s'il y a au moins une fourniture, une main d'œuvre ou des autres coûts
-  //   const hasSupplies = shocks.some(shock => shock.shock_works.length > 0)
-  //   const hasWorkforce = shocks.some(shock => shock.workforces.length > 0)
-  //   const hasOtherCosts = otherCosts.some(cost => cost.other_cost_type_id > 0)
-    
-  //   if (!hasSupplies && !hasWorkforce && !hasOtherCosts) {
-  //     return // Pas de calcul si aucune donnée
-  //   }
-
-  //   // Marquer tous les points de choc comme en cours de calcul
-  //   setCalculatingShocks(new Set(shocks.map((_, index) => index)))
-
-  //   try {
-  //     // Filtrer les autres coûts valides (avec other_cost_type_id > 0)
-  //     const validOtherCosts = otherCosts.filter(cost => cost.other_cost_type_id > 0)
-
-  //     // Filtrer les chocs avec des données valides
-  //     const validShocks = shocks
-  //       .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
-  //       .map(shock => ({
-  //         shock_point_id: shock.shock_point_id,
-  //         shock_works: shock.shock_works.filter((work: any) => work.supply_id && work.supply_id !== 0).map((work: any) => ({
-  //           supply_id: work.supply_id,
-  //           disassembly: work.disassembly,
-  //           replacement: work.replacement,
-  //           repair: work.repair,
-  //           paint: work.paint,
-  //           control: work.control,
-  //           comment: work.comment,
-  //           obsolescence_rate: work.obsolescence_rate,
-  //           recovery_rate: work.recovery_rate,
-  //           amount: work.amount || 0
-  //         })),
-  //         paint_type_id: shock.paint_type_id,
-  //         hourly_rate_id: shock.hourly_rate_id,
-  //         with_tax: shock.with_tax,
-  //         workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
-  //           workforce_type_id: workforce.workforce_type_id,
-  //           nb_hours: workforce.nb_hours,
-  //           discount: workforce.discount
-  //         }))
-  //       }))
-  //       .filter(shock => (shock.shock_works.length > 0 || shock.workforces.length > 0) && shock.paint_type_id && shock.hourly_rate_id)
-
-  //     const payload = {
-  //       shocks: validShocks,
-  //       other_costs: validOtherCosts.map(cost => ({
-  //         other_cost_type_id: cost.other_cost_type_id,
-  //         amount: cost.amount
-  //       }))
-  //     }
-
-  //     const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATE_EVALUATION}`, payload)
-      
-  //     if (response.data.status === 200) {
-  //       const calculatedData = response.data.data
-        
-  //       // Mettre à jour tous les points de choc avec les montants calculés
-  //       shocks.forEach((shock, shockIndex) => {
-  //         const calculatedShock = calculatedData.shocks[shockIndex]
-  //         if (calculatedShock) {
-  //           // Mettre à jour les fournitures avec les montants calculés
-  //           const updatedShockWorks = shock.shock_works.map((work: any, index: number) => ({
-  //             ...work,
-  //             ...calculatedShock.shock_works[index]
-  //           }))
-
-  //           // Mettre à jour la main d'œuvre avec les montants calculés
-  //           const updatedWorkforces = shock.workforces.map((workforce: any, index: number) => ({
-  //             ...workforce,
-  //             ...calculatedShock.workforces[index]
-  //           }))
-
-  //           // Mettre à jour le point de choc
-  //           const updatedShock = {
-  //             ...shock,
-  //             shock_works: updatedShockWorks,
-  //             workforces: updatedWorkforces
-  //           }
-
-  //           updateShock(shockIndex, updatedShock)
-  //         }
-  //       })
-        
-  //       // Mettre à jour les résultats de calcul avec les montants globaux
-  //       // Stocker les montants globaux dans le premier calcul (index 0)
-  //       if (calculatedData) {
-  //         updateCalculation(0, {
-  //           shocks: calculatedData.shocks || [],
-  //           other_costs: calculatedData.other_costs || [],
-  //           shock_works: calculatedData.shocks?.[0]?.shock_works || [],
-  //           workforces: calculatedData.shocks?.[0]?.workforces || [],
-  //           // Montants globaux des chocs
-  //           total_shock_amount_excluding_tax: calculatedData.total_shock_amount_excluding_tax,
-  //           total_shock_amount_tax: calculatedData.total_shock_amount_tax,
-  //           total_shock_amount: calculatedData.total_shock_amount,
-  //           // Montants globaux de la main d'œuvre
-  //           total_workforce_amount_excluding_tax: calculatedData.total_workforce_amount_excluding_tax,
-  //           total_workforce_amount_tax: calculatedData.total_workforce_amount_tax,
-  //           total_workforce_amount: calculatedData.total_workforce_amount,
-  //           // Montants globaux des produits peinture
-  //           total_paint_product_amount_excluding_tax: calculatedData.total_paint_product_amount_excluding_tax,
-  //           total_paint_product_amount_tax: calculatedData.total_paint_product_amount_tax,
-  //           total_paint_product_amount: calculatedData.total_paint_product_amount,
-  //           // Montants globaux des petites fournitures
-  //           total_small_supply_amount_excluding_tax: calculatedData.total_small_supply_amount_excluding_tax,
-  //           total_small_supply_amount_tax: calculatedData.total_small_supply_amount_tax,
-  //           total_small_supply_amount: calculatedData.total_small_supply_amount,
-  //           // Montants globaux des autres coûts
-  //           total_other_costs_amount_excluding_tax: calculatedData.total_other_costs_amount_excluding_tax,
-  //           total_other_costs_amount_tax: calculatedData.total_other_costs_amount_tax,
-  //           total_other_costs_amount: calculatedData.total_other_costs_amount,
-  //           // Montants globaux totaux
-  //           shocks_amount_excluding_tax: calculatedData.shocks_amount_excluding_tax,
-  //           shocks_amount_tax: calculatedData.shocks_amount_tax,
-  //           shocks_amount: calculatedData.shocks_amount,
-  //           total_amount_excluding_tax: calculatedData.total_amount_excluding_tax,
-  //           total_amount_tax: calculatedData.total_amount_tax,
-  //           total_amount: calculatedData.total_amount,
-  //         })
-  //       }
-        
-  //       setHasUnsavedChanges(true)
-  //       toast.success('Calcul global effectué avec succès')
-  //     }
-  //   } catch (error) {
-  //     console.error('Erreur lors du calcul global:', error)
-  //     toast.error('Erreur lors du calcul global')
-  //   } finally {
-  //     // Retirer tous les points de choc du calcul en cours
-  //     setCalculatingShocks(new Set())
-  //   }
-  // }, [shocks, otherCosts, assignmentId, calculationResults, updateShock, setHasUnsavedChanges])
-
   // Fonction de mise à jour avec calcul automatique global
   const updateShockWithGlobalCalculation = useCallback((shockIndex: number, updatedShock: Shock) => {
     updateShock(shockIndex, updatedShock)
@@ -1443,18 +1307,6 @@ export default function EvaluateReportPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* <div>
-                      <pre>{JSON.stringify(s, null, 2)}</pre>
-                    </div>
-                    <div>
-                      <pre>{JSON.stringify(s.shock_works, null, 2)}</pre>
-                    </div>
-                    <div>
-                      <pre>{JSON.stringify(s.workforces, null, 2)}</pre>
-                    </div>
-                    <div>
-                      <pre>{JSON.stringify(s.paint_type_id, null, 2)}</pre>
-                    </div> */}
                     
                     {/* Fournitures */}
                     <ShockSuppliesEvaluateTable
@@ -1475,7 +1327,12 @@ export default function EvaluateReportPage() {
                           comment: '',
                           obsolescence_rate: 0,
                           recovery_rate: 0,
-                          amount: 0
+                          amount: 0,
+                          discount: 0,
+                          new_amount_excluding_tax: 0,
+                          new_amount_tax: 0,
+                          new_amount: 0,
+                          with_tax: false
                         }
                         const updatedShock = { ...s, shock_works: [...s.shock_works, newWork] }
                         updateShock(index, updatedShock)
@@ -2435,127 +2292,3 @@ function EvaluationResults({
     </div>
   )
 }
-
-// Composant GlobalRecap
-function GlobalRecap({ 
-  shocks, 
-  otherCosts, 
-  calculationResults 
-}: {
-  shocks: Shock[]
-  otherCosts: { other_cost_type_id: number; amount: number }[]
-  calculationResults: { [key: number]: CalculationResult }
-}) {
-  // Récupérer les montants globaux depuis tous les calculs
-  const allResults = Object.values(calculationResults)
-  
-  // Prendre le premier résultat qui contient les montants globaux
-  const globalResults = allResults.find(result => 
-    result.total_amount_excluding_tax !== undefined ||
-    result.total_other_costs_amount_excluding_tax !== undefined
-  ) as CalculationResult | undefined
-
-  // Si aucun résultat global n'est trouvé, essayer de récupérer depuis n'importe quel calcul
-  const fallbackResults = allResults.length > 0 ? allResults[0] : undefined
-
-  // Montants des autres coûts
-  const otherCostsAmounts = {
-    total_other_costs_amount_excluding_tax: globalResults?.total_other_costs_amount_excluding_tax || fallbackResults?.total_other_costs_amount_excluding_tax || 0,
-    total_other_costs_amount_tax: globalResults?.total_other_costs_amount_tax || fallbackResults?.total_other_costs_amount_tax || 0,
-    total_other_costs_amount: globalResults?.total_other_costs_amount || fallbackResults?.total_other_costs_amount || 0,
-  }
-
-  // Montants totaux globaux
-  const totalAmounts = {
-    total_amount_excluding_tax: globalResults?.total_amount_excluding_tax || fallbackResults?.total_amount_excluding_tax || 0,
-    total_amount_tax: globalResults?.total_amount_tax || fallbackResults?.total_amount_tax || 0,
-    total_amount: globalResults?.total_amount || fallbackResults?.total_amount || 0,
-  }
-
-  const formatCurrency = (amount: number) => {
-    return (amount / 1000).toFixed(3) || '0.000'
-  }
-
-  return (
-    <Card className="shadow-none my-6 mx-5">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="h-5 w-5" />
-          Récapitulatif global
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">Points de choc</p>
-            <p className="text-xl font-bold">{shocks.length}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">Calculs effectués</p>
-            <p className="text-xl font-bold text-green-600">{Object.keys(calculationResults).length}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">Coûts autres</p>
-            <p className="text-xl font-bold">{otherCosts.length}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">Total TTC</p>
-            <p className="text-xl font-bold text-blue-600">{formatCurrency(totalAmounts.total_amount)}</p>  
-          </div>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        <div className="grid">
-          <div>
-            <h4 className="font-semibold mb-4 text-base">Récapitulatif final</h4>
-            <div className="space-y-3">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-800">Coûts autres</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-gray-600">HT:</span>
-                    <p className="font-semibold">{formatCurrency(otherCostsAmounts.total_other_costs_amount_excluding_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">TVA:</span>
-                    <p className="font-semibold">{formatCurrency(otherCostsAmounts.total_other_costs_amount_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">TTC:</span>
-                    <p className="font-semibold">{formatCurrency(otherCostsAmounts.total_other_costs_amount)}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="bg-blue-100 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-blue-900 text-base">Total général</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-blue-600">HT:</span>
-                    <p className="font-bold text-lg text-blue-900">{formatCurrency(totalAmounts.total_amount_excluding_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-blue-600">TVA:</span>
-                    <p className="font-bold text-lg text-blue-900">{formatCurrency(totalAmounts.total_amount_tax)}</p>
-                  </div>
-                  <div>
-                    <span className="text-blue-600">TTC:</span>
-                    <p className="font-bold text-xl text-blue-900">{formatCurrency(totalAmounts.total_amount)}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-blue-700 mt-2">Tous montants calculés par l'API</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-} 

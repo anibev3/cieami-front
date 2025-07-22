@@ -278,7 +278,7 @@ export default function CreateAscertainmentPage() {
                                       onValueChange={(value) => updateAscertainment(index, 'ascertainment_type_id', value)}
                                     >
                                       <SelectTrigger className="hover:bg-gray-50 w-full">
-                                        <SelectValue placeholder="Sélectionner un type de constat" />
+                                        <SelectValue placeholder="Sélectionner un type" />
                                       </SelectTrigger>
                                       <SelectContent>
                                         {ascertainmentTypes.map((type) => (

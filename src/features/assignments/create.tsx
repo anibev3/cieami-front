@@ -1311,7 +1311,7 @@ export default function CreateAssignmentPage() {
                   <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Types */}
-                <div className="space-y-4">
+                      <div className="space-y-4">
                         <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
                           <FileText className="h-5 w-5 text-purple-500" />
                           Types
@@ -1431,7 +1431,7 @@ export default function CreateAssignmentPage() {
                               <FormItem>
                                 {/* <FormLabel>Documents transmis</FormLabel> */}
                                 <div className="space-y-2">
-                                  <ScrollArea className="h-[200px] border rounded-md p-2">
+                                  <ScrollArea className="border rounded-md p-2">
                                         {documents.map((document) => (
                                       <div key={document.id} className="flex items-center space-x-2 py-2">
                                         <Checkbox

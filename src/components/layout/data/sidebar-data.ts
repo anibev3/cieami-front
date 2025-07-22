@@ -158,6 +158,16 @@ export const sidebarData: SidebarData = {
           url: '/gestion/documents',
           icon: IconFileText,
         },
+        {
+          title: 'Nature des sinistres',
+          url: '/gestion/sinistre/nature-sinistre',
+          icon: IconFileText,
+        },
+        {
+          title: 'Remarques experts',
+          url: '/gestion/remarque',
+          icon: IconFileText,
+        },
       ],
     },
     {

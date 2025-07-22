@@ -8,11 +8,14 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { Label } from '@/components/ui/label'
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Main } from '@/components/layout/main'
 import {
   Dialog,
@@ -21,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
 import { 
   ArrowLeft, 
   Loader2, 
@@ -32,7 +36,13 @@ import {
   Trash2,
   History,
   Calculator,
-  FileText
+  FileText,
+  TrendingUp,
+  Star,
+  StarOff,
+  CalendarIcon,
+  Car,
+  AlertCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 import axiosInstance from '@/lib/axios'
@@ -45,17 +55,72 @@ import {
   useOtherCosts, 
   useCalculations 
 } from './hooks'
+import { useAscertainmentTypeStore } from '@/stores/ascertainmentTypes'
 import { ShockSuppliesTable } from './components/shock-supplies-table'
 import { ShockWorkforceTable } from './components/shock-workforce-table'
 import { OtherCostTypeSelect } from '@/features/widgets/reusable-selects'   
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
+import { AscertainmentTypeSelect } from '@/features/widgets/ascertainment-type-select'
+import { ClaimNatureSelect } from '@/features/widgets'
+import { RemarkSelect } from '@/features/widgets'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import type { Shock } from './hooks/use-shock-management'
+import { Calendar } from '@/components/ui/calendar'
+import { cn } from '@/lib/utils'
+import { Textarea } from '@/components/ui/textarea'
 
 
 interface OtherCostType {
   id: number
   label: string
   code: string
+}
+
+interface ClaimNature {
+  id: number
+  code: string
+  label: string
+  description: string
+  status: {
+    id: number
+    code: string | null
+    label: string
+    description: string | null
+    deleted_at: string | null
+    created_at: string | null
+    updated_at: string | null
+  }
+  created_at: string
+  updated_at: string
+}
+
+interface Remark {
+  id: number
+  label: string
+  description: string
+  status: {
+    id: number
+    code: string | null
+    label: string
+    description: string | null
+    deleted_at: string | null
+    created_at: string | null
+    updated_at: string | null
+  }
+  created_at: string
+  updated_at: string
+}
+
+// Interfaces pour les constats
+interface Ascertainment {
+  ascertainment_type_id: string
+  very_good: boolean
+  good: boolean
+  acceptable: boolean
+  less_good: boolean
+  bad: boolean
+  very_bad: boolean
+  comment: string | null
 }
 
 interface CalculationResult {
@@ -141,6 +206,9 @@ export default function ReportEditPage() {
     getTotalAmount,
     updateCalculation
   } = useCalculations()
+
+  // Hook pour les types de constat
+  const { ascertainmentTypes, fetchAscertainmentTypes } = useAscertainmentTypeStore()
   
   // États pour les modals
   const [showShockModal, setShowShockModal] = useState(false)
@@ -160,6 +228,27 @@ export default function ReportEditPage() {
   
   // État pour suivre si des données pré-remplies ont été chargées
   const [hasPreloadedData, setHasPreloadedData] = useState(false)
+
+  // États pour l'évaluation et les constats
+  const [marketIncidenceRate, setMarketIncidenceRate] = useState(6) // Valeur par défaut de 6%
+  const [expertiseDate, setExpertiseDate] = useState(new Date().toISOString().split('T')[0])
+  
+  // États pour les nouveaux champs requis par l'API
+  const [claimNatureId, setClaimNatureId] = useState<number | null>(null)
+  const [expertRemark, setExpertRemark] = useState('')
+  const [generalStateId, setGeneralStateId] = useState<number | null>(null)
+  const [technicalConclusionId, setTechnicalConclusionId] = useState<number | null>(null)
+  
+  const [ascertainments, setAscertainments] = useState<Array<{
+    ascertainment_type_id: string
+    very_good: boolean
+    good: boolean
+    acceptable: boolean
+    less_good: boolean
+    bad: boolean
+    very_bad: boolean
+    comment: string
+  }>>([])
 
   // Mettre à jour hasUnsavedChanges quand les données changent
   useEffect(() => {
@@ -186,8 +275,102 @@ export default function ReportEditPage() {
     }
   }, [assignment?.other_costs])
 
+  // Charger les types de constat
+  useEffect(() => {
+    if (ascertainmentTypes.length === 0) {
+      fetchAscertainmentTypes()
+    }
+  }, [ascertainmentTypes.length, fetchAscertainmentTypes])
+
+  // Initialiser les valeurs d'évaluation quand l'assignment est chargé
+  useEffect(() => {
+    if (assignment) {
+      // Initialiser la date d'expertise
+      if ((assignment as any).expertise_date) {
+        setExpertiseDate((assignment as any).expertise_date)
+      }
+    }
+  }, [assignment])
+
+  // Fonctions pour gérer les constats
+  const updateAscertainment = (index: number, field: string, value: any) => {
+    const newAscertainments = [...ascertainments]
+    
+    // Si c'est un champ de qualité et qu'on coche une option
+    if (['very_good', 'good', 'acceptable', 'less_good', 'bad', 'very_bad'].includes(field) && value === true) {
+      // Décocher toutes les autres options
+      newAscertainments[index] = {
+        ...newAscertainments[index],
+        very_good: false,
+        good: false,
+        acceptable: false,
+        less_good: false,
+        bad: false,
+        very_bad: false,
+        [field]: value
+      }
+    } else {
+      // Mise à jour normale
+      newAscertainments[index] = { ...newAscertainments[index], [field]: value }
+    }
+    
+    setAscertainments(newAscertainments)
+  }
+
+  const addAscertainment = () => {
+    setAscertainments([...ascertainments, {
+      ascertainment_type_id: '',
+      very_good: false,
+      good: false,
+      acceptable: false,
+      less_good: false,
+      bad: false,
+      very_bad: false,
+      comment: ''
+    }])
+  }
+
+  const removeAscertainment = (index: number) => {
+    const newAscertainments = ascertainments.filter((_, i) => i !== index)
+    setAscertainments(newAscertainments)
+  }
+
+  const getQualityScore = (ascertainment: any) => {
+    if (ascertainment.very_good) return 6
+    if (ascertainment.good) return 5
+    if (ascertainment.acceptable) return 4
+    if (ascertainment.less_good) return 3
+    if (ascertainment.bad) return 2
+    if (ascertainment.very_bad) return 1
+    return 0
+  }
+
+  const getQualityColor = (score: number) => {
+    if (score >= 5) return 'text-green-600 bg-green-50'
+    if (score >= 4) return 'text-blue-600 bg-blue-50'
+    if (score >= 3) return 'text-yellow-600 bg-yellow-50'
+    return 'text-red-600 bg-red-50'
+  }
+
+  const getQualityLabel = (score: number) => {
+    if (score >= 5) return 'Excellent'
+    if (score >= 4) return 'Bon'
+    if (score >= 3) return 'Moyen'
+    return 'Faible'
+  }
+
   // Fonction de rédaction directe du rapport
   const handleGenerateReport = useCallback(async () => {
+    // Validation des champs requis
+    if (!claimNatureId) {
+      toast.error('Veuillez sélectionner une nature de sinistre')
+      return
+    }
+    
+    if (!expertRemark.trim()) {
+      toast.error('Veuillez saisir une remarque d\'expert')
+      return
+    }
     const cleanedShocks = shocks
       .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
       .reduce((acc, shock) => {
@@ -256,9 +439,26 @@ export default function ReportEditPage() {
         other_cost_type_id: Number(c.other_cost_type_id),
         amount: Number(c.amount) || 0
       })),
+      // Paramètres d'évaluation
+      vehicle_id: assignment?.vehicle?.id?.toString(),
+      expertise_date: expertiseDate,
+      market_incidence_rate: marketIncidenceRate,
+      // Constats
+      ascertainments: ascertainments.map(ascertainment => ({
+        ascertainment_type_id: ascertainment.ascertainment_type_id,
+        very_good: ascertainment.very_good,
+        good: ascertainment.good,
+        acceptable: ascertainment.acceptable,
+        less_good: ascertainment.less_good,
+        bad: ascertainment.bad,
+        very_bad: ascertainment.very_bad,
+        comment: ascertainment.comment
+      })),
       repairer_id: 1,
-      general_state_id: 1,
-      technical_conclusion_id: 1
+      general_state_id: generalStateId || 1,
+      technical_conclusion_id: technicalConclusionId || 1,
+      claim_nature_id: claimNatureId,
+      expert_remark: expertRemark
     }
 
     // Exécuter directement la sauvegarde et la rédaction
@@ -282,7 +482,7 @@ export default function ReportEditPage() {
       setAssignmentTotalAmount(total)
       setShowReceiptModal(true)
     }
-  }, [shocks, cleanOtherCosts, saveAssignment])
+  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -297,13 +497,13 @@ export default function ReportEditPage() {
   // Fonction de calcul global automatique pour tous les points de choc
   const calculateAllShocks = useCallback(async () => {
     // Vérifier s'il y a au moins une fourniture, une main d'œuvre ou des autres coûts
-    const hasSupplies = shocks.some(shock => shock.shock_works.length > 0)
-    const hasWorkforce = shocks.some(shock => shock.workforces.length > 0)
-    const hasOtherCosts = otherCosts.some(cost => cost.other_cost_type_id > 0)
+    // const hasSupplies = shocks.some(shock => shock.shock_works.length > 0)
+    // const hasWorkforce = shocks.some(shock => shock.workforces.length > 0)
+    // const hasOtherCosts = otherCosts.some(cost => cost.other_cost_type_id > 0)
     
-    if (!hasSupplies && !hasWorkforce && !hasOtherCosts) {
-      return // Pas de calcul si aucune donnée
-    }
+    // if (!hasSupplies && !hasWorkforce && !hasOtherCosts) {
+    //   return // Pas de calcul si aucune donnée
+    // }
 
     // Marquer tous les points de choc comme en cours de calcul
     setCalculatingShocks(new Set(shocks.map((_, index) => index)))
@@ -346,7 +546,28 @@ export default function ReportEditPage() {
         other_costs: validOtherCosts.map(cost => ({
           other_cost_type_id: cost.other_cost_type_id,
           amount: cost.amount
-        }))
+        })),
+        // Paramètres d'évaluation
+        vehicle_id: assignment?.vehicle?.id?.toString(),
+        expertise_date: expertiseDate,
+        market_incidence_rate: marketIncidenceRate,
+        // Constats
+        ascertainments: ascertainments.map(ascertainment => ({
+          ascertainment_type_id: ascertainment.ascertainment_type_id,
+          very_good: ascertainment.very_good,
+          good: ascertainment.good,
+          acceptable: ascertainment.acceptable,
+          less_good: ascertainment.less_good,
+          bad: ascertainment.bad,
+          very_bad: ascertainment.very_bad,
+          comment: ascertainment.comment
+        })),
+        // Nouveaux champs requis par l'API
+        assignment_id: assignmentId,
+        general_state_id: generalStateId || 1,
+        technical_conclusion_id: technicalConclusionId || 1,
+        claim_nature_id: claimNatureId,
+        expert_remark: expertRemark
       }
 
       const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATIONS}`, payload)
@@ -429,7 +650,7 @@ export default function ReportEditPage() {
       // Retirer tous les points de choc du calcul en cours
       setCalculatingShocks(new Set())
     }
-  }, [shocks, otherCosts, assignmentId, calculationResults, updateShock, setHasUnsavedChanges])
+  }, [shocks, otherCosts, assignmentId, calculationResults, updateShock, setHasUnsavedChanges, claimNatureId, expertRemark, generalStateId, technicalConclusionId])
 
   // Fonction de mise à jour avec calcul automatique global
   const updateShockWithGlobalCalculation = useCallback((shockIndex: number, updatedShock: Shock) => {
@@ -528,6 +749,37 @@ export default function ReportEditPage() {
     // }
   }, [removeOtherCost, otherCosts, calculateAllShocks])
 
+  // Handlers pour les nouveaux champs
+  const handleClaimNatureChange = useCallback((value: number | null) => {
+    setClaimNatureId(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  const handleRemarkChange = useCallback((value: number | null) => {
+    // Quand une remarque est sélectionnée, pré-remplir le champ expert_remark
+    if (value) {
+      // Ici on pourrait charger la remarque depuis le store et pré-remplir
+      // Pour l'instant, on laisse l'utilisateur modifier manuellement
+      // TODO: Implémenter le chargement de la remarque depuis le store
+    }
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  const handleExpertRemarkChange = useCallback((value: string) => {
+    setExpertRemark(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  const handleGeneralStateChange = useCallback((value: number | null) => {
+    setGeneralStateId(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
+  const handleTechnicalConclusionChange = useCallback((value: number | null) => {
+    setTechnicalConclusionId(value)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
   // Fonction de calcul d'un seul point de choc
   const calculateSingleShock = useCallback(async (shockIndex: number) => {
     const shock = shocks[shockIndex]
@@ -580,7 +832,22 @@ export default function ReportEditPage() {
 
       const payload = {
         shocks: [validShock],
-        other_costs: [] // Pas d'autres coûts pour le calcul d'un seul choc
+        other_costs: [], // Pas d'autres coûts pour le calcul d'un seul choc
+        // Paramètres d'évaluation
+        vehicle_id: assignment?.vehicle?.id?.toString(),
+        expertise_date: expertiseDate,
+        market_incidence_rate: marketIncidenceRate,
+        // Constats
+        ascertainments: ascertainments.map(ascertainment => ({
+          ascertainment_type_id: ascertainment.ascertainment_type_id,
+          very_good: ascertainment.very_good,
+          good: ascertainment.good,
+          acceptable: ascertainment.acceptable,
+          less_good: ascertainment.less_good,
+          bad: ascertainment.bad,
+          very_bad: ascertainment.very_bad,
+          comment: ascertainment.comment
+        }))
       }
 
       const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.CALCULATIONS}`, payload)
@@ -763,7 +1030,223 @@ export default function ReportEditPage() {
             </div>
           </div>
 
+          {/* Section des paramètres d'évaluation - EN PREMIER PLAN */}
+          <div className="space-y-4 mt-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+                Paramètres d'évaluation
+              </h2>
+            </div>
+            <div className="border-b border-gray-200 mb-4"></div>
+            
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-3">
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-blue-600" />
+                    Date d'expertise
+                    {!expertiseDate && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left text-sm",
+                          !expertiseDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {expertiseDate ? (
+                          format(new Date(expertiseDate), "EEEE, d MMMM yyyy", { locale: fr })
+                        ) : (
+                          <span>Sélectionner une date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={expertiseDate ? new Date(expertiseDate) : undefined}
+                        initialFocus
+                        onSelect={(date) => {
+                          if (date) {
+                            setExpertiseDate(date.toISOString().split('T')[0])
+                          }
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    Taux d'incidence marché (%)
+                    {marketIncidenceRate <= 0 && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={marketIncidenceRate}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0
+                      setMarketIncidenceRate(Math.max(0, value))
+                    }}
+                    onBlur={(e) => {
+                      const value = parseFloat(e.target.value) || 0
+                      setMarketIncidenceRate(Math.max(0, value))
+                    }}
+                    placeholder="6"
+                    className={`border-gray-300 focus:border-blue-500 focus:ring-blue-200 ${marketIncidenceRate < 0 ? 'border-red-300' : ''}`}
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <Car className="h-4 w-4 text-purple-600" />
+                    Véhicule
+                    {!assignment?.vehicle?.id && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  <div className={`p-2 rounded-lg border-2 ${!assignment?.vehicle?.id ? 'bg-red-50 border-red-200' : 'bg-white border-blue-200'}`}>
+                    {assignment?.vehicle ? (
+                      <div className="">
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-lg text-gray-800">{assignment.vehicle.license_plate}</div>
+                          <Badge variant="outline" className="bg-green-100 text-green-800">
+                            <Check className="mr-1 h-3 w-3" />
+                            Valide
+                          </Badge>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-red-600 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        Aucun véhicule sélectionné
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          {/* Section des constats */}
+          <div className="space-y-4 mt-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-600" />
+                Constatation
+                {ascertainments.length > 0 && (
+                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                    {ascertainments.length} constatation(s)
+                  </Badge>
+                )}
+              </h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={addAscertainment}
+                className="text-yellow-600 border-yellow-200 hover:bg-yellow-50"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter une constatation
+              </Button>
+            </div>
+            <div className="border-b border-gray-200 mb-4"></div>
+            
+            {/* Tableau des constats */}
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              {/* En-tête du tableau avec bouton de calcul */}
+              <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-600" />
+                  <span className="text-sm font-medium text-gray-700">Liste des constatations</span>
+                  {ascertainments.length > 0 && (
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                      {ascertainments.length} constatation(s)
+                    </Badge>
+                  )}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={calculateAllShocks}
+                  disabled={ascertainments.length === 0 || loadingCalculation}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  {loadingCalculation ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Calcul en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Calculator className="mr-2 h-4 w-4" />
+                      Calculer avec constats
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        #
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Type de constat
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Qualité
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Commentaire
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {ascertainments.map((ascertainment, index) => (
+                      <AscertainmentItem
+                        key={index}
+                        ascertainment={ascertainment}
+                        ascertainmentTypes={ascertainmentTypes}
+                        onUpdate={(field, value) => updateAscertainment(index, field, value)}
+                        onRemove={() => removeAscertainment(index)}
+                        getQualityScore={getQualityScore}
+                        getQualityColor={getQualityColor}
+                        getQualityLabel={getQualityLabel}
+                        index={index}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Message quand aucun constat */}
+            {ascertainments.length === 0 && (
+              <div className="text-center pb-5">
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                  <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+                  <h3 className="text-base font-semibold text-gray-700 mb-2">Aucune constatation</h3>
+                  <p className="text-sm text-gray-500 mb-4">Ajoutez des constatations pour évaluer la qualité du véhicule</p>
+                  <Button 
+                    onClick={addAscertainment}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                      Ajouter une constatation
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Liste des points de choc */}
           <div className="space-y-6 mt-10">
@@ -1061,8 +1544,102 @@ export default function ReportEditPage() {
             </div>
           )}
 
+          {/* Nouveaux champs requis par l'API */}
+          <div className="space-y-6 mt-10">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Informations complémentaires
+            </h2>
+            
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* Nature du sinistre */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Nature du sinistre</CardTitle>
+                  <CardDescription>
+                    Sélectionnez la nature du sinistre pour ce dossier
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ClaimNatureSelect
+                    value={claimNatureId}
+                    onValueChange={handleClaimNatureChange}
+                    placeholder="Choisir une nature de sinistre..."
+                    showStatus={true}
+                  />
+                </CardContent>
+              </Card>
 
+              {/* Remarque d'expert */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Remarque d'expert</CardTitle>
+                  <CardDescription>
+                    Sélectionnez une remarque prédéfinie ou créez-en une personnalisée
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <RemarkSelect
+                    value={null}
+                    onValueChange={handleRemarkChange}
+                    placeholder="Choisir une remarque prédéfinie..."
+                    showStatus={true}
+                    showDescription={true}
+                  />
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="expert-remark">Remarque personnalisée</Label>
+                    <RichTextEditor
+                      value={expertRemark}
+                      onChange={handleExpertRemarkChange}
+                      placeholder="Rédigez votre remarque d'expert..."
+                      className="min-h-[120px]"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
+              {/* État général */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">État général</CardTitle>
+                  <CardDescription>
+                    Sélectionnez l'état général du véhicule
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="general-state">État général</Label>
+                    <Input
+                      id="general-state"
+                      placeholder="État général (à implémenter)"
+                      disabled={true}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Conclusion technique */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Conclusion technique</CardTitle>
+                  <CardDescription>
+                    Sélectionnez la conclusion technique
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="technical-conclusion">Conclusion technique</Label>
+                    <Input
+                      id="technical-conclusion"
+                      placeholder="Conclusion technique (à implémenter)"
+                      disabled={true}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
           {/* Récapitulatif global */}
           <GlobalRecap
@@ -1074,7 +1651,7 @@ export default function ReportEditPage() {
             <CardContent>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 mb-4">
               <Button 
-                disabled={!hasUnsavedChanges || saving} 
+                disabled={!hasUnsavedChanges || saving || !claimNatureId || !expertRemark.trim()} 
                 onClick={() => setShowVerificationModal(true)}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
               >
@@ -1091,6 +1668,21 @@ export default function ReportEditPage() {
                 )}
               </Button>
               </div>
+              
+              {/* Message d'aide pour les champs requis */}
+              {(!claimNatureId || !expertRemark.trim()) && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <span className="text-sm text-yellow-800">
+                      Pour rédiger le rapport, vous devez remplir :
+                      {!claimNatureId && <span className="font-semibold"> Nature du sinistre</span>}
+                      {!claimNatureId && !expertRemark.trim() && <span>, </span>}
+                      {!expertRemark.trim() && <span className="font-semibold"> Remarque d'expert</span>}
+                    </span>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           {/* Modal d'ajout de point de choc */}
@@ -1319,6 +1911,159 @@ export default function ReportEditPage() {
       </Main>
     </>
   )
+} 
+
+// Composant AscertainmentItem
+function AscertainmentItem({ 
+  ascertainment, 
+  ascertainmentTypes, 
+  onUpdate, 
+  onRemove,
+  getQualityScore,
+  getQualityColor,
+  getQualityLabel,
+  index
+}: {
+  ascertainment: {
+    ascertainment_type_id: string
+    very_good: boolean
+    good: boolean
+    acceptable: boolean
+    less_good: boolean
+    bad: boolean
+    very_bad: boolean
+    comment: string
+  }
+  ascertainmentTypes: Array<{ id: number; label: string; code: string }>
+  onUpdate: (field: string, value: any) => void
+  onRemove: () => void
+  getQualityScore: (ascertainment: any) => number
+  getQualityColor: (score: number) => string
+  getQualityLabel: (score: number) => string
+  index: number
+}) {
+  const qualityScore = getQualityScore(ascertainment)
+  const qualityColor = getQualityColor(qualityScore)
+  const qualityLabel = getQualityLabel(qualityScore)
+
+  // Trouver le type de constat sélectionné
+  const selectedType = ascertainmentTypes.find(type => type.id.toString() === ascertainment.ascertainment_type_id)
+
+  return (
+    <tr className="hover:bg-gray-50">
+      {/* Numéro */}
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+        <div className="flex items-center gap-2">
+          <Star className="h-4 w-4 text-yellow-600" />
+          #{index + 1}
+        </div>
+      </td>
+
+      {/* Type de constat */}
+      <td className="px-4 py-3 whitespace-nowrap">
+        <div className="w-48">
+          <AscertainmentTypeSelect
+            value={Number(ascertainment.ascertainment_type_id)}
+            onValueChange={(value) => onUpdate('ascertainment_type_id', value)}
+          />
+        </div>
+      </td>
+
+      {/* Qualité */}
+      <td className="px-4 py-3 whitespace-nowrap">
+        <div className="space-y-2">
+          {/* Badge de qualité */}
+          {qualityScore > 0 && (
+            <Badge className={`${qualityColor} mb-2`}>
+              {qualityLabel}
+            </Badge>
+          )}
+          
+          {/* Checkboxes de qualité */}
+          <div className="grid grid-cols-2 gap-1 text-xs">
+            <div className="flex items-center space-x-1">
+              <Checkbox
+                id={`very_good_${index}`}
+                checked={ascertainment.very_good}
+                onCheckedChange={(checked) => onUpdate('very_good', checked)}
+                className="h-3 w-3"
+              />
+              <Label htmlFor={`very_good_${index}`} className="text-xs">Très bon</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Checkbox
+                id={`good_${index}`}
+                checked={ascertainment.good}
+                onCheckedChange={(checked) => onUpdate('good', checked)}
+                className="h-3 w-3"
+              />
+              <Label htmlFor={`good_${index}`} className="text-xs">Bon</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Checkbox
+                id={`acceptable_${index}`}
+                checked={ascertainment.acceptable}
+                onCheckedChange={(checked) => onUpdate('acceptable', checked)}
+                className="h-3 w-3"
+              />
+              <Label htmlFor={`acceptable_${index}`} className="text-xs">Acceptable</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Checkbox
+                id={`less_good_${index}`}
+                checked={ascertainment.less_good}
+                onCheckedChange={(checked) => onUpdate('less_good', checked)}
+                className="h-3 w-3"
+              />
+              <Label htmlFor={`less_good_${index}`} className="text-xs">Peu bon</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Checkbox
+                id={`bad_${index}`}
+                checked={ascertainment.bad}
+                onCheckedChange={(checked) => onUpdate('bad', checked)}
+                className="h-3 w-3"
+              />
+              <Label htmlFor={`bad_${index}`} className="text-xs">Mauvais</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Checkbox
+                id={`very_bad_${index}`}
+                checked={ascertainment.very_bad}
+                onCheckedChange={(checked) => onUpdate('very_bad', checked)}
+                className="h-3 w-3"
+              />
+              <Label htmlFor={`very_bad_${index}`} className="text-xs">Très mauvais</Label>
+            </div>
+          </div>
+        </div>
+      </td>
+
+      {/* Commentaire */}
+      <td className="px-4 py-3">
+        <div className="w-64">
+          <Textarea
+            value={ascertainment.comment}
+            onChange={(e) => onUpdate('comment', e.target.value)}
+            placeholder="Ajouter un commentaire..."
+            className="min-h-[60px] text-xs resize-none"
+          />
+        </div>
+      </td>
+
+      {/* Actions */}
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onRemove}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </td>
+    </tr>
+  )
 }
 
 // Composant OtherCostItem
@@ -1360,8 +2105,17 @@ function OtherCostItem({
           <Label className="text-xs font-medium text-gray-700 mb-2">Montant (FCFA)</Label>
           <Input
             type="number"
+            min="0"
+            step="0.01"
             value={cost.amount}
-            onChange={(e) => onUpdate('amount', Number(e.target.value))}
+            onChange={(e) => {
+              const value = parseFloat(e.target.value) || 0
+              onUpdate('amount', Math.max(0, value))
+            }}
+            onBlur={(e) => {
+              const value = parseFloat(e.target.value) || 0
+              onUpdate('amount', Math.max(0, value))
+            }}
             placeholder="0"
             className="border-gray-300 focus:border-purple-500 focus:ring-purple-200"
           />

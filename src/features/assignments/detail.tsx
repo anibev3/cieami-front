@@ -976,96 +976,96 @@ export default function AssignmentDetailPage() {
                 </CardHeader>
                 <CardContent>
                   {assignment.insurer ? (
-                    <div className="space-y-4">
-                      {/* Informations principales */}
-                      <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-sm text-primary">Informations société</h4>
-                          <Badge variant="outline" className="text-xs">{assignment.insurer.code}</Badge>
+                  <div className="space-y-4">
+                    {/* Informations principales */}
+                    <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Informations société</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.insurer.code}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom de la société</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.insurer.name}</p>
                         </div>
-                        <div className="space-y-2">
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground">Nom de la société</p>
-                            <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.insurer.name}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.insurer.email}</p>
-                            </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.insurer.email}</p>
                           </div>
                         </div>
                       </div>
-
-                      {/* Coordonnées */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
-                        <div className="space-y-2">
-                          {assignment.insurer.telephone && (
-                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                              <Phone className="h-3 w-3 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
-                                <p className="text-sm font-semibold">{assignment.insurer.telephone}</p>
-                              </div>
-                            </div>
-                          )}
-                          {assignment.insurer.address && (
-                            <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
-                              <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
-                              <div>
-                                <p className="text-xs font-medium text-muted-foreground">Adresse</p>
-                                <p className="text-xs whitespace-pre-line">{assignment.insurer.address}</p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Informations d'assurance */}
-                      {(assignment.policy_number || assignment.claim_number) && (
-                        <div className="space-y-3">
-                          <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations d'assurance</h4>
-                          <div className="space-y-2">
-                            {assignment.policy_number && (
-                              <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                                <FileText className="h-3 w-3 text-muted-foreground" />
-                                <div>
-                                  <p className="text-xs font-medium text-muted-foreground">Numéro de police</p>
-                                  <p className="text-sm font-semibold font-mono">{assignment.policy_number}</p>
-                                </div>
-                              </div>
-                            )}
-                            {assignment.claim_number && (
-                              <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                                <AlertTriangle className="h-3 w-3 text-muted-foreground" />
-                                <div>
-                                  <p className="text-xs font-medium text-muted-foreground">Numéro de sinistre</p>
-                                  <p className="text-sm font-semibold font-mono">{assignment.claim_number}</p>
-                                </div>
-                              </div>
-                            )}
-                            {(assignment.claim_starts_at || assignment.claim_ends_at) && (
-                              <div className="grid grid-cols-2 gap-2">
-                                {assignment.claim_starts_at && (
-                                  <div>
-                                    <p className="text-xs font-medium text-muted-foreground">Début sinistre</p>
-                                    <p className="text-xs font-semibold">{formatDate(assignment.claim_starts_at)}</p>
-                                  </div>
-                                )}
-                                {assignment.claim_ends_at && (
-                                  <div>
-                                    <p className="text-xs font-medium text-muted-foreground">Fin sinistre</p>
-                                    <p className="text-xs font-semibold">{formatDate(assignment.claim_ends_at)}</p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Coordonnées */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
+                      <div className="space-y-2">
+                        {assignment.insurer.telephone && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                              <p className="text-sm font-semibold">{assignment.insurer.telephone}</p>
+                            </div>
+                          </div>
+                        )}
+                        {assignment.insurer.address && (
+                          <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                              <p className="text-xs whitespace-pre-line">{assignment.insurer.address}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Informations d'assurance */}
+                    {(assignment.policy_number || assignment.claim_number) && (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations d'assurance</h4>
+                        <div className="space-y-2">
+                          {assignment.policy_number && (
+                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                              <FileText className="h-3 w-3 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground">Numéro de police</p>
+                                <p className="text-sm font-semibold font-mono">{assignment.policy_number}</p>
+                              </div>
+                            </div>
+                          )}
+                          {assignment.claim_number && (
+                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                              <AlertTriangle className="h-3 w-3 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground">Numéro de sinistre</p>
+                                <p className="text-sm font-semibold font-mono">{assignment.claim_number}</p>
+                              </div>
+                            </div>
+                          )}
+                          {(assignment.claim_starts_at || assignment.claim_ends_at) && (
+                            <div className="grid grid-cols-2 gap-2">
+                              {assignment.claim_starts_at && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground">Début sinistre</p>
+                                  <p className="text-xs font-semibold">{formatDate(assignment.claim_starts_at)}</p>
+                                </div>
+                              )}
+                              {assignment.claim_ends_at && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground">Fin sinistre</p>
+                                  <p className="text-xs font-semibold">{formatDate(assignment.claim_ends_at)}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <Building className="h-12 w-12 text-muted-foreground mb-2" />
@@ -1086,94 +1086,94 @@ export default function AssignmentDetailPage() {
                 </CardHeader>
                 <CardContent>
                   {assignment.repairer ? (
-                    <div className="space-y-4">
-                      {/* Informations principales */}
-                      <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-sm text-primary">Informations garage</h4>
-                          <Badge variant="outline" className="text-xs">{assignment.repairer.code}</Badge>
-                        </div>
-                        <div className="space-y-2">
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground">Nom du garage</p>
-                            <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.repairer.name}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.repairer.email}</p>
-                            </div>
-                          </div>
-                        </div>
+                  <div className="space-y-4">
+                    {/* Informations principales */}
+                    <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Informations garage</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.repairer.code}</Badge>
                       </div>
-
-                      {/* Coordonnées */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
-                        <div className="space-y-2">
-                          {assignment.repairer.telephone && (
-                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                              <Phone className="h-3 w-3 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
-                                <p className="text-sm font-semibold">{assignment.repairer.telephone}</p>
-                              </div>
-                            </div>
-                          )}
-                          {assignment.repairer.address && (
-                            <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
-                              <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
-                              <div>
-                                <p className="text-xs font-medium text-muted-foreground">Adresse</p>
-                                <p className="text-xs whitespace-pre-line">{assignment.repairer.address}</p>
-                              </div>
-                            </div>
-                          )}
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom du garage</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.repairer.name}</p>
                         </div>
-                      </div>
-
-                      {/* Informations d'expertise */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations d'expertise</h4>
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground">Type d'expertise</p>
-                              <Badge variant="secondary" className="text-xs">{assignment.expertise_type.label}</Badge>
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground">Type d'assignation</p>
-                              <Badge variant="secondary" className="text-xs">{assignment.assignment_type.label}</Badge>
-                            </div>
-                          </div>
-                          {assignment.administrator && (
-                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                              <User className="h-3 w-3 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs font-medium text-muted-foreground">Administrateur</p>
-                                <p className="text-sm font-semibold">{assignment.administrator}</p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Informations système */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations système</h4>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <p className="font-medium text-muted-foreground">Créé le</p>
-                            <p className="font-semibold">{formatDate(assignment.repairer.created_at)}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium text-muted-foreground">Modifié le</p>
-                            <p className="font-semibold">{formatDate(assignment.repairer.updated_at)}</p>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.repairer.email}</p>
                           </div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Coordonnées */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
+                      <div className="space-y-2">
+                        {assignment.repairer.telephone && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                              <p className="text-sm font-semibold">{assignment.repairer.telephone}</p>
+                            </div>
+                          </div>
+                        )}
+                        {assignment.repairer.address && (
+                          <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                              <p className="text-xs whitespace-pre-line">{assignment.repairer.address}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Informations d'expertise */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations d'expertise</h4>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Type d'expertise</p>
+                            <Badge variant="secondary" className="text-xs">{assignment.expertise_type.label}</Badge>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Type d'assignation</p>
+                            <Badge variant="secondary" className="text-xs">{assignment.assignment_type.label}</Badge>
+                          </div>
+                        </div>
+                        {assignment.administrator && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <User className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Administrateur</p>
+                              <p className="text-sm font-semibold">{assignment.administrator}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Informations système */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations système</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Créé le</p>
+                          <p className="font-semibold">{formatDate(assignment.repairer.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Modifié le</p>
+                          <p className="font-semibold">{formatDate(assignment.repairer.updated_at)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <Wrench className="h-12 w-12 text-muted-foreground mb-2" />
@@ -1747,22 +1747,22 @@ export default function AssignmentDetailPage() {
               </CardHeader>
               <CardContent>
                 {assignment.technical_conclusion ? (
-                  <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-sm text-primary">Conclusion</h4>
-                      <Badge variant="outline" className="text-xs">{assignment.technical_conclusion.code}</Badge>
+                <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-sm text-primary">Conclusion</h4>
+                    <Badge variant="outline" className="text-xs">{assignment.technical_conclusion.code}</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Libellé</p>
+                      <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.technical_conclusion.label}</p>
                     </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Libellé</p>
-                        <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.technical_conclusion.label}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Description</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.technical_conclusion.description}</p>
-                      </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Description</p>
+                      <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.technical_conclusion.description}</p>
                     </div>
                   </div>
+                </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <CheckCircle className="h-12 w-12 text-muted-foreground mb-2" />
@@ -1783,28 +1783,28 @@ export default function AssignmentDetailPage() {
               </CardHeader>
               <CardContent>
                 {assignment.general_state ? (
-                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-sm text-primary">État</h4>
-                      <Badge variant="outline" className="text-xs">{assignment.general_state.code}</Badge>
+                <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-sm text-primary">État</h4>
+                    <Badge variant="outline" className="text-xs">{assignment.general_state.code}</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Libellé</p>
+                      <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.general_state.label}</p>
                     </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Libellé</p>
-                        <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.general_state.label}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Description</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.general_state.description}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Statut</p>
-                        <Badge variant={assignment.general_state.status.code === 'active' ? 'default' : 'secondary'} className="text-xs">
-                          {assignment.general_state.status.label}
-                        </Badge>
-                      </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Description</p>
+                      <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.general_state.description}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Statut</p>
+                      <Badge variant={assignment.general_state.status.code === 'active' ? 'default' : 'secondary'} className="text-xs">
+                        {assignment.general_state.status.label}
+                      </Badge>
                     </div>
                   </div>
+                </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <Info className="h-12 w-12 text-muted-foreground mb-2" />
