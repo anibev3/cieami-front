@@ -701,7 +701,7 @@ export default function CreateAssignmentPage() {
   // Handlers pour les formulaires de création rapide
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!createClientForm.name || !createClientForm.email) {
+    if (!createClientForm.name) {
       toast.error('Nom et email obligatoires')
       return
     }
