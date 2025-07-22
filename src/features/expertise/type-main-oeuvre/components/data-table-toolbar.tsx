@@ -16,12 +16,12 @@ export function DataTableToolbar({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        <Input
+        {/* <Input
           placeholder="Rechercher un type..."
           value={searchValue}
           onChange={(event) => onSearchChange(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
-        />
+        /> */}
       </div>
       <Button onClick={onCreateClick} size="sm" className="ml-auto h-8">
         <Plus className="mr-2 h-4 w-4" />

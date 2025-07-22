@@ -64,6 +64,8 @@ import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 import { AscertainmentTypeSelect } from '@/features/widgets/ascertainment-type-select'
 import { ClaimNatureSelect } from '@/features/widgets'
 import { RemarkSelect } from '@/features/widgets'
+import { GeneralStateSelect } from '@/features/widgets/general-state-select'
+import { TechnicalConclusionSelect } from '@/features/widgets/technical-conclusion-select'
 import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/components/shock-point-mutate-dialog'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import type { Shock } from './hooks/use-shock-management'
@@ -237,8 +239,14 @@ export default function ReportEditPage() {
   const [hasPreloadedData, setHasPreloadedData] = useState(false)
 
   // États pour l'évaluation et les constats
-  const [marketIncidenceRate, setMarketIncidenceRate] = useState(6) // Valeur par défaut de 6%
+  const [marketIncidenceRate, setMarketIncidenceRate] = useState(0) // Valeur par défaut de 6%
   const [expertiseDate, setExpertiseDate] = useState(new Date().toISOString().split('T')[0])
+  
+  // États pour les données des selects
+  const [generalStates, setGeneralStates] = useState<any[]>([])
+  const [claimNatures, setClaimNatures] = useState<any[]>([])
+  const [technicalConclusions, setTechnicalConclusions] = useState<any[]>([])
+  const [instructions, setInstructions] = useState('')
   
   // États pour les nouveaux champs requis par l'API
   const [claimNatureId, setClaimNatureId] = useState<number | null>(null)
@@ -305,8 +313,53 @@ export default function ReportEditPage() {
       if ((assignment as any).expertise_date) {
         setExpertiseDate((assignment as any).expertise_date)
       }
+      
+      // Pré-remplir les champs selon le type d'expertise
+      if (!isEvaluation) {
+        // Champs requis pour les dossiers NON-évaluation
+        if ((assignment as any).general_state?.id) {
+          setGeneralStateId((assignment as any).general_state.id)
+        }
+        if ((assignment as any).technical_conclusion?.id) {
+          setTechnicalConclusionId((assignment as any).technical_conclusion.id)
+        }
+        if ((assignment as any).expert_report_remark) {
+          setExpertRemark((assignment as any).expert_report_remark)
+        }
+      } else {
+        // Champs requis pour les dossiers d'évaluation
+        if ((assignment as any).instructions) {
+          setInstructions((assignment as any).instructions)
+        }
+        if ((assignment as any).market_incidence_rate) {
+          setMarketIncidenceRate((assignment as any).market_incidence_rate)
+        }
+      }
     }
-  }, [assignment])
+  }, [assignment, isEvaluation])
+  
+  // Charger les données des selects
+  useEffect(() => {
+    const loadSelectData = async () => {
+      try {
+        // Charger les états généraux
+        const generalStatesResponse = await axiosInstance.get('/general-states')
+        setGeneralStates(generalStatesResponse.data.data || [])
+        
+        // Charger les natures de sinistre
+        const claimNaturesResponse = await axiosInstance.get('/claim-natures')
+        setClaimNatures(claimNaturesResponse.data.data || [])
+        
+        // Charger les conclusions techniques
+        const technicalConclusionsResponse = await axiosInstance.get('/technical-conclusions')
+        setTechnicalConclusions(technicalConclusionsResponse.data.data || [])
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error)
+      }
+    }
+    
+    loadSelectData()
+  }, [])
 
   // Fonctions pour gérer les constats
   const updateAscertainment = (index: number, field: string, value: any) => {
@@ -459,7 +512,6 @@ export default function ReportEditPage() {
       // Paramètres d'évaluation
       vehicle_id: assignment?.vehicle?.id?.toString(),
       expertise_date: expertiseDate,
-      market_incidence_rate: marketIncidenceRate,
       // Constats
       ascertainments: ascertainments.map(ascertainment => ({
         ascertainment_type_id: ascertainment.ascertainment_type_id,
@@ -472,10 +524,19 @@ export default function ReportEditPage() {
         comment: ascertainment.comment
       })),
       repairer_id: 1,
-      general_state_id: generalStateId || 1,
-      technical_conclusion_id: technicalConclusionId || 1,
-      claim_nature_id: claimNatureId,
-      expert_remark: expertRemark
+      // Champs requis selon le type d'expertise
+      ...(isEvaluation ? {
+        // Champs pour les dossiers d'évaluation
+        instructions: instructions,
+        market_incidence_rate: marketIncidenceRate,
+      } : {
+        // Champs pour les dossiers NON-évaluation
+        general_state_id: generalStateId || 1,
+        technical_conclusion_id: technicalConclusionId || 1,
+        claim_nature_id: claimNatureId,
+        report_remark_id: selectedRemarkId,
+        expert_report_remark: expertRemark,
+      })
     }
 
     // Exécuter directement la sauvegarde et la rédaction
@@ -499,7 +560,7 @@ export default function ReportEditPage() {
       setAssignmentTotalAmount(total)
       setShowReceiptModal(true)
     }
-  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId])
+  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -985,6 +1046,117 @@ export default function ReportEditPage() {
             </div>
           </div>
 
+          {/* Nouveaux champs requis par l'API */}
+          {!isEvaluation && (
+            <div className="space-y-6 mt-10 mb-10">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Informations complémentaires
+              </h2>
+              
+              <div className="">
+                {/* Remarque d'expert */}
+                <Card className='shadow-none'>
+                  <CardHeader>
+                    <CardTitle className="text-base">Remarque d'expert</CardTitle>
+                    <CardDescription>
+                      Sélectionnez une remarque prédéfinie ou créez-en une personnalisée
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <ClaimNatureSelect
+                          value={claimNatureId}
+                          onValueChange={handleClaimNatureChange}
+                          placeholder="Choisir une nature de sinistre..."
+                          showStatus={true}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RemarkSelect
+                          value={selectedRemarkId}
+                          onValueChange={handleRemarkChange}
+                          placeholder="Choisir une remarque prédéfinie..."
+                          showStatus={true}
+                          showDescription={true}
+                        />
+                      </div>
+                    </div>
+                    
+                  
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="expert-remark">Remarque personnalisée</Label>
+                        {selectedRemarkId && (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                            <FileText className="mr-1 h-3 w-3" />
+                            Remarque prédéfinie chargée
+                          </Badge>
+                        )}
+                      </div>
+                      <RichTextEditor
+                        value={expertRemark}
+                        onChange={handleExpertRemarkChange}
+                        placeholder="Rédigez votre remarque d'expert..."
+                        className="min-h-[220px]"
+                      />
+                      {selectedRemarkId && (
+                        <p className="text-xs text-muted-foreground">
+                          Vous pouvez modifier cette remarque prédéfinie selon vos besoins
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* État général */}
+                <Card className='shadow-none mt-4'>
+                  <CardHeader>
+                    <CardTitle className="text-base">État général</CardTitle>
+                    <CardDescription>
+                      Sélectionnez l'état général du véhicule
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="general-state">État général</Label>
+                      <GeneralStateSelect
+                        value={generalStateId || 0}
+                        onValueChange={setGeneralStateId}
+                        generalStates={generalStates}
+                        placeholder="Sélectionner un état général..."
+                        showSelectedInfo={false}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Conclusion technique */}
+                <Card className='shadow-none mt-4 mb-4'>
+                  <CardHeader>
+                    <CardTitle className="text-base">Conclusion technique</CardTitle>
+                    <CardDescription>
+                      Sélectionnez la conclusion technique
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="technical-conclusion">Conclusion technique</Label>
+                      <TechnicalConclusionSelect
+                        value={technicalConclusionId || 0}
+                        onValueChange={setTechnicalConclusionId}
+                        technicalConclusions={technicalConclusions}
+                        placeholder="Sélectionner une conclusion technique..."
+                        showSelectedInfo={false}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
           {isEvaluation && (
             <div>
               {/* Section des paramètres d'évaluation - EN PREMIER PLAN */}
@@ -1087,6 +1259,37 @@ export default function ReportEditPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Instructions de l'expert */}
+              <div className="space-y-4 mt-8">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Instructions de l'expert
+                  </h2>
+                </div>
+                <div className="border-b border-gray-200 mb-4"></div>
+                
+                <Card className='shadow-none'>
+                  <CardHeader>
+                    <CardTitle className="text-base">Instructions</CardTitle>
+                    <CardDescription>
+                      Rédigez les instructions spécifiques pour cette évaluation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="instructions">Instructions de l'expert</Label>
+                      <RichTextEditor
+                        value={instructions}
+                        onChange={setInstructions}
+                        placeholder="Rédigez vos instructions pour cette évaluation..."
+                        className="min-h-[200px]"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Section des constats */}
@@ -1386,6 +1589,11 @@ export default function ReportEditPage() {
                         // Déclencher le calcul pour ce choc uniquement
                         await calculateSingleShock(index)
                       }}
+                      onWorkforceTypeCreated={async (newWorkforceType) => {
+                        // Rafraîchir les données après création
+                        await reloadData()
+                        toast.success('Type de main d\'œuvre créé avec succès')
+                      }}
                     />
 
 
@@ -1526,111 +1734,7 @@ export default function ReportEditPage() {
             </div>
           )}
 
-          {/* Nouveaux champs requis par l'API */}
-          <div className="space-y-6 mt-10 mb-10">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              Informations complémentaires
-            </h2>
-            
-            <div className="">
-              {/* Remarque d'expert */}
-              <Card className='shadow-none'>
-                <CardHeader>
-                  <CardTitle className="text-base">Remarque d'expert</CardTitle>
-                  <CardDescription>
-                    Sélectionnez une remarque prédéfinie ou créez-en une personnalisée
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2">
-                        <ClaimNatureSelect
-                        value={claimNatureId}
-                        onValueChange={handleClaimNatureChange}
-                        placeholder="Choisir une nature de sinistre..."
-                        showStatus={true}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RemarkSelect
-                        value={selectedRemarkId}
-                        onValueChange={handleRemarkChange}
-                        placeholder="Choisir une remarque prédéfinie..."
-                        showStatus={true}
-                        showDescription={true}
-                      />
-                    </div>
-                  </div>
-                  
-                 
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="expert-remark">Remarque personnalisée</Label>
-                      {selectedRemarkId && (
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                          <FileText className="mr-1 h-3 w-3" />
-                          Remarque prédéfinie chargée
-                        </Badge>
-                      )}
-                    </div>
-                    <RichTextEditor
-                      value={expertRemark}
-                      onChange={handleExpertRemarkChange}
-                      placeholder="Rédigez votre remarque d'expert..."
-                      className="min-h-[220px]"
-                    />
-                    {selectedRemarkId && (
-                      <p className="text-xs text-muted-foreground">
-                        Vous pouvez modifier cette remarque prédéfinie selon vos besoins
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* État général */}
-              {/* <Card className='shadow-none mt-4'>
-                <CardHeader>
-                  <CardTitle className="text-base">État général</CardTitle>
-                  <CardDescription>
-                    Sélectionnez l'état général du véhicule
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Label htmlFor="general-state">État général</Label>
-                    <Input
-                      id="general-state"
-                      placeholder="État général (à implémenter)"
-                      disabled={true}
-                    />
-                  </div>
-                </CardContent>
-              </Card> */}
-
-              {/* Conclusion technique */}
-              {/* <Card className='shadow-none mt-4 mb-4'>
-                <CardHeader>
-                  <CardTitle className="text-base">Conclusion technique</CardTitle>
-                  <CardDescription>
-                    Sélectionnez la conclusion technique
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Label htmlFor="technical-conclusion">Conclusion technique</Label>
-                    <Input
-                      id="technical-conclusion"
-                      placeholder="Conclusion technique (à implémenter)"
-                      disabled={true}
-                    />
-                  </div>
-                </CardContent>
-              </Card> */}
-            </div>
-          </div>
 
           {/* Récapitulatif global */}
           <GlobalRecap

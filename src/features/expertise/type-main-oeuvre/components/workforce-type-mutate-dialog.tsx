@@ -38,6 +38,7 @@ interface WorkforceTypeMutateDialogProps {
   onOpenChange: (open: boolean) => void
   workforceType?: WorkforceType | null
   mode: 'create' | 'edit'
+  onSuccess?: (createdWorkforceType?: WorkforceType) => void
 }
 
 export function WorkforceTypeMutateDialog({
@@ -45,6 +46,7 @@ export function WorkforceTypeMutateDialog({
   onOpenChange,
   workforceType,
   mode,
+  onSuccess,
 }: WorkforceTypeMutateDialogProps) {
   const { createWorkforceType, updateWorkforceType, loading } = useWorkforceTypesStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -79,6 +81,7 @@ export function WorkforceTypeMutateDialog({
     
     try {
       let success = false
+      let createdWorkforceType: WorkforceType | undefined
       
       if (mode === 'create') {
         const createData: WorkforceTypeCreate = {
@@ -86,7 +89,8 @@ export function WorkforceTypeMutateDialog({
           label: data.label,
           description: data.description,
         }
-        success = await createWorkforceType(createData)
+        createdWorkforceType = await createWorkforceType(createData)
+        success = true
       } else if (workforceType) {
         const updateData: WorkforceTypeUpdate = {
           code: data.code,
@@ -99,6 +103,7 @@ export function WorkforceTypeMutateDialog({
       if (success) {
         onOpenChange(false)
         form.reset()
+        onSuccess?.(createdWorkforceType)
       }
     } catch (_error) {
       toast.error('Une erreur est survenue')

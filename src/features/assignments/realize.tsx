@@ -306,7 +306,7 @@ export default function RealizeAssignmentPage() {
   }, [fetchUsers, fetchReparateurs])
 
   // Filtrer les experts (utilisateurs avec le rôle expert)
-  const experts = users.filter(user => user.role?.name === 'expert')
+  const experts = users.filter(user => user.role?.name === 'expert' || user.role?.name === 'expert_manager')
 
   // Mode modification de réalisation
   const isEditRealization = assignment?.realized_at && assignment?.realized_by

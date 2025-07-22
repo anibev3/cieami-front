@@ -47,7 +47,7 @@ export function SupplySelect({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between h-12 text-left",
+              "w-full justify-between text-left",
               !hasValue ? 'border-orange-300 bg-orange-50' : 'border-blue-300 bg-blue-50',
               className
             )}

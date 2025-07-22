@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import React from 'react'
+import { WorkforceTypeSelect } from '@/features/widgets/workforce-type-select'
+import { WorkforceTypeMutateDialog } from '@/features/expertise/type-main-oeuvre/components/workforce-type-mutate-dialog'
 
 interface WorkforceType {
   id: number
@@ -60,6 +62,7 @@ interface ShockWorkforceTableProps {
   onHourlyRateChange: (value: number) => void
   onWithTaxChange: (value: boolean) => void
   onValidateRow: (index: number) => Promise<void>
+  onWorkforceTypeCreated?: (newWorkforceType: any) => void
 }
 
 export function ShockWorkforceTable({
@@ -76,12 +79,15 @@ export function ShockWorkforceTable({
   onPaintTypeChange,
   onHourlyRateChange,
   onWithTaxChange,
-  onValidateRow
+  onValidateRow,
+  onWorkforceTypeCreated
 }: ShockWorkforceTableProps) {
   // État local pour gérer les modifications et la validation
   const [localWorkforces, setLocalWorkforces] = useState<Workforce[]>(workforces)
   const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set())
   const [validatingRows, setValidatingRows] = useState<Set<number>>(new Set())
+  const [showCreateWorkforceTypeModal, setShowCreateWorkforceTypeModal] = useState(false)
+  const [currentWorkforceIndex, setCurrentWorkforceIndex] = useState<number | null>(null)
 
   // Mettre à jour les données locales quand les props changent
   useEffect(() => {
@@ -129,6 +135,30 @@ export function ShockWorkforceTable({
     }
   }
 
+  // Fonction pour ouvrir le modal de création de type de main d'œuvre
+  const handleCreateWorkforceType = (index: number) => {
+    setCurrentWorkforceIndex(index >= 0 ? index : null)
+    setShowCreateWorkforceTypeModal(true)
+  }
+
+  // Fonction pour gérer la création réussie d'un type de main d'œuvre
+  const handleWorkforceTypeCreated = (newWorkforceType: any) => {
+    if (currentWorkforceIndex !== null) {
+      // Sélectionner automatiquement le nouveau type dans la ligne existante
+      updateLocalWorkforce(currentWorkforceIndex, 'workforce_type_id', newWorkforceType.id)
+      setCurrentWorkforceIndex(null)
+    } else {
+      // Si créé depuis le bouton principal, ajouter une nouvelle ligne avec le type
+      onAdd()
+      // La nouvelle ligne sera ajoutée avec le type sélectionné
+      setTimeout(() => {
+        const newIndex = localWorkforces.length
+        updateLocalWorkforce(newIndex, 'workforce_type_id', newWorkforceType.id)
+      }, 100)
+    }
+    onWorkforceTypeCreated?.(newWorkforceType)
+  }
+
   // Fonction de formatage des montants
   const formatCurrency = (amount: number) => {
     // return new Intl.NumberFormat('fr-FR', {
@@ -165,7 +195,16 @@ export function ShockWorkforceTable({
           Main d'œuvre
         </h4>
         <div className="flex gap-2">
-          <Button onClick={onAdd} className="text-white">
+          <Button 
+            variant="outline" 
+            size="xs"
+            onClick={() => handleCreateWorkforceType(-1)}
+            className="text-green-600 text-xs border-green-200 hover:bg-green-50"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter un type
+          </Button>
+          <Button onClick={onAdd} size="xs" className="text-white text-xs">
             <Plus className="mr-2 h-4 w-4" />
             Ajouter une ligne
           </Button>
@@ -279,19 +318,13 @@ export function ShockWorkforceTable({
             {localWorkforces.map((row, i) => (
               <tr key={row.uid || row.id || i} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
                 <td className="border px-3 py-2">
-                  <Select 
-                    value={row.workforce_type_id ? row.workforce_type_id.toString() : ''} 
-                    onValueChange={v => updateLocalWorkforce(i, 'workforce_type_id', Number(v))}
-                  >
-                    <SelectTrigger className={`w-full border rounded p-1 ${!row.workforce_type_id ? 'border-red-300 bg-red-50' : ''}`}>
-                      <SelectValue placeholder={!row.workforce_type_id ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {workforceTypes.map(w => (
-                        <SelectItem key={w.id} value={w.id.toString()}>{w.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <WorkforceTypeSelect
+                    value={row.workforce_type_id}
+                    onValueChange={(value) => updateLocalWorkforce(i, 'workforce_type_id', value)}
+                    workforceTypes={workforceTypes}
+                    placeholder={!row.workforce_type_id ? "⚠️ Sélectionner un type" : "Sélectionner..."}
+                    onCreateNew={() => handleCreateWorkforceType(i)}
+                  />
                 </td>
                 <td className="border px-2 py-2 text-center">
                   <Input
@@ -402,6 +435,14 @@ export function ShockWorkforceTable({
 
         </div>
       </div>
+
+      {/* Modal de création de type de main d'œuvre */}
+      <WorkforceTypeMutateDialog
+        open={showCreateWorkforceTypeModal}
+        onOpenChange={setShowCreateWorkforceTypeModal}
+        mode="create"
+        onSuccess={handleWorkforceTypeCreated}
+      />
     </div>
   )
 } 

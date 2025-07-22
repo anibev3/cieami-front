@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import React from 'react'
-import { Separator } from '@/components/ui/separator'
+// import { Separator } from '@/components/ui/separator'
 import { SupplySelect } from '@/features/widgets/supply-select'
 import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
 
@@ -208,7 +208,7 @@ export function ShockSuppliesTable({
                 Fournitures
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
-                Dém
+                D/p
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remp
@@ -223,19 +223,19 @@ export function ShockSuppliesTable({
                 Vétusté
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
-                Vte (%)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-xs">
-                Montant TTC
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-xs">
-                Remise (%)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-xs">
                 Montant HT
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
-                Montant Calculé
+                Vétuste (%)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-xs">
+                Vétuste calculée
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-xs">
+                Remise
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-xs">
+                Remise Calculé
               </th>
               
               {/* <th className="border px-2 py-2 text-center font-medium text-blue-600 text-xs">
@@ -247,9 +247,9 @@ export function ShockSuppliesTable({
               <th className="border px-2 py-2 text-center font-medium text-purple-600 text-xs">
                 Montant TTC
               </th>
-              <th className="border px-2 py-2 text-left font-medium text-xs">
+              {/* <th className="border px-2 py-2 text-left font-medium text-xs">
                 Commentaire
-              </th>
+              </th> */}
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Actions
               </th>
@@ -305,36 +305,52 @@ export function ShockSuppliesTable({
                   />
                 </td>
                 <td className="border px-2 text-center text-xs">
-                  <Input
+                  {/* <Input
                     type="number"
                     className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.obsolescence_rate}
                     onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
+                  /> */}
+                  <Input
+                    type="number"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.amount}
+                    onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
                   />
+                  {/* {formatCurrency(row.amount || 0)} */}
                 </td>
                 <td className="border px-2 text-center text-xs">
-                  <Input
+                  {/* <Input
                     type="number"
                     className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.recovery_amount}
                     onChange={e => updateLocalShockWork(i, 'recovery_amount', Number(e.target.value))}
+                  /> */}
+                  <Input
+                    type="number"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.obsolescence_rate}
+                    onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
                   />
+                  {/* {formatCurrency(row.obsolescence_rate || 0)} */}
                 </td>
                 <td className="border px-2 text-center text-xs">
-                  <Input
+                  {/* <Input
                     type="number"
                     className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.discount}
                     onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
-                  />
+                  /> */}
+                  {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0))}
                 </td>
                 <td className="border px-2 py-2 text-center text-xs">
                   <Input
                     type="number"
-                    className="rounded w-25 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.amount}
-                    onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.discount}
+                    onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
                   />
+
                 </td>
                 
                 {/* <td className="border w-35 px-2 py-2 text-center text-xs">
@@ -363,22 +379,30 @@ export function ShockSuppliesTable({
                 </td> */}
                 <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrency(row.new_amount_excluding_tax || 0)}
+                    {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0) - (row.discount || 0))}
                   </div>
                 </td>
                 <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrency(row.new_amount || 0)}
+                    {/* {formatCurrency(row.recovery_amount || 0)} */}
+                    {/* {formatCurrency(row.new_amount || 0)} */}
+                    <Input
+                    type="number"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.new_amount}
+                    onChange={e => updateLocalShockWork(i, 'new_amount', Number(e.target.value))}
+                  />
+                    
                   </div>
-                  <Separator className="my-1" />
+                  {/* <Separator className="my-1" />
                   <div className="text-[8px] text-gray-500">
                     HT: {formatCurrency(row.new_amount_excluding_tax || 0)}
                   </div>
                   <div className="text-[8px] text-gray-500">
                     TVA: {formatCurrency(row.new_amount_tax || 0)}
-                  </div>
+                  </div> */}
                 </td>
-                <td className="border px-2 py-2 text-xs">
+                {/* <td className="border px-2 py-2 text-xs">
                   <Input
                     type="text"
                     className="rounded w-20 p-1 border-none focus:border-none focus:ring-0"
@@ -386,7 +410,7 @@ export function ShockSuppliesTable({
                     placeholder="Commentaire..."
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
-                </td>
+                </td> */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (

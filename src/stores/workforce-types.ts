@@ -29,7 +29,7 @@ interface WorkforceTypesActions {
 
   fetchWorkforceTypes: (page?: number) => Promise<void>
   fetchWorkforceTypeById: (id: number) => Promise<void>
-  createWorkforceType: (data: WorkforceTypeCreate) => Promise<boolean>
+  createWorkforceType: (data: WorkforceTypeCreate) => Promise<WorkforceType>
   updateWorkforceType: (id: number, data: WorkforceTypeUpdate) => Promise<boolean>
   deleteWorkforceType: (id: number) => Promise<boolean>
 
@@ -89,14 +89,14 @@ export const useWorkforceTypesStore = create<WorkforceTypesState & WorkforceType
   createWorkforceType: async (data: WorkforceTypeCreate) => {
     try {
       set({ loading: true, error: null })
-      await workforceTypesService.create(data)
+      const response = await workforceTypesService.create(data)
       await get().fetchWorkforceTypes(get().pagination.currentPage)
       set({ loading: false })
       toast.success('Type main d\'oeuvre créé avec succès')
-      return true
+      return response.data
     } catch (_error) {
       set({ loading: false, error: 'Erreur lors de la création du type main d\'oeuvre' })
-      return false
+      throw _error
     }
   },
 

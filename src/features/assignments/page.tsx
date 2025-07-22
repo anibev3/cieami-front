@@ -140,7 +140,7 @@ export default function AssignmentsPage() {
         </div>
       </Header>
       <Main>
-        <div className="mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto">
           {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">

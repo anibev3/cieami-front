@@ -6,6 +6,12 @@ import { DataTable } from './data-table'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { WorkforceTypeDialogs } from './components/workforce-type-dialogs'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Header } from '@/components/layout/header'
+import { Search } from '@/components/search'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Main } from '@/components/layout/main'
+import { Calculator } from 'lucide-react'
 
 export default function WorkforceTypesPage() {
   const {
@@ -107,15 +113,25 @@ export default function WorkforceTypesPage() {
   }
 
   return (
+        <>
+      <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main>
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Types main d'oeuvre</CardTitle>
-          <CardDescription>
-            Gérez les différents types de main d'oeuvre disponibles dans le système.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div>
+        <div>
+          <h4 className="font-semibold text-base flex items-center gap-2">
+          <Calculator className="h-5 w-5 text-blue-600" />
+          Types main d'oeuvre
+        </h4>
+        </div>
+        <div>
           <div className="space-y-4">
             <DataTableToolbar
               searchValue={searchValue}
@@ -129,8 +145,8 @@ export default function WorkforceTypesPage() {
               onDelete={handleDelete}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <WorkforceTypeDialogs
         createDialogOpen={createDialogOpen}
@@ -143,6 +159,8 @@ export default function WorkforceTypesPage() {
         onDeleteDialogChange={handleDeleteDialogChange}
         selectedWorkforceType={selectedWorkforceType}
       />
-    </div>
+        </div>
+        </Main>
+        </>
   )
 } 
