@@ -110,8 +110,8 @@ export function ClientsDialogs({
               <Input id="name" value={createForm.name} onChange={e => setCreateForm(f => ({ ...f, name: e.target.value }))} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input id="email" type="email" value={createForm.email} onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))} required />
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={createForm.email} onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))}/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone_1">Téléphone 1</Label>

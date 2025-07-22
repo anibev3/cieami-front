@@ -14,31 +14,31 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { useColorsStore } from '@/stores/colors'
+import { useBodyworksStore } from '@/stores/bodyworks'
 
-interface ColorSelectProps {
+interface BodyworkSelectProps {
   value: string
   onValueChange: (value: string) => void
   placeholder?: string
   disabled?: boolean
 }
 
-export function ColorSelect({
+export function BodyworkSelect({
   value,
   onValueChange,
-  placeholder = "Sélectionner une couleur...",
+  placeholder = "Sélectionner une carrosserie...",
   disabled = false
-}: ColorSelectProps) {
+}: BodyworkSelectProps) {
   const [open, setOpen] = useState(false)
-  const { colors, loading, fetchColors } = useColorsStore()
+  const { bodyworks, loading, fetchBodyworks } = useBodyworksStore()
 
   useEffect(() => {
-    if (colors.length === 0) {
-      fetchColors()
+    if (bodyworks.length === 0) {
+      fetchBodyworks()
     }
-  }, [fetchColors, colors.length])
+  }, [fetchBodyworks, bodyworks.length])
 
-  const selectedColor = colors.find(color => color.id.toString() === value)
+  const selectedBodywork = bodyworks.find(b => b.id.toString() === value)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -55,8 +55,8 @@ export function ColorSelect({
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Chargement...
             </>
-          ) : selectedColor ? (
-            selectedColor.label
+          ) : selectedBodywork ? (
+            selectedBodywork.label
           ) : (
             placeholder
           )}
@@ -65,34 +65,34 @@ export function ColorSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
         <Command>
-          <CommandInput placeholder="Rechercher une couleur..." />
+          <CommandInput placeholder="Rechercher une carrosserie..." />
           <CommandList>
             {loading ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Chargement des couleurs...
+                Chargement des carrosseries...
               </div>
-            ) : colors.length === 0 ? (
-              <CommandEmpty>Aucune couleur trouvée.</CommandEmpty>
+            ) : bodyworks.length === 0 ? (
+              <CommandEmpty>Aucune carrosserie trouvée.</CommandEmpty>
             ) : (
               <CommandGroup>
-                {colors.map((color) => (
+                {bodyworks.map((bodywork) => (
                   <CommandItem
-                    key={color.id}
-                    value={color.label}
+                    key={bodywork.id}
+                    value={bodywork.label}
                     onSelect={() => {
-                      onValueChange(color.id.toString())
+                      onValueChange(bodywork.id.toString())
                       setOpen(false)
                     }}
                   >
                     <Check
                       className={
-                        value === color.id.toString()
+                        value === bodywork.id.toString()
                           ? 'mr-2 h-4 w-4 opacity-100'
                           : 'mr-2 h-4 w-4 opacity-0'
                       }
                     />
-                    {color.label}
+                    {bodywork.label}
                   </CommandItem>
                 ))}
               </CommandGroup>
