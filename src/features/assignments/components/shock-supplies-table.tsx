@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import React from 'react'
 import { Separator } from '@/components/ui/separator'
+import { SupplySelect } from '@/features/widgets/supply-select'
+import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
 
 interface Supply {
   id: number
   label: string
-  code: string
-  price: number
+  code?: string
+  description?: string
+  price?: number
 }
 
 interface ShockWork {
@@ -48,7 +50,8 @@ export function ShockSuppliesTable({
   onUpdate,
   onAdd,
   onRemove,
-  onValidateRow
+  onValidateRow,
+  onSupplyCreated
 }: {
   supplies: Supply[]
   shockWorks: ShockWork[]
@@ -56,11 +59,14 @@ export function ShockSuppliesTable({
   onAdd: () => void
   onRemove: (index: number) => void
   onValidateRow: (index: number) => Promise<void>
+  onSupplyCreated?: (newSupply: any) => void
 }) {
   // État local pour gérer les modifications et la validation
   const [localShockWorks, setLocalShockWorks] = useState<ShockWork[]>(shockWorks)
   const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set())
   const [validatingRows, setValidatingRows] = useState<Set<number>>(new Set())
+  const [showCreateSupplyModal, setShowCreateSupplyModal] = useState(false)
+  const [currentSupplyIndex, setCurrentSupplyIndex] = useState<number | null>(null)
 
   // Mettre à jour les données locales quand les props changent
   useEffect(() => {
@@ -108,6 +114,30 @@ export function ShockSuppliesTable({
     }
   }
 
+  // Fonction pour ouvrir le modal de création de fourniture
+  const handleCreateSupply = (index: number) => {
+    setCurrentSupplyIndex(index >= 0 ? index : null)
+    setShowCreateSupplyModal(true)
+  }
+
+  // Fonction pour gérer la création réussie d'une fourniture
+  const handleSupplyCreated = (newSupply: any) => {
+    if (currentSupplyIndex !== null) {
+      // Sélectionner automatiquement la nouvelle fourniture dans la ligne existante
+      updateLocalShockWork(currentSupplyIndex, 'supply_id', newSupply.id)
+      setCurrentSupplyIndex(null)
+    } else {
+      // Si créé depuis le bouton principal, ajouter une nouvelle ligne avec la fourniture
+      onAdd()
+      // La nouvelle ligne sera ajoutée avec la fourniture sélectionnée
+      setTimeout(() => {
+        const newIndex = localShockWorks.length
+        updateLocalShockWork(newIndex, 'supply_id', newSupply.id)
+      }, 100)
+    }
+    onSupplyCreated?.(newSupply)
+  }
+
   // Fonction de formatage des montants
   const formatCurrency = (amount: number) => {
     // return new Intl.NumberFormat('fr-FR', {
@@ -150,11 +180,24 @@ export function ShockSuppliesTable({
           Fournitures
         </h4>
         <div className="flex gap-2">
-          <Button onClick={onAdd} className=" text-white">
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter une fourniture
-          </Button>
+          
+         <Button 
+                    variant="outline" 
+                    size="xs"
+                    onClick={() => handleCreateSupply(-1)}
+                    className="text-yellow-600 text-xs border-yellow-200 hover:bg-yellow-50"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter une fourniture
+                  </Button>
+          <div className="flex gap-2">
+            <Button onClick={onAdd} size="xs" className="text-white text-xs">
+              <Plus className="mr-2 h-4 w-4" />
+              Ajouter une ligne
+            </Button>
+          </div>
         </div>
+
       </div>
 
       <div className="overflow-x-auto">
@@ -223,19 +266,13 @@ export function ShockSuppliesTable({
             {localShockWorks.map((row, i) => (
               <tr key={row.uid} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
                 <td className="border px-3 py-2 text-xs">
-                  <Select 
-                    value={row.supply_id ? row.supply_id.toString() : ''} 
-                    onValueChange={v => updateLocalShockWork(i, 'supply_id', Number(v))}
-                  >
-                    <SelectTrigger className={`w-full border rounded p-1 ${!row.supply_id ? 'border-red-300 bg-red-50' : ''}`}>
-                      <SelectValue placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {supplies.map(s => (
-                        <SelectItem key={s.id} value={s.id.toString()}>{s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SupplySelect
+                    value={row.supply_id}
+                    onValueChange={(value) => updateLocalShockWork(i, 'supply_id', value)}
+                    supplies={supplies}
+                    placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
+                    onCreateNew={() => handleCreateSupply(i)}
+                  />
                 </td>
                 <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
@@ -436,6 +473,13 @@ export function ShockSuppliesTable({
           </div>
         </div>
       </div>
+
+      {/* Modal de création de fourniture */}
+      <SupplyMutateDialog
+        open={showCreateSupplyModal}
+        onOpenChange={setShowCreateSupplyModal}
+        onSuccess={handleSupplyCreated}
+      />
     </div>
   )
 } 

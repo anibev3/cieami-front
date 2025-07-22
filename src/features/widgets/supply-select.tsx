@@ -3,20 +3,20 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, ChevronsUpDown, Plus, Check } from 'lucide-react'
+import { Package, ChevronsUpDown, Plus, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface ShockPoint {
+interface Supply {
   id: number
-  code: string
+  code?: string
   label: string
   description?: string
 }
 
-interface ShockPointSelectProps {
+interface SupplySelectProps {
   value: number
   onValueChange: (value: number) => void
-  shockPoints: ShockPoint[]
+  supplies: Supply[]
   placeholder?: string
   className?: string
   showSelectedInfo?: boolean
@@ -24,18 +24,18 @@ interface ShockPointSelectProps {
   onCreateNew?: () => void
 }
 
-export function ShockPointSelect({
+export function SupplySelect({
   value,
   onValueChange,
-  shockPoints,
-  placeholder = "🔍 Rechercher un point de choc...",
+  supplies,
+  placeholder = "🔍 Rechercher une fourniture...",
   className = "",
   showSelectedInfo = false,
   disabled = false,
   onCreateNew
-}: ShockPointSelectProps) {
+}: SupplySelectProps) {
   const [open, setOpen] = useState(false)
-  const selectedShockPoint = shockPoints.find(point => point.id === value)
+  const selectedSupply = supplies.find(supply => supply.id === value)
   const hasValue = value > 0
 
   return (
@@ -55,11 +55,13 @@ export function ShockPointSelect({
           >
             {hasValue ? (
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-blue-500" />
-                <span className="font-medium">{selectedShockPoint?.label}</span>
-                <Badge variant="secondary" className="text-xs">
-                  #{selectedShockPoint?.code}
-                </Badge>
+                <Package className="h-4 w-4 text-blue-500" />
+                <span className="font-medium">{selectedSupply?.label}</span>
+                {selectedSupply?.code && (
+                  <Badge variant="secondary" className="text-xs">
+                    #{selectedSupply.code}
+                  </Badge>
+                )}
               </div>
             ) : (
               <span className="text-muted-foreground">{placeholder}</span>
@@ -69,11 +71,11 @@ export function ShockPointSelect({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Rechercher un point de choc..." />
+            <CommandInput placeholder="Rechercher une fourniture..." />
             <CommandList>
               <CommandEmpty className="py-6 text-center text-sm">
                 <div className="space-y-2">
-                  <p>Aucun point de choc trouvé</p>
+                  <p>Aucune fourniture trouvée</p>
                   {onCreateNew && (
                     <Button
                       variant="outline"
@@ -85,35 +87,37 @@ export function ShockPointSelect({
                       className="mx-auto"
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Créer un nouveau point de choc
+                      Créer une nouvelle fourniture
                     </Button>
                   )}
                 </div>
               </CommandEmpty>
               <CommandGroup>
-                {shockPoints.map((point) => (
+                {supplies.map((supply) => (
                   <CommandItem
-                    key={point.id}
-                    value={`${point.label} ${point.code} ${point.description || ''}`}
+                    key={supply.id}
+                    value={`${supply.label} ${supply.code || ''} ${supply.description || ''}`}
                     onSelect={() => {
-                      onValueChange(point.id)
+                      onValueChange(supply.id)
                       setOpen(false)
                     }}
                     className="py-3"
                   >
                     <div className="flex items-center gap-2 w-full">
-                      <MapPin className="h-4 w-4 text-blue-500" />
+                      <Package className="h-4 w-4 text-blue-500" />
                       <div className="flex-1">
-                        <span className="text-sm font-medium">{point.label}</span>
-                        {point.description && (
-                          <p className="text-xs text-gray-500 truncate">{point.description}</p>
+                        <span className="text-sm font-medium">{supply.label}</span>
+                        {supply.description && (
+                          <p className="text-xs text-gray-500 truncate">{supply.description}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
-                          #{point.code}
-                        </Badge>
-                        {value === point.id && (
+                        {supply.code && (
+                          <Badge variant="secondary" className="text-xs">
+                            #{supply.code}
+                          </Badge>
+                        )}
+                        {value === supply.id && (
                           <Check className="h-4 w-4 text-blue-600" />
                         )}
                       </div>
@@ -133,7 +137,7 @@ export function ShockPointSelect({
                     className="w-full"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Créer un nouveau point de choc
+                    Créer une nouvelle fourniture
                   </Button>
                 </div>
               )}
@@ -142,20 +146,22 @@ export function ShockPointSelect({
         </PopoverContent>
       </Popover>
       
-      {/* {showSelectedInfo && selectedShockPoint && (
+      {showSelectedInfo && selectedSupply && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-blue-600" />
+            <Package className="h-4 w-4 text-blue-600" />
             <div>
-              <p className="text-sm font-medium text-blue-800">{selectedShockPoint.label}</p>
-              <p className="text-xs text-blue-600">Code: {selectedShockPoint.code}</p>
-              {selectedShockPoint.description && (
-                <p className="text-xs text-blue-600 mt-1">{selectedShockPoint.description}</p>
+              <p className="text-sm font-medium text-blue-800">{selectedSupply.label}</p>
+              {selectedSupply.code && (
+                <p className="text-xs text-blue-600">Code: {selectedSupply.code}</p>
+              )}
+              {selectedSupply.description && (
+                <p className="text-xs text-blue-600 mt-1">{selectedSupply.description}</p>
               )}
             </div>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   )
 } 

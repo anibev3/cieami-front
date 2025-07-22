@@ -20,7 +20,7 @@ interface SuppliesState {
   perPage: number
   fetchSupplies: (params?: Record<string, string | number | undefined>) => Promise<void>
   fetchSupplyById: (id: number) => Promise<Supply>
-  createSupply: (data: SupplyCreate) => Promise<void>
+  createSupply: (data: SupplyCreate) => Promise<Supply>
   updateSupply: (id: number | string, data: SupplyUpdate) => Promise<void>
   deleteSupply: (id: number | string) => Promise<void>
 }
@@ -84,16 +84,18 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
   createSupply: async (data) => {
     set({ loading: true, error: null })
     try {
-      await suppliesService.createSupply(data)
+      const newSupply = await suppliesService.createSupply(data)
       await get().fetchSupplies()
       set({ loading: false })
       toast.success('Fourniture créée avec succès')
+      return newSupply
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ error: errorMessage, loading: false })
             toast.error(errorMessage, {
         duration: 1000,
       })
+      throw error
     }
   },
 

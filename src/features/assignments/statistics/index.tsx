@@ -3,13 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, Search } from 'lucide-react'
+import { CalendarIcon, Search as SearchIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
 import { AssignmentStatisticsTable } from './components/assignment-statistics-table'
 import { useAssignmentStatisticsStore } from '@/stores/assignmentStatisticsStore'
+import { Header } from '@/components/layout/header'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Main } from '@/components/layout/main'
+import { Search } from '@/components/search'
 
 export default function AssignmentStatisticsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
@@ -34,6 +39,17 @@ export default function AssignmentStatisticsPage() {
 
 
   return (
+        <>
+      {/* ===== Top Heading ===== */}
+      <Header>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main fixed>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -49,7 +65,7 @@ export default function AssignmentStatisticsPage() {
       <Card className="shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
+            <SearchIcon className="h-5 w-5" />
             Filtres de recherche
           </CardTitle>
         </CardHeader>
@@ -129,7 +145,7 @@ export default function AssignmentStatisticsPage() {
                 disabled={!startDate || !endDate || loading}
                 className="w-full"
               >
-                <Search className="mr-2 h-4 w-4" />
+                <SearchIcon className="mr-2 h-4 w-4" />
                 Rechercher
               </Button>
             </div>
@@ -199,6 +215,8 @@ export default function AssignmentStatisticsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+        </div>
+      </Main>
+      </>
   )
 } 

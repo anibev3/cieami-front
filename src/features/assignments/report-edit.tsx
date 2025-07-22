@@ -64,6 +64,7 @@ import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 import { AscertainmentTypeSelect } from '@/features/widgets/ascertainment-type-select'
 import { ClaimNatureSelect } from '@/features/widgets'
 import { RemarkSelect } from '@/features/widgets'
+import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/components/shock-point-mutate-dialog'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import type { Shock } from './hooks/use-shock-management'
 import { Calendar } from '@/components/ui/calendar'
@@ -166,7 +167,8 @@ export default function ReportEditPage() {
     workforceTypes, 
     otherCostTypes,
     paintTypes,
-    hourlyRates
+    hourlyRates,
+    reloadData
   } = useEditData()
   
   const {
@@ -219,6 +221,7 @@ export default function ReportEditPage() {
   const [showCalculationModal, setShowCalculationModal] = useState(false)
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
+  const [showCreateShockPointModal, setShowCreateShockPointModal] = useState(false)
   const [selectedShockPointId, setSelectedShockPointId] = useState(0)
   const [selectedShockIndex, setSelectedShockIndex] = useState(0)
   
@@ -507,6 +510,24 @@ export default function ReportEditPage() {
   const handleReceiptClose = useCallback(() => {
     navigate({ to: '/assignments' })
   }, [navigate])
+
+  // Gestion de la création de point de choc
+  const handleCreateShockPoint = useCallback(() => {
+    setShowCreateShockPointModal(true)
+  }, [])
+
+  const handleShockPointCreated = useCallback(async () => {
+    // Rafraîchir les données après création
+    await reloadData()
+    setShowCreateShockPointModal(false)
+    toast.success('Point de choc créé avec succès')
+  }, [reloadData])
+
+  const handleSupplyCreated = useCallback(async (newSupply: any) => {
+    // Rafraîchir les données après création
+    await reloadData()
+    toast.success('Fourniture créée avec succès')
+  }, [reloadData])
 
 
 
@@ -1049,9 +1070,9 @@ export default function ReportEditPage() {
                         {assignment?.vehicle ? (
                           <div className="">
                             <div className="flex items-center justify-between">
-                              <div className="font-bold text-lg text-gray-800">{assignment.vehicle.license_plate}</div>
+                              <div className="font-bold text-[13px] text-gray-800">{assignment.vehicle.license_plate}</div>
                               <Badge variant="outline" className="bg-green-100 text-green-800">
-                                <Check className="mr-1 h-3 w-3" />
+                                <Check className="mr-1 h-2 w-3" />
                                 Valide
                               </Badge>
                             </div>
@@ -1186,7 +1207,7 @@ export default function ReportEditPage() {
             </div>
           )}
           {/* Liste des points de choc */}
-          <div className="space-y-6 mt-10">
+          <div className="space-y-6 mt-10 w-full">
             {hasPreloadedData && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-2">
@@ -1198,6 +1219,28 @@ export default function ReportEditPage() {
                       Vous pouvez les modifier ou ajouter de nouveaux points de choc.
                     </p>
                   </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Affichage quand aucun choc */}
+            {shocks.length === 0 && (
+              <div className="text-center w-full">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8 w-full mx-auto">
+                  <div className="p-3 bg-blue-100 rounded-full w-fit mx-auto mb-4">
+                    <MapPin className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Aucun point de choc</h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Commencez par ajouter des points de choc pour effectuer l'expertise du véhicule
+                  </p>
+                  <Button 
+                    onClick={() => setShowShockModal(true)}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  >
+                    <Plus className="mr-2 h-5 w-5" />
+                    Ajouter un point de choc
+                  </Button>
                 </div>
               </div>
             )}
@@ -1283,6 +1326,7 @@ export default function ReportEditPage() {
                         // Déclencher le calcul pour ce choc uniquement
                         await calculateSingleShock(index)
                       }}
+                      onSupplyCreated={handleSupplyCreated}
                     />
 
 
@@ -1634,7 +1678,7 @@ export default function ReportEditPage() {
           </Card>
           {/* Modal d'ajout de point de choc */}
           <Dialog open={showShockModal} onOpenChange={setShowShockModal}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-lg">
                   <MapPin className="h-6 w-6 text-blue-600" />
@@ -1648,9 +1692,19 @@ export default function ReportEditPage() {
               <div className="space-y-6 py-4">
                 {/* Section de sélection */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
-                    <MapPin className="h-4 w-4 text-blue-500" />
-                    Point de choc à ajouter
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                        <MapPin className="h-4 w-4 text-blue-500" />
+                        Point de choc à ajouter
+                      </div>
+                    </div>
+                    <div>
+                      <Button variant="outline" onClick={handleCreateShockPoint}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Créer un nouveau point de choc
+                      </Button>
+                    </div>
                   </div>
                   
                   <ShockPointSelect
@@ -1658,6 +1712,7 @@ export default function ReportEditPage() {
                     onValueChange={setSelectedShockPointId}
                     shockPoints={shockPoints}
                     showSelectedInfo={true}
+                    onCreateNew={handleCreateShockPoint}
                   />
                 </div>
 
@@ -1853,6 +1908,13 @@ export default function ReportEditPage() {
             assignmentAmount={assignmentTotalAmount}
             onSave={handleReceiptSave}
             onClose={handleReceiptClose}
+          />
+
+          {/* Modal de création de point de choc */}
+          <ShockPointMutateDialog
+            open={showCreateShockPointModal}
+            onOpenChange={setShowCreateShockPointModal}
+            onSuccess={handleShockPointCreated}
           />
         </div>
       </Main>

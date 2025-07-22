@@ -1,40 +1,33 @@
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ShockPointCreate, ShockPointUpdate } from '@/types/shock-points'
+import { ShockPointCreate } from '@/types/shock-points'
 import { useShockPointsStore } from '@/stores/shock-points'
 
 interface ShockPointMutateDialogProps {
   id?: number | null
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  onSuccess?: () => void
 }
 
-export function ShockPointMutateDialog({ id, open, onOpenChange }: ShockPointMutateDialogProps) {
+export function ShockPointMutateDialog({ id, open, onOpenChange, onSuccess }: ShockPointMutateDialogProps) {
   const { shockPoints, createShockPoint, updateShockPoint, loading, error } = useShockPointsStore()
   const isEdit = !!id
-  const [form, setForm] = useState<ShockPointCreate | ShockPointUpdate>({
+  const [form, setForm] = useState<{
+    code: string
+    label: string
+    description: string
+  }>({
     code: '',
     label: '',
     description: '',
@@ -70,7 +63,8 @@ export function ShockPointMutateDialog({ id, open, onOpenChange }: ShockPointMut
         toast.success('Point de choc créé avec succès')
       }
       onOpenChange?.(false)
-    } catch (err) {
+      onSuccess?.()
+    } catch {
       // handled by store
     }
   }
@@ -82,33 +76,48 @@ export function ShockPointMutateDialog({ id, open, onOpenChange }: ShockPointMut
           <DialogTitle>{isEdit ? 'Modifier le point de choc' : 'Ajouter un point de choc'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            placeholder="Code"
-            value={form.code}
-            onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-            required
-            disabled={loading}
-          />
-          <FormField
-            control={form.control}
-            name="label"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Libellé</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            required
-            disabled={loading}
-          />
+          <div className="space-y-2">
+            <label htmlFor="code" className="text-sm font-medium">
+              Code
+            </label>
+            <Input
+              id="code"
+              placeholder="Code"
+              value={form.code}
+              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="label" className="text-sm font-medium">
+              Libellé
+            </label>
+            <Input
+              id="label"
+              placeholder="Libellé"
+              value={form.label}
+              onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="description" className="text-sm font-medium">
+              Description
+            </label>
+            <Textarea
+              id="description"
+              placeholder="Description"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              required
+              disabled={loading}
+            />
+          </div>
+          
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>
               Annuler
