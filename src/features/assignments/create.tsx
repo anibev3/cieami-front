@@ -2192,7 +2192,6 @@ export default function CreateAssignmentPage() {
                 type="email" 
                 value={createClientForm.email} 
                 onChange={e => setCreateClientForm(f => ({ ...f, email: e.target.value }))} 
-                required 
               />
             </div>
             <div className="space-y-2">
