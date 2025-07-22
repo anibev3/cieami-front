@@ -702,7 +702,7 @@ export default function CreateAssignmentPage() {
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!createClientForm.name) {
-      toast.error('Nom et email obligatoires')
+      toast.error('Le nom est obligatoire')
       return
     }
     try {
