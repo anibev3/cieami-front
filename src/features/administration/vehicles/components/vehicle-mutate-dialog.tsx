@@ -387,7 +387,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 name="vehicle_genre_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Genre de véhicule</FormLabel>
+                    <FormLabel>Genre de véhicule *</FormLabel>
                     <FormControl>
                       <VehicleGenreSelect
                         value={field.value}
@@ -404,7 +404,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
               {/* Marque */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
-                  <FormLabel>Marque</FormLabel>
+                  <FormLabel>Marque *</FormLabel>
                   <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBrandModal(true)} className="shrink-0 w-6 h-6">
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -424,7 +424,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center gap-2 mb-1">
-                      <FormLabel>Modèle de véhicule</FormLabel>
+                      <FormLabel>Modèle de véhicule *</FormLabel>
                       <Button
                         type="button"
                         variant="outline"
@@ -454,7 +454,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center gap-2 mb-1">
-                      <FormLabel>Couleur</FormLabel>
+                      <FormLabel>Couleur *</FormLabel>
                       <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateColorModal(true)} className="shrink-0 w-6 h-6">
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -496,7 +496,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 name="vehicle_energy_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Énergie</FormLabel>
+                    <FormLabel>Énergie *</FormLabel>
                     <FormControl>
                       <VehicleEnergySelect
                         value={field.value}
