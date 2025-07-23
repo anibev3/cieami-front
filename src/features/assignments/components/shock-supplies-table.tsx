@@ -51,7 +51,8 @@ export function ShockSuppliesTable({
   onAdd,
   onRemove,
   onValidateRow,
-  onSupplyCreated
+  onSupplyCreated,
+  isEvaluation = false
 }: {
   supplies: Supply[]
   shockWorks: ShockWork[]
@@ -60,6 +61,7 @@ export function ShockSuppliesTable({
   onRemove: (index: number) => void
   onValidateRow: (index: number) => Promise<void>
   onSupplyCreated?: (newSupply: any) => void
+  isEvaluation?: boolean
 }) {
   // État local pour gérer les modifications et la validation
   const [localShockWorks, setLocalShockWorks] = useState<ShockWork[]>(shockWorks)
@@ -208,7 +210,7 @@ export function ShockSuppliesTable({
                 Fournitures
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
-                D/p
+                {isEvaluation ? 'Ctrl' : 'D/p'}
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remp
@@ -219,9 +221,11 @@ export function ShockSuppliesTable({
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Peint
               </th>
+              {!isEvaluation && (
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Vétusté
               </th>
+              )}
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Montant HT
               </th>
@@ -247,9 +251,9 @@ export function ShockSuppliesTable({
               <th className="border px-2 py-2 text-center font-medium text-purple-600 text-xs">
                 Montant TTC
               </th>
-              {/* <th className="border px-2 py-2 text-left font-medium text-xs">
+              <th className="border px-2 py-2 text-left font-medium text-xs">
                 Commentaire
-              </th> */}
+              </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Actions
               </th>
@@ -276,8 +280,8 @@ export function ShockSuppliesTable({
                 </td>
                 <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
-                    checked={row.disassembly} 
-                    onCheckedChange={v => updateLocalShockWork(i, 'disassembly', v)} 
+                    checked={isEvaluation ? row.control : row.disassembly} 
+                    onCheckedChange={v => updateLocalShockWork(i, isEvaluation ? 'control' : 'disassembly', v)} 
                   />
                 </td>
                 <td className="border px-2 py-2 text-center text-xs">
@@ -298,12 +302,14 @@ export function ShockSuppliesTable({
                     onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
                   />
                 </td>
-                <td className="border px-2 py-2 text-center text-xs">
-                  <Checkbox 
-                    checked={row.obsolescence} 
-                    onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
-                  />
-                </td>
+                {!isEvaluation && (
+                  <td className="border px-2 py-2 text-center text-xs">
+                    <Checkbox 
+                      checked={row.obsolescence} 
+                      onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
+                    />
+                  </td>
+                )}
                 <td className="border px-2 text-center text-xs">
                   {/* <Input
                     type="number"
@@ -402,7 +408,7 @@ export function ShockSuppliesTable({
                     TVA: {formatCurrency(row.new_amount_tax || 0)}
                   </div> */}
                 </td>
-                {/* <td className="border px-2 py-2 text-xs">
+                <td className="border px-2 py-2 text-xs">
                   <Input
                     type="text"
                     className="rounded w-20 p-1 border-none focus:border-none focus:ring-0"
@@ -410,7 +416,7 @@ export function ShockSuppliesTable({
                     placeholder="Commentaire..."
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
-                </td> */}
+                </td>
                 <td className="border px-2 py-2 text-center text-xs">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (

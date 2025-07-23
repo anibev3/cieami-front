@@ -248,6 +248,16 @@ export default function ReportEditPage() {
   const [technicalConclusions, setTechnicalConclusions] = useState<any[]>([])
   const [instructions, setInstructions] = useState('')
   
+  // États pour les champs supplémentaires des dossiers NON-évaluation
+  const [seenBeforeWorkDate, setSeenBeforeWorkDate] = useState<string>('')
+  const [seenDuringWorkDate, setSeenDuringWorkDate] = useState<string>('')
+  const [seenAfterWorkDate, setSeenAfterWorkDate] = useState<string>('')
+  const [contactDate, setContactDate] = useState<string>('')
+  const [expertisePlace, setExpertisePlace] = useState('')
+  const [assuredValue, setAssuredValue] = useState<number>(0)
+  const [salvageValue, setSalvageValue] = useState<number>(0)
+  const [workDuration, setWorkDuration] = useState('')
+  
   // États pour les nouveaux champs requis par l'API
   const [claimNatureId, setClaimNatureId] = useState<number | null>(null)
   const [expertRemark, setExpertRemark] = useState('')
@@ -325,6 +335,32 @@ export default function ReportEditPage() {
         }
         if ((assignment as any).expert_report_remark) {
           setExpertRemark((assignment as any).expert_report_remark)
+        }
+        
+        // Champs supplémentaires pour les dossiers NON-évaluation
+        if ((assignment as any).seen_before_work_date) {
+          setSeenBeforeWorkDate((assignment as any).seen_before_work_date)
+        }
+        if ((assignment as any).seen_during_work_date) {
+          setSeenDuringWorkDate((assignment as any).seen_during_work_date)
+        }
+        if ((assignment as any).seen_after_work_date) {
+          setSeenAfterWorkDate((assignment as any).seen_after_work_date)
+        }
+        if ((assignment as any).contact_date) {
+          setContactDate((assignment as any).contact_date)
+        }
+        if ((assignment as any).expertise_place) {
+          setExpertisePlace((assignment as any).expertise_place)
+        }
+        if ((assignment as any).assured_value) {
+          setAssuredValue((assignment as any).assured_value)
+        }
+        if ((assignment as any).salvage_value) {
+          setSalvageValue((assignment as any).salvage_value)
+        }
+        if ((assignment as any).work_duration) {
+          setWorkDuration((assignment as any).work_duration)
         }
       } else {
         // Champs requis pour les dossiers d'évaluation
@@ -536,6 +572,15 @@ export default function ReportEditPage() {
         claim_nature_id: claimNatureId,
         report_remark_id: selectedRemarkId,
         expert_report_remark: expertRemark,
+        // Champs supplémentaires
+        seen_before_work_date: seenBeforeWorkDate || null,
+        seen_during_work_date: seenDuringWorkDate || null,
+        seen_after_work_date: seenAfterWorkDate || null,
+        contact_date: contactDate || null,
+        expertise_place: expertisePlace || null,
+        assured_value: assuredValue || null,
+        salvage_value: salvageValue || null,
+        work_duration: workDuration || null,
       })
     }
 
@@ -560,7 +605,7 @@ export default function ReportEditPage() {
       setAssignmentTotalAmount(total)
       setShowReceiptModal(true)
     }
-  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation])
+  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -785,15 +830,31 @@ export default function ReportEditPage() {
       // Paramètres d'évaluation
       vehicle_id: assignment?.vehicle?.id?.toString(),
       expertise_date: expertiseDate,
-      market_incidence_rate: marketIncidenceRate,
       // Constats
       ascertainments: validAscertainments,
-      // Nouveaux champs requis par l'API
-      assignment_id: assignmentId,
-      general_state_id: generalStateId || 1,
-      technical_conclusion_id: technicalConclusionId || 1,
-      claim_nature_id: claimNatureId,
-      expert_remark: expertRemark
+      // Champs requis selon le type d'expertise
+      ...(isEvaluation ? {
+        // Champs pour les dossiers d'évaluation
+        instructions: instructions,
+        market_incidence_rate: marketIncidenceRate,
+      } : {
+        // Champs pour les dossiers NON-évaluation
+        assignment_id: assignmentId,
+        general_state_id: generalStateId || 1,
+        technical_conclusion_id: technicalConclusionId || 1,
+        claim_nature_id: claimNatureId,
+        report_remark_id: selectedRemarkId,
+        expert_report_remark: expertRemark,
+        // Champs supplémentaires
+        seen_before_work_date: seenBeforeWorkDate || null,
+        seen_during_work_date: seenDuringWorkDate || null,
+        seen_after_work_date: seenAfterWorkDate || null,
+        contact_date: contactDate || null,
+        expertise_place: expertisePlace || null,
+        assured_value: assuredValue || null,
+        salvage_value: salvageValue || null,
+        work_duration: workDuration || null,
+      })
     }
   }, [
     shocks, 
@@ -806,7 +867,18 @@ export default function ReportEditPage() {
     generalStateId, 
     technicalConclusionId, 
     claimNatureId, 
-    expertRemark
+    expertRemark,
+    isEvaluation,
+    instructions,
+    selectedRemarkId,
+    seenBeforeWorkDate,
+    seenDuringWorkDate,
+    seenAfterWorkDate,
+    contactDate,
+    expertisePlace,
+    assuredValue,
+    salvageValue,
+    workDuration
   ])
 
   // Fonction unifiée pour effectuer le calcul
@@ -1130,8 +1202,214 @@ export default function ReportEditPage() {
                         </p>
                       )}
                     </div>
+                  </CardContent>
+                </Card>
 
-                      
+                {/* Dates de visite */}
+                <Card className='shadow-none mt-4'>
+                  <CardHeader>
+                    <CardTitle className="text-base">Dates de visite</CardTitle>
+                    <CardDescription>
+                      Dates des différentes visites effectuées
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="seen-before-work">Date de visite avant travaux</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left text-sm",
+                                !seenBeforeWorkDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {seenBeforeWorkDate ? (
+                                format(new Date(seenBeforeWorkDate), "dd/MM/yyyy", { locale: fr })
+                              ) : (
+                                <span>Sélectionner une date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={seenBeforeWorkDate ? new Date(seenBeforeWorkDate) : undefined}
+                              initialFocus
+                              onSelect={(date) => {
+                                if (date) {
+                                  setSeenBeforeWorkDate(date.toISOString().split('T')[0])
+                                }
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="seen-during-work">Date de visite pendant travaux</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left text-sm",
+                                !seenDuringWorkDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {seenDuringWorkDate ? (
+                                format(new Date(seenDuringWorkDate), "dd/MM/yyyy", { locale: fr })
+                              ) : (
+                                <span>Sélectionner une date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={seenDuringWorkDate ? new Date(seenDuringWorkDate) : undefined}
+                              initialFocus
+                              onSelect={(date) => {
+                                if (date) {
+                                  setSeenDuringWorkDate(date.toISOString().split('T')[0])
+                                }
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="seen-after-work">Date de visite après travaux</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left text-sm",
+                                !seenAfterWorkDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {seenAfterWorkDate ? (
+                                format(new Date(seenAfterWorkDate), "dd/MM/yyyy", { locale: fr })
+                              ) : (
+                                <span>Sélectionner une date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={seenAfterWorkDate ? new Date(seenAfterWorkDate) : undefined}
+                              initialFocus
+                              onSelect={(date) => {
+                                if (date) {
+                                  setSeenAfterWorkDate(date.toISOString().split('T')[0])
+                                }
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Informations générales */}
+                <Card className='shadow-none mt-4'>
+                  <CardHeader>
+                    <CardTitle className="text-base">Informations générales</CardTitle>
+                    <CardDescription>
+                      Informations complémentaires sur l'expertise
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-date">Date de contact</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left text-sm",
+                                !contactDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {contactDate ? (
+                                format(new Date(contactDate), "dd/MM/yyyy", { locale: fr })
+                              ) : (
+                                <span>Sélectionner une date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={contactDate ? new Date(contactDate) : undefined}
+                              initialFocus
+                              onSelect={(date) => {
+                                if (date) {
+                                  setContactDate(date.toISOString().split('T')[0])
+                                }
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="expertise-place">Lieu de l'expertise</Label>
+                        <Input
+                          id="expertise-place"
+                          value={expertisePlace}
+                          onChange={(e) => setExpertisePlace(e.target.value)}
+                          placeholder="Ex: Cocody, Abidjan"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="work-duration">Durée des travaux</Label>
+                        <Input
+                          id="work-duration"
+                          value={workDuration}
+                          onChange={(e) => setWorkDuration(e.target.value)}
+                          placeholder="Ex: 15 jours"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="assured-value">Valeur assurée (FCFA)</Label>
+                        <Input
+                          id="assured-value"
+                          type="number"
+                          min="0"
+                          step="1000"
+                          value={assuredValue}
+                          onChange={(e) => setAssuredValue(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="salvage-value">Valeur de sauvetage (FCFA)</Label>
+                        <Input
+                          id="salvage-value"
+                          type="number"
+                          min="0"
+                          step="1000"
+                          value={salvageValue}
+                          onChange={(e) => setSalvageValue(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -1337,7 +1615,7 @@ export default function ReportEditPage() {
                             #
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                            Type de constat
+                            Type de constatation
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                             Qualité
@@ -1467,6 +1745,7 @@ export default function ReportEditPage() {
                     <ShockSuppliesTable
                       supplies={supplies}
                       shockWorks={s.shock_works}
+                      isEvaluation={isEvaluation}
                       onUpdate={(i, field, value) => updateShockWork(index, i, field, value)}
                       onAdd={() => {
                         const newWork = {
