@@ -718,8 +718,8 @@ export default function CreateAssignmentPage() {
 
   const handleCreateVehicle = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!createVehicleForm.license_plate || !createVehicleForm.vehicle_model_id || !createVehicleForm.color_id || !createVehicleForm.bodywork_id) {
-      toast.error('Plaque d\'immatriculation, modèle, couleur et carrosserie obligatoires')
+    if (!createVehicleForm.license_plate || !createVehicleForm.vehicle_model_id || !createVehicleForm.color_id || !createVehicleForm.vehicle_energy_id || !createVehicleForm.vehicle_genre_id) {
+      toast.error('Numéro d\'immatriculation, modèle, couleur, énergie et genre de véhicule obligatoires')
       return
     }
     try {
@@ -2245,12 +2245,13 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-genre">Genre de véhicule</Label>
+                <Label htmlFor="vehicle-genre">Genre de véhicule *</Label>
                 <VehicleGenreSelect
                   value={createVehicleForm.vehicle_genre_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_genre_id: value }))}
                   placeholder="Sélectionner un genre de véhicule"
                   showDescription={false}
+                  required={true}
                 />
               </div>
               <div className="space-y-2">
@@ -2264,6 +2265,7 @@ export default function CreateAssignmentPage() {
                   value={selectedBrandId}
                   onValueChange={setSelectedBrandId}
                   placeholder="Sélectionnez une marque"
+                  required={true}
                 />
               </div>
               <div className="space-y-2">
@@ -2285,6 +2287,7 @@ export default function CreateAssignmentPage() {
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_model_id: value }))}
                   placeholder="Sélectionner un modèle"
                   brandId={selectedBrandId}
+                  required={true}
                 />
               </div>
               <div className="space-y-2">
@@ -2298,11 +2301,12 @@ export default function CreateAssignmentPage() {
                   value={createVehicleForm.color_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, color_id: value }))}
                   placeholder="Sélectionner une couleur"
+                  required={true}
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="vehicle-bodywork">Carrosserie *</Label>
+                  <Label htmlFor="vehicle-bodywork">Carrosserie </Label>
                   <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBodyworkModal(true)} className="shrink-0 w-6 h-6">
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -2314,7 +2318,7 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-energy-type">Énergie</Label>
+                <Label htmlFor="vehicle-energy-type">Énergie *</Label>
                 <VehicleEnergySelect
                   value={createVehicleForm.vehicle_energy_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_energy_id: value }))}
@@ -2323,23 +2327,21 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-mileage">Kilométrage *</Label>
+                <Label htmlFor="vehicle-mileage">Kilométrage </Label>
                 <Input 
                   id="vehicle-mileage" 
                   type="number" 
                   value={createVehicleForm.mileage} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, mileage: e.target.value }))} 
-                  required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-first-circulation">Date de première mise en circulation *</Label>
+                <Label htmlFor="vehicle-first-circulation">Date de première mise en circulation </Label>
                 <Input 
                   id="vehicle-first-circulation" 
                   type="date"
                   value={createVehicleForm.first_entry_into_circulation_date || ''} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, first_entry_into_circulation_date: e.target.value }))} 
-                  required
                 />
               </div>
               <div className="space-y-2">
@@ -2352,7 +2354,7 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               {/* <div className="space-y-2">
-                <Label htmlFor="vehicle-usage">Usage *</Label>
+                <Label htmlFor="vehicle-usage">Usage </Label>
                 <Input 
                   id="vehicle-usage" 
                   value={createVehicleForm.usage} 
@@ -2361,70 +2363,63 @@ export default function CreateAssignmentPage() {
                 />
               </div> */}
               <div className="space-y-2">
-                <Label htmlFor="vehicle-type">Type *</Label>
+                <Label htmlFor="vehicle-type">Type </Label>
                 <Input 
                   id="vehicle-type" 
                   value={createVehicleForm.type} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, type: e.target.value }))} 
-                  required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-option">Option *</Label>
+                <Label htmlFor="vehicle-option">Option </Label>
                 <Input 
                   id="vehicle-option" 
                   value={createVehicleForm.option} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, option: e.target.value }))} 
-                  required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-power">Puissance fiscale *</Label>
+                <Label htmlFor="vehicle-power">Puissance fiscale </Label>
                 <Input 
                   id="vehicle-power" 
                   type="number" 
                   value={createVehicleForm.fiscal_power} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, fiscal_power: Number(e.target.value) }))} 
-                  required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-payload-capacity">Charge utile *</Label>
+                <Label htmlFor="vehicle-payload-capacity">Charge utile </Label>
                 <Input 
                   id="vehicle-payload-capacity" 
                   type="number"
                   value={createVehicleForm.payload} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, payload: Number(e.target.value) }))} 
-                  required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-serial">Numéro de série *</Label>
+                <Label htmlFor="vehicle-serial">Numéro de série </Label>
                 <Input 
                   id="vehicle-serial" 
                   value={createVehicleForm.serial_number} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, serial_number: e.target.value }))} 
-                  required 
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-new-value">Valeur neuve *</Label>
+                <Label htmlFor="vehicle-new-value">Valeur neuve </Label>
                 <Input 
                   id="vehicle-new-value" 
                   type="number"
                   value={createVehicleForm.new_market_value} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, new_market_value: Number(e.target.value) }))} 
-                  required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-seats">Nombre de places *</Label>
+                <Label htmlFor="vehicle-seats">Nombre de places </Label>
                 <Input 
                   id="vehicle-seats" 
                   type="number" 
                   value={createVehicleForm.nb_seats} 
                   onChange={e => setCreateVehicleForm(f => ({ ...f, nb_seats: Number(e.target.value) }))} 
-                  required 
                 />
               </div>
               
