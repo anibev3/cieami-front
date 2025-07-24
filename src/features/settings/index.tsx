@@ -1,8 +1,6 @@
 import { Outlet } from '@tanstack/react-router'
 import {
-  IconBrowserCheck,
   IconDownload,
-  IconNotification,
   IconPalette,
   IconTool,
   IconUser,
@@ -55,6 +53,11 @@ const sidebarNavItems = [
     title: 'Profil',
     icon: <IconUser size={18} />,
     href: '/settings',
+  },
+  {
+    title: 'Modifier le profil',
+    icon: <IconUser size={18} />,
+    href: '/settings/profile',
   },
   {
     title: 'Mise à jour',

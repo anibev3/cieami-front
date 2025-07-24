@@ -6,9 +6,25 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
 import { 
   Plus, 
   Search, 
@@ -23,7 +39,12 @@ import {
   User,
   Building,
   Loader2,
-  X
+  X,
+  Settings2,
+  ChevronDown,
+  MoreHorizontal,
+  ArrowUpDown,
+  RefreshCw
 } from 'lucide-react'
 import { useInvoiceStore } from '@/stores/invoiceStore'
 import { formatDate } from '@/utils/format-date'
@@ -44,11 +65,27 @@ export default function InvoicesPage() {
   const [filters, setFilters] = useState({
     date_from: '',
     date_to: '',
-    status: 'all'
+    status: 'all',
+    amount_min: '',
+    amount_max: ''
   })
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [dateFromOpen, setDateFromOpen] = useState(false)
   const [dateToOpen, setDateToOpen] = useState(false)
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    reference: true,
+    assignment: true,
+    date: true,
+    amount: true,
+    status: true,
+    created_by: true,
+    expertise_date: true,
+    actions: true
+  })
+  const [sorting, setSorting] = useState<{ key: string; direction: 'asc' | 'desc' }>({
+    key: 'date',
+    direction: 'desc'
+  })
 
   useEffect(() => {
     fetchInvoices()
@@ -59,7 +96,9 @@ export default function InvoicesPage() {
       search: searchTerm,
       date_from: filters.date_from,
       date_to: filters.date_to,
-      status: filters.status === 'all' ? '' : filters.status
+      status: filters.status === 'all' ? '' : filters.status,
+      amount_min: filters.amount_min,
+      amount_max: filters.amount_max
     }
     fetchInvoices(searchFilters)
   }
@@ -69,12 +108,14 @@ export default function InvoicesPage() {
     setFilters({
       date_from: '',
       date_to: '',
-      status: 'all'
+      status: 'all',
+      amount_min: '',
+      amount_max: ''
     })
     fetchInvoices()
   }
 
-  const hasActiveFilters = searchTerm || filters.date_from || filters.date_to || (filters.status && filters.status !== 'all')
+  const hasActiveFilters = searchTerm || filters.date_from || filters.date_to || (filters.status && filters.status !== 'all') || filters.amount_min || filters.amount_max
 
   const handleDelete = async (id: number) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
@@ -94,7 +135,12 @@ export default function InvoicesPage() {
     navigate({ to: '/comptabilite/invoices/create' })
   }
 
-
+  const handleSort = (key: string) => {
+    setSorting(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
 
   const handleFilterDateFrom = (date: Date | undefined) => {
     if (date) {
@@ -122,10 +168,30 @@ export default function InvoicesPage() {
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
       case 'inactive':
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+      case 'paid':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
     }
   }
+
+  // Tri des factures
+  const sortedInvoices = [...invoices].sort((a, b) => {
+    const aValue = a[sorting.key as keyof typeof a]
+    const bValue = b[sorting.key as keyof typeof b]
+    
+    // Gérer les valeurs nulles
+    const aVal = aValue ?? ''
+    const bVal = bValue ?? ''
+    
+    if (sorting.direction === 'asc') {
+      return aVal > bVal ? 1 : -1
+    } else {
+      return aVal < bVal ? 1 : -1
+    }
+  })
 
   return (
     <div className="space-y-6 relative w-full">
@@ -143,7 +209,7 @@ export default function InvoicesPage() {
             Filtres
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
-                {[searchTerm, filters.date_from, filters.date_to, filters.status !== 'all' ? filters.status : ''].filter(Boolean).length}
+                {[searchTerm, filters.date_from, filters.date_to, filters.status !== 'all' ? filters.status : '', filters.amount_min, filters.amount_max].filter(Boolean).length}
               </Badge>
             )}
           </Button>
@@ -154,8 +220,8 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {/* Barre de recherche rapide */}
-      <div className="flex gap-3">
+      {/* Barre de recherche et contrôles */}
+      <div className="flex gap-3 items-center">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -166,8 +232,11 @@ export default function InvoicesPage() {
             className="pl-10"
           />
         </div>
-        <Button onClick={handleSearch}>
+        <Button onClick={handleSearch} variant="outline">
           Rechercher
+        </Button>
+        <Button onClick={() => fetchInvoices()} variant="outline" size="icon">
+          <RefreshCw className="h-4 w-4" />
         </Button>
         {hasActiveFilters && (
           <Button variant="outline" onClick={handleClearFilters}>
@@ -176,139 +245,275 @@ export default function InvoicesPage() {
         )}
       </div>
 
-      <ScrollArea className="h-[calc(100vh-24rem)] overflow-y-hidden">
-      {/* Liste des factures */}
-        <div>
-            <div>
-            {loading ? (
-                <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-3 text-muted-foreground">Chargement des factures...</span>
-                </div>
-            ) : invoices.length === 0 ? (
-                <div className="text-center py-4">
-                <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Aucune facture trouvée</h3>
-                <p className="text-muted-foreground mb-4">
-                    {hasActiveFilters 
-                    ? 'Aucune facture ne correspond à vos critères de recherche'
-                    : 'Commencez par créer votre première facture'
+      {/* DataTable */}
+      <div className="rounded-md border bg-card">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Liste des factures</h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Colonnes
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {Object.entries(columnVisibility).map(([key, visible]) => (
+                  <DropdownMenuCheckboxItem
+                    key={key}
+                    checked={visible}
+                    onCheckedChange={(checked) =>
+                      setColumnVisibility(prev => ({ ...prev, [key]: checked }))
                     }
-                </p>
-                {!hasActiveFilters && (
-                    <Button onClick={handleCreate}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Créer une facture
-                    </Button>
-                )}
-                </div>
-            ) : (
-                <div className="">
-                <div className="space-y-3">
-                    {invoices.map((invoice) => (
-                    <div 
-                        key={invoice.id} 
-                        className="group relative bg-card border rounded-lg p-4 hover:shadow-md transition-all duration-200 hover:border-primary/20"
-                    >
-                        <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-start gap-4 mb-3">
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <h3 className="text-lg font-semibold text-primary truncate">
-                                        {invoice.reference}
-                                    </h3>
-                                    <Badge className={cn(getStatusColor(invoice.status.code), "text-xs")}>
-                                        {invoice.status.label}
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-1">
-                                    Dossier: <span className="font-medium">{invoice.assignment.reference}</span>
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Police: {invoice.assignment.policy_number} • Sinistre: {invoice.assignment.claim_number}
-                                </p>
-                            </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div className="flex items-center gap-2">
-                                <CalendarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">{formatDate(invoice.date)}</span>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                                <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="font-semibold text-primary">
-                                {invoice.amount 
-                                    ? formatCurrency(Number(invoice.amount))
-                                    : formatCurrency(Number(invoice.assignment.total_amount))
-                                }
-                                </span>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">{invoice.created_by.name || 'N/A'}</span>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                                <Building className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate">Expertise: {formatDate(invoice.assignment.expertise_date)}</span>
-                            </div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetails(Number(invoice.id))}
-                            className="h-8 w-8 p-0"
-                            >
-                            <Eye className="h-4 w-4" />
-                            </Button>
-                            
-                            <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}
-                            className="h-8 w-8 p-0"
-                            >
-                            <Edit className="h-4 w-4" />
-                            </Button>
-                            
-                            {invoice.assignment.expertise_sheet && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => window.open(invoice.assignment.expertise_sheet!, '_blank')}
-                                className="h-8 w-8 p-0"
-                            >
-                                <Download className="h-4 w-4" />
-                            </Button>
-                            )}
-                            
-                            <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(Number(invoice.id))}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                            >
-                            <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        </div>
-                    </div>
-                    ))}
-                </div>
-                </div>
-            )}
-            </div>
+                  >
+                    {key === 'reference' && 'Référence'}
+                    {key === 'assignment' && 'Dossier'}
+                    {key === 'date' && 'Date facture'}
+                    {key === 'amount' && 'Montant'}
+                    {key === 'status' && 'Statut'}
+                    {key === 'created_by' && 'Créé par'}
+                    {key === 'expertise_date' && 'Date expertise'}
+                    {key === 'actions' && 'Actions'}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-      </ScrollArea>
 
-      {/* Modal de filtres */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">Chargement des factures...</span>
+          </div>
+        ) : sortedInvoices.length === 0 ? (
+          <div className="text-center py-16">
+            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Aucune facture trouvée</h3>
+            <p className="text-muted-foreground mb-4">
+              {hasActiveFilters 
+                ? 'Aucune facture ne correspond à vos critères de recherche'
+                : 'Commencez par créer votre première facture'
+              }
+            </p>
+            {!hasActiveFilters && (
+              <Button onClick={handleCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Créer une facture
+              </Button>
+            )}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columnVisibility.reference && (
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('reference')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Référence
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.assignment && (
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('assignment')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Dossier
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.date && (
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('date')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Date facture
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.amount && (
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('amount')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Montant
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.status && (
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('status')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Statut
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.created_by && (
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('created_by')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Créé par
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.expertise_date && (
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort('expertise_date')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Date expertise
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.actions && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedInvoices.map((invoice) => (
+                <TableRow key={invoice.id} className="hover:bg-muted/50">
+                  {columnVisibility.reference && (
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {/* <FileText className="h-4 w-4 text-muted-foreground" /> */}
+                        {invoice.reference}
+                      </div>
+                    </TableCell>
+                  )}
+                  
+                  {columnVisibility.assignment && (
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium">{invoice.assignment.reference}</div>
+                        {/* <div className="text-xs text-muted-foreground">
+                          Police: {invoice.assignment.policy_number}
+                        </div> */}
+                      </div>
+                    </TableCell>
+                  )}
+                  
+                  {columnVisibility.date && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                        {formatDate(invoice.date)}
+                      </div>
+                    </TableCell>
+                  )}
+                  
+                  {columnVisibility.amount && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
+                        <span className="font-semibold text-green-600">
+                          {invoice.amount 
+                            ? formatCurrency(Number(invoice.amount))
+                            : formatCurrency(Number(invoice.assignment.total_amount))
+                          }
+                        </span>
+                      </div>
+                    </TableCell>
+                  )}
+                  
+                  {columnVisibility.status && (
+                    <TableCell>
+                      <Badge className={cn(getStatusColor(invoice.status.code), "text-xs")}>
+                        {invoice.status.label}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  
+                  {columnVisibility.created_by && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="truncate max-w-[120px]">
+                          {invoice.created_by.name || 'N/A'}
+                        </span>
+                      </div>
+                    </TableCell>
+                  )}
+                  
+                  {columnVisibility.expertise_date && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
+                        {formatDate(invoice.assignment.expertise_date)}
+                      </div>
+                    </TableCell>
+                  )}
+                  
+                  {columnVisibility.actions && (
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewDetails(Number(invoice.id))}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Voir les détails
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          {invoice.assignment.expertise_sheet && (
+                            <DropdownMenuItem onClick={() => window.open(invoice.assignment.expertise_sheet!, '_blank')}>
+                              <Download className="mr-2 h-4 w-4" />
+                              Télécharger
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(Number(invoice.id))}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
+      {/* Modal de filtres avancés */}
       <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -317,7 +522,7 @@ export default function InvoicesPage() {
               Filtres avancés
             </DialogTitle>
             <DialogDescription>
-              Affinez votre recherche de factures
+              Affinez votre recherche de factures avec des critères précis
             </DialogDescription>
           </DialogHeader>
 
@@ -384,26 +589,47 @@ export default function InvoicesPage() {
                   <SelectItem value="all">Tous les statuts</SelectItem>
                   <SelectItem value="active">Actif</SelectItem>
                   <SelectItem value="inactive">Inactif</SelectItem>
+                  <SelectItem value="paid">Payé</SelectItem>
+                  <SelectItem value="pending">En attente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label>Montant min</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={filters.amount_min}
+                  onChange={(e) => setFilters(prev => ({ ...prev, amount_min: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Montant max</Label>
+                <Input
+                  type="number"
+                  placeholder="∞"
+                  value={filters.amount_max}
+                  onChange={(e) => setFilters(prev => ({ ...prev, amount_max: e.target.value }))}
+                />
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={handleClearFilters}>
-                Effacer
+                Effacer tout
               </Button>
               <Button onClick={() => {
                 handleSearch()
                 setFilterModalOpen(false)
               }}>
-                Appliquer
+                Appliquer les filtres
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-
-
     </div>
   )
 }

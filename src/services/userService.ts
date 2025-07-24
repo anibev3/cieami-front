@@ -7,6 +7,22 @@ import {
   UserFilters 
 } from '@/types/administration'
 
+export interface UpdateProfileData {
+  first_name: string
+  last_name: string
+  email: string
+  telephone?: string | null
+  signature?: File | null
+}
+
+export interface UpdateProfileResponse {
+  status: number
+  message: string
+  data: {
+    user: User
+  }
+}
+
 class UserService {
   private baseUrl = '/users'
 
@@ -112,6 +128,37 @@ class UserService {
   async reset(id: number): Promise<User> {
     const response = await axiosInstance.post<{status: number, message: string, data: User}>(`${this.baseUrl}/${id}/reset`)
     return response.data.data
+  }
+
+  /**
+   * Mettre à jour le profil de l'utilisateur connecté
+   */
+  async updateProfile(data: UpdateProfileData): Promise<UpdateProfileResponse> {
+    const formData = new FormData()
+    
+    formData.append('first_name', data.first_name)
+    formData.append('last_name', data.last_name)
+    formData.append('email', data.email)
+    
+    if (data.telephone) {
+      formData.append('telephone', data.telephone)
+    }
+    
+    if (data.signature) {
+      formData.append('signature', data.signature)
+    }
+
+    const response = await axiosInstance.post<UpdateProfileResponse>(
+      `${this.baseUrl}/update-profile`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+
+    return response.data
   }
 }
 

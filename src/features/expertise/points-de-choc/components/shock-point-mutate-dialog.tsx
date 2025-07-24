@@ -80,14 +80,14 @@ export function ShockPointMutateDialog({ id, open, onOpenChange, onSuccess }: Sh
             <label htmlFor="code" className="text-sm font-medium">
               Code
             </label>
-            <Input
+          <Input
               id="code"
-              placeholder="Code"
-              value={form.code}
-              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              required
-              disabled={loading}
-            />
+            placeholder="Code"
+            value={form.code}
+            onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+            required
+            disabled={loading}
+          />
           </div>
           
           <div className="space-y-2">
@@ -108,14 +108,14 @@ export function ShockPointMutateDialog({ id, open, onOpenChange, onSuccess }: Sh
             <label htmlFor="description" className="text-sm font-medium">
               Description
             </label>
-            <Textarea
+          <Textarea
               id="description"
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              required
-              disabled={loading}
-            />
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            required
+            disabled={loading}
+          />
           </div>
           
           <DialogFooter>

@@ -7,8 +7,22 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { 
   ArrowLeft, 
   Plus, 
@@ -22,7 +36,10 @@ import {
   CheckCircle,
   Loader2,
   FileText,
-  Filter
+  Filter,
+  Settings2,
+  ChevronDown,
+  Eye
 } from 'lucide-react'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { useInvoiceStore } from '@/stores/invoiceStore'
@@ -43,6 +60,17 @@ export default function CreateInvoicePage() {
   const [invoiceObject, setInvoiceObject] = useState('')
   const [creating, setCreating] = useState(false)
   const [filteredAssignments, setFilteredAssignments] = useState<any[]>([])
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    reference: true,
+    client: false,
+    vehicle: false,
+    policy: true,
+    date: false,
+    status: true,
+    amount: true,
+    details: false,
+    actions: false
+  })
 
   useEffect(() => {
     if (assignments.length === 0) {
@@ -129,117 +157,21 @@ export default function CreateInvoicePage() {
     }
   }
 
-  const renderAssignmentCard = (assignment: any) => {
-    const isSelected = selectedAssignment?.id === assignment.id
-    const isEligible = assignment.status?.code === 'edited' && assignment.receipts && assignment.receipts.length > 0
-    
-    return (
-      <Card 
-        key={assignment.id} 
-        className={cn(
-          "transition-all duration-200 shadow-none",
-          isEligible 
-            ? "cursor-pointer hover:shadow-md" 
-            : "cursor-not-allowed opacity-60",
-          isSelected 
-            ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200" 
-            : isEligible 
-              ? "hover:border-gray-300" 
-              : "border-gray-200"
-        )}
-        onClick={() => isEligible && setSelectedAssignment(assignment)}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {assignment.reference}
-                </h3>
-                <Badge className={cn(getStatusColor(assignment.status?.code || ''), "text-xs")}>
-                  {assignment.status?.label || 'Statut inconnu'}
-                </Badge>
-                {isSelected && (
-                  <CheckCircle className="h-5 w-5 text-blue-600" />
-                )}
-                {!isEligible && (
-                  <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
-                    {assignment.status?.code !== 'edited' ? 'Statut non éligible' : 'Aucune quittance'}
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{assignment.client?.name || 'Client inconnu'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Car className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{assignment.vehicle?.license_plate || 'Plaque inconnue'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">Police: {assignment.policy_number || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{formatDate(assignment.expertise_date)}</span>
-                </div>
-              </div>
+  const isAssignmentEligible = (assignment: any) => {
+    return assignment.status?.code === 'edited' && assignment.receipts && assignment.receipts.length > 0
+  }
 
-              <div className="flex items-center gap-4 text-xs text-gray-600">
-                <div className="flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
-                  <span className="font-medium">{formatCurrency(Number(assignment.total_amount || 0))}</span>
-                </div>
-                
-                {assignment.receipts && assignment.receipts.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Receipt className="h-3 w-3 text-green-600" />
-                    <span className="text-green-600 font-medium">
-                      {assignment.receipts.length} quittance{assignment.receipts.length > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )}
-                
-                {assignment.shocks && assignment.shocks.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Car className="h-3 w-3 text-orange-600" />
-                    <span className="text-orange-600 font-medium">
-                      {assignment.shocks.length} choc{assignment.shocks.length > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )}
-                
-                {assignment.shocks && assignment.shocks.some((shock: any) => shock.workforces && shock.workforces.length > 0) && (
-                  <div className="flex items-center gap-1">
-                    <Wrench className="h-3 w-3 text-blue-600" />
-                    <span className="text-blue-600 font-medium">Main d'œuvre</span>
-                  </div>
-                )}
-                
-                {assignment.other_costs && assignment.other_costs.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="h-3 w-3 text-red-600" />
-                    <span className="text-red-600 font-medium">
-                      {assignment.other_costs.length} autre{assignment.other_costs.length > 1 ? 's' : ''} coût{assignment.other_costs.length > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
+  const handleRowClick = (assignment: any) => {
+    if (isAssignmentEligible(assignment)) {
+      setSelectedAssignment(assignment)
+    }
   }
 
   return (
     <div className="space-y-6 w-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      {/* <div className="flex items-center justify-between">
+        <div>
           <Button
             variant="ghost"
             size="sm"
@@ -247,44 +179,92 @@ export default function CreateInvoicePage() {
             className="hover:bg-gray-100"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
+            Créez une nouvelle facture pour un dossier d'expertise
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Nouvelle facture</h1>
-            <p className="text-muted-foreground">
-              Créez une nouvelle facture pour un dossier d'expertise
-            </p>
-          </div>
         </div>
-      </div>
+
+        
+      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Liste des dossiers */}
+        {/* DataTable des dossiers */}
         <div className="lg:col-span-2">
-          <div className="shadow-none h-full">
-            {/* <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Sélectionner un dossier
-              </CardTitle>
-            </CardHeader> */}
-            <CardContent>
-              {/* Filtres */}
-              <div className="mb-4 space-y-3">
-              {/* Barre de recherche */}
-                <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Rechercher par référence, client, plaque..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-                </div>
-
-                {/* Filtre par statut */}
+          <div className="shadow-none">
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate({ to: '/comptabilite/invoices' })}
+                    className="hover:bg-gray-100"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Dossiers d'expertise
+                  </Button>
+                </CardTitle>
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-gray-500" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Settings2 className="mr-2 h-4 w-4" />
+                        Colonnes
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {Object.entries(columnVisibility).map(([key, visible]) => (
+                        <DropdownMenuCheckboxItem
+                          key={key}
+                          checked={visible}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility(prev => ({ ...prev, [key]: checked }))
+                          }
+                        >
+                          {key === 'reference' && 'Référence'}
+                          {key === 'client' && 'Client'}
+                          {key === 'vehicle' && 'Véhicule'}
+                          {key === 'policy' && 'Police'}
+                          {key === 'date' && 'Date'}
+                          {key === 'status' && 'Statut'}
+                          {key === 'amount' && 'Montant'}
+                          {key === 'details' && 'Détails'}
+                          {key === 'actions' && 'Actions'}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
+            <div>
+              {/* Information sur les critères d'éligibilité */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">Critères d'éligibilité</span>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {filteredAssignments.filter(a => isAssignmentEligible(a)).length} éligible{filteredAssignments.filter(a => isAssignmentEligible(a)).length > 1 ? 's' : ''}
+                  </Badge>
+                </div>
+                <p className="text-xs text-blue-700">
+                  Seuls les dossiers avec le statut "Édité" et possédant au moins une quittance peuvent faire l'objet d'une facturation.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 justify-between mb-4">
+                <div className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Rechercher par référence, client, plaque..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Filtrer par statut" />
@@ -307,24 +287,8 @@ export default function CreateInvoicePage() {
                 </div>
               </div>
 
-              {/* Information sur les critères d'éligibilité */}
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-900">Critères d'éligibilité</span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {filteredAssignments.filter(a => a.status?.code === 'edited' && a.receipts && a.receipts.length > 0).length} éligible{filteredAssignments.filter(a => a.status?.code === 'edited' && a.receipts && a.receipts.length > 0).length > 1 ? 's' : ''}
-                  </Badge>
-                </div>
-                <p className="text-xs text-blue-700">
-                  Seuls les dossiers avec le statut "Édité" et possédant au moins une quittance peuvent faire l'objet d'une facturation.
-                </p>
-              </div>
-
-              {/* Liste des dossiers */}
-              <ScrollArea className="h-[530px]">
+              {/* DataTable */}
+              <div className="rounded-md border">
                 {assignmentsLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -344,12 +308,204 @@ export default function CreateInvoicePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {filteredAssignments.map(renderAssignmentCard)}
-                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {columnVisibility.reference && (
+                          <TableHead className="font-semibold">Référence</TableHead>
+                        )}
+                        {columnVisibility.client && (
+                          <TableHead className="font-semibold">Client</TableHead>
+                        )}
+                        {columnVisibility.vehicle && (
+                          <TableHead className="font-semibold">Véhicule</TableHead>
+                        )}
+                        {columnVisibility.policy && (
+                          <TableHead className="font-semibold">Police</TableHead>
+                        )}
+                        {columnVisibility.date && (
+                          <TableHead className="font-semibold">Date expertise</TableHead>
+                        )}
+                        {columnVisibility.status && (
+                          <TableHead className="font-semibold">Statut</TableHead>
+                        )}
+                        {columnVisibility.amount && (
+                          <TableHead className="font-semibold">Montant</TableHead>
+                        )}
+                        {columnVisibility.details && (
+                          <TableHead className="font-semibold">Détails</TableHead>
+                        )}
+                        {columnVisibility.actions && (
+                          <TableHead className="font-semibold">Actions</TableHead>
+                        )}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAssignments.map((assignment) => {
+                        const isSelected = selectedAssignment?.id === assignment.id
+                        const isEligible = isAssignmentEligible(assignment)
+                        
+                        return (
+                          <TableRow 
+                            key={assignment.id}
+                            className={cn(
+                              "transition-all duration-200",
+                              isEligible 
+                                ? "cursor-pointer hover:bg-gray-50" 
+                                : "cursor-not-allowed opacity-60",
+                              isSelected && "bg-blue-50 border-l-4 border-l-blue-500"
+                            )}
+                            onClick={() => handleRowClick(assignment)}
+                          >
+                            {columnVisibility.reference && (
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  {assignment.reference}
+                                  {isSelected && (
+                                    <CheckCircle className="h-4 w-4 text-blue-600" />
+                                  )}
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.client && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4 text-gray-500" />
+                                  <span className="truncate max-w-[150px]">
+                                    {assignment.client?.name || 'Client inconnu'}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.vehicle && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Car className="h-4 w-4 text-gray-500" />
+                                  <span className="font-mono">
+                                    {assignment.vehicle?.license_plate || 'N/A'}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.policy && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <FileText className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">
+                                    {assignment.policy_number || 'N/A'}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.date && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">
+                                    {formatDate(assignment.expertise_date)}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.status && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={cn(getStatusColor(assignment.status?.code || ''), "text-xs")}>
+                                    {assignment.status?.label || 'Statut inconnu'}
+                                  </Badge>
+                                  {!isEligible && (
+                                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                                      {assignment.status?.code !== 'edited' ? 'Non éligible' : 'Pas de quittance'}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.amount && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <DollarSign className="h-4 w-4 text-gray-500" />
+                                  <span className="font-semibold text-green-600">
+                                    {formatCurrency(Number(assignment.total_amount || 0))}
+                                  </span>
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.details && (
+                              <TableCell>
+                                <div className="flex items-center gap-3 text-xs">
+                                  {assignment.receipts && assignment.receipts.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <Receipt className="h-3 w-3 text-green-600" />
+                                      <span className="text-green-600 font-medium">
+                                        {assignment.receipts.length}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {assignment.shocks && assignment.shocks.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <Car className="h-3 w-3 text-orange-600" />
+                                      <span className="text-orange-600 font-medium">
+                                        {assignment.shocks.length}
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {assignment.shocks && assignment.shocks.some((shock: any) => shock.workforces && shock.workforces.length > 0) && (
+                                    <div className="flex items-center gap-1">
+                                      <Wrench className="h-3 w-3 text-blue-600" />
+                                      <span className="text-blue-600 font-medium">MO</span>
+                                    </div>
+                                  )}
+                                  
+                                  {assignment.other_costs && assignment.other_costs.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <DollarSign className="h-3 w-3 text-red-600" />
+                                      <span className="text-red-600 font-medium">
+                                        {assignment.other_costs.length}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            )}
+                            
+                            {columnVisibility.actions && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      if (isEligible) {
+                                        setSelectedAssignment(assignment)
+                                      }
+                                    }}
+                                    disabled={!isEligible}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
                 )}
-              </ScrollArea>
-            </CardContent>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -369,18 +525,18 @@ export default function CreateInvoicePage() {
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Dossier sélectionné</Label>
                     <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold text-blue-900">{selectedAssignment.reference}</h4>
-                        <Badge className={cn(getStatusColor(selectedAssignment.status.code), "text-xs")}>
+                      <div className="flex items-center gap-2">
+                        <h5 className="font-semibold text-blue-900">{selectedAssignment.reference}</h5>
+                        {/* <Badge className={cn(getStatusColor(selectedAssignment.status.code), "text-xs")}>
                           {selectedAssignment.status.label}
-                        </Badge>
+                        </Badge> */}
                       </div>
-                      <p className="text-sm text-blue-700 mb-1">
+                      {/* <p className="text-sm text-blue-700 mb-1">
                         {selectedAssignment.client.name} - {selectedAssignment.vehicle.license_plate}
                       </p>
                       <p className="text-xs text-blue-600">
                         Police: {selectedAssignment.policy_number} • Expertise: {formatDate(selectedAssignment.expertise_date)}
-                      </p>
+                      </p> */}
                     </div>
                   </div>
 

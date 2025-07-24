@@ -34,7 +34,7 @@ export default function UserProfileDisplay() {
           <div className="flex justify-center mt-2">
             <Badge variant="secondary" className="text-sm">
               <Shield className="w-3 h-3 mr-1" />
-              {user.role.label}
+              {user.role?.label || 'Rôle non défini'}
             </Badge>
           </div>
         </CardHeader>
@@ -90,6 +90,7 @@ export default function UserProfileDisplay() {
       </Card>
 
       {/* Informations de l'entité */}
+      {user.entity && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -101,15 +102,15 @@ export default function UserProfileDisplay() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Nom de l'entité</label>
-              <p className="text-sm">{user.entity.name}</p>
+                <p className="text-sm">{user.entity.name || 'Non renseigné'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Code de l'entité</label>
-              <p className="text-sm">{user.entity.code}</p>
+                <p className="text-sm">{user.entity.code || 'Non renseigné'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Email de l'entité</label>
-              <p className="text-sm">{user.entity.email}</p>
+                <p className="text-sm">{user.entity.email || 'Non renseigné'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Téléphone de l'entité</label>
@@ -128,6 +129,7 @@ export default function UserProfileDisplay() {
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Informations du compte */}
       <Card>
@@ -145,7 +147,7 @@ export default function UserProfileDisplay() {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Rôle</label>
-              <p className="text-sm">{user.role.name}</p>
+              <p className="text-sm">{user.role?.name || 'Non renseigné'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Date de création</label>
@@ -161,10 +163,10 @@ export default function UserProfileDisplay() {
           
           <div>
             <label className="text-sm font-medium text-muted-foreground">Description du rôle</label>
-            <p className="text-sm">{user.role.description}</p>
+            <p className="text-sm">{user.role?.description || 'Aucune description'}</p>
           </div>
           
-          {user.permissions.length > 0 && (
+          {user.permissions && user.permissions.length > 0 && (
             <>
               <Separator />
               <div>

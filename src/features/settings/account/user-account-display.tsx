@@ -257,7 +257,11 @@ export default function UserAccountDisplay() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" className="flex-1">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => window.location.href = '/settings/profile'}
+            >
               Modifier le profil
             </Button>
             <Button variant="outline" className="flex-1">
