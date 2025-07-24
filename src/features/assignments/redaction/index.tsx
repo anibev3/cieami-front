@@ -60,12 +60,23 @@ import { Main } from '@/components/layout/main'
 import { assignmentService } from '@/services/assignmentService'
 import { ShockWorkforceTableV2 } from '@/features/assignments/components/shock-workforce-table-v2'
 import { ShockSuppliesEditTable } from '@/features/assignments/components/shock-supplies-edit-table'
-import { OtherCostTypeSelect, SelectedItemInfo } from '@/features/widgets/reusable-selects'  
+import { OtherCostTypeSelect, SelectedItemInfo, WorkforceTypeSelect } from '@/features/widgets/reusable-selects'  
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { ReceiptManagement } from '@/features/assignments/components/receipt-management'
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { Textarea } from '@/components/ui/textarea'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { GeneralStateSelect } from '@/features/widgets/general-state-select'
+import { TechnicalConclusionSelect } from '@/features/widgets/technical-conclusion-select'
+import { ClaimNatureSelect } from '@/features/widgets/claim-nature-select'
+import { RemarkSelect } from '@/features/widgets/remark-select'
+import { SupplySelect } from '@/features/widgets/supply-select'
 
 interface Assignment {
   id: number
@@ -95,6 +106,10 @@ interface Assignment {
   market_value: string
   work_duration: string | null
   expert_remark: string | null
+  expert_report_remark: string | null
+  instructions: string | null
+  market_incidence_rate: string | null
+  report_remark_id: number | null
   shock_amount_excluding_tax: string
   shock_amount_tax: string
   shock_amount: string
@@ -444,6 +459,31 @@ export default function EditReportPage() {
     { other_cost_type_id: 0, amount: 0 }
   ])
   
+  // États pour les informations additionnelles (selon le type d'expertise)
+  const [generalStateId, setGeneralStateId] = useState<number | null>(null)
+  const [technicalConclusionId, setTechnicalConclusionId] = useState<number | null>(null)
+  const [claimNatureId, setClaimNatureId] = useState<number | null>(null)
+  const [selectedRemarkId, setSelectedRemarkId] = useState<number | null>(null)
+  const [expertRemark, setExpertRemark] = useState('')
+  const [instructions, setInstructions] = useState('')
+  const [marketIncidenceRate, setMarketIncidenceRate] = useState<number>(0)
+  
+  // États pour les dates et valeurs
+  const [seenBeforeWorkDate, setSeenBeforeWorkDate] = useState<Date | null>(null)
+  const [seenDuringWorkDate, setSeenDuringWorkDate] = useState<Date | null>(null)
+  const [seenAfterWorkDate, setSeenAfterWorkDate] = useState<Date | null>(null)
+  const [contactDate, setContactDate] = useState<Date | null>(null)
+  const [expertisePlace, setExpertisePlace] = useState('')
+  const [assuredValue, setAssuredValue] = useState<number>(0)
+  const [salvageValue, setSalvageValue] = useState<number>(0)
+  const [workDuration, setWorkDuration] = useState('')
+  
+  // États pour les données de référence
+  const [generalStates, setGeneralStates] = useState([])
+  const [claimNatures, setClaimNatures] = useState([])
+  const [technicalConclusions, setTechnicalConclusions] = useState([])
+  const [remarks, setRemarks] = useState([])
+  
   // États pour les données de référence
   const [supplies, setSupplies] = useState<Supply[]>([])
   const [workforceTypes, setWorkforceTypes] = useState<WorkforceType[]>([])
@@ -465,6 +505,29 @@ export default function EditReportPage() {
           setCircumstance(assignmentData.circumstance || '')
           setDamageDeclared(assignmentData.damage_declared || '')
           setObservation(assignmentData.observation || '')
+          
+          // Pré-remplir les informations additionnelles
+          setGeneralStateId(assignmentData.general_state?.id || null)
+          setTechnicalConclusionId(assignmentData.technical_conclusion?.id || null)
+          setExpertRemark(assignmentData.expert_report_remark || '')
+          setExpertisePlace(assignmentData.expertise_place || '')
+          setAssuredValue(parseFloat(assignmentData.assured_value || '0'))
+          setSalvageValue(parseFloat(assignmentData.salvage_value || '0'))
+          setWorkDuration(assignmentData.work_duration || '')
+          
+          // Pré-remplir les dates
+          if (assignmentData.seen_before_work_date) {
+            setSeenBeforeWorkDate(new Date(assignmentData.seen_before_work_date))
+          }
+          if (assignmentData.seen_during_work_date) {
+            setSeenDuringWorkDate(new Date(assignmentData.seen_during_work_date))
+          }
+          if (assignmentData.seen_after_work_date) {
+            setSeenAfterWorkDate(new Date(assignmentData.seen_after_work_date))
+          }
+          if (assignmentData.contact_date) {
+            setContactDate(new Date(assignmentData.contact_date))
+          }
         } else {
           setAssignment(response as unknown as Assignment)
           // Initialiser les champs d'édition
@@ -472,6 +535,29 @@ export default function EditReportPage() {
           setCircumstance(assignmentData.circumstance || '')
           setDamageDeclared(assignmentData.damage_declared || '')
           setObservation(assignmentData.observation || '')
+          
+          // Pré-remplir les informations additionnelles
+          setGeneralStateId(assignmentData.general_state?.id || null)
+          setTechnicalConclusionId(assignmentData.technical_conclusion?.id || null)
+          setExpertRemark(assignmentData.expert_report_remark || '')
+          setExpertisePlace(assignmentData.expertise_place || '')
+          setAssuredValue(parseFloat(assignmentData.assured_value || '0'))
+          setSalvageValue(parseFloat(assignmentData.salvage_value || '0'))
+          setWorkDuration(assignmentData.work_duration || '')
+          
+          // Pré-remplir les dates
+          if (assignmentData.seen_before_work_date) {
+            setSeenBeforeWorkDate(new Date(assignmentData.seen_before_work_date))
+          }
+          if (assignmentData.seen_during_work_date) {
+            setSeenDuringWorkDate(new Date(assignmentData.seen_during_work_date))
+          }
+          if (assignmentData.seen_after_work_date) {
+            setSeenAfterWorkDate(new Date(assignmentData.seen_after_work_date))
+          }
+          if (assignmentData.contact_date) {
+            setContactDate(new Date(assignmentData.contact_date))
+          }
         }
       } catch (err) {
         console.log(err)
@@ -515,6 +601,27 @@ export default function EditReportPage() {
         console.log("================> shockPointsResponse", shockPointsResponse.status)
         if (shockPointsResponse.status === 200) {
           setShockPoints(shockPointsResponse.data.data)
+        }
+        
+        // Charger les données pour les informations additionnelles
+        const generalStatesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/general-states`)
+        if (generalStatesResponse.status === 200) {
+          setGeneralStates(generalStatesResponse.data.data)
+        }
+        
+        const claimNaturesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/claim-natures`)
+        if (claimNaturesResponse.status === 200) {
+          setClaimNatures(claimNaturesResponse.data.data)
+        }
+        
+        const technicalConclusionsResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/technical-conclusions`)
+        if (technicalConclusionsResponse.status === 200) {
+          setTechnicalConclusions(technicalConclusionsResponse.data.data)
+        }
+        
+        const remarksResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/remarks`)
+        if (remarksResponse.status === 200) {
+          setRemarks(remarksResponse.data.data)
         }
       } catch (err) {
         console.error('Erreur lors du chargement des données de référence:', err)
@@ -589,17 +696,44 @@ export default function EditReportPage() {
     }
   }
 
+  // Fonction pour déterminer si c'est une évaluation
+  const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
+  
   // Fonction de sauvegarde
   const handleSave = async () => {
     setSaving(true)
     try {
       // Sauvegarder les modifications des champs d'édition
       if (assignment) {
-        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignment.id}`, {
+        const payload: any = {
           circumstance,
           damage_declared: damageDeclared,
           observation
-        })
+        }
+
+        // Ajouter les champs conditionnels selon le type d'expertise
+        if (!isEvaluation) {
+          // Champs pour les dossiers NON-évaluation
+          if (generalStateId) payload.general_state_id = generalStateId.toString()
+          if (technicalConclusionId) payload.technical_conclusion_id = technicalConclusionId.toString()
+          if (claimNatureId) payload.claim_nature_id = claimNatureId.toString()
+          if (selectedRemarkId) payload.report_remark_id = selectedRemarkId.toString()
+          if (expertRemark) payload.expert_report_remark = expertRemark
+          if (seenBeforeWorkDate) payload.seen_before_work_date = seenBeforeWorkDate.toISOString()
+          if (seenDuringWorkDate) payload.seen_during_work_date = seenDuringWorkDate.toISOString()
+          if (seenAfterWorkDate) payload.seen_after_work_date = seenAfterWorkDate.toISOString()
+          if (contactDate) payload.contact_date = contactDate.toISOString()
+          if (expertisePlace) payload.expertise_place = expertisePlace
+          if (assuredValue) payload.assured_value = Number(assuredValue)
+          if (salvageValue) payload.salvage_value = Number(salvageValue)
+          if (workDuration) payload.work_duration = workDuration
+        } else {
+          // Champs pour les dossiers évaluation
+          if (instructions) payload.instructions = instructions
+          if (marketIncidenceRate) payload.market_incidence_rate = Number(marketIncidenceRate)
+        }
+
+        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITE_ELEMENTS}/${assignment.id}`, payload)
       }
       toast.success('Modifications sauvegardées avec succès')
       refreshAssignment()
@@ -849,6 +983,34 @@ export default function EditReportPage() {
                   <div className="flex items-center gap-2">
                     <Receipt className="h-4 w-4" />
                     {!sidebarCollapsed && <span>Quittances</span>}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('additional-info')}
+                  className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
+                    activeTab === 'additional-info' 
+                      ? 'bg-gray-100 text-gray-900 font-medium' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    {!sidebarCollapsed && <span>Informations additionnelles</span>}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('constatations')}
+                  className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
+                    activeTab === 'constatations' 
+                      ? 'bg-gray-100 text-gray-900 font-medium' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    {!sidebarCollapsed && <span>Constatations</span>}
                   </div>
                 </button>
               </nav>
@@ -1397,7 +1559,7 @@ export default function EditReportPage() {
                         <div key={shock.id} className="border border-gray-200 rounded-lg overflow-hidden">
                           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                             <div className="flex items-center justify-between">
-                              <div>
+                              <div className="flex items-center gap-2 justify-between w-full">
                                 <div className="flex items-center gap-2">
                                   {/* Sélecteur de point de choc modifiable */}
                                   <ShockPointSelect
@@ -1417,7 +1579,7 @@ export default function EditReportPage() {
                                     showSelectedInfo={true}
                                   />
                                 </div>
-                                <div className="text-xs text-gray-600 mt-1">
+                                <div className="text-sm text-gray-600 mt-1">
                                   {shock.shock_works?.length || 0} fourniture(s) • {shock.workforces?.length || 0} main d'œuvre • Total: {formatCurrency(shock.amount)}
                                 </div>
                               </div>
@@ -1427,7 +1589,6 @@ export default function EditReportPage() {
                           <div className="p-4 space-y-4">
                             {/* Tableau des fournitures */}
                             <div>
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Fournitures</h4>
                               <ShockSuppliesEditTable
                                 supplies={supplies.map((supply: any) => ({
                                   id: supply.id,
@@ -1444,19 +1605,21 @@ export default function EditReportPage() {
                                   repair: work.repair || false,
                                   paint: work.paint || false,
                                   control: work.control || false,
+                                  obsolescence: work.obsolescence || false,
                                   comment: work.comment || '',
                                   obsolescence_rate: Number(work.obsolescence_rate) || 0,
-                                  recovery_amoun: Number(work.recovery_amoun) || 0,
+                                  recovery_amount: Number(work.recovery_amount) || 0,
+                                  discount: Number(work.discount) || 0,
                                   amount: Number(work.amount) || 0,
                                   obsolescence_amount_excluding_tax: Number(work.obsolescence_amount_excluding_tax) || 0,
                                   obsolescence_amount_tax: Number(work.obsolescence_amount_tax) || 0,
                                   obsolescence_amount: Number(work.obsolescence_amount) || 0,
                                   recovery_amount_excluding_tax: Number(work.recovery_amount_excluding_tax) || 0,
                                   recovery_amount_tax: Number(work.recovery_amount_tax) || 0,
-                                  recovery_amount: Number(work.recovery_amount) || 0,
                                   new_amount_excluding_tax: Number(work.new_amount_excluding_tax) || 0,
                                   new_amount_tax: Number(work.new_amount_tax) || 0,
-                                  new_amount: Number(work.new_amount) || 0
+                                  new_amount: Number(work.new_amount) || 0,
+                                  discount_amount: Number(work.discount_amount) || 0
                                 }))}
                                 onUpdate={async (index, updatedWork) => {
                                   try {
@@ -1470,9 +1633,11 @@ export default function EditReportPage() {
                                         repair: updatedWork.repair,
                                         paint: updatedWork.paint,
                                         control: updatedWork.control,
+                                        obsolescence: updatedWork.obsolescence,
                                         comment: updatedWork.comment,
                                         obsolescence_rate: updatedWork.obsolescence_rate,
-                                        recovery_amoun: updatedWork.recovery_amoun,
+                                        recovery_amount: updatedWork.recovery_amount,
+                                        discount: updatedWork.discount,
                                         amount: updatedWork.amount
                                       })
                                       toast.success('Fourniture mise à jour')
@@ -1496,9 +1661,11 @@ export default function EditReportPage() {
                                         repair: Boolean(shockWorkData?.repair || false),
                                         paint: Boolean(shockWorkData?.paint || false),
                                         control: Boolean(shockWorkData?.control || false),
+                                        obsolescence: Boolean(shockWorkData?.obsolescence || false),
                                         comment: shockWorkData?.comment || null,
                                         obsolescence_rate: Number(shockWorkData?.obsolescence_rate || 0),
-                                        recovery_amoun: Number(shockWorkData?.recovery_amoun || 0),
+                                        recovery_amount: Number(shockWorkData?.recovery_amount || 0),
+                                        discount: Number(shockWorkData?.discount || 0),
                                         amount: Number(shockWorkData?.amount || 0)
                                       }]
                                     }
@@ -1530,18 +1697,21 @@ export default function EditReportPage() {
                                 }}
                               />
                             </div>
+
+                            <Separator />
                             
                             {/* Section Main d'œuvre */}
                             <div>
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Main d'œuvre</h4>
                               <ShockWorkforceTableV2
                                 shockId={shock.id}
                                 workforces={(shock.workforces || []).filter(w => w.id !== undefined).map(w => ({
                                   id: w.id!,
                                   workforce_type: w.workforce_type,
+                                  workforce_type_id: w.workforce_type?.id || 0,
                                   nb_hours: w.nb_hours,
                                   work_fee: w.work_fee,
                                   discount: w.discount,
+                                  with_tax: w.with_tax,
                                   amount_excluding_tax: w.amount_excluding_tax,
                                   amount_tax: w.amount_tax,
                                   amount: w.amount
@@ -1565,7 +1735,8 @@ export default function EditReportPage() {
                                       workforces: [{
                                         workforce_type_id: String(workforceData?.workforce_type_id || 0),
                                         nb_hours: Number(workforceData?.nb_hours || 0),
-                                        discount: Number(workforceData?.discount || 0)
+                                        discount: Number(workforceData?.discount || 0),
+                                        with_tax: workforceData?.with_tax !== undefined ? workforceData.with_tax : true
                                       }]
                                     }
                                     
@@ -1707,6 +1878,335 @@ export default function EditReportPage() {
                     receipts={assignment.receipts || []}
                     onRefresh={refreshAssignment}
                   />
+                )}
+
+                {/* Informations additionnelles */}
+                {activeTab === 'additional-info' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-gray-900">Informations additionnelles</h2>
+                      <Button 
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-black hover:bg-gray-800"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sauvegarde...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Sauvegarder
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    <Card className="shadow-none">
+                      <CardHeader>
+                        <CardTitle>Informations complémentaires</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {!isEvaluation ? (
+                          // Champs pour les dossiers NON-évaluation
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                           <div className="space-y-2">
+                               <Label htmlFor="general-state">État général *</Label>
+                               <GeneralStateSelect
+                                 value={generalStateId || 0}
+                                 onValueChange={setGeneralStateId}
+                                 generalStates={generalStates}
+                                 placeholder="Sélectionner un état général"
+                               />
+                             </div>
+
+                                                             <div className="space-y-2">
+                                 <Label htmlFor="technical-conclusion">Conclusion technique *</Label>
+                                 <TechnicalConclusionSelect
+                                   value={technicalConclusionId || 0}
+                                   onValueChange={setTechnicalConclusionId}
+                                   technicalConclusions={technicalConclusions}
+                                   placeholder="Sélectionner une conclusion technique"
+                                 />
+                               </div>
+
+                                                             <div className="space-y-2">
+                                 <Label htmlFor="claim-nature">Nature du sinistre *</Label>
+                                 <ClaimNatureSelect
+                                   value={claimNatureId}
+                                   onValueChange={setClaimNatureId}
+                                   placeholder="Sélectionner une nature de sinistre"
+                                 />
+                               </div>
+
+                                                             <div className="space-y-2">
+                                 <Label htmlFor="remark">Note d'expert *</Label>
+                                 <RemarkSelect
+                                   value={selectedRemarkId}
+                                   onValueChange={setSelectedRemarkId}
+                                   placeholder="Sélectionner une note d'expert"
+                                 />
+                               </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="expert-remark">Remarque d'expert dans le rapport *</Label>
+                              <RichTextEditor
+                                value={expertRemark}
+                                onChange={setExpertRemark}
+                                placeholder="Saisir la remarque d'expert dans le rapport..."
+                                className="min-h-[120px]"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-2">
+                                <Label htmlFor="seen-before-work">Date de visite avant les travaux</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full justify-start text-left font-normal"
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {seenBeforeWorkDate ? format(seenBeforeWorkDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={seenBeforeWorkDate || undefined}
+                                      onSelect={(date) => setSeenBeforeWorkDate(date || null)}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="seen-during-work">Date de visite pendant les travaux</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full justify-start text-left font-normal"
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {seenDuringWorkDate ? format(seenDuringWorkDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={seenDuringWorkDate || undefined}
+                                      onSelect={(date) => setSeenDuringWorkDate(date || null)}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="seen-after-work">Date de visite après les travaux</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full justify-start text-left font-normal"
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {seenAfterWorkDate ? format(seenAfterWorkDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={seenAfterWorkDate || undefined}
+                                      onSelect={(date) => setSeenAfterWorkDate(date || null)}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="contact-date">Date de contact</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full justify-start text-left font-normal"
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {contactDate ? format(contactDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={contactDate || undefined}
+                                      onSelect={(date) => setContactDate(date || null)}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="expertise-place">Lieu de l'expertise</Label>
+                                <Input
+                                  id="expertise-place"
+                                  value={expertisePlace}
+                                  onChange={(e) => setExpertisePlace(e.target.value)}
+                                  placeholder="Saisir le lieu de l'expertise"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="assured-value">Valeur assurée (FCFA)</Label>
+                                <Input
+                                  id="assured-value"
+                                  type="number"
+                                  value={assuredValue}
+                                  onChange={(e) => setAssuredValue(parseFloat(e.target.value) || 0)}
+                                  placeholder="0"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="salvage-value">Valeur de sauvetage (FCFA)</Label>
+                                <Input
+                                  id="salvage-value"
+                                  type="number"
+                                  value={salvageValue}
+                                  onChange={(e) => setSalvageValue(parseFloat(e.target.value) || 0)}
+                                  placeholder="0"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="work-duration">Durée des travaux</Label>
+                                <Input
+                                  id="work-duration"
+                                  value={workDuration}
+                                  onChange={(e) => setWorkDuration(e.target.value)}
+                                  placeholder="Ex: 5 jours"
+                                />
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          // Champs pour les dossiers d'évaluation
+                          <>
+                            <div className="space-y-2">
+                              <Label htmlFor="instructions">Instructions de l'expert</Label>
+                              <RichTextEditor
+                                value={instructions}
+                                onChange={setInstructions}
+                                placeholder="Saisir les instructions de l'expert..."
+                                className="min-h-[120px]"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="market-incidence-rate">Taux d'incidence marché (%)</Label>
+                              <Input
+                                id="market-incidence-rate"
+                                type="number"
+                                value={marketIncidenceRate}
+                                onChange={(e) => setMarketIncidenceRate(parseFloat(e.target.value) || 0)}
+                                placeholder="0"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {/* Message d'aide pour les champs requis */}
+                        {!isEvaluation && (
+                          <>
+                            {(!claimNatureId || !expertRemark.trim()) && (
+                              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                                  <span className="text-sm text-yellow-800">
+                                    Veuillez remplir tous les champs obligatoires marqués d'un *
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Constatations */}
+                {activeTab === 'constatations' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-gray-900">Constatations</h2>
+                      <Button 
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-black hover:bg-gray-800"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sauvegarde...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Sauvegarder
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    <Card className="shadow-none">
+                      <CardHeader>
+                        <CardTitle>Constatations du véhicule</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="circumstance">Circonstances</Label>
+                            <RichTextEditor
+                              value={circumstance}
+                              onChange={setCircumstance}
+                              placeholder="Décrire les circonstances du sinistre..."
+                              className="min-h-[100px]"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="damage-declared">Dommages déclarés</Label>
+                            <RichTextEditor
+                              value={damageDeclared}
+                              onChange={setDamageDeclared}
+                              placeholder="Décrire les dommages déclarés..."
+                              className="min-h-[100px]"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="observation">Observations</Label>
+                            <RichTextEditor
+                              value={observation}
+                              onChange={setObservation}
+                              placeholder="Ajouter des observations..."
+                              className="min-h-[100px]"
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
               </div>
             </ScrollArea>
@@ -1869,21 +2369,12 @@ function ShockWorkItem({
           <div className="space-y-4">
             <div>
               <Label>Fourniture</Label>
-              <Select 
-                value={formData.supply_id.toString()} 
-                onValueChange={(value) => setFormData({...formData, supply_id: Number(value)})}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {supplies.map((supply) => (
-                    <SelectItem key={supply.id} value={supply.id.toString()}>
-                      {supply.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SupplySelect
+                value={formData.supply_id}
+                onValueChange={(value) => setFormData({...formData, supply_id: value})}
+                supplies={supplies}
+                placeholder="Sélectionner une fourniture"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -2043,17 +2534,12 @@ function WorkforceItem({
           <div className="space-y-4">
             <div>
               <Label>Type de main d'œuvre</Label>
-              <Select
-                value={formData.workforce_type_id.toString()}
-                onValueChange={v => setFormData({ ...formData, workforce_type_id: Number(v) })}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {workforceTypes.map(type => (
-                    <SelectItem key={type.id} value={type.id.toString()}>{type.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <WorkforceTypeSelect
+                value={formData.workforce_type_id}
+                onValueChange={(value) => setFormData({ ...formData, workforce_type_id: value })}
+                options={workforceTypes}
+                placeholder="Sélectionner un type de main d'œuvre"
+              />
             </div>
             <div>
               <Label>Nombre d'heures</Label>

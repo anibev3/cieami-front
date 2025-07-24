@@ -15,6 +15,7 @@ export const API_CONFIG = {
     VEHICLES: '/vehicles',
     ASSIGNMENT_TYPES: '/assignment-types',
     ASSIGNMENTS: '/assignments',
+    ASSIGNMENTS_EDITE_ELEMENTS: '/assignments/update-edit',
     ASSIGNMENTS_STATISTICS: '/assignments/statistics',
     ASSIGNMENTS_EDITION_EXPIRED: '/assignments/get/assignment-edition-time-to-expired', // get-assignment-edition-time-to-expired
     ASSIGNMENTS_RECOVERY_EXPIRED: '/assignments/get/assignment-recovery-time-to-expired', // get-assignment-recovery-time-to-expired

@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import React from 'react'
-import { Separator } from '@/components/ui/separator'
+import { SupplySelect } from '@/features/widgets/supply-select'
+import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
 
 interface Supply {
   id: number
   label: string
   code?: string
+  description?: string
   price?: number
 }
 
@@ -31,9 +32,11 @@ interface ShockWork {
   repair: boolean
   paint: boolean
   control: boolean
+  obsolescence?: boolean
   comment: string
   obsolescence_rate: number
-  recovery_amoun: number
+  recovery_amount?: number
+  discount: number
   amount: number
   // Calculated amounts from API
   obsolescence_amount_excluding_tax?: number
@@ -41,10 +44,10 @@ interface ShockWork {
   obsolescence_amount?: number
   recovery_amount_excluding_tax?: number
   recovery_amount_tax?: number
-  recovery_amount?: number
   new_amount_excluding_tax?: number
   new_amount_tax?: number
   new_amount?: number
+  discount_amount?: number
 }
 
 export function ShockSuppliesEditTable({
@@ -53,7 +56,9 @@ export function ShockSuppliesEditTable({
   onUpdate,
   onAdd,
   onRemove,
-  onValidateRow
+  onValidateRow,
+  onSupplyCreated,
+  isEvaluation = false
 }: {
   supplies: Supply[]
   shockWorks: ShockWork[]
@@ -61,12 +66,16 @@ export function ShockSuppliesEditTable({
   onAdd: (shockWorkData?: any) => Promise<void>
   onRemove: (index: number) => void
   onValidateRow: (index: number) => Promise<void>
+  onSupplyCreated?: (newSupply: any) => void
+  isEvaluation?: boolean
 }) {
   // État local pour gérer les modifications et la validation
   const [localShockWorks, setLocalShockWorks] = useState<ShockWork[]>(shockWorks)
   const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set())
   const [validatingRows, setValidatingRows] = useState<Set<number>>(new Set())
   const [newRows, setNewRows] = useState<Set<number>>(new Set()) // Lignes nouvellement ajoutées
+  const [showCreateSupplyModal, setShowCreateSupplyModal] = useState(false)
+  const [currentSupplyIndex, setCurrentSupplyIndex] = useState<number | null>(null)
 
   // Mettre à jour les données locales quand les props changent
   useEffect(() => {
@@ -91,9 +100,11 @@ export function ShockSuppliesEditTable({
       repair: false,
       paint: false,
       control: false,
+      obsolescence: false,
       comment: '',
       obsolescence_rate: 0,
-      recovery_amoun: 0,
+      recovery_amount: 0,
+      discount: 0,
       amount: 0
     }
     
@@ -101,6 +112,30 @@ export function ShockSuppliesEditTable({
     setLocalShockWorks(updated)
     setNewRows(prev => new Set([...prev, updated.length - 1]))
     setModifiedRows(prev => new Set([...prev, updated.length - 1]))
+  }
+
+  // Fonction pour ouvrir le modal de création de fourniture
+  const handleCreateSupply = (index: number) => {
+    setCurrentSupplyIndex(index >= 0 ? index : null)
+    setShowCreateSupplyModal(true)
+  }
+
+  // Fonction pour gérer la création réussie d'une fourniture
+  const handleSupplyCreated = (newSupply: any) => {
+    if (currentSupplyIndex !== null) {
+      // Sélectionner automatiquement la nouvelle fourniture dans la ligne existante
+      updateLocalShockWork(currentSupplyIndex, 'supply_id', newSupply.id)
+      setCurrentSupplyIndex(null)
+    } else {
+      // Si créé depuis le bouton principal, ajouter une nouvelle ligne avec la fourniture
+      handleAddNewRow()
+      // La nouvelle ligne sera ajoutée avec la fourniture sélectionnée
+      setTimeout(() => {
+        const newIndex = localShockWorks.length
+        updateLocalShockWork(newIndex, 'supply_id', newSupply.id)
+      }, 100)
+    }
+    onSupplyCreated?.(newSupply)
   }
 
   // Fonction de validation d'une ligne
@@ -179,11 +214,13 @@ export function ShockSuppliesEditTable({
       obsolescence_tva: acc.obsolescence_tva + (work.obsolescence_amount_tax || 0),
       recovery_tva: acc.recovery_tva + (work.recovery_amount_tax || 0),
       new_tva: acc.new_tva + (work.new_amount_tax || 0),
+      discount_amount: acc.discount_amount + (work.discount_amount || 0)
     }
   }, { 
     obsolescence: 0, recovery: 0, new: 0, 
     obsolescence_ht: 0, recovery_ht: 0, new_ht: 0,
-    obsolescence_tva: 0, recovery_tva: 0, new_tva: 0
+    obsolescence_tva: 0, recovery_tva: 0, new_tva: 0,
+    discount_amount: 0
   })
 
   return (
@@ -192,12 +229,21 @@ export function ShockSuppliesEditTable({
       <div className="flex justify-between items-center">
         <h4 className="font-semibold text-sm flex items-center gap-2">
           <Calculator className="h-5 w-5 text-blue-600" />
-          Fournitures
+          Fourniture(s)
         </h4>
         <div className="flex gap-2">
-          <Button onClick={handleAddNewRow} className=" text-white">
+          <Button 
+            variant="outline" 
+            size="xs"
+            onClick={() => handleCreateSupply(-1)}
+            className="text-yellow-600 text-xs border-yellow-200 hover:bg-yellow-50"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Ajouter une fourniture
+          </Button>
+          <Button onClick={handleAddNewRow} size="xs" className="text-white text-xs">
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une ligne
           </Button>
         </div>
       </div>
@@ -210,7 +256,7 @@ export function ShockSuppliesEditTable({
                 Fournitures
               </th>
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                Dém
+                {isEvaluation ? 'Ctrl' : 'D/p'}
               </th>
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
                 Remp
@@ -221,26 +267,31 @@ export function ShockSuppliesEditTable({
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
                 Peint
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                Vte (%)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                R (%)
-              </th>
+              {!isEvaluation && (
+                <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  Vétusté
+                </th>
+              )}
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
                 Montant HT
               </th>
-              <th className="border px-2 py-2 text-left font-medium text-[10px]">
-                Commentaire
+              <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                Vétuste (%)
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-blue-600 text-[10px]">
-                Vetusté
+              <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                Vétuste calculée
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-green-600 text-[10px]">
-                Récupération
+              <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                Remise
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                Remise Calculé
               </th>
               <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
-                Montant Final
+                Montant TTC
+              </th>
+              <th className="border px-2 py-2 text-left font-medium text-[10px]">
+                Commentaire
               </th>
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
                 Actions
@@ -250,7 +301,7 @@ export function ShockSuppliesEditTable({
           <tbody>
             {localShockWorks.length === 0 && (
               <tr>
-                <td colSpan={14} className="text-center text-muted-foreground py-8 text-[10px]">
+                <td colSpan={16} className="text-center text-muted-foreground py-8 text-[10px]">
                   Aucune fourniture ajoutée
                 </td>
               </tr>
@@ -259,24 +310,18 @@ export function ShockSuppliesEditTable({
             {localShockWorks.map((row, i) => (
               <tr key={row.uid} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
                 <td className="border px-3 py-2 text-[10px]">
-                  <Select 
-                    value={row.supply_id ? row.supply_id.toString() : ''} 
-                    onValueChange={v => updateLocalShockWork(i, 'supply_id', Number(v))}
-                  >
-                    <SelectTrigger className={`w-full border rounded p-1 ${!row.supply_id ? 'border-red-300 bg-red-50' : ''}`}>
-                      <SelectValue placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {supplies.map(s => (
-                        <SelectItem key={s.id} value={s.id.toString()}>{s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SupplySelect
+                    value={row.supply_id}
+                    onValueChange={(value) => updateLocalShockWork(i, 'supply_id', value)}
+                    supplies={supplies}
+                    placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
+                    onCreateNew={() => handleCreateSupply(i)}
+                  />
                 </td>
                 <td className="border px-2 py-2 text-center text-[10px]">
                   <Checkbox 
-                    checked={row.disassembly} 
-                    onCheckedChange={v => updateLocalShockWork(i, 'disassembly', v)} 
+                    checked={isEvaluation ? row.control : row.disassembly} 
+                    onCheckedChange={v => updateLocalShockWork(i, isEvaluation ? 'control' : 'disassembly', v)} 
                   />
                 </td>
                 <td className="border px-2 py-2 text-center text-[10px]">
@@ -297,29 +342,55 @@ export function ShockSuppliesEditTable({
                     onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
                   />
                 </td>
+                {!isEvaluation && (
+                  <td className="border px-2 py-2 text-center text-[10px]">
+                    <Checkbox 
+                      checked={row.obsolescence} 
+                      onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
+                    />
+                  </td>
+                )}
                 <td className="border px-2 text-center text-[10px]">
                   <Input
                     type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.amount}
+                    onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
+                  />
+                </td>
+                <td className="border px-2 text-center text-[10px]">
+                  <Input
+                    type="number"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
                     value={row.obsolescence_rate}
                     onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
                   />
                 </td>
                 <td className="border px-2 text-center text-[10px]">
-                  <Input
-                    type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.recovery_amoun}
-                    onChange={e => updateLocalShockWork(i, 'recovery_amoun', Number(e.target.value))}
-                  />
+                  {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0))}
                 </td>
                 <td className="border px-2 py-2 text-center text-[10px]">
                   <Input
                     type="number"
-                    className="rounded w-25 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.amount}
-                    onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.discount}
+                    onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
                   />
+                </td>
+                <td className="border px-2 py-2 text-center text-[10px]">
+                  <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                    {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0) - (row.discount || 0))}
+                  </div>
+                </td>
+                <td className="border px-2 py-2 text-center text-[10px] w-35">
+                  <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                    <Input
+                      type="number"
+                      className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                      value={row.new_amount}
+                      onChange={e => updateLocalShockWork(i, 'new_amount', Number(e.target.value))}
+                    />
+                  </div>
                 </td>
                 <td className="border px-2 py-2 text-[10px]">
                   <Input
@@ -329,42 +400,6 @@ export function ShockSuppliesEditTable({
                     placeholder="Commentaire..."
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
-                </td>
-                <td className="border w-35 px-2 py-2 text-center text-[10px]">
-                  <div className="text-blue-600 font-medium">
-                    {formatCurrency(row.obsolescence_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.obsolescence_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.obsolescence_amount_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center text-[10px] w-35">
-                  <div className="text-green-600 font-medium">
-                    {formatCurrency(row.recovery_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.recovery_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.recovery_amount_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center text-[10px] w-35">
-                  <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrency(row.new_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.new_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.new_amount_tax || 0)}
-                  </div>
                 </td>
                 <td className="border px-2 py-2 text-center text-[10px]">
                   <div className="flex items-center justify-center gap-1">
@@ -403,30 +438,18 @@ export function ShockSuppliesEditTable({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
-        <div className="grid grid-cols-9 gap-4 text-[10px]">
+        <div className="text-[10px] text-center items-center flex justify-around">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
             <div className="text-lg font-bold text-gray-800">{localShockWorks.length}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté HT</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_ht)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté TVA</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_tva)}</div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Vetusté TTC</div>
             <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
           </div>
           <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération HT</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_ht)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération TVA</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_tva)}</div>
+            <div className="text-blue-600 font-medium">Remise TTC</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.discount_amount)}</div>
           </div>
           <div className="text-center">
             <div className="text-green-600 font-medium">Récupération TTC</div>
@@ -446,6 +469,13 @@ export function ShockSuppliesEditTable({
           </div>
         </div>
       </div>
+
+      {/* Modal de création de fourniture */}
+      <SupplyMutateDialog
+        open={showCreateSupplyModal}
+        onOpenChange={setShowCreateSupplyModal}
+        onSuccess={handleSupplyCreated}
+      />
     </div>
   )
 } 

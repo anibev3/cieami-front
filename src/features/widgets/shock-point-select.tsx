@@ -48,7 +48,7 @@ export function ShockPointSelect({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between h-12 text-left",
+              "w-full justify-between text-left",
               !hasValue ? 'border-orange-300 bg-orange-50' : 'border-blue-300 bg-blue-50',
               className
             )}
@@ -106,9 +106,9 @@ export function ShockPointSelect({
                       <MapPin className="h-4 w-4 text-blue-500" />
                       <div className="flex-1">
                         <span className="text-sm font-medium">{point.label}</span>
-                        {point.description && (
+                        {/* {point.description && (
                           <p className="text-xs text-gray-500 truncate">{point.description}</p>
-                        )}
+                        )} */}
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">

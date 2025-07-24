@@ -6,6 +6,7 @@ export interface WorkforceUpdateData {
   discount: number
   hourly_rate_id?: string
   paint_type_id?: string
+  with_tax?: boolean
 }
 
 export interface WorkforceCreateData {
@@ -15,6 +16,7 @@ export interface WorkforceCreateData {
   discount: number
   hourly_rate_id?: string
   paint_type_id?: string
+  with_tax?: boolean
 }
 
 class WorkforceService {

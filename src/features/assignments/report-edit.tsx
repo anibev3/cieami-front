@@ -467,14 +467,18 @@ export default function ReportEditPage() {
   // Fonction de rédaction directe du rapport
   const handleGenerateReport = useCallback(async () => {
     // Validation des champs requis
-    if (!claimNatureId) {
-      toast.error('Veuillez sélectionner une nature de sinistre')
-      return
-    }
+
+    if (!isEvaluation) {
     
-    if (!expertRemark.trim()) {
-      toast.error('Veuillez saisir une remarque d\'expert')
-      return
+      if (!claimNatureId) {
+        toast.error('Veuillez sélectionner une nature de sinistre')
+        return
+      }
+    
+      if (!expertRemark.trim()) {
+        toast.error('Veuillez saisir une remarque d\'expert')
+        return
+      }
     }
     const cleanedShocks = shocks
       .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
@@ -832,6 +836,7 @@ export default function ReportEditPage() {
       expertise_date: expertiseDate,
       // Constats
       ascertainments: validAscertainments,
+      assignment_id: assignmentId,
       // Champs requis selon le type d'expertise
       ...(isEvaluation ? {
         // Champs pour les dossiers d'évaluation
@@ -839,7 +844,7 @@ export default function ReportEditPage() {
         market_incidence_rate: marketIncidenceRate,
       } : {
         // Champs pour les dossiers NON-évaluation
-        assignment_id: assignmentId,
+        
         general_state_id: generalStateId || 1,
         technical_conclusion_id: technicalConclusionId || 1,
         claim_nature_id: claimNatureId,
@@ -2024,19 +2029,24 @@ export default function ReportEditPage() {
               </div>
               
               {/* Message d'aide pour les champs requis */}
-              {(!claimNatureId || !expertRemark.trim()) && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-yellow-600" />
-                    <span className="text-sm text-yellow-800">
-                      Pour rédiger le rapport, vous devez remplir :
-                      {!claimNatureId && <span className="font-semibold"> Nature du sinistre</span>}
-                      {!claimNatureId && !expertRemark.trim() && <span>, </span>}
-                      {!expertRemark.trim() && <span className="font-semibold"> Remarque d'expert</span>}
-                    </span>
+              {!isEvaluation && (
+                <>
+                {(!claimNatureId || !expertRemark.trim()) && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm text-yellow-800">
+                        Pour rédiger le rapport, vous devez remplir :
+                        {!claimNatureId && <span className="font-semibold"> Nature du sinistre</span>}
+                        {!claimNatureId && !expertRemark.trim() && <span>, </span>}
+                        {!expertRemark.trim() && <span className="font-semibold"> Remarque d'expert</span>}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                  )}
+                </>
               )}
+              
             </CardContent>
           </Card>
           {/* Modal d'ajout de point de choc */}

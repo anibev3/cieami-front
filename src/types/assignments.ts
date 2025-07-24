@@ -557,22 +557,62 @@ export interface AssignmentStatistics {
   assignments_by_year_and_month_amount: AssignmentAmountByMonth[]
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface AssignmentCountByMonth {
   year: number
   month: number
   count: number
+  assignment_type?: any
+  expertise_type?: any
+  vehicle?: any
+  repairer?: any
+  client?: any
+  insurer?: any
+  status?: any
+  created_by?: any
+  realized_by?: any
+  edited_by?: any
+  validated_by?: any
+  directed_by?: any
+  claim_nature?: any
 }
 
 export interface AssignmentAmountByMonth {
   year: number
   month: number
   amount: string
+  assignment_type?: any
+  expertise_type?: any
+  vehicle?: any
+  repairer?: any
+  client?: any
+  insurer?: any
+  status?: any
+  created_by?: any
+  realized_by?: any
+  edited_by?: any
+  validated_by?: any
+  directed_by?: any
+  claim_nature?: any
 }
 
 export interface AssignmentStatisticsFilters {
   start_date: string
   end_date: string
   assignment_id?: number
+  // Filtres avancés
+  vehicle_id?: number
+  repairer_id?: number
+  insurer_id?: number
+  assignment_type_id?: number
+  expertise_type_id?: number
+  claim_nature_id?: number
+  created_by?: number
+  edited_by?: number
+  realized_by?: number
+  directed_by?: number
+  validated_by?: number
+  status_id?: number
 }
 
 // Types pour le calcul d'évaluation
