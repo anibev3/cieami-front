@@ -418,6 +418,7 @@ export interface TreasuryReport {
 
 export interface InvoiceAssignment {
   id: number
+  path: string | null
   reference: string
   policy_number: string
   claim_number: string
@@ -513,6 +514,7 @@ export interface InvoiceUser {
 
 export interface Invoice {
   id: number
+  path: string | null
   reference: string
   date: string
   amount: string | null

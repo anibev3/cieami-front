@@ -367,6 +367,16 @@ export default function InvoiceDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                {invoice?.path && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start text-xs h-8" 
+                    onClick={() => handleViewPdf(invoice?.path!, 'Facture')}
+                  >
+                    <Download className="h-3 w-3 mr-2" />
+                    Voir la facture
+                  </Button>
+                )}
                 {assignment?.expertise_sheet && (
                   <Button 
                     variant="outline" 
@@ -387,10 +397,10 @@ export default function InvoiceDetailPage() {
                     Voir le rapport d'expertise
                   </Button>
                 )}
-                <Button variant="outline" className="w-full justify-start text-xs h-8">
+                {/* <Button variant="outline" className="w-full justify-start text-xs h-8">
                   <Receipt className="h-3 w-3 mr-2" />
                   Gérer les quittances
-                </Button>
+                </Button> */}
               </CardContent>
             </Card>
 

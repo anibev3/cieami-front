@@ -1,174 +1,6 @@
-import { UserRole, Permission, RolePermissions } from '@/types/auth'
+import { UserRole, Permission } from '@/types/auth'
 
 class ACLService {
-  // Mapping des rôles vers leurs permissions par défaut
-  private rolePermissions: RolePermissions = {
-    [UserRole.SYSTEM_ADMIN]: [
-      // Toutes les permissions
-      ...Object.values(Permission)
-    ],
-    
-    [UserRole.ADMIN]: [
-      // User permissions
-      Permission.VIEW_USER,
-      Permission.CREATE_USER,
-      Permission.UPDATE_USER,
-      Permission.DELETE_USER,
-      Permission.ENABLE_USER,
-      Permission.DISABLE_USER,
-      Permission.RESET_USER,
-      
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.CREATE_ASSIGNMENT,
-      Permission.UPDATE_ASSIGNMENT,
-      Permission.REALIZE_ASSIGNMENT,
-      Permission.EDIT_ASSIGNMENT,
-      Permission.VALIDATE_ASSIGNMENT,
-      Permission.CLOSE_ASSIGNMENT,
-      Permission.CANCEL_ASSIGNMENT,
-      Permission.GENERATE_ASSIGNMENT,
-      Permission.DELETE_ASSIGNMENT,
-      Permission.ASSIGNMENT_STATISTICS,
-      
-      // Invoice permissions
-      Permission.VIEW_INVOICE,
-      Permission.CREATE_INVOICE,
-      Permission.UPDATE_INVOICE,
-      Permission.CANCEL_INVOICE,
-      Permission.GENERATE_INVOICE,
-      Permission.DELETE_INVOICE,
-      Permission.INVOICE_STATISTICS,
-      
-      // Payment permissions
-      Permission.VIEW_PAYMENT,
-      Permission.CREATE_PAYMENT,
-      Permission.UPDATE_PAYMENT,
-      Permission.CANCEL_PAYMENT,
-      Permission.DELETE_PAYMENT,
-      Permission.PAYMENT_STATISTICS,
-      
-      // App permissions
-      Permission.MANAGE_APP
-    ],
-    
-    [UserRole.CEO]: [
-      // User permissions
-      Permission.VIEW_USER,
-      
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.ASSIGNMENT_STATISTICS,
-      
-      // Invoice permissions
-      Permission.VIEW_INVOICE,
-      Permission.INVOICE_STATISTICS,
-      
-      // Payment permissions
-      Permission.VIEW_PAYMENT,
-      Permission.PAYMENT_STATISTICS
-    ],
-    
-    [UserRole.EXPERT_MANAGER]: [
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.CREATE_ASSIGNMENT,
-      Permission.UPDATE_ASSIGNMENT,
-      Permission.REALIZE_ASSIGNMENT,
-      Permission.EDIT_ASSIGNMENT,
-      Permission.VALIDATE_ASSIGNMENT,
-      Permission.CLOSE_ASSIGNMENT,
-      Permission.CANCEL_ASSIGNMENT,
-      Permission.GENERATE_ASSIGNMENT,
-      Permission.ASSIGNMENT_STATISTICS,
-      
-      // Invoice permissions
-      Permission.VIEW_INVOICE,
-      Permission.CREATE_INVOICE,
-      Permission.UPDATE_INVOICE,
-      Permission.CANCEL_INVOICE,
-      Permission.GENERATE_INVOICE,
-      Permission.INVOICE_STATISTICS
-    ],
-    
-    [UserRole.EXPERT]: [
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.UPDATE_ASSIGNMENT,
-      Permission.REALIZE_ASSIGNMENT,
-      Permission.EDIT_ASSIGNMENT,
-      Permission.GENERATE_ASSIGNMENT
-    ],
-    
-    [UserRole.OPENER]: [
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.CREATE_ASSIGNMENT,
-      Permission.UPDATE_ASSIGNMENT
-    ],
-    
-    [UserRole.EDITOR]: [
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.UPDATE_ASSIGNMENT,
-      Permission.EDIT_ASSIGNMENT
-    ],
-    
-    [UserRole.VALIDATOR]: [
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.VALIDATE_ASSIGNMENT,
-      Permission.CLOSE_ASSIGNMENT
-    ],
-    
-    [UserRole.ACCOUNTANT]: [
-      // Invoice permissions
-      Permission.VIEW_INVOICE,
-      Permission.CREATE_INVOICE,
-      Permission.UPDATE_INVOICE,
-      Permission.CANCEL_INVOICE,
-      Permission.GENERATE_INVOICE,
-      Permission.INVOICE_STATISTICS,
-      
-      // Payment permissions
-      Permission.VIEW_PAYMENT,
-      Permission.CREATE_PAYMENT,
-      Permission.UPDATE_PAYMENT,
-      Permission.CANCEL_PAYMENT,
-      Permission.DELETE_PAYMENT,
-      Permission.PAYMENT_STATISTICS
-    ],
-    
-    [UserRole.INSURER_ADMIN]: [
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      Permission.ASSIGNMENT_STATISTICS,
-      
-      // Invoice permissions
-      Permission.VIEW_INVOICE,
-      Permission.INVOICE_STATISTICS,
-      
-      // Payment permissions
-      Permission.VIEW_PAYMENT,
-      Permission.PAYMENT_STATISTICS
-    ],
-    
-    [UserRole.REPAIRER_ADMIN]: [
-      // Assignment permissions
-      Permission.VIEW_ASSIGNMENT,
-      
-      // Invoice permissions
-      Permission.VIEW_INVOICE
-    ]
-  }
-
-  /**
-   * Obtenir les permissions par défaut d'un rôle
-   */
-  getRolePermissions(role: UserRole): Permission[] {
-    return this.rolePermissions[role] || []
-  }
-
   /**
    * Vérifier si un utilisateur a une permission spécifique
    */
@@ -201,6 +33,13 @@ class ACLService {
    * Vérifier si un utilisateur a au moins un des rôles
    */
   hasAnyRole(userRole: UserRole | null, roles: UserRole[]): boolean {
+    return userRole ? roles.includes(userRole) : false
+  }
+
+  /**
+   * Vérifier si un utilisateur a tous les rôles
+   */
+  hasAllRoles(userRole: UserRole | null, roles: UserRole[]): boolean {
     return userRole ? roles.includes(userRole) : false
   }
 
@@ -286,6 +125,56 @@ class ACLService {
       [Permission.MANAGE_APP]: 'Gérer l\'application'
     }
     return permissionLabels[permission] || permission
+  }
+
+  /**
+   * Obtenir les permissions par groupe pour l'affichage
+   */
+  getPermissionsByGroup(): Record<string, Permission[]> {
+    return {
+      'Utilisateurs': [
+        Permission.VIEW_USER,
+        Permission.CREATE_USER,
+        Permission.UPDATE_USER,
+        Permission.DELETE_USER,
+        Permission.ENABLE_USER,
+        Permission.DISABLE_USER,
+        Permission.RESET_USER
+      ],
+      'Dossiers': [
+        Permission.VIEW_ASSIGNMENT,
+        Permission.CREATE_ASSIGNMENT,
+        Permission.UPDATE_ASSIGNMENT,
+        Permission.REALIZE_ASSIGNMENT,
+        Permission.EDIT_ASSIGNMENT,
+        Permission.VALIDATE_ASSIGNMENT,
+        Permission.CLOSE_ASSIGNMENT,
+        Permission.CANCEL_ASSIGNMENT,
+        Permission.GENERATE_ASSIGNMENT,
+        Permission.DELETE_ASSIGNMENT,
+        Permission.ASSIGNMENT_STATISTICS
+      ],
+      'Factures': [
+        Permission.VIEW_INVOICE,
+        Permission.CREATE_INVOICE,
+        Permission.UPDATE_INVOICE,
+        Permission.CANCEL_INVOICE,
+        Permission.GENERATE_INVOICE,
+        Permission.DELETE_INVOICE,
+        Permission.INVOICE_STATISTICS
+      ],
+      'Paiements': [
+        Permission.VIEW_PAYMENT,
+        Permission.CREATE_PAYMENT,
+        Permission.UPDATE_PAYMENT,
+        Permission.CANCEL_PAYMENT,
+        Permission.DELETE_PAYMENT,
+        Permission.PAYMENT_STATISTICS
+      ],
+      'Application': [
+        Permission.MANAGE_APP
+      ]
+    }
   }
 }
 

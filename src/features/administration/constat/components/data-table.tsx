@@ -150,10 +150,10 @@ export function AscertainmentDataTable({
                   return (
                     <TableRow key={item.id}>
                       <TableCell className="font-mono text-sm">
-                        {item.assignment.reference}
+                        {item?.assignment?.id}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {item.ascertainment_type.label}
+                        {item?.ascertainment_type?.label}
                       </TableCell>
                       <TableCell>
                         <Badge variant={qualityBadge.variant}>
@@ -164,12 +164,12 @@ export function AscertainmentDataTable({
                         {item.comment || '-'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeVariant(item.status.code)}>
-                          {item.status.label}
+                          <Badge variant={getStatusBadgeVariant(item?.status?.code)}>
+                          {item?.status?.label}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(item.created_at)}
+                        {formatDate(item?.created_at)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

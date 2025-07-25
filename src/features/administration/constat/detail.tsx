@@ -153,10 +153,10 @@ export default function AscertainmentDetailPage() {
               </div>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Constat #{currentAscertainment.id}
+              Constat #{currentAscertainment?.id}
             </h1>
             <p className="text-muted-foreground">
-              Détails du constat pour l'affectation {currentAscertainment.assignment.reference}
+              Détails du constat pour l'affectation {currentAscertainment?.assignment?.reference}
             </p>
           </div>
 
@@ -170,21 +170,21 @@ export default function AscertainmentDetailPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">ID</Label>
-                    <p className="text-sm">{currentAscertainment.id}</p>
+                    <p className="text-sm">{currentAscertainment?.id}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Statut</Label>
-                    <Badge variant={getStatusBadgeVariant(currentAscertainment.status.code)} className="mt-1">
-                      {currentAscertainment.status.label}
+                    <Badge variant={getStatusBadgeVariant(currentAscertainment?.status?.code)} className="mt-1">
+                      {currentAscertainment?.status?.label}
                     </Badge>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Créé le</Label>
-                    <p className="text-sm">{formatDate(currentAscertainment.created_at)}</p>
+                    <p className="text-sm">{formatDate(currentAscertainment?.created_at)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Modifié le</Label>
-                    <p className="text-sm">{formatDate(currentAscertainment.updated_at)}</p>
+                    <p className="text-sm">{formatDate(currentAscertainment?.updated_at)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -199,27 +199,27 @@ export default function AscertainmentDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Référence</Label>
-                    <p className="text-sm font-mono">{currentAscertainment.assignment.reference}</p>
+                    <p className="text-sm font-mono">{currentAscertainment?.assignment?.reference}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Numéro de police</Label>
-                    <p className="text-sm">{currentAscertainment.assignment.policy_number}</p>
+                    <p className="text-sm">{currentAscertainment?.assignment?.policy_number}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Numéro de sinistre</Label>
-                    <p className="text-sm">{currentAscertainment.assignment.claim_number}</p>
+                    <p className="text-sm">{currentAscertainment?.assignment?.claim_number}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Date d'expertise</Label>
-                    <p className="text-sm">{formatDate(currentAscertainment.assignment.expertise_date)}</p>
+                    <p className="text-sm">{formatDate(currentAscertainment?.assignment?.expertise_date)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Lieu d'expertise</Label>
-                    <p className="text-sm">{currentAscertainment.assignment.expertise_place}</p>
+                    <p className="text-sm">{currentAscertainment?.assignment?.expertise_place}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Reçu le</Label>
-                    <p className="text-sm">{formatDate(currentAscertainment.assignment.received_at)}</p>
+                    <p className="text-sm">{formatDate(currentAscertainment?.assignment?.received_at)}</p>
                   </div>
                 </div>
 
@@ -230,14 +230,14 @@ export default function AscertainmentDetailPage() {
                     <Label className="text-sm font-medium text-muted-foreground">Circonstances</Label>
                     <div 
                       className="text-sm mt-1 prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: currentAscertainment.assignment.circumstance }}
+                      dangerouslySetInnerHTML={{ __html: currentAscertainment?.assignment?.circumstance || '' }}
                     />
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Dégâts déclarés</Label>
                     <div 
                       className="text-sm mt-1 prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: currentAscertainment.assignment.damage_declared }}
+                      dangerouslySetInnerHTML={{ __html: currentAscertainment?.assignment?.damage_declared || '' }}
                     />
                   </div>
                 </div>
@@ -253,19 +253,19 @@ export default function AscertainmentDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Type</Label>
-                    <p className="text-sm">{currentAscertainment.ascertainment_type.label}</p>
+                    <p className="text-sm">{currentAscertainment?.ascertainment_type?.label}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Code</Label>
-                    <p className="text-sm font-mono">{currentAscertainment.ascertainment_type.code}</p>
+                    <p className="text-sm font-mono">{currentAscertainment?.ascertainment_type?.code}</p>
                   </div>
                 </div>
-                {currentAscertainment.ascertainment_type.description && (
+                {currentAscertainment?.ascertainment_type?.description && (
                   <>
                     <Separator className="my-4" />
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">Description</Label>
-                      <p className="text-sm">{currentAscertainment.ascertainment_type.description}</p>
+                      <p className="text-sm">{currentAscertainment?.ascertainment_type?.description}</p>
                     </div>
                   </>
                 )}
@@ -338,7 +338,7 @@ export default function AscertainmentDetailPage() {
                   <div className="flex items-center space-x-2">
                     <Eye className="h-4 w-4" />
                     <a 
-                      href={currentAscertainment.assignment.expertise_sheet} 
+                      href={currentAscertainment?.assignment?.expertise_sheet} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:underline"
@@ -349,7 +349,7 @@ export default function AscertainmentDetailPage() {
                   <div className="flex items-center space-x-2">
                     <Eye className="h-4 w-4" />
                     <a 
-                      href={currentAscertainment.assignment.expertise_report} 
+                      href={currentAscertainment?.assignment?.expertise_report} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:underline"
@@ -360,7 +360,7 @@ export default function AscertainmentDetailPage() {
                   <div className="flex items-center space-x-2">
                     <Eye className="h-4 w-4" />
                     <a 
-                      href={currentAscertainment.assignment.work_sheet} 
+                      href={currentAscertainment?.assignment?.work_sheet} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:underline"
@@ -383,22 +383,22 @@ export default function AscertainmentDetailPage() {
                     <Label className="text-sm font-medium text-muted-foreground">Créé par</Label>
                     <div className="flex items-center space-x-2 mt-1">
                       <img
-                        src={currentAscertainment.created_by.photo_url}
-                        alt={currentAscertainment.created_by.name}
+                        src={currentAscertainment?.created_by?.photo_url}
+                        alt={currentAscertainment?.created_by?.name}
                         className="w-6 h-6 rounded-full"
                       />
-                      <span className="text-sm">{currentAscertainment.created_by.name}</span>
+                      <span className="text-sm">{currentAscertainment?.created_by?.name}</span>
                     </div>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Modifié par</Label>
                     <div className="flex items-center space-x-2 mt-1">
                       <img
-                        src={currentAscertainment.updated_by.photo_url}
-                        alt={currentAscertainment.updated_by.name}
+                          src={currentAscertainment?.updated_by?.photo_url}
+                        alt={currentAscertainment?.updated_by?.name}
                         className="w-6 h-6 rounded-full"
                       />
-                      <span className="text-sm">{currentAscertainment.updated_by.name}</span>
+                      <span className="text-sm">{currentAscertainment?.updated_by?.name}</span>
                     </div>
                   </div>
                 </div>
