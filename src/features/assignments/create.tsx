@@ -1330,7 +1330,7 @@ export default function CreateAssignmentPage() {
                                     </FormControl>
                                     <SelectContent>
                                       <ScrollArea className="h-[200px]">
-                                        {entities.filter(e => e.entity_type.code === 'insurer').map((entity) => (
+                                        {entities.filter(e => e.entity_type?.code === 'insurer').map((entity) => (
                                           <SelectItem key={entity.id} value={entity.id.toString()}>
                                             {entity.name}
                                           </SelectItem>
@@ -1381,7 +1381,7 @@ export default function CreateAssignmentPage() {
                                     </FormControl>
                                     <SelectContent>
                                       <ScrollArea className="h-[200px]">
-                                        {entities.filter(e => e.entity_type.code === 'repairer').map((entity) => (
+                                        {entities.filter(e => e.entity_type?.code === 'repairer').map((entity) => (
                                           <SelectItem key={entity.id} value={entity.id.toString()}>
                                             {entity.name}
                                           </SelectItem>

@@ -229,19 +229,19 @@ export function ShockSuppliesTable({
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Montant HT
               </th>
-              <th className="border px-2 py-2 text-center font-medium text-xs">
-                Vétuste (%)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-xs">
-                Vétuste calculée
-              </th>
+
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remise
               </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remise Calculé
               </th>
-              
+              <th className="border px-2 py-2 text-center font-medium text-xs">
+                Vétuste (%)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-xs">
+                Vétuste calculée
+              </th>
               {/* <th className="border px-2 py-2 text-center font-medium text-blue-600 text-xs">
                 Vetusté
               </th>
@@ -269,6 +269,7 @@ export function ShockSuppliesTable({
             )}
             {localShockWorks.map((row, i) => (
               <tr key={row.uid} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
+                {/* Fournitures */}
                 <td className="border px-3 py-2 text-xs">
                   <SupplySelect
                     value={row.supply_id}
@@ -278,30 +279,35 @@ export function ShockSuppliesTable({
                     onCreateNew={() => handleCreateSupply(i)}
                   />
                 </td>
+                {/* 'Ctrl' : 'D/p' */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={isEvaluation ? row.control : row.disassembly} 
                     onCheckedChange={v => updateLocalShockWork(i, isEvaluation ? 'control' : 'disassembly', v)} 
                   />
                 </td>
+                {/* Remp */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.replacement} 
                     onCheckedChange={v => updateLocalShockWork(i, 'replacement', v)} 
                   />
                 </td>
+                {/* Rep */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.repair} 
                     onCheckedChange={v => updateLocalShockWork(i, 'repair', v)} 
                   />
                 </td>
+                {/* Peint */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <Checkbox 
                     checked={row.paint} 
                     onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
                   />
                 </td>
+                {/* Vétusté */}
                 {!isEvaluation && (
                   <td className="border px-2 py-2 text-center text-xs">
                     <Checkbox 
@@ -310,6 +316,7 @@ export function ShockSuppliesTable({
                     />
                   </td>
                 )}
+                {/* Montant HT */}
                 <td className="border px-2 text-center text-xs">
                   {/* <Input
                     type="number"
@@ -325,30 +332,8 @@ export function ShockSuppliesTable({
                   />
                   {/* {formatCurrency(row.amount || 0)} */}
                 </td>
-                <td className="border px-2 text-center text-xs">
-                  {/* <Input
-                    type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.recovery_amount}
-                    onChange={e => updateLocalShockWork(i, 'recovery_amount', Number(e.target.value))}
-                  /> */}
-                  <Input
-                    type="number"
-                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.obsolescence_rate}
-                    onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
-                  />
-                  {/* {formatCurrency(row.obsolescence_rate || 0)} */}
-                </td>
-                <td className="border px-2 text-center text-xs">
-                  {/* <Input
-                    type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.discount}
-                    onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
-                  /> */}
-                  {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0))}
-                </td>
+
+                {/* Remise */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <Input
                     type="number"
@@ -383,11 +368,39 @@ export function ShockSuppliesTable({
                     TVA: {formatCurrency(row.recovery_amount_tax || 0)}
                   </div>
                 </td> */}
+                {/* Remise Calculé */}
                 <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
                     {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0) - (row.discount || 0))}
                   </div>
                 </td>
+                {/* Vétuste (%) */}
+                <td className="border px-2 text-center text-xs">
+                  {/* <Input
+                    type="number"
+                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.recovery_amount}
+                    onChange={e => updateLocalShockWork(i, 'recovery_amount', Number(e.target.value))}
+                  /> */}
+                  <Input
+                    type="number"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.obsolescence_rate}
+                    onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
+                  />
+                  {/* {formatCurrency(row.obsolescence_rate || 0)} */}
+                </td>
+                {/* Vétuste calculée */}
+                <td className="border px-2 text-center text-xs">
+                  {/* <Input
+                    type="number"
+                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
+                    value={row.discount}
+                    onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
+                  /> */}
+                  {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0))}
+                </td>
+                {/* Montant TTC */}
                 <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
                     {/* {formatCurrency(row.recovery_amount || 0)} */}
@@ -408,6 +421,7 @@ export function ShockSuppliesTable({
                     TVA: {formatCurrency(row.new_amount_tax || 0)}
                   </div> */}
                 </td>
+                {/* Commentaire */}
                 <td className="border px-2 py-2 text-xs">
                   <Input
                     type="text"
@@ -417,6 +431,7 @@ export function ShockSuppliesTable({
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
                 </td>
+                {/* Actions */}
                 <td className="border px-2 py-2 text-center text-xs">
                   <div className="flex items-center justify-center gap-1">
                     {modifiedRows.has(i) && (
