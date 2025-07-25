@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { toast } from 'sonner'
 import { AuthState, LoginCredentials } from '@/types/auth'
 import { authService } from '@/services/authService'
+import { useACLStore } from './aclStore'
 
 interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>
@@ -35,6 +36,9 @@ export const useAuthStore = create<AuthStore>()(
           // Récupérer les informations utilisateur
           const userResponse = await authService.getUserInfo()
           
+          // Initialiser l'ACL avec les informations utilisateur
+          useACLStore.getState().initializeACL(userResponse.data)
+          
           set({
             user: userResponse.data,
             token: loginResponse.token,
@@ -59,6 +63,9 @@ export const useAuthStore = create<AuthStore>()(
         try {
           await authService.logout()
           
+          // Nettoyer l'ACL
+          useACLStore.getState().clearACL()
+          
           set({
             user: null,
             token: null,
@@ -71,6 +78,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch (_error) {
           set({ isLoading: false })
           // Même en cas d'erreur, on nettoie l'état local
+          useACLStore.getState().clearACL()
           set({
             user: null,
             token: null,
@@ -88,6 +96,9 @@ export const useAuthStore = create<AuthStore>()(
         
         try {
           const userResponse = await authService.getUserInfo()
+          
+          // Initialiser l'ACL avec les informations utilisateur
+          useACLStore.getState().initializeACL(userResponse.data)
           
           set({
             user: userResponse.data,

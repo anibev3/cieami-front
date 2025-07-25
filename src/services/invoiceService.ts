@@ -104,6 +104,22 @@ class InvoiceService {
   async getByAssignmentReference(reference: string): Promise<InvoiceResponse> {
     return this.getAll({ assignment_reference: reference })
   }
+
+  /**
+   * Annuler une facture
+   */
+  async cancelInvoice(id: number): Promise<Invoice> {
+    const response = await axiosInstance.put<InvoiceDetailResponse>(`${this.baseUrl}/${id}/cancel`)
+    return response.data.data
+  }
+
+  /**
+   * Générer une facture (PDF ou autre)
+   */
+  async generateInvoice(id: number): Promise<Invoice> {
+    const response = await axiosInstance.put<InvoiceDetailResponse>(`${this.baseUrl}/${id}/generate`)
+    return response.data.data
+  }
 }
 
 // Export d'une instance singleton

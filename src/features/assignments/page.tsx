@@ -24,6 +24,7 @@ import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { Search as SearchComponent } from '@/components/search'
 
 export default function AssignmentsPage() {
   const navigate = useNavigate()
@@ -133,7 +134,7 @@ export default function AssignmentsPage() {
   return (
     <>
       <Header fixed>
-        <Search />
+        <SearchComponent />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />
           <ProfileDropdown />

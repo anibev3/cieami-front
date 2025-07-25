@@ -16,13 +16,14 @@ import {
   Loader2
 } from 'lucide-react'
 import { AssignmentsDataTable } from '../components/assignments-data-table'
-import { useAssignmentsStore, getAllStatusTabs } from '@/stores/assignments'
+import {  getAllStatusTabs } from '@/stores/assignments'
 import { toast } from 'sonner'
 import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { useAssignmentsRecoveryExpiredStore } from '@/stores/assignmentsRecoveryExpired'
+import { Search as SearchComponent } from '@/components/search'
 
 export default function AssignmentsRecoveryExpiredPage() {
   const navigate = useNavigate()
@@ -128,7 +129,7 @@ export default function AssignmentsRecoveryExpiredPage() {
   return (
     <>
       <Header fixed>
-        <Search />
+        <SearchComponent />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />
           <ProfileDropdown />

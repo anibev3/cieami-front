@@ -63,6 +63,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { useAssignmentsStore } from '@/stores/assignments'
 
 interface AssignmentDetail {
   id: number
@@ -606,6 +607,7 @@ export default function AssignmentDetailPage() {
   const [pdfViewer, setPdfViewer] = useState<{ open: boolean, url: string, title?: string }>({ open: false, url: '', title: '' })
   const [validateModalOpen, setValidateModalOpen] = useState(false)
   const [validating, setValidating] = useState(false)
+  const { generateReport, loading: loadingGenerate } = useAssignmentsStore()
 
   useEffect(() => {
     const fetchAssignment = async () => {
@@ -2197,6 +2199,16 @@ export default function AssignmentDetailPage() {
               <Badge className={getStatusColor(assignment.status.code)}>
                 {assignment.status.label}
               </Badge>
+              {assignment.status.code === 'edited' && (
+                <Button 
+                  onClick={async () => await generateReport(assignment.id)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={loadingGenerate}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Générer le rapport
+                </Button>
+              )}
               {assignment.status.code === 'edited' && (
                 <Button 
                   onClick={() => setValidateModalOpen(true)}

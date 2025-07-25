@@ -23,6 +23,7 @@ import {
 import { useState } from 'react'
 import { AssignmentPreviewModal } from './assignment-preview-modal'
 import { useNavigate } from '@tanstack/react-router'
+import { useAssignmentsStore } from '@/stores/assignments'
 
 interface AssignmentActionsProps {
   assignment: Assignment
@@ -39,6 +40,7 @@ export function AssignmentActions({
 }: AssignmentActionsProps) {
   const navigate = useNavigate()
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
+  const { generateReport, loading } = useAssignmentsStore()
   
   // Fonction pour déterminer les actions disponibles selon le statut
   const getAvailableActions = (statusCode: string, assignment: Assignment) => {
@@ -168,6 +170,17 @@ export function AssignmentActions({
           show: true,
           destructive: false
         },
+        {
+          key: 'generate-report',
+          label: 'Générer le rapport',
+          icon: Download,
+          onClick: async () => {
+            await generateReport(assignment.id)
+          },
+          show: true,
+          destructive: false,
+          loading: loading
+        },
         // {
         //   key: 'download-sheet',
         //   label: 'Télécharger la fiche',
@@ -296,11 +309,13 @@ export function AssignmentActions({
         <DropdownMenuContent align="end" className="w-56">
           {availableActions.map((action) => {
             const IconComponent = action.icon
+            const isGenerate = action.key === 'generate-report'
             return (
               <DropdownMenuItem
                 key={action.key}
                 onClick={action.onClick}
                 className={action.destructive ? 'text-destructive' : ''}
+                disabled={isGenerate ? loading : false}
               >
                 <IconComponent className="mr-2 h-4 w-4" />
                 {action.label}
@@ -333,6 +348,7 @@ export function AssignmentActions({
         open={isPreviewModalOpen}
         onOpenChange={setIsPreviewModalOpen}
         onViewDetail={onViewDetail}
+        onOpenReceiptModal={onOpenReceiptModal}
       />
     </>
   )

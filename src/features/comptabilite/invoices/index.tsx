@@ -35,22 +35,22 @@ import {
   Download,
   Calendar as CalendarIcon,
   FileText,
-  DollarSign,
   User,
-  Building,
   Loader2,
   X,
   Settings2,
   ChevronDown,
   MoreHorizontal,
   ArrowUpDown,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react'
 import { useInvoiceStore } from '@/stores/invoiceStore'
 import { formatDate } from '@/utils/format-date'
 import { formatCurrency } from '@/utils/format-currency'
 import { useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 export default function InvoicesPage() {
   const navigate = useNavigate()
@@ -58,7 +58,9 @@ export default function InvoicesPage() {
     invoices, 
     loading, 
     fetchInvoices, 
-    deleteInvoice
+    deleteInvoice,
+    cancelInvoice,
+    generateInvoice
   } = useInvoiceStore()
   
   const [searchTerm, setSearchTerm] = useState('')
@@ -78,8 +80,8 @@ export default function InvoicesPage() {
     date: true,
     amount: true,
     status: true,
-    created_by: true,
-    expertise_date: true,
+    created_by: false,
+    expertise_date: false,
     actions: true
   })
   const [sorting, setSorting] = useState<{ key: string; direction: 'asc' | 'desc' }>({
@@ -193,19 +195,39 @@ export default function InvoicesPage() {
     }
   })
 
+  const handleCancel = async (id: number) => {
+    const message = await cancelInvoice(id)
+    if (message.toLowerCase().includes('succès') || message.toLowerCase().includes('success')) {
+      toast.success(message)
+      fetchInvoices()
+    } else {
+      toast.error(message)
+    }
+  }
+
+  const handleGenerate = async (id: number) => {
+    const message = await generateInvoice(id)
+    if (message.toLowerCase().includes('succès') || message.toLowerCase().includes('success')) {
+      toast.success(message)
+      fetchInvoices()
+    } else {
+      toast.error(message)
+    }
+  }
+
   return (
     <div className="space-y-6 relative w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Factures</h1>
+          <h1 className="text-xl font-bold tracking-tight">Factures</h1>
           <p className="text-muted-foreground">
             Gérez les factures de vos <span className="font-bold">{invoices.length} dossier{invoices.length > 1 ? 's' : ''}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
-            <Filter className="mr-2 h-4 w-4" />
+          <Button variant="outline" className="text-xs" size="xs" onClick={() => setFilterModalOpen(true)}>
+            <Filter className="mr-2 h-2 w-2 text-xs" />
             Filtres
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
@@ -213,8 +235,8 @@ export default function InvoicesPage() {
               </Badge>
             )}
           </Button>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button className="text-xs" size="xs" onClick={handleCreate}>
+            <Plus className="mr-2 h-2 w-2 text-xs" />
             Nouvelle facture
           </Button>
         </div>
@@ -398,116 +420,134 @@ export default function InvoicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedInvoices.map((invoice) => (
-                <TableRow key={invoice.id} className="hover:bg-muted/50">
-                  {columnVisibility.reference && (
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {/* <FileText className="h-4 w-4 text-muted-foreground" /> */}
-                        {invoice.reference}
-                      </div>
-                    </TableCell>
-                  )}
-                  
-                  {columnVisibility.assignment && (
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{invoice.assignment.reference}</div>
-                        {/* <div className="text-xs text-muted-foreground">
-                          Police: {invoice.assignment.policy_number}
-                        </div> */}
-                      </div>
-                    </TableCell>
-                  )}
-                  
-                  {columnVisibility.date && (
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        {formatDate(invoice.date)}
-                      </div>
-                    </TableCell>
-                  )}
-                  
-                  {columnVisibility.amount && (
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
-                        <span className="font-semibold text-green-600">
-                          {invoice.amount 
-                            ? formatCurrency(Number(invoice.amount))
-                            : formatCurrency(Number(invoice.assignment.total_amount))
-                          }
-                        </span>
-                      </div>
-                    </TableCell>
-                  )}
-                  
-                  {columnVisibility.status && (
-                    <TableCell>
-                      <Badge className={cn(getStatusColor(invoice.status.code), "text-xs")}>
-                        {invoice.status.label}
-                      </Badge>
-                    </TableCell>
-                  )}
-                  
-                  {columnVisibility.created_by && (
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="truncate max-w-[120px]">
-                          {invoice.created_by.name || 'N/A'}
-                        </span>
-                      </div>
-                    </TableCell>
-                  )}
-                  
-                  {columnVisibility.expertise_date && (
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
-                        {formatDate(invoice.assignment.expertise_date)}
-                      </div>
-                    </TableCell>
-                  )}
-                  
-                  {columnVisibility.actions && (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(Number(invoice.id))}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Voir les détails
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          {invoice.assignment.expertise_sheet && (
-                            <DropdownMenuItem onClick={() => window.open(invoice.assignment.expertise_sheet!, '_blank')}>
-                              <Download className="mr-2 h-4 w-4" />
-                              Télécharger
+              {sortedInvoices.map((invoice) => {
+                const isCancelled = invoice.status?.code === 'cancelled'
+                const isDeleted = invoice.deleted_at !== null
+                const canCancel = !isCancelled && !isDeleted
+                const canGenerate = invoice.status?.code !== 'generated' && !isDeleted && !isCancelled
+                const canEdit = !isCancelled && !isDeleted
+                const canDelete = !isCancelled && !isDeleted
+                return (
+                  <TableRow key={invoice.id} className="hover:bg-muted/50">
+                    {columnVisibility.reference && (
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {/* <FileText className="h-4 w-4 text-muted-foreground" /> */}
+                          {invoice.reference}
+                        </div>
+                      </TableCell>
+                    )}
+                    
+                    {columnVisibility.assignment && (
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{invoice.assignment?.reference}</div>
+                          {/* <div className="text-xs text-muted-foreground">
+                            Police: {invoice.assignment.policy_number}
+                          </div> */}
+                        </div>
+                      </TableCell>
+                    )}
+                    
+                    {columnVisibility.date && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                          {formatDate(invoice.date)}
+                        </div>
+                      </TableCell>
+                    )}
+                    
+                    {columnVisibility.amount && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
+                          <span className="font-semibold text-green-600">
+                            {invoice.amount 
+                              ? formatCurrency(Number(invoice.amount))
+                              : formatCurrency(Number(invoice.assignment?.total_amount ?? 0))
+                            }
+                          </span>
+                        </div>
+                      </TableCell>
+                    )}
+                    
+                    {columnVisibility.status && (
+                      <TableCell>
+                        <Badge className={cn(getStatusColor(invoice.status?.code || ''), "text-xs")}> 
+                          {invoice.status?.label || 'Statut inconnu'}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    
+                    {columnVisibility.created_by && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="truncate max-w-[120px]">
+                            {invoice.created_by?.name || 'N/A'}
+                          </span>
+                        </div>
+                      </TableCell>
+                    )}
+                    
+                    {columnVisibility.expertise_date && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
+                          {formatDate(invoice.assignment?.expertise_date)}
+                        </div>
+                      </TableCell>
+                    )}
+                    
+                    {columnVisibility.actions && (
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewDetails(Number(invoice.id))}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Voir les détails
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(Number(invoice.id))}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                            {canEdit && (
+                              <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Modifier
+                              </DropdownMenuItem>
+                            )}
+                            {canCancel && (
+                              <DropdownMenuItem onClick={() => handleCancel(Number(invoice.id))}>
+                                <AlertTriangle className="mr-2 h-4 w-4" />
+                                Annuler
+                              </DropdownMenuItem>
+                            )}
+                            {canGenerate && (
+                              <DropdownMenuItem onClick={() => handleGenerate(Number(invoice.id))}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Générer
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            {canDelete && (
+                              <DropdownMenuItem 
+                                onClick={() => handleDelete(Number(invoice.id))}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         )}

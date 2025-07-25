@@ -39,6 +39,7 @@ interface AssignmentsActions {
   updateAssignment: (id: number, assignmentData: AssignmentUpdate) => Promise<void>
   deleteAssignment: (id: number) => Promise<void>
   changeAssignmentStatus: (id: number, statusId: number) => Promise<void>
+  generateReport: (id: number) => Promise<string>
 
   
   // Actions de pagination
@@ -280,6 +281,22 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
         duration: 1000,
       })
       throw error
+    }
+  },
+
+  generateReport: async (id: number): Promise<string> => {
+    set({ loading: true })
+    try {
+      const response = await assignmentService.generateReport(id)
+      set({ loading: false })
+      toast.success(response.message || 'Rapport généré avec succès')
+      await get().fetchAssignment(id)
+      return response.message || 'Rapport généré avec succès'
+    } catch (error: any) {
+      set({ loading: false })
+      const errMsg = error?.response?.data?.errors?.[0]?.detail || (error instanceof Error ? error.message : 'Erreur lors de la génération du rapport')
+      toast.error(errMsg)
+      return errMsg
     }
   },
 

@@ -23,6 +23,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { getAllStatusTabs, useAssignmentsEditionExpiredStore } from '@/stores/assignmentEditionExpired'
+import { Search as SearchComponent } from '@/components/search'
 
 export default function AssignmentsEditionExpiredPage() {
   const navigate = useNavigate()
@@ -128,7 +129,7 @@ export default function AssignmentsEditionExpiredPage() {
   return (
     <>
       <Header fixed>
-        <Search />
+        <SearchComponent />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />
           <ProfileDropdown />

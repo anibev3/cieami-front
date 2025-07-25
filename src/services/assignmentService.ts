@@ -128,6 +128,14 @@ class AssignmentService {
     )
     return response.data
   }
+
+  /**
+   * Générer le rapport d'expertise
+   */
+  async generateReport(id: number): Promise<{ message: string | null, data: any }> {
+    const response = await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}/generate`)
+    return response.data
+  }
 }
 
 // Export d'une instance singleton

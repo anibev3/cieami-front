@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,7 +31,9 @@ export default function InvoiceDetailPage() {
     selectedInvoice, 
     loading, 
     fetchInvoiceById, 
-    deleteInvoice 
+    deleteInvoice, 
+    cancelInvoice, 
+    generateInvoice 
   } = useInvoiceStore()
 
   const [pdfViewer, setPdfViewer] = useState<{
@@ -77,6 +80,28 @@ export default function InvoiceDetailPage() {
     })
   }
 
+  const handleCancel = async () => {
+    if (confirm('Voulez-vous vraiment annuler cette facture ?')) {
+      const message = await cancelInvoice(Number(id))
+      if (message.toLowerCase().includes('succès') || message.toLowerCase().includes('success')) {
+        toast.success(message)
+        fetchInvoiceById(Number(id))
+      } else {
+        toast.error(message)
+      }
+    }
+  }
+
+  const handleGenerate = async () => {
+    const message = await generateInvoice(Number(id))
+    if (message.toLowerCase().includes('succès') || message.toLowerCase().includes('success')) {
+      toast.success(message)
+      fetchInvoiceById(Number(id))
+    } else {
+      toast.error(message)
+    }
+  }
+
   const getStatusColor = (statusCode: string) => {
     switch (statusCode) {
       case 'active':
@@ -113,6 +138,13 @@ export default function InvoiceDetailPage() {
   const invoice = selectedInvoice
   const assignment = invoice.assignment
 
+  const isCancelled = invoice.status?.code === 'cancelled'
+  const isDeleted = invoice.deleted_at !== null
+  const canCancel = !isCancelled && !isDeleted
+  const canGenerate = invoice.status?.code !== 'generated' && !isDeleted && !isCancelled
+  const canEdit = !isCancelled && !isDeleted
+  const canDelete = !isCancelled && !isDeleted
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -130,14 +162,30 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleEdit}>
-            <Edit className="mr-2 h-4 w-4" />
-            Modifier
-          </Button>
-          <Button variant="outline" onClick={handleDelete}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Supprimer
-          </Button>
+          {canEdit && (
+            <Button variant="outline" onClick={handleEdit} disabled={loading}>
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Button>
+          )}
+          {canDelete && (
+            <Button variant="outline" onClick={handleDelete} disabled={loading}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </Button>
+          )}
+          {canCancel && (
+            <Button variant="outline" onClick={handleCancel} disabled={loading}>
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              Annuler
+            </Button>
+          )}
+          {canGenerate && (
+            <Button variant="outline" onClick={handleGenerate} disabled={loading}>
+              <Download className="mr-2 h-4 w-4" />
+              Générer
+            </Button>
+          )}
         </div>
       </div>
 
@@ -166,8 +214,8 @@ export default function InvoiceDetailPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Statut</p>
-                      <Badge className={getStatusColor(invoice.status.code)}>
-                        {invoice.status.label}
+                      <Badge className={getStatusColor(invoice.status?.code || '')}>
+                        {invoice.status?.label || 'Statut inconnu'}
                       </Badge>
                     </div>
                   </div>
@@ -177,17 +225,17 @@ export default function InvoiceDetailPage() {
                       <p className="text-2xl font-bold text-primary">
                         {invoice.amount 
                           ? formatCurrency(Number(invoice.amount))
-                          : formatCurrency(Number(assignment.total_amount))
+                          : formatCurrency(Number(assignment?.total_amount ?? 0))
                         }
                       </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Créé par</p>
-                      <p className="text-sm font-semibold">{invoice.created_by.name || 'N/A'}</p>
+                      <p className="text-sm font-semibold">{invoice?.created_by?.name || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Date de création</p>
-                      <p className="text-sm font-semibold">{formatDate(invoice.created_at)}</p>
+                      <p className="text-sm font-semibold">{formatDate(invoice?.created_at)}</p>
                     </div>
                   </div>
                 </div>
@@ -211,15 +259,15 @@ export default function InvoiceDetailPage() {
                       <div className="space-y-2">
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Référence</p>
-                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.reference}</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment?.reference}</p>
                         </div>
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Numéro de police</p>
-                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.policy_number}</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment?.policy_number}</p>
                         </div>
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Numéro de sinistre</p>
-                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.claim_number}</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment?.claim_number}</p>
                         </div>
                       </div>
                     </div>
@@ -228,15 +276,15 @@ export default function InvoiceDetailPage() {
                       <div className="space-y-2">
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Date d'expertise</p>
-                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{formatDate(assignment.expertise_date)}</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{formatDate(assignment?.expertise_date)}</p>
                         </div>
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Date de réception</p>
-                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{formatDate(assignment.received_at)}</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{formatDate(assignment?.received_at)}</p>
                         </div>
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Lieu d'expertise</p>
-                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.expertise_place || 'Non renseigné'}</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment?.expertise_place || 'Non renseigné'}</p>
                         </div>
                       </div>
                     </div>
@@ -250,31 +298,31 @@ export default function InvoiceDetailPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Chocs (HT)</p>
-                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment.shock_amount_excluding_tax))}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment?.shock_amount_excluding_tax ?? 0))}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Chocs (TVA)</p>
-                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment.shock_amount_tax))}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment?.shock_amount_tax ?? 0))}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Autres coûts (HT)</p>
-                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment.other_cost_amount_excluding_tax))}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment?.other_cost_amount_excluding_tax ?? 0))}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Honoraires (HT)</p>
-                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment.receipt_amount_excluding_tax))}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment?.receipt_amount_excluding_tax ?? 0))}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Total (HT)</p>
-                        <p className="text-sm font-semibold text-primary">{formatCurrency(Number(assignment.total_amount_excluding_tax))}</p>
+                        <p className="text-sm font-semibold text-primary">{formatCurrency(Number(assignment?.total_amount_excluding_tax ?? 0))}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Total (TVA)</p>
-                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment.total_amount_tax))}</p>
+                        <p className="text-sm font-semibold">{formatCurrency(Number(assignment?.total_amount_tax ?? 0))}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Total (TTC)</p>
-                        <p className="text-lg font-bold text-primary">{formatCurrency(Number(assignment.total_amount))}</p>
+                        <p className="text-lg font-bold text-primary">{formatCurrency(Number(assignment?.total_amount ?? 0))}</p>
                       </div>
                     </div>
                   </div>
@@ -287,19 +335,19 @@ export default function InvoiceDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Circonstances</p>
-                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment.circumstance}</p>
+                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment?.circumstance}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Dégâts déclarés</p>
-                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment.damage_declared}</p>
+                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment?.damage_declared}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Points notés</p>
-                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment.point_noted}</p>
+                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment?.point_noted}</p>
                       </div>
                       <div>
                         <p className="text-xs font-medium text-muted-foreground">Administrateur</p>
-                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment.administrator || 'Non renseigné'}</p>
+                        <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment?.administrator || 'Non renseigné'}</p>
                       </div>
                     </div>
                   </div>
@@ -319,21 +367,21 @@ export default function InvoiceDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {assignment.expertise_sheet && (
+                {assignment?.expertise_sheet && (
                   <Button 
                     variant="outline" 
                     className="w-full justify-start text-xs h-8" 
-                    onClick={() => handleViewPdf(assignment.expertise_sheet!, 'Fiche d\'expertise')}
+                    onClick={() => handleViewPdf(assignment?.expertise_sheet!, 'Fiche d\'expertise')}
                   >
                     <Download className="h-3 w-3 mr-2" />
                     Voir la fiche d'expertise
                   </Button>
                 )}
-                {assignment.expertise_report && (
+                {assignment?.expertise_report && (
                   <Button 
                     variant="outline" 
                     className="w-full justify-start text-xs h-8" 
-                    onClick={() => handleViewPdf(assignment.expertise_report!, 'Rapport d\'expertise')}
+                    onClick={() => handleViewPdf(assignment?.expertise_report!, 'Rapport d\'expertise')}
                   >
                     <Download className="h-3 w-3 mr-2" />
                     Voir le rapport d'expertise
@@ -347,7 +395,7 @@ export default function InvoiceDetailPage() {
             </Card>
 
             {/* Documents transmis */}
-            {assignment.document_transmitted && assignment.document_transmitted.length > 0 && (
+            {assignment?.document_transmitted && assignment?.document_transmitted?.length > 0 && (
               <Card className='shadow-none'>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sm">
@@ -357,7 +405,7 @@ export default function InvoiceDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {assignment.document_transmitted.map((doc) => (
+                    {assignment?.document_transmitted.map((doc) => (
                       <div key={doc.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
                         <FileText className="h-3 w-3 text-muted-foreground" />
                         <span className="text-xs">{doc.label}</span>
@@ -380,28 +428,28 @@ export default function InvoiceDetailPage() {
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">Statut d'édition</p>
-                    <Badge variant="secondary" className="text-xs">{assignment.edition_status || 'N/A'}</Badge>
-                    {assignment.edition_per_cent && (
-                      <p className="text-xs text-muted-foreground mt-1">{assignment.edition_per_cent}% complété</p>
+                    <Badge variant="secondary" className="text-xs">{assignment?.edition_status || 'N/A'}</Badge>
+                    {assignment?.edition_per_cent && (
+                      <p className="text-xs text-muted-foreground mt-1">{assignment?.edition_per_cent}% complété</p>
                     )}
                   </div>
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">Statut de récupération</p>
-                    <Badge variant="secondary" className="text-xs">{assignment.recovery_status || 'N/A'}</Badge>
-                    {assignment.recovery_per_cent && (
-                      <p className="text-xs text-muted-foreground mt-1">{assignment.recovery_per_cent}% complété</p>
+                    <Badge variant="secondary" className="text-xs">{assignment?.recovery_status || 'N/A'}</Badge>
+                    {assignment?.recovery_per_cent && (
+                      <p className="text-xs text-muted-foreground mt-1">{assignment?.recovery_per_cent}% complété</p>
                     )}
                   </div>
-                  {assignment.validated_at && (
+                  {assignment?.validated_at && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground">Validé le</p>
-                      <p className="text-xs font-semibold">{formatDate(assignment.validated_at)}</p>
+                      <p className="text-xs font-semibold">{formatDate(assignment?.validated_at)}</p>
                     </div>
                   )}
-                  {assignment.realized_at && (
+                  {assignment?.realized_at && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground">Réalisé le</p>
-                      <p className="text-xs font-semibold">{formatDate(assignment.realized_at)}</p>
+                      <p className="text-xs font-semibold">{formatDate(assignment?.realized_at)}</p>
                     </div>
                   )}
                 </div>

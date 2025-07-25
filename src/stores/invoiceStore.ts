@@ -24,6 +24,8 @@ interface InvoiceState {
   deleteInvoice: (id: number) => Promise<void>
   setSelectedInvoice: (invoice: Invoice | null) => void
   clearError: () => void
+  cancelInvoice: (id: number) => Promise<string>
+  generateInvoice: (id: number) => Promise<string>
 }
 
 export const useInvoiceStore = create<InvoiceState>((set) => ({
@@ -141,6 +143,50 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
 
   setSelectedInvoice: (invoice: Invoice | null) => {
     set({ selectedInvoice: invoice })
+  },
+
+  cancelInvoice: async (id: number): Promise<string> => {
+    try {
+      set({ loading: true })
+      const updatedInvoice = await invoiceService.cancelInvoice(id)
+      set(state => ({
+        invoices: state.invoices.map(invoice => invoice.id === id ? updatedInvoice : invoice),
+        selectedInvoice: state.selectedInvoice?.id === id ? updatedInvoice : state.selectedInvoice,
+        loading: false
+      }))
+      const updatedInvoiceAny = updatedInvoice as { message?: string }
+      return updatedInvoiceAny.message || 'Facture annulée avec succès'
+    } catch (error: unknown) {
+      set({ loading: false })
+      const err = error as { response?: { data?: { errors?: { detail?: string }[] } } }
+      if (err?.response?.data?.errors?.[0]?.detail) {
+        return err.response.data.errors[0].detail
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'annulation'
+      return errorMessage
+    }
+  },
+
+  generateInvoice: async (id: number): Promise<string> => {
+    try {
+      set({ loading: true })
+      const updatedInvoice = await invoiceService.generateInvoice(id)
+      set(state => ({
+        invoices: state.invoices.map(invoice => invoice.id === id ? updatedInvoice : invoice),
+        selectedInvoice: state.selectedInvoice?.id === id ? updatedInvoice : state.selectedInvoice,
+        loading: false
+      }))
+      const updatedInvoiceAny = updatedInvoice as { message?: string }
+      return updatedInvoiceAny.message || 'Facture générée avec succès'
+    } catch (error: unknown) {
+      set({ loading: false })
+      const err = error as { response?: { data?: { errors?: { detail?: string }[] } } }
+      if (err?.response?.data?.errors?.[0]?.detail) {
+        return err.response.data.errors[0].detail
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la génération'
+      return errorMessage
+    }
   },
 
   clearError: () => {

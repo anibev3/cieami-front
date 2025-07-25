@@ -518,7 +518,7 @@ export default function CreateInvoicePage() {
                 Créer la facture
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 max-h-[60vh] overflow-y-auto">
               {/* Dossier sélectionné */}
               {selectedAssignment ? (
                 <div className="space-y-4">
