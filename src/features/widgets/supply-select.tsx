@@ -45,6 +45,7 @@ export function SupplySelect({
           <Button
             variant="outline"
             role="combobox"
+            size="sm"
             aria-expanded={open}
             className={cn(
               "w-full justify-between text-left",

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { Reparateur, ReparateurFilters } from './types'
+import { CreateEntityData } from '@/types/administration'
 import * as api from './api'
 
 interface ReparateursState {
@@ -10,7 +11,7 @@ interface ReparateursState {
   selectedReparateur: Reparateur | null
   fetchReparateurs: (filters?: ReparateurFilters, token?: string) => Promise<void>
   fetchReparateur: (id: number, token?: string) => Promise<void>
-  createReparateur: (reparateur: Partial<Reparateur>, token?: string) => Promise<void>
+  createReparateur: (reparateur: CreateEntityData, token?: string) => Promise<void>
   updateReparateur: (id: number, reparateur: Partial<Reparateur>, token?: string) => Promise<void>
   deleteReparateur: (id: number, token?: string) => Promise<void>
   setSelectedReparateur: (reparateur: Reparateur | null) => void

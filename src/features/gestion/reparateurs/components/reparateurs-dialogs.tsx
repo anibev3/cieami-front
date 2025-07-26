@@ -3,11 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useReparateurs } from '../context/reparateurs-context'
 import { useReparateursStore } from '../store'
 import { ReparateursMutateDrawer } from './reparateurs-mutate-drawer'
+import { CreateRepairer } from '@/features/assignments/components/create-repairer'
+import { CreateEntityData } from '@/types/administration'
 import { toast } from 'sonner'
 
 export function ReparateursDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useReparateurs()
-  const { deleteReparateur } = useReparateursStore()
+  const { deleteReparateur, createReparateur } = useReparateursStore()
 
   const handleDelete = async () => {
     if (!currentRow) return
@@ -25,10 +27,16 @@ export function ReparateursDialogs() {
 
   return (
     <>
-      <ReparateursMutateDrawer
-        key='reparateur-create'
+      <CreateRepairer
         open={open === 'create'}
         onOpenChange={(open) => setOpen(open ? 'create' : null)}
+        onSubmit={async (formData) => {
+          const entityData: CreateEntityData = {
+            ...formData,
+            entity_type_code: 'repairer'
+          }
+          await createReparateur(entityData)
+        }}
       />
 
       {currentRow && (

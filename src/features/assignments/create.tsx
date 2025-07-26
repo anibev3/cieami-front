@@ -75,6 +75,7 @@ import { VehicleModelSelect } from '@/features/assignments/cost-of-supply/compon
 import { useBrandsStore } from '@/stores/brands'
 import { ColorSelect } from '@/features/widgets/color-select'
 import { BodyworkSelect } from '@/features/widgets/bodywork-select'
+import { CreateRepairer } from '@/features/assignments/components/create-repairer'
 
 // Types pour les experts
 interface Expert {
@@ -242,13 +243,7 @@ export default function CreateAssignmentPage() {
     address: '',
   })
   
-  const [createRepairerForm, setCreateRepairerForm] = useState({
-    name: '',
-    code: '',
-    email: '',
-    telephone: '',
-    address: '',
-  })
+
   
   const [createDocumentForm, setCreateDocumentForm] = useState({
     code: '',
@@ -774,25 +769,7 @@ export default function CreateAssignmentPage() {
     }
   }
 
-  const handleCreateRepairer = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!createRepairerForm.name || !createRepairerForm.code) {
-      toast.error('Nom et code obligatoires')
-      return
-    }
-    try {
-      await createEntity({
-        ...createRepairerForm,
-        entity_type_code: 'repairer', // Code pour réparateur
-      })
-      toast.success('Réparateur créé avec succès')
-      setShowCreateRepairerModal(false)
-      setCreateRepairerForm({ name: '', code: '', email: '', telephone: '', address: '' })
-      fetchEntities() // Recharger la liste
-    } catch (error) {
-      toast.error('Erreur lors de la création du réparateur')
-    }
-  }
+
 
   const handleCreateDocument = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -2474,64 +2451,17 @@ export default function CreateAssignmentPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showCreateRepairerModal} onOpenChange={setShowCreateRepairerModal}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Créer un réparateur</DialogTitle>
-            <DialogDescription>
-              Remplissez les informations pour créer un nouveau réparateur.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreateRepairer} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="repairer-name">Nom *</Label>
-              <Input 
-                id="repairer-name" 
-                value={createRepairerForm.name} 
-                onChange={e => setCreateRepairerForm(f => ({ ...f, name: e.target.value }))} 
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="repairer-code">Code *</Label>
-              <Input 
-                id="repairer-code" 
-                value={createRepairerForm.code} 
-                onChange={e => setCreateRepairerForm(f => ({ ...f, code: e.target.value }))} 
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="repairer-email">Email</Label>
-              <Input 
-                id="repairer-email" 
-                type="email" 
-                value={createRepairerForm.email} 
-                onChange={e => setCreateRepairerForm(f => ({ ...f, email: e.target.value }))} 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="repairer-phone">Téléphone</Label>
-              <Input 
-                id="repairer-phone" 
-                value={createRepairerForm.telephone} 
-                onChange={e => setCreateRepairerForm(f => ({ ...f, telephone: e.target.value }))} 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="repairer-address">Adresse</Label>
-              <Input 
-                id="repairer-address" 
-                value={createRepairerForm.address} 
-                onChange={e => setCreateRepairerForm(f => ({ ...f, address: e.target.value }))} 
-              />
-            </div>
-            <DialogFooter>
-              <Button type="submit">Créer le réparateur</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <CreateRepairer
+        open={showCreateRepairerModal}
+        onOpenChange={setShowCreateRepairerModal}
+        onSubmit={async (formData) => {
+          await createEntity({
+            ...formData,
+            entity_type_code: 'repairer', // Code pour réparateur
+          })
+          fetchEntities() // Recharger la liste
+        }}
+      />
 
       <Dialog open={showCreateDocumentModal} onOpenChange={setShowCreateDocumentModal}>
         <DialogContent className="sm:max-w-[425px]">

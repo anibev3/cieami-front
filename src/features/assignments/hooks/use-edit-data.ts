@@ -56,27 +56,27 @@ export function useEditData() {
       setLoading(true)
       
       // Charger les points de choc
-      const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}`)
+      const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}?per_page=100000`)
       setShockPoints(shockPointsResponse.data.data)
       
       // Charger les fournitures
-      const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}`)
+      const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=100000`)
       setSupplies(suppliesResponse.data.data)
       
       // Charger les types de main d'œuvre
-      const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}`)
+      const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=100000`)
       setWorkforceTypes(workforceTypesResponse.data.data)
       
       // Charger les types de coûts autres
-      const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}`)
+      const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}?per_page=100000`)
       setOtherCostTypes(otherCostTypesResponse.data.data)
       
       // Charger les types de peinture
-      const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}`)
+      const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}?per_page=100000`)
       setPaintTypes(paintTypesResponse.data.data)
       
       // Charger les taux horaires
-      const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}`)
+      const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}?per_page=100000`)
       setHourlyRates(hourlyRatesResponse.data.data)
       
     } catch (error) {

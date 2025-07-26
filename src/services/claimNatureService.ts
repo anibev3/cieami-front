@@ -13,7 +13,7 @@ class ClaimNatureService {
    * Récupérer toutes les natures de sinistres
    */
   async getAll(): Promise<ClaimNatureResponse> {
-    const response = await axiosInstance.get<ClaimNatureResponse>(this.baseUrl)
+    const response = await axiosInstance.get<ClaimNatureResponse>(`${this.baseUrl}?per_page=100000`)
     return response.data
   }
 
