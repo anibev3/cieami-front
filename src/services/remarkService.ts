@@ -13,7 +13,7 @@ class RemarkService {
    * Récupérer toutes les remarques
    */
   async getAll(): Promise<RemarkResponse> {
-    const response = await axiosInstance.get<RemarkResponse>(this.baseUrl)
+    const response = await axiosInstance.get<RemarkResponse>(`${this.baseUrl}?per_page=100000`)
     return response.data
   }
 
