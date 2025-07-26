@@ -31,7 +31,8 @@ class AssignmentService {
     })
 
     const statusParam = filters?.status_code ? `&status_id=${filters.status_code}` : '';
-    const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}?${params}${statusParam}`)
+    const isSelectedParam = filters?.is_selected ? `&per_page=100000` : '';
+    const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}?${params}${statusParam}${isSelectedParam}`)
     return response.data
   }
 

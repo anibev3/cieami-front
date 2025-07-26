@@ -392,6 +392,72 @@ export function ShockWorkforceTableV2({
     return modifiedRows.has(index) || newRows.has(index)
   }
 
+  // Fonction pour gérer le changement de type de peinture
+  const handlePaintTypeChange = async (value: number) => {
+    onPaintTypeChange?.(value)
+    
+    // Si il y a des workforces avec un ID, mettre à jour via l'API
+    const existingWorkforce = localWorkforces.find(w => w.id)
+    if (existingWorkforce) {
+      try {
+        // Préparer les données pour l'API
+        const updateData = {
+          workforce_type_id: getWorkforceTypeId(existingWorkforce).toString(),
+          nb_hours: Number(existingWorkforce.nb_hours),
+          discount: Number(existingWorkforce.discount),
+          hourly_rate_id: existingWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
+          paint_type_id: value.toString(),
+          with_tax: localWithTax
+        }
+
+        // Appel API pour mettre à jour
+        await workforceService.updateWorkforce(existingWorkforce.id!, updateData)
+        
+        toast.success('Type de peinture mis à jour avec succès')
+        
+        // Rafraîchir les données du dossier
+        if (onAssignmentRefresh) {
+          onAssignmentRefresh()
+        }
+      } catch (_error) {
+        toast.error('Erreur lors de la mise à jour du type de peinture')
+      }
+    }
+  }
+
+  // Fonction pour gérer le changement de taux horaire
+  const handleHourlyRateChange = async (value: number) => {
+    onHourlyRateChange?.(value)
+    
+    // Si il y a des workforces avec un ID, mettre à jour via l'API
+    const existingWorkforce = localWorkforces.find(w => w.id)
+    if (existingWorkforce) {
+      try {
+        // Préparer les données pour l'API
+        const updateData = {
+          workforce_type_id: getWorkforceTypeId(existingWorkforce).toString(),
+          nb_hours: Number(existingWorkforce.nb_hours),
+          discount: Number(existingWorkforce.discount),
+          hourly_rate_id: value.toString(),
+          paint_type_id: existingWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+          with_tax: localWithTax
+        }
+
+        // Appel API pour mettre à jour
+        await workforceService.updateWorkforce(existingWorkforce.id!, updateData)
+        
+        toast.success('Taux horaire mis à jour avec succès')
+        
+        // Rafraîchir les données du dossier
+        if (onAssignmentRefresh) {
+          onAssignmentRefresh()
+        }
+      } catch (_error) {
+        toast.error('Erreur lors de la mise à jour du taux horaire')
+      }
+    }
+  }
+
   // Fonction pour gérer le changement de withTax
   const handleWithTaxChange = async (checked: boolean) => {
     setLocalWithTax(checked)
@@ -475,7 +541,7 @@ export function ShockWorkforceTableV2({
                 <Label className="text-xs font-medium mb-2">Type de peinture</Label>
                 <Select 
                   value={paintTypeId ? paintTypeId.toString() : ''} 
-                  onValueChange={(value) => onPaintTypeChange?.(Number(value))}
+                  onValueChange={(value) => handlePaintTypeChange(Number(value))}
                 >
                   <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''}`}>
                     <SelectValue placeholder={!paintTypeId ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
@@ -495,7 +561,7 @@ export function ShockWorkforceTableV2({
                 <Label className="text-xs font-medium mb-2">Taux horaire</Label>
                 <Select 
                   value={hourlyRateId ? hourlyRateId.toString() : ''} 
-                  onValueChange={(value) => onHourlyRateChange?.(Number(value))}
+                  onValueChange={(value) => handleHourlyRateChange(Number(value))}
                 >
                   <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''}`}>
                     <SelectValue placeholder={!hourlyRateId ? "⚠️ Sélectionner un taux" : "Sélectionner..."} />

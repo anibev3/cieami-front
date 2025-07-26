@@ -77,6 +77,11 @@ export default function CreateAscertainmentPage() {
       return
     }
 
+    if (formData.ascertainments.some(a => !a.comment.trim())) {
+      toast.error('Les commentaires des constats doivent être remplis')
+      return
+    }
+
     const success = await createAscertainment(formData)
     if (success) {
       toast.success('Constat créé avec succès')
@@ -135,6 +140,25 @@ export default function CreateAscertainmentPage() {
     if (score >= 4) return 'Bon'
     if (score >= 3) return 'Moyen'
     return 'Faible'
+  }
+
+  const handleCheckboxChange = (index: number, field: string) => {
+    const newAscertainments = formData.ascertainments.map((asc, i) => {
+      if (i === index) {
+        return {
+          ...asc,
+          very_good: false,
+          good: false,
+          acceptable: false,
+          less_good: false,
+          bad: false,
+          very_bad: false,
+          [field]: true,
+        }
+      }
+      return asc
+    })
+    setFormData({ ...formData, ascertainments: newAscertainments })
   }
 
   return (
@@ -304,7 +328,7 @@ export default function CreateAscertainmentPage() {
                                           <Checkbox
                                             id={`very_good_${index}`}
                                             checked={ascertainment.very_good}
-                                            onCheckedChange={(checked) => updateAscertainment(index, 'very_good', checked)}
+                                            onCheckedChange={() => handleCheckboxChange(index, 'very_good')}
                                           />
                                           <Label htmlFor={`very_good_${index}`} className="flex items-center space-x-2 cursor-pointer">
                                             <Star className="h-4 w-4 text-green-600" />
@@ -315,7 +339,7 @@ export default function CreateAscertainmentPage() {
                                           <Checkbox
                                             id={`good_${index}`}
                                             checked={ascertainment.good}
-                                            onCheckedChange={(checked) => updateAscertainment(index, 'good', checked)}
+                                            onCheckedChange={() => handleCheckboxChange(index, 'good')}
                                           />
                                           <Label htmlFor={`good_${index}`} className="flex items-center space-x-2 cursor-pointer">
                                             <Star className="h-4 w-4 text-blue-600" />
@@ -326,7 +350,7 @@ export default function CreateAscertainmentPage() {
                                           <Checkbox
                                             id={`acceptable_${index}`}
                                             checked={ascertainment.acceptable}
-                                            onCheckedChange={(checked) => updateAscertainment(index, 'acceptable', checked)}
+                                            onCheckedChange={() => handleCheckboxChange(index, 'acceptable')}
                                           />
                                           <Label htmlFor={`acceptable_${index}`} className="flex items-center space-x-2 cursor-pointer">
                                             <Star className="h-4 w-4 text-yellow-600" />
@@ -339,7 +363,7 @@ export default function CreateAscertainmentPage() {
                                           <Checkbox
                                             id={`less_good_${index}`}
                                             checked={ascertainment.less_good}
-                                            onCheckedChange={(checked) => updateAscertainment(index, 'less_good', checked)}
+                                            onCheckedChange={() => handleCheckboxChange(index, 'less_good')}
                                           />
                                           <Label htmlFor={`less_good_${index}`} className="flex items-center space-x-2 cursor-pointer">
                                             <StarOff className="h-4 w-4 text-orange-600" />
@@ -350,7 +374,7 @@ export default function CreateAscertainmentPage() {
                                           <Checkbox
                                             id={`bad_${index}`}
                                             checked={ascertainment.bad}
-                                            onCheckedChange={(checked) => updateAscertainment(index, 'bad', checked)}
+                                            onCheckedChange={() => handleCheckboxChange(index, 'bad')}
                                           />
                                           <Label htmlFor={`bad_${index}`} className="flex items-center space-x-2 cursor-pointer">
                                             <StarOff className="h-4 w-4 text-red-600" />
@@ -361,7 +385,7 @@ export default function CreateAscertainmentPage() {
                                           <Checkbox
                                             id={`very_bad_${index}`}
                                             checked={ascertainment.very_bad}
-                                            onCheckedChange={(checked) => updateAscertainment(index, 'very_bad', checked)}
+                                            onCheckedChange={() => handleCheckboxChange(index, 'very_bad')}
                                           />
                                           <Label htmlFor={`very_bad_${index}`} className="flex items-center space-x-2 cursor-pointer">
                                             <StarOff className="h-4 w-4 text-red-800" />
@@ -384,7 +408,10 @@ export default function CreateAscertainmentPage() {
 
                                   {/* Commentaire */}
                                   <div className="space-y-2">
-                                    <Label className="text-sm font-medium">Commentaire détaillé</Label>
+                                    <Label className="text-sm font-medium flex items-center space-x-2">
+                                      <span>Commentaire détaillé</span>
+                                      <span className="text-red-500">*</span>
+                                    </Label>
                                     <RichTextEditor
                                       value={ascertainment.comment}
                                       onChange={(value) => updateAscertainment(index, 'comment', value)}
@@ -476,36 +503,42 @@ export default function CreateAscertainmentPage() {
                             Types de constat définis
                           </span>
                         </div>
+                        <div className="flex items-center space-x-2 text-sm">
+                          {formData.ascertainments.every(a => a.comment.trim()) ? (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-red-600" />
+                          )}
+                          <span className={formData.ascertainments.every(a => a.comment.trim()) ? "text-green-700" : "text-red-700"}>
+                            Commentaires remplis
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-3 mt-10">
+                        <Button
+                          type="submit"
+                          disabled={loading || !formData.assignment_id || formData.ascertainments.some(a => !a.ascertainment_type_id || !a.comment.trim())}
+                          className="w-full"
+                          size="lg"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          {loading ? 'Création en cours...' : 'Créer le constat'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => navigate({ to: '/administration/constat' })}
+                          className="w-full"
+                          size="lg"
+                        >
+                          Annuler
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Actions */}
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="space-y-3">
-                      <Button
-                        type="submit"
-                        disabled={loading || !formData.assignment_id || formData.ascertainments.some(a => !a.ascertainment_type_id)}
-                        className="w-full"
-                        size="lg"
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        {loading ? 'Création en cours...' : 'Créer le constat'}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate({ to: '/administration/constat' })}
-                        className="w-full"
-                        size="lg"
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+               
               </div>
             </div>
           </form>

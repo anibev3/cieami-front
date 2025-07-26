@@ -43,6 +43,7 @@ export interface VehicleModelFilters {
   search?: string
   status?: string
   brand_id?: string
+  is_selected?: boolean
 }
 
 export interface VehicleModelApiResponse {

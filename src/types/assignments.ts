@@ -657,6 +657,7 @@ export interface AssignmentFilters {
   assignment_type_id?: string
   date_from?: string
   date_to?: string
+  is_selected?: boolean
 }
 
 export interface AssignmentApiResponse {

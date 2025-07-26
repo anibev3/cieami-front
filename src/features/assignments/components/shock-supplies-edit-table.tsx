@@ -2,6 +2,8 @@
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import React from 'react'
@@ -14,6 +16,16 @@ interface Supply {
   code?: string
   description?: string
   price?: number
+}
+
+interface PaintType {
+  id: number
+  label: string
+}
+
+interface HourlyRate {
+  id: number
+  label: string
 }
 
 interface ShockWork {
@@ -63,7 +75,14 @@ export function ShockSuppliesEditTable({
   onRemove,
   onValidateRow,
   onSupplyCreated,
-  isEvaluation = false
+  isEvaluation = false,
+  // Nouvelles props pour type de peinture et taux horaire
+  paintTypes = [],
+  hourlyRates = [],
+  paintTypeId,
+  hourlyRateId,
+  onPaintTypeChange,
+  onHourlyRateChange
 }: {
   supplies: Supply[]
   shockWorks: ShockWork[]
@@ -73,6 +92,13 @@ export function ShockSuppliesEditTable({
   onValidateRow: (index: number) => Promise<void>
   onSupplyCreated?: (newSupply: any) => void
   isEvaluation?: boolean
+  // Nouvelles props pour type de peinture et taux horaire
+  paintTypes?: PaintType[]
+  hourlyRates?: HourlyRate[]
+  paintTypeId?: number
+  hourlyRateId?: number
+  onPaintTypeChange?: (value: number) => void
+  onHourlyRateChange?: (value: number) => void
 }) {
   // État local pour gérer les modifications et la validation
   const [localShockWorks, setLocalShockWorks] = useState<ShockWork[]>(shockWorks)
@@ -84,7 +110,6 @@ export function ShockSuppliesEditTable({
 
   // Mettre à jour les données locales quand les props changent
   useEffect(() => {
-    console.log('ShockSuppliesEditTable - shockWorks reçues:', shockWorks)
     setLocalShockWorks(shockWorks)
   }, [shockWorks])
 
@@ -254,6 +279,54 @@ export function ShockSuppliesEditTable({
         </div>
       </div>
 
+      {/* Autres informations - seulement si les props sont fournies */}
+      {(paintTypeId !== undefined || hourlyRateId !== undefined) && (
+        <div className="border rounded bg-gray-50 p-4 space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {paintTypeId !== undefined && (
+              <div>
+                <Label className="text-xs font-medium mb-2">Type de peinture</Label>
+                <Select 
+                  value={paintTypeId ? paintTypeId.toString() : ''} 
+                  onValueChange={(value) => onPaintTypeChange?.(Number(value))}
+                >
+                  <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''}`}>
+                    <SelectValue placeholder={!paintTypeId ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paintTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {hourlyRateId !== undefined && (
+              <div>
+                <Label className="text-xs font-medium mb-2">Taux horaire</Label>
+                <Select 
+                  value={hourlyRateId ? hourlyRateId.toString() : ''} 
+                  onValueChange={(value) => onHourlyRateChange?.(Number(value))}
+                >
+                  <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''}`}>
+                    <SelectValue placeholder={!hourlyRateId ? "⚠️ Sélectionner un taux" : "Sélectionner..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hourlyRates.map((rate) => (
+                      <SelectItem key={rate.id} value={rate.id.toString()}>
+                        {rate.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="min-w-full border text-[10px]">
           <thead>
@@ -399,7 +472,7 @@ export function ShockSuppliesEditTable({
                 </td>
                 {/* Vétuste calculée */}
                 <td className="border px-2 text-center text-[10px]">
-                  {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0))}
+                  {formatCurrency((row.amount || 0) - (row.obsolescence_amount_excluding_tax || 0))}
                 </td>
                 {/* Montant TTC */}
                 <td className="border px-2 py-2 text-center text-[10px] w-35">

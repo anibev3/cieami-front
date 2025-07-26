@@ -43,7 +43,7 @@ export function AssignmentSelect({ value, onValueChange, placeholder = "Sélecti
     const loadAssignments = async () => {
       setLoading(true)
       try {
-        await fetchAssignments()
+        await fetchAssignments(1, { is_selected: true })
       } catch (_error) {
         // Erreur silencieuse - les erreurs sont gérées par le store
       } finally {

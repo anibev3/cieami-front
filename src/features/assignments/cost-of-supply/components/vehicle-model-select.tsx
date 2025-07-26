@@ -41,7 +41,7 @@ export function VehicleModelSelect({
       fetchVehicleModels(1, { brand_id: brandId })
     } else {
       // Sinon on charge tous les modèles
-      fetchVehicleModels(1)
+      fetchVehicleModels(1, { is_selected: true })
     }
   }, [fetchVehicleModels, brandId])
 

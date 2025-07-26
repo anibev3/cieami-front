@@ -493,6 +493,9 @@ export default function EditReportPage() {
   const [otherCostTypes, setOtherCostTypes] = useState<OtherCostType[]>([])
   // Ajoute un state pour shockPoints
   const [shockPoints, setShockPoints] = useState([])
+  // États pour les types de peinture et taux horaires
+  const [paintTypes, setPaintTypes] = useState([])
+  const [hourlyRates, setHourlyRates] = useState([])
 
   // Charger les données du dossier
   useEffect(() => {
@@ -604,6 +607,18 @@ export default function EditReportPage() {
         console.log("================> shockPointsResponse", shockPointsResponse.status)
         if (shockPointsResponse.status === 200) {
           setShockPoints(shockPointsResponse.data.data)
+        }
+
+        // Charger les types de peinture
+        const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}`)
+        if (paintTypesResponse.status === 200) {
+          setPaintTypes(paintTypesResponse.data.data)
+        }
+
+        // Charger les taux horaires
+        const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}`)
+        if (hourlyRatesResponse.status === 200) {
+          setHourlyRates(hourlyRatesResponse.data.data)
         }
         
         // Charger les données pour les informations additionnelles
@@ -1723,6 +1738,8 @@ export default function EditReportPage() {
                                   amount_tax: w.amount_tax,
                                   amount: w.amount
                                 })) as any}
+                                paintTypes={paintTypes}
+                                hourlyRates={hourlyRates}
                                 onUpdate={(updatedWorkforces) => {
                                   // Mettre à jour les données locales
                                   const updatedAssignment = { ...assignment }
@@ -1755,6 +1772,31 @@ export default function EditReportPage() {
                                   }
                                 }}
                                 onAssignmentRefresh={refreshAssignment}
+                                // Nouvelles props pour type de peinture et taux horaire
+                                paintTypeId={1} // Valeur par défaut, à adapter selon vos besoins
+                                hourlyRateId={1} // Valeur par défaut, à adapter selon vos besoins
+                                onPaintTypeChange={async (value: number) => {
+                                  try {
+                                    // Mettre à jour le type de peinture pour ce shock
+                                    // Note: Cette fonctionnalité nécessite une implémentation côté API
+                                    console.log('Type de peinture changé:', value, 'pour shock:', shock.id)
+                                    toast.success('Type de peinture mis à jour')
+                                    refreshAssignment()
+                                  } catch (err) {
+                                    toast.error('Erreur lors de la mise à jour du type de peinture')
+                                  }
+                                }}
+                                onHourlyRateChange={async (value: number) => {
+                                  try {
+                                    // Mettre à jour le taux horaire pour ce shock
+                                    // Note: Cette fonctionnalité nécessite une implémentation côté API
+                                    console.log('Taux horaire changé:', value, 'pour shock:', shock.id)
+                                    toast.success('Taux horaire mis à jour')
+                                    refreshAssignment()
+                                  } catch (err) {
+                                    toast.error('Erreur lors de la mise à jour du taux horaire')
+                                  }
+                                }}
                               />
                             </div>
                           </div>

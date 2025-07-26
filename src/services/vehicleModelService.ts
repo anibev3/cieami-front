@@ -14,7 +14,8 @@ class VehicleModelService {
       ...(filters?.brand_id && { brand_id: filters.brand_id }),
     })
 
-    const response = await axiosInstance.get<VehicleModelApiResponse>(`${API_CONFIG.ENDPOINTS.VEHICLE_MODELS}?${params}`)
+    const isSelectedParam = filters?.is_selected ? `&per_page=100000` : '';
+    const response = await axiosInstance.get<VehicleModelApiResponse>(`${API_CONFIG.ENDPOINTS.VEHICLE_MODELS}?${params}${isSelectedParam}`)
     return response.data
   }
 
