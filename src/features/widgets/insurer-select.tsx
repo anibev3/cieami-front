@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Building, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useEntitiesStore } from '@/stores/entitiesStore'
+import { useInsurersStore } from '@/stores/insurersStore'
 
 interface InsurerSelectProps {
   value?: number | null
@@ -25,16 +25,13 @@ export function InsurerSelect({
   showStatus = false
 }: InsurerSelectProps) {
   const [open, setOpen] = useState(false)
-  const { entities, loading, fetchEntities } = useEntitiesStore()
-
-  // Filtrer seulement les assureurs
-  const insurers = entities.filter(entity => entity.entity_type?.code === 'insurer')
+  const { insurers, loading, fetchInsurers } = useInsurersStore()
 
   useEffect(() => {
-    if (entities.length === 0) {
-      fetchEntities()
+    if (insurers.length === 0) {
+      fetchInsurers()
     }
-  }, [entities.length, fetchEntities])
+  }, [insurers.length, fetchInsurers])
 
   const selectedInsurer = insurers.find(insurer => insurer.id === value)
 
