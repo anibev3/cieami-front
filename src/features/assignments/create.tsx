@@ -901,78 +901,81 @@ export default function CreateAssignmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-gray-50/50 pb-16 lg:pb-0">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-gray-200/60">
-        <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-4">
-                        <Button type="button" variant="outline" size="icon" onClick={handleCancel} className="shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-2 sm:px-4 lg:px-6 py-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Button type="button" variant="outline" size="icon" onClick={handleCancel} className="shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 truncate">
                 {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
                 {isEditMode ? 'Modifiez les informations du dossier' : 'Créez un nouveau dossier d\'expertise'}
               </p>
               {isEditMode && (
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
                     Mode édition
                   </Badge>
                   <span className="text-xs text-gray-500">ID: {assignmentId}</span>
                   {loadingData && (
                     <div className="flex items-center gap-1">
                       <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                      <span className="text-xs text-blue-600">Chargement des données...</span>
+                      <span className="text-xs text-blue-600">Chargement...</span>
                     </div>
                   )}
                 </div>
               )}
-        </div>
-      </div>
+            </div>
+          </div>
 
-          <div className="flex items-center gap-3">
-            <Button type="button" variant="outline" onClick={handleCancel}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button type="button" variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleCancel}>
               Annuler
             </Button>
             <Button 
               type="submit" 
+              size="sm"
               onClick={form.handleSubmit(onSubmit)}
               disabled={loading}
-              className=" text-white"
+              className="text-white flex-1 sm:flex-none"
             >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enregistrement...
+                  <span className="hidden sm:inline">Enregistrement...</span>
+                  <span className="sm:hidden">Sauvegarde...</span>
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  {isEditMode ? 'Mettre à jour' : 'Créer le dossier'}
+                  <span className="hidden sm:inline">{isEditMode ? 'Mettre à jour' : 'Créer le dossier'}</span>
+                  <span className="sm:hidden">{isEditMode ? 'Mettre à jour' : 'Créer'}</span>
                 </>
               )}
             </Button>
           </div>
         </div>
-          </div>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className={`flex gap-6 p-6 ${loadingData ? 'pointer-events-none opacity-50' : ''}`}>
+          <div className={`flex flex-col lg:flex-row gap-4 lg:gap-6 px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${loadingData ? 'pointer-events-none opacity-50' : ''}`}>
             {/* Sidebar */}
-            <div className="w-80 shrink-0">
-              <div className="sticky top-24 space-y-4">
+            <div className="w-full lg:w-80 lg:shrink-0 order-2 lg:order-1">
+              <div className="lg:sticky lg:top-24 space-y-4">
                 {/* Progress Overview */}
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader className="pb-4">
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none hidden sm:block">
+                  <CardHeader className="pb-4 px-3 sm:px-6">
                     <CardTitle className="text-lg font-semibold">
                       {isEditMode ? 'Vue d\'ensemble' : 'Progression'}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 px-3 sm:px-6">
                     {[
                       { id: 1, title: 'Informations générales', icon: FileText, color: 'text-blue-600' },
                       { id: 2, title: 'Types et documents', icon: FileType, color: 'text-green-600' },
@@ -1012,11 +1015,11 @@ export default function CreateAssignmentPage() {
 
                 {/* Navigation */}
                 {!isEditMode && (
-                  <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                    <CardHeader className="pb-4">
+                  <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none hidden sm:block">
+                    <CardHeader className="pb-4 px-3 sm:px-6">
                       <CardTitle className="text-lg font-semibold">Navigation</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-3 px-3 sm:px-6">
                       <div className="flex gap-2">
                         <Button 
                           type="button"
@@ -1027,7 +1030,44 @@ export default function CreateAssignmentPage() {
                           className="flex-1"
                         >
                           <ChevronLeft className="mr-2 h-4 w-4" />
-                          Retour
+                          <span className="hidden sm:inline">Retour</span>
+                          <span className="sm:hidden">Précédent</span>
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant="default" 
+                          size="sm" 
+                          onClick={nextStep}
+                          disabled={!canProceed || step === totalSteps}
+                          className="flex-1"
+                        >
+                          <span className="hidden sm:inline">Suivant</span>
+                          <span className="sm:hidden">Suivant</span>
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
+                      <div className="text-center text-sm text-gray-500">
+                        Étape {step} sur {totalSteps}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Navigation mobile flottante */}
+                {!isEditMode && (
+                  <div className="lg:hidden fixed bottom-2 left-2 right-2 z-50">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200/60 rounded-lg shadow-lg p-3">
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          size="sm" 
+                          onClick={prevStep}
+                          disabled={step === 1}
+                          className="flex-1"
+                        >
+                          <ChevronLeft className="mr-2 h-4 w-4" />
+                          Précédent
                         </Button>
                         <Button 
                           type="button"
@@ -1040,12 +1080,12 @@ export default function CreateAssignmentPage() {
                           Suivant
                           <ChevronRight className="ml-2 h-4 w-4" />
                         </Button>
-                    </div>
-                      <div className="text-center text-sm text-gray-500">
+                      </div>
+                      <div className="text-center text-xs text-gray-500 mt-2">
                         Étape {step} sur {totalSteps}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )}
 
                 {/* Quick Actions */}
@@ -1105,11 +1145,11 @@ export default function CreateAssignmentPage() {
       </div>
 
             {/* Main Content */}
-            <div className="flex-1 space-y-6">
+            <div className="flex-1 space-y-4 lg:space-y-6 order-1 lg:order-2">
               {/* Section 1: Informations générales */}
               <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl">
+                <CardHeader className="px-3 sm:px-6">
+                  <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
                     <FileText className="h-5 w-5 text-blue-600" />
                     Informations générales
                   </CardTitle>
@@ -1117,11 +1157,11 @@ export default function CreateAssignmentPage() {
                     Renseignez les informations du client, véhicule, assureur et réparateur.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <CardContent className="space-y-4 lg:space-y-6 px-3 sm:px-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                       {/* Client et Véhicule */}
                   <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                      <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <User className="h-5 w-5 text-blue-500" />
                           Client et Véhicule
                         </h3>
@@ -1231,7 +1271,7 @@ export default function CreateAssignmentPage() {
                             )}
                           />
                     </div>
-                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
+                                              <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
                         <Info className="h-5 w-5 text-gray-500" />
                         Informations complémentaires
                       </h3>
@@ -1254,7 +1294,7 @@ export default function CreateAssignmentPage() {
                             <FormMessage />
                           </FormItem>
                         )} />
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <FormField control={form.control} name="claim_starts_at" render={({ field }) => (
                             <FormItem>
                               <FormLabel>Date de sinistre</FormLabel>
@@ -1279,7 +1319,7 @@ export default function CreateAssignmentPage() {
 
                     {/* Assureur et Réparateur + Date de réception */}
                   <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                                              <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <Building className="h-5 w-5 text-green-500" />
                           Assureur et Réparateur
                         </h3>
@@ -1383,8 +1423,8 @@ export default function CreateAssignmentPage() {
               {/* Section 2: Types et Documents */}
               {(step >= 2 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
+                  <CardHeader className="px-3 sm:px-6">
+                    <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
                       <FileType className="h-5 w-5 text-green-600" />
                       Types et Documents
                     </CardTitle>
@@ -1392,11 +1432,11 @@ export default function CreateAssignmentPage() {
                       Sélectionnez les types d'assignation et d'expertise, ainsi que les documents transmis
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <CardContent className="space-y-4 lg:space-y-6 px-3 sm:px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                       {/* Types */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                        <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                           <FileText className="h-5 w-5 text-purple-500" />
                           Types
                         </h3>
@@ -1558,11 +1598,11 @@ export default function CreateAssignmentPage() {
                     </div>
                     {/* Ajout d'une section bien visible pour les informations d'expertise et observations */}
                     <div className="mt-8 p-6 rounded-lg border bg-gray-50">
-                      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4">
+                                              <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4">
                         <Info className="h-5 w-5 text-gray-500" />
                         Informations d'expertise et observations
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         <FormField control={form.control} name="expertise_date" render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Date d'expertise</FormLabel>
@@ -1643,8 +1683,8 @@ export default function CreateAssignmentPage() {
               {/* Section 3: Experts */}
               {(step >= 3 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
+                  <CardHeader className="px-3 sm:px-6">
+                    <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
                       <User className="h-5 w-5 text-purple-600" />
                       Experts
                     </CardTitle>
@@ -1652,11 +1692,11 @@ export default function CreateAssignmentPage() {
                       Configurez les experts assignés au dossier
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4 lg:space-y-6 px-3 sm:px-6">
                 <div className="space-y-4">
                       {(form.watch('experts') || []).map((expert, idx) => (
                         <div key={idx} className="space-y-4 border-b pb-4 mb-4">
-                          <div className="flex gap-4 items-end">
+                          <div className="flex flex-col sm:flex-row gap-4 items-end">
                             <FormField
                               control={form.control}
                             name={`experts.${idx}.expert_id` as const}
@@ -1730,8 +1770,8 @@ export default function CreateAssignmentPage() {
               {/* Section 4: Récapitulatif */}
             {(step === 4 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
+                  <CardHeader className="px-3 sm:px-6">
+                    <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
                       <ClipboardCheck className="h-5 w-5 text-orange-600" />
                       Récapitulatif du dossier
                     </CardTitle>
@@ -1742,14 +1782,14 @@ export default function CreateAssignmentPage() {
                       }
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-8">
+                  <CardContent className="space-y-6 lg:space-y-8 px-3 sm:px-6">
                   {/* Informations générales */}
                   <div className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <FileText className="h-4 w-4 text-blue-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Informations générales</h3>
+                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations générales</h3>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-blue-500" />
@@ -1824,9 +1864,9 @@ export default function CreateAssignmentPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <FileType className="h-4 w-4 text-indigo-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Types et Documents</h3>
+                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Types et Documents</h3>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         <div className="space-y-4">
                           <div className="space-y-3">
                             <div className="flex items-center gap-2">
@@ -1902,7 +1942,7 @@ export default function CreateAssignmentPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <User className="h-4 w-4 text-pink-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Experts assignés</h3>
+                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Experts assignés</h3>
                         <Badge variant="secondary" className="ml-auto">
                           {(form.watch('experts') || []).length} expert(s)
                         </Badge>
@@ -1955,9 +1995,9 @@ export default function CreateAssignmentPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <Info className="h-4 w-4 text-gray-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Informations complémentaires</h3>
+                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations complémentaires</h3>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         <div className="space-y-3">
                           <div className="space-y-2">
                             <span className="font-medium text-gray-700">Numéro de police</span>
@@ -2083,7 +2123,7 @@ export default function CreateAssignmentPage() {
                     </div>
 
                     {/* Bouton de soumission en bas du récapitulatif */}
-                    <div className="flex justify-center pt-6">
+                    <div className="flex justify-center pt-6 mb-20">
                       <Button 
                         type="submit" 
                         onClick={form.handleSubmit(onSubmit)}
