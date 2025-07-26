@@ -13,7 +13,7 @@ class BrandService {
       ...(filters?.status && { status: filters.status }),
     })
 
-    const response = await axiosInstance.get<BrandApiResponse>(`${API_CONFIG.ENDPOINTS.BRANDS}?${params}`)
+    const response = await axiosInstance.get<BrandApiResponse>(`${API_CONFIG.ENDPOINTS.BRANDS}?${params}&per_page=1000000`)
     return response.data
   }
 
