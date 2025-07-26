@@ -1279,19 +1279,19 @@ export default function EditReportPage() {
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Marque</label>
-                                <p className="text-base font-semibold">{assignment.vehicle.brand.label}</p>
+                                <p className="text-base font-semibold">{assignment?.vehicle?.brand?.label}</p>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Modèle</label>
-                                <p className="text-base font-semibold">{assignment.vehicle.vehicle_model.label}</p>
+                                <p className="text-base font-semibold">{assignment?.vehicle?.vehicle_model?.label}</p>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Couleur</label>
-                                <p className="text-base font-semibold">{assignment.vehicle.color.label}</p>
+                                <p className="text-base font-semibold">{assignment?.vehicle?.color?.label}</p>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Carrosserie</label>
-                                <p className="text-base font-semibold">{assignment.vehicle.bodywork.label}</p>
+                                <p className="text-base font-semibold">{assignment?.vehicle?.bodywork?.label}</p>
                               </div>
                             </div>
                           </CardContent>

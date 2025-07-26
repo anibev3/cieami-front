@@ -47,7 +47,9 @@ import {
   AlertTriangle,
   Shield,
   Check,
-  Trash2
+  Trash2,
+  Menu,
+  Navigation
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
@@ -63,6 +65,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { toast } from 'sonner'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { AssignmentActions } from './components/assignment-actions'
@@ -609,6 +618,7 @@ export default function AssignmentDetailPage() {
   const [pdfViewer, setPdfViewer] = useState<{ open: boolean, url: string, title?: string }>({ open: false, url: '', title: '' })
   const [validateModalOpen, setValidateModalOpen] = useState(false)
   const [validating, setValidating] = useState(false)
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate } = useAssignmentsStore()
 
   // États pour les modales d'actions
@@ -2379,51 +2389,55 @@ export default function AssignmentDetailPage() {
       </Header>
 
       <Main>
-        <div className="w-full space-y-6">
+        <div className="w-full space-y-4 lg:space-y-6 px-2 sm:px-4 lg:px-6 pb-20 lg:pb-0">
           {/* En-tête */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <Button variant="outline" size="icon" onClick={() => navigate({ to: '/assignments' })}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight">Dossier {assignment.reference}</h1>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate">Dossier {assignment.reference}</h1>
                 <p className="text-xs text-muted-foreground">Détails complets du dossier d'expertise</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge className={getStatusColor(assignment.status.code)}>
                 {assignment.status.label}
               </Badge>
               
               {/* Actions basées sur le statut */}
-              {getAvailableActions(assignment).map((action) => {
-                const IconComponent = action.icon
-                return (
-                  <Button
-                    key={action.key}
-                    variant={action.variant}
-                    onClick={action.onClick}
-                    disabled={action.loading}
-                    className={action.className}
-                  >
-                    <IconComponent className="h-4 w-4 mr-2" />
-                    {action.loading ? 'Chargement...' : action.label}
-                  </Button>
-                )
-              })}
+              <div className="flex flex-wrap gap-2">
+                {getAvailableActions(assignment).map((action) => {
+                  const IconComponent = action.icon
+                  return (
+                    <Button
+                      key={action.key}
+                      variant={action.variant}
+                      onClick={action.onClick}
+                      disabled={action.loading}
+                      className={action.className}
+                      size="sm"
+                    >
+                      <IconComponent className="h-4 w-4 mr-2" />
+                      <span className="hidden sm:inline">{action.loading ? 'Chargement...' : action.label}</span>
+                      <span className="sm:hidden">{action.loading ? '...' : action.label.split(' ')[0]}</span>
+                    </Button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
           {/* Layout avec sidebar et contenu */}
-          <div className="flex gap-4">
-            {/* Sidebar */}
-            <div className="w-64 flex-shrink-0">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+            {/* Sidebar - Desktop */}
+            <div className="hidden lg:block w-64 flex-shrink-0">
               <Card className="shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xs">Navigation</CardTitle>
+                <CardHeader className="pb-3 px-3 sm:px-6">
+                  <CardTitle className="text-sm lg:text-xs">Navigation</CardTitle>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-0 px-3 sm:px-6">
                   <nav className="space-y-0.5">
                     {sidebarItems.map((item) => {
                       const Icon = item.icon
@@ -2455,16 +2469,16 @@ export default function AssignmentDetailPage() {
             <div className="flex-1">
               {/* Suivi & Statuts */}
               <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none">
-                <CardContent className="flex flex-wrap gap-6 items-center">
+                <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 items-center px-3 sm:px-6">
                   {/* Si l'un des statuts est "done", afficher seulement "Validé" */}
-                  {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
-                    <div className="flex flex-col items-center">
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Check className="h-5 w-5" />
-                          <span className="font-bold text-lg">Validé</span>
+                                      {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
+                      <div className="flex flex-col items-center">
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <span className="font-bold text-base sm:text-lg">Validé</span>
+                          </div>
                         </div>
-                      </div>
                       {/* {assignment.validated_at && (
                         <span className="text-xs text-green-700 font-medium mt-2">
                           {formatDate(assignment.validated_at)}
@@ -2476,11 +2490,13 @@ export default function AssignmentDetailPage() {
                       {/* Statut d'édition */}
                       {assignment.edition_status && (
                         <div className="flex flex-col items-center">
-                          <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1">
-                            Délai de redaction: {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
+                          <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 text-xs">
+                            <span className="hidden sm:inline">Délai de redaction: </span>
+                            <span className="sm:hidden">Rédaction: </span>
+                            {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
                           </Badge>
                           {assignment.edition_time_expire_at && (
-                            <span className="text-xs text-blue-700 font-medium">
+                            <span className="text-xs text-blue-700 font-medium text-center">
                               Expire le {formatDate(assignment.edition_time_expire_at)}
                             </span>
                           )}
@@ -2494,11 +2510,13 @@ export default function AssignmentDetailPage() {
                       {/* Statut de récupération */}
                       {assignment.recovery_status && (
                         <div className="flex flex-col items-center">
-                          <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300">
-                            Délai de recouvrement: {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
+                          <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="mb-1 bg-yellow-100 text-yellow-800 border-yellow-300 text-xs">
+                            <span className="hidden sm:inline">Délai de recouvrement: </span>
+                            <span className="sm:hidden">Recouvrement: </span>
+                            {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
                           </Badge>
                           {assignment.recovery_time_expire_at && (
-                            <span className="text-xs text-yellow-700 font-medium">
+                            <span className="text-xs text-yellow-700 font-medium text-center">
                               Expire le {formatDate(assignment.recovery_time_expire_at)}
                             </span>
                           )}
@@ -2517,7 +2535,7 @@ export default function AssignmentDetailPage() {
                       {/* <Badge variant="success" className="mb-1 bg-green-100 text-green-800 border-green-300">
                         Validé
                       </Badge> */}
-                      <span className="text-lg text-green-700 font-medium">
+                      <span className="text-base sm:text-lg text-green-700 font-medium">
                         {formatDate(assignment.validated_at)}
                       </span>
                     </div>
@@ -2525,7 +2543,7 @@ export default function AssignmentDetailPage() {
                   {/* Clôture, annulation, etc. */}
                   {assignment.closed_at && (
                     <div className="flex flex-col items-center">
-                      <Badge variant="secondary" className="mb-1 bg-gray-200 text-gray-800 border-gray-300">
+                      <Badge variant="secondary" className="mb-1 bg-gray-200 text-gray-800 border-gray-300 text-xs">
                         Clôturé
                       </Badge>
                       <span className="text-xs text-gray-700 font-medium">
@@ -2535,7 +2553,7 @@ export default function AssignmentDetailPage() {
                   )}
                   {assignment.cancelled_at && (
                     <div className="flex flex-col items-center">
-                      <Badge variant="destructive" className="mb-1 bg-red-100 text-red-800 border-red-300">
+                      <Badge variant="destructive" className="mb-1 bg-red-100 text-red-800 border-red-300 text-xs">
                         Annulé
                       </Badge>
                       <span className="text-xs text-red-700 font-medium">
@@ -2546,20 +2564,20 @@ export default function AssignmentDetailPage() {
                   {/* Signatures */}
                   <div className="flex flex-col items-center">
                     <span className="text-xs text-muted-foreground mb-1">Signatures</span>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {assignment.expert_signature && (
                         <a href={assignment.expert_signature} target="_blank" rel="noopener noreferrer" title="Signature expert">
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Expert</Badge>
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 text-xs">Expert</Badge>
                         </a>
                       )}
                       {assignment.repairer_signature && (
                         <a href={assignment.repairer_signature} target="_blank" rel="noopener noreferrer" title="Signature réparateur">
-                          <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">Réparateur</Badge>
+                          <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300 text-xs">Réparateur</Badge>
                         </a>
                       )}
                       {assignment.customer_signature && (
                         <a href={assignment.customer_signature} target="_blank" rel="noopener noreferrer" title="Signature client">
-                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Client</Badge>
+                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs">Client</Badge>
                         </a>
                       )}
                     </div>
@@ -2569,7 +2587,7 @@ export default function AssignmentDetailPage() {
                     <div className="flex flex-col items-center">
                       <span className="text-xs text-muted-foreground mb-1">QR Code</span>
                       <a href={assignment.qr_codes} target="_blank" rel="noopener noreferrer">
-                        <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300">Voir</Badge>
+                        <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300 text-xs">Voir</Badge>
                       </a>
                     </div>
                   )}
@@ -2593,7 +2611,7 @@ export default function AssignmentDetailPage() {
               </Card>
               
               <div className="shadow-none mt-4">
-                <ScrollArea className="h-[600px]">
+                <ScrollArea className="h-[500px] sm:h-[600px]">
                   {renderSection()}
                 </ScrollArea>
               </div>
@@ -2604,42 +2622,135 @@ export default function AssignmentDetailPage() {
 
       {/* Modal de validation */}
       <Dialog open={validateModalOpen} onOpenChange={setValidateModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Shield className="h-5 w-5 text-green-600" />
               Valider le dossier
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               Êtes-vous sûr de vouloir valider le dossier <strong>{assignment?.reference}</strong> ?
               <br />
               Cette action ne peut pas être annulée.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setValidateModalOpen(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setValidateModalOpen(false)} className="w-full sm:w-auto">
               Annuler
             </Button>
             <Button 
               onClick={handleValidateAssignment} 
               disabled={validating}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
             >
               {validating ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Validation...
+                  <span className="hidden sm:inline">Validation...</span>
+                  <span className="sm:hidden">Validation...</span>
                 </>
               ) : (
                 <>
                   <Shield className="h-4 w-4 mr-2" />
-                  Valider le dossier
+                  <span className="hidden sm:inline">Valider le dossier</span>
+                  <span className="sm:hidden">Valider</span>
                 </>
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bottom Navigation Bar - Mobile */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg">
+        <div className="px-2 py-2">
+          <div className="flex items-center justify-between">
+            {/* Section actuelle */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="p-2 rounded-lg bg-primary/10">
+                {(() => {
+                  const currentItem = sidebarItems.find(item => item.id === activeSection)
+                  const Icon = currentItem?.icon || FileText
+                  return <Icon className="h-4 w-4 text-primary" />
+                })()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {sidebarItems.find(item => item.id === activeSection)?.label || 'Navigation'}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {sidebarItems.find(item => item.id === activeSection)?.description || ''}
+                </p>
+              </div>
+            </div>
+            
+            {/* Bouton pour ouvrir le bottom sheet */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBottomSheetOpen(true)}
+              className="shrink-0"
+            >
+              <Menu className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Navigation</span>
+              <span className="sm:hidden">Menu</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Sheet - Mobile Navigation */}
+      <Sheet open={bottomSheetOpen} onOpenChange={setBottomSheetOpen}>
+        <SheetContent side="bottom" className="h-[60vh]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Navigation className="h-5 w-5" />
+              Navigation du dossier
+            </SheetTitle>
+            <SheetDescription>
+              Sélectionnez une section pour naviguer dans le dossier
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <nav className="space-y-2">
+              {sidebarItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveSection(item.id)
+                      setBottomSheetOpen(false)
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-4 text-left transition-colors rounded-lg hover:bg-muted/50",
+                      activeSection === item.id
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <div className={cn(
+                      "p-2 rounded-lg",
+                      activeSection === item.id
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    )}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">{item.label}</p>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    </div>
+                    {activeSection === item.id && (
+                      <Check className="h-5 w-5 text-primary" />
+                    )}
+                  </button>
+                )
+              })}
+            </nav>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* PDF Viewer */}
       <PdfViewer open={pdfViewer.open} onOpenChange={open => setPdfViewer(v => ({ ...v, open }))} url={pdfViewer.url} title={pdfViewer.title} />

@@ -1318,8 +1318,8 @@ export default function CreateAssignmentPage() {
                   </div>
 
                     {/* Assureur et Réparateur + Date de réception */}
-                  <div className="space-y-4">
-                                              <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
+                  <div className="space-y-4 mb-15">
+                    <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <Building className="h-5 w-5 text-green-500" />
                           Assureur et Réparateur
                         </h3>
@@ -1422,7 +1422,7 @@ export default function CreateAssignmentPage() {
 
               {/* Section 2: Types et Documents */}
               {(step >= 2 || isEditMode) && (
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none mb-20">
                   <CardHeader className="px-3 sm:px-6">
                     <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
                       <FileType className="h-5 w-5 text-green-600" />
