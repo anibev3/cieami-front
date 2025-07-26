@@ -79,7 +79,7 @@ export function BodyworkSelect({
                 {bodyworks.map((bodywork) => (
                   <CommandItem
                     key={bodywork.id}
-                    value={bodywork.label}
+                    value={bodywork?.label}
                     onSelect={() => {
                       onValueChange(bodywork.id.toString())
                       setOpen(false)
@@ -92,7 +92,7 @@ export function BodyworkSelect({
                           : 'mr-2 h-4 w-4 opacity-0'
                       }
                     />
-                    {bodywork.label}
+                    {bodywork?.label}
                   </CommandItem>
                 ))}
               </CommandGroup>

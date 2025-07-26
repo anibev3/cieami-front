@@ -56,7 +56,7 @@ export function BodyworkDeleteDialog({
           <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
           <AlertDialogDescription>
             Cette action ne peut pas être annulée. Cela supprimera définitivement
-            la carrosserie "{bodywork.label}" de la base de données.
+            la carrosserie "{bodywork?.label}" de la base de données.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

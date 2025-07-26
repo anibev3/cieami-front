@@ -35,7 +35,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const brand = row.getValue('brand') as Vehicle['brand']
       return (
         <div className="font-medium">
-          {brand.label}
+          {brand?.label || ''}
         </div>
       )
     },
@@ -47,7 +47,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const vehicleModel = row.getValue('vehicle_model') as Vehicle['vehicle_model']
       return (
         <div className="font-medium">
-          {vehicleModel.label}
+          {vehicleModel?.label || ''}
         </div>
       )
     },
@@ -59,7 +59,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const color = row.getValue('color') as Vehicle['color']
       return (
         <div className="font-medium">
-          {color.label}
+          {color?.label || ''}
         </div>
       )
     },
@@ -71,7 +71,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const bodywork = row.getValue('bodywork') as Vehicle['bodywork']
       return (
         <div className="font-medium">
-          {bodywork.label}
+          {bodywork?.label || ''}
         </div>
       )
     },

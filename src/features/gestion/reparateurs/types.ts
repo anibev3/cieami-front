@@ -54,5 +54,5 @@ export interface ReparateurApiResponse {
 export interface ReparateurFilters {
   search?: string
   page?: number
-  per_page?: number
+  // per_page?: number
 } 

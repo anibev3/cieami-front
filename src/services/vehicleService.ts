@@ -16,7 +16,7 @@ class VehicleService {
       ...(filters?.bodywork_id && { bodywork_id: filters.bodywork_id }),
     })
 
-    const response = await axiosInstance.get<VehicleApiResponse>(`${API_CONFIG.ENDPOINTS.VEHICLES}?${params}`)
+    const response = await axiosInstance.get<VehicleApiResponse>(`${API_CONFIG.ENDPOINTS.VEHICLES}?${params}&per_page=100000`)
     return response.data
   }
 

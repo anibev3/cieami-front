@@ -8,12 +8,21 @@ interface ClientsState {
   loading: boolean
   error: string | null
   selectedClient: Client | null
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    from: number
+    to: number
+  }
+  filters: ClientFilters
   fetchClients: (filters?: ClientFilters, token?: string) => Promise<void>
   fetchClient: (id: number, token?: string) => Promise<void>
   createClient: (client: Partial<Client>, token?: string) => Promise<void>
   updateClient: (id: number, client: Partial<Client>, token?: string) => Promise<void>
   deleteClient: (id: number, token?: string) => Promise<void>
   setSelectedClient: (client: Client | null) => void
+  setFilters: (filters: ClientFilters) => void
 }
 
 export const useClientsStore = create<ClientsState>((set, get) => ({
@@ -22,12 +31,34 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
   loading: false,
   error: null,
   selectedClient: null,
+  pagination: {
+    currentPage: 1,
+    lastPage: 1,
+    perPage: 15,
+    from: 1,
+    to: 1
+  },
+  filters: {
+    search: '',
+    page: 1
+  },
 
   fetchClients: async (filters, token) => {
     set({ loading: true, error: null })
     try {
       const res = await api.getClients(filters, token)
-      set({ clients: res.data, total: res.meta.total, loading: false })
+      set({ 
+        clients: res.data, 
+        total: res.meta.total, 
+        pagination: {
+          currentPage: res.meta.current_page,
+          lastPage: res.meta.last_page,
+          perPage: res.meta.per_page,
+          from: res.meta.from,
+          to: res.meta.to
+        },
+        loading: false 
+      })
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement'
       set({ error: errorMessage, loading: false })
@@ -79,4 +110,5 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
   },
 
   setSelectedClient: (client) => set({ selectedClient: client }),
+  setFilters: (filters) => set({ filters }),
 })) 

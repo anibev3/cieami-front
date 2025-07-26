@@ -54,5 +54,5 @@ export interface AssureurApiResponse {
 export interface AssureurFilters {
   search?: string
   page?: number
-  per_page?: number
+  // per_page?: number
 } 

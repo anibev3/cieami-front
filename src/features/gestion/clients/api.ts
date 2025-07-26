@@ -4,7 +4,7 @@ import { Client, ClientApiResponse, ClientFilters } from './types'
 const API_URL = 'https://back.roomcodetraining.com/api/v1/clients'
 
 export const getClients = async (filters?: ClientFilters, token?: string): Promise<ClientApiResponse> => {
-  const { data } = await axiosInstance.get(API_URL + '?per_page=100000', {
+  const { data } = await axiosInstance.get(API_URL, {
     params: filters,
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })

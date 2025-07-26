@@ -8,16 +8,34 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ClientsDataTable } from './data-table'
 import { ClientsDialogs } from './clients-dialogs'
 import { useClientsStore } from './store'
+import { useDebounce } from '@/hooks/use-debounce'
 import { Client } from './types'
 
 export default function ClientsPage() {
   const navigate = useNavigate()
-  const { fetchClients } = useClientsStore()
+  const { 
+    fetchClients, 
+    pagination, 
+    setFilters 
+  } = useClientsStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
+  // Effet pour déclencher la recherche quand la requête change
+  useEffect(() => {
+    const newFilters = {
+      search: debouncedSearchQuery,
+      page: 1 // Reset à la première page lors d'une nouvelle recherche
+    }
+    setFilters(newFilters)
+    fetchClients(newFilters)
+  }, [debouncedSearchQuery])
+
+  // Effet initial pour charger les données
   useEffect(() => {
     fetchClients()
   }, [])
@@ -41,6 +59,21 @@ export default function ClientsPage() {
     setIsDeleteOpen(true)
   }
 
+  // Handler pour la recherche
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+  }
+
+  // Handler pour le changement de page
+  const handlePageChange = (page: number) => {
+    const newFilters = {
+      search: searchQuery,
+      page
+    }
+    setFilters(newFilters)
+    fetchClients(newFilters)
+  }
+
   return (
     <>
       <Header fixed>
@@ -62,9 +95,13 @@ export default function ClientsPage() {
           <ClientsDataTable
             data={useClientsStore.getState().clients}
             loading={useClientsStore.getState().loading}
+            pagination={pagination}
+            searchQuery={searchQuery}
             onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onSearchChange={handleSearchChange}
+            onPageChange={handlePageChange}
           />
         </div>
       </Main>

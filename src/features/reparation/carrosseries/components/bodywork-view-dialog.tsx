@@ -55,17 +55,17 @@ export function BodyworkViewDialog({
 
           <div>
             <label className="text-sm font-medium text-muted-foreground">Code</label>
-            <p className="text-sm font-medium">{bodywork.code}</p>
+            <p className="text-sm font-medium">{bodywork?.code}</p>
           </div>
 
           <div>
             <label className="text-sm font-medium text-muted-foreground">Libellé</label>
-            <p className="text-sm font-medium">{bodywork.label}</p>
+            <p className="text-sm font-medium">{bodywork?.label}</p>
           </div>
 
           <div>
             <label className="text-sm font-medium text-muted-foreground">Description</label>
-            <p className="text-sm">{bodywork.description}</p>
+            <p className="text-sm">{bodywork?.description}</p>
           </div>
 
           <Separator />

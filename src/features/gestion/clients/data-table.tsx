@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, flexRender, SortingState, ColumnFiltersState } from '@tanstack/react-table'
+import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender, SortingState } from '@tanstack/react-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,15 +10,33 @@ import { Client } from './types'
 interface ClientsDataTableProps {
   data: Client[]
   loading: boolean
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    from: number
+    to: number
+  }
+  searchQuery: string
   onView: (client: Client) => void
   onEdit: (client: Client) => void
   onDelete: (client: Client) => void
+  onSearchChange: (value: string) => void
+  onPageChange: (page: number) => void
 }
 
-export function ClientsDataTable({ data, loading, onView, onEdit, onDelete }: ClientsDataTableProps) {
+export function ClientsDataTable({ 
+  data, 
+  loading, 
+  pagination, 
+  searchQuery, 
+  onView, 
+  onEdit, 
+  onDelete, 
+  onSearchChange, 
+  onPageChange 
+}: ClientsDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
   const [rowSelection, setRowSelection] = useState({})
 
   const columns = createColumns({ onView, onEdit, onDelete })
@@ -27,17 +45,11 @@ export function ClientsDataTable({ data, loading, onView, onEdit, onDelete }: Cl
     data,
     columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters,
-      globalFilter,
       rowSelection,
     },
   })
@@ -50,8 +62,8 @@ export function ClientsDataTable({ data, loading, onView, onEdit, onDelete }: Cl
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Rechercher des clients..."
-              value={globalFilter ?? ''}
-              onChange={(event) => setGlobalFilter(event.target.value)}
+              value={searchQuery}
+              onChange={(event) => onSearchChange(event.target.value)}
               className="h-8 w-[150px] lg:w-[250px]"
             />
           </div>
@@ -98,8 +110,8 @@ export function ClientsDataTable({ data, loading, onView, onEdit, onDelete }: Cl
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher des clients..."
-            value={globalFilter ?? ''}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            value={searchQuery}
+            onChange={(event) => onSearchChange(event.target.value)}
             className="h-8 w-[150px] lg:w-[250px]"
           />
         </div>
@@ -150,23 +162,25 @@ export function ClientsDataTable({ data, loading, onView, onEdit, onDelete }: Cl
 
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} sur{" "}
-          {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s).
+          Affichage de {pagination.from} à {pagination.to} sur {pagination.perPage * pagination.lastPage} clients
         </div>
         <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() => onPageChange(pagination.currentPage - 1)}
+            disabled={pagination.currentPage <= 1}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {pagination.currentPage} sur {pagination.lastPage}
+          </span>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => onPageChange(pagination.currentPage + 1)}
+            disabled={pagination.currentPage >= pagination.lastPage}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

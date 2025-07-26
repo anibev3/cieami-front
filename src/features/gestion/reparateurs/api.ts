@@ -4,7 +4,7 @@ import { Reparateur, ReparateurApiResponse, ReparateurFilters } from './types'
 const API_URL = 'https://back.roomcodetraining.com/api/v1/repairers'
 
 export const getReparateurs = async (filters?: ReparateurFilters, token?: string): Promise<ReparateurApiResponse> => {
-  const { data } = await axiosInstance.get(API_URL, {
+  const { data } = await axiosInstance.get(API_URL + '?per_page=100000', {
     params: filters,
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })
