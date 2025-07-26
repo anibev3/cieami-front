@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand'
 import { assignmentService } from '@/services/assignmentService'
 import { receiptService } from '@/services/receiptService'
@@ -32,8 +33,6 @@ interface AssignmentsState {
 interface AssignmentsActions {
   // Actions principales
   fetchAssignments: (page?: number, filters?: AssignmentFilters) => Promise<void>
-  fetchAssignmentsRecoveryExpired: (page?: string, filters?: AssignmentFilters) => Promise<void>
-  fetchAssignmentsEditionExpired: (page?: string, filters?: AssignmentFilters) => Promise<void>
   fetchAssignment: (id: number) => Promise<void>
   createAssignment: (assignmentData: AssignmentCreate) => Promise<void>
   updateAssignment: (id: number, assignmentData: AssignmentUpdate) => Promise<void>
@@ -52,8 +51,6 @@ interface AssignmentsActions {
   setSearchQuery: (query: string) => void
   setActiveTab: (tab: string) => void
   getFilteredAssignments: () => Assignment[]
-  getFilteredAssignmentsRecoveryExpired: () => Assignment[]
-  getFilteredAssignmentsEditionExpired: () => Assignment[]
   getStatusCounts: () => Record<string, number>
   
   // Actions pour les quittances
@@ -150,6 +147,14 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       
       const response = await assignmentService.getAssignments(page, currentFilters)
       
+      console.log('API Response:', response)
+      console.log('Pagination data:', {
+        currentPage: response.meta.current_page,
+        totalPages: response.meta.last_page,
+        totalItems: response.meta.total,
+        perPage: response.meta.per_page,
+      })
+      
       set({
         assignments: response.data,
         pagination: {
@@ -160,34 +165,6 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
         },
         loading: false,
       })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
-      set({ loading: false, error: errorMessage })
-            toast.error(errorMessage, {
-        duration: 1000,
-      })
-    }
-  },
-
-  fetchAssignmentsRecoveryExpired: async (page?: string, filters?: AssignmentFilters) => {
-
-    try {
-      const response = await assignmentService.getAssignmentsRecoveryExpired(page, filters)
-      set({ assignmentsRecoveryExpired: response.data, loading: false })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
-      set({ loading: false, error: errorMessage })
-            toast.error(errorMessage, {
-        duration: 1000,
-      })
-    }
-  },
-
-  fetchAssignmentsEditionExpired: async (page?: string, filters?: AssignmentFilters) => {
-
-    try {
-      const response = await assignmentService.getAssignmentsEditionExpired(page, filters)
-      set({ assignmentsEditionExpired: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assignations'
       set({ loading: false, error: errorMessage })
@@ -303,14 +280,22 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   // Actions de pagination
   setCurrentPage: (page) => {
     set({ pagination: { ...get().pagination, currentPage: page } })
-    get().fetchAssignments(page)
+    const currentFilters = {
+      search: get().searchQuery,
+      status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+    }
+    get().fetchAssignments(page, currentFilters)
   },
 
   goToNextPage: () => {
     const nextPage = get().pagination.currentPage + 1
     if (nextPage <= get().pagination.totalPages) {
       set({ pagination: { ...get().pagination, currentPage: nextPage } })
-      get().fetchAssignments(nextPage)
+      const currentFilters = {
+        search: get().searchQuery,
+        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+      }
+      get().fetchAssignments(nextPage, currentFilters)
     }
   },
 
@@ -318,26 +303,35 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     const prevPage = get().pagination.currentPage - 1
     if (prevPage >= 1) {
       set({ pagination: { ...get().pagination, currentPage: prevPage } })
-      get().fetchAssignments(prevPage)
+      const currentFilters = {
+        search: get().searchQuery,
+        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+      }
+      get().fetchAssignments(prevPage, currentFilters)
     }
   },
 
   goToPage: (page) => {
     if (page >= 1 && page <= get().pagination.totalPages) {
       set({ pagination: { ...get().pagination, currentPage: page } })
-      get().fetchAssignments(page)
+      const currentFilters = {
+        search: get().searchQuery,
+        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+      }
+      get().fetchAssignments(page, currentFilters)
     }
   },
 
   // Actions de filtrage
   setSearchQuery: (query) => {
     set({ searchQuery: query, pagination: { ...get().pagination, currentPage: 1 } })
-    get().fetchAssignments(1)
+    get().fetchAssignments(1, { search: query })
   },
 
   setActiveTab: (tab) => {
     set({ activeTab: tab, pagination: { ...get().pagination, currentPage: 1 } })
-    get().fetchAssignments(1)
+    const filters = tab !== 'all' ? { status_code: tab } : {}
+    get().fetchAssignments(1, filters)
   },
 
   getFilteredAssignments: () => {
@@ -345,21 +339,12 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     return assignments
   },
 
-  getFilteredAssignmentsRecoveryExpired: () => {
-    const { assignmentsRecoveryExpired } = get()
-    return assignmentsRecoveryExpired
-  },
-
-  getFilteredAssignmentsEditionExpired: () => {
-
-    const { assignmentsEditionExpired } = get()
-    return assignmentsEditionExpired
-  },
-
   getStatusCounts: () => {
     const { assignments } = get()
     const counts: Record<string, number> = { all: assignments.length }
 
+    // Pour l'instant, on compte localement
+    // TODO: Implémenter un endpoint API pour récupérer les compteurs par statut
     statusGroups.forEach((group) => {
       if (group.items) {
         group.items.forEach((item) => {

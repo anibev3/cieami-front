@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useDebounce } from '@/hooks/use-debounce'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -49,6 +50,9 @@ export default function AssignmentsPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['all'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
+  // Debounce pour la recherche
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
+
   // Initialiser le statut depuis l'URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -68,13 +72,24 @@ export default function AssignmentsPage() {
     }
   }, [setActiveTab])
 
-  // Charger les assignations au montage
+  // Charger les assignations au montage et quand la recherche change
   useEffect(() => {
     if (!isInitialized) {
       fetchAssignments(1)
       setIsInitialized(true)
     }
   }, [fetchAssignments, isInitialized])
+
+  // Effectuer la recherche quand le debouncedSearchQuery change
+  useEffect(() => {
+    if (isInitialized) {
+      const filters = {
+        search: debouncedSearchQuery,
+        status_code: activeTab !== 'all' ? activeTab : undefined,
+      }
+      fetchAssignments(1, filters)
+    }
+  }, [debouncedSearchQuery, activeTab, isInitialized, fetchAssignments])
 
   // Filtrer les assignations
   const filteredAssignments = getFilteredAssignments()
@@ -89,9 +104,9 @@ export default function AssignmentsPage() {
     }
   }, [error, clearError])
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
-  }
+  }, [setSearchQuery])
 
   const handleStatusChange = (value: string) => {
     if (value === 'all') {
@@ -348,15 +363,20 @@ export default function AssignmentsPage() {
                 </div>
 
                 {/* Pagination */}
-                <Pagination
-                  currentPage={pagination.currentPage}
-                  totalPages={pagination.totalPages}
-                  totalItems={pagination.totalItems}
-                  perPage={pagination.perPage}
-                  onPageChange={goToPage}
-                  onNextPage={goToNextPage}
-                  onPreviousPage={goToPreviousPage}
-                />
+                <div className="p-4 border-t">
+                  {/* <div className="text-sm text-gray-600 mb-2">
+                    Debug: currentPage={pagination.currentPage}, totalPages={pagination.totalPages}, totalItems={pagination.totalItems}
+                  </div> */}
+                  <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    totalItems={pagination.totalItems}
+                    perPage={pagination.perPage}
+                    onPageChange={goToPage}
+                    onNextPage={goToNextPage}
+                    onPreviousPage={goToPreviousPage}
+                  />
+                </div>
               </div>
             )}
           </div>

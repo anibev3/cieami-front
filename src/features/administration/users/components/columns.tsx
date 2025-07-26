@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { MoreHorizontal, Eye, Edit, Trash2, User as UserIcon, Calendar, Mail, Phone, Building, Shield } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Trash2, User as UserIcon, Mail, Shield } from 'lucide-react'
 
 // Props pour les actions
 interface UserActionsProps {
@@ -136,7 +136,7 @@ export const createColumns = ({ onView, onEdit, onDelete, onEnable, onDisable, o
       const telephone = row.getValue('telephone') as string
       return (
         <div className="flex items-center space-x-2">
-          <Phone className="h-4 w-4 text-muted-foreground" />
+          {/* <Phone className="h-4 w-4 text-muted-foreground" /> */}
           <span className="text-sm">{telephone}</span>
         </div>
       )
@@ -149,7 +149,7 @@ export const createColumns = ({ onView, onEdit, onDelete, onEnable, onDisable, o
       const entity = row.original.entity
       return (
         <div className="flex items-center space-x-2">
-          <Building className="h-4 w-4 text-muted-foreground" />
+          {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
           <Badge variant="outline">
             {entity?.name || ''}
           </Badge>
@@ -164,7 +164,7 @@ export const createColumns = ({ onView, onEdit, onDelete, onEnable, onDisable, o
       const role = row.original.role
       return (
         <div className="flex items-center space-x-2">
-          <Shield className="h-4 w-4 text-muted-foreground" />
+          {/* <Shield className="h-4 w-4 text-muted-foreground" /> */}
           <Badge variant="secondary">
             {role?.label || ''}
           </Badge>
@@ -185,19 +185,19 @@ export const createColumns = ({ onView, onEdit, onDelete, onEnable, onDisable, o
       )
     },
   },
-  {
-    accessorKey: 'created_at',
-    header: 'Créé le',
-    cell: ({ row }) => {
-      const date = new Date(row.getValue('created_at'))
-      return (
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <span>{date.toLocaleDateString('fr-FR')}</span>
-        </div>
-      )
-    },
-  },
+  // {
+  //   accessorKey: 'created_at',
+  //   header: 'Créé le',
+  //   cell: ({ row }) => {
+  //     const date = new Date(row.getValue('created_at'))
+  //     return (
+  //       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+  //         {/* <Calendar className="h-4 w-4" /> */}
+  //         <span>{date.toLocaleDateString('fr-FR')}</span>
+  //       </div>
+  //     )
+  //   },
+  // },
   {
     id: 'actions',
     cell: ({ row }) => {

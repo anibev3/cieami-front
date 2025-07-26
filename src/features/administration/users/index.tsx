@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { DataTable } from './components/data-table'
 import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { useUsersStore } from '@/stores/usersStore'
 import { User } from '@/types/administration'
+import { useDebounce } from '@/hooks/use-debounce'
 
 
 
@@ -14,17 +15,43 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 
 export default function UsersPage() {
-  const { fetchUsers, enableUser, disableUser, resetUser } = useUsersStore()
+  const { fetchUsers, enableUser, disableUser, resetUser, pagination, filters, setFilters } = useUsersStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isViewOpen, setIsViewOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
-  // Charger les utilisateurs une seule fois au montage du composant
+  // Debounce pour la recherche
+  const debouncedSearch = useDebounce(filters.search, 500)
+
+  // Charger les utilisateurs au montage et quand les filtres changent
   useEffect(() => {
-    fetchUsers()
-  }, []) // Dépendance vide pour éviter les boucles
+    fetchUsers({
+      search: debouncedSearch,
+      entity: filters.entity,
+      role: filters.role,
+      page: pagination.currentPage,
+      per_page: pagination.perPage
+    })
+  }, [debouncedSearch, filters.entity, filters.role, pagination.currentPage, pagination.perPage])
+
+  // Fonctions de gestion de la pagination et recherche
+  const handleSearch = useCallback((search: string) => {
+    setFilters({ search })
+  }, [setFilters])
+
+  const handlePageChange = useCallback((page: number) => {
+    setFilters({ page })
+  }, [setFilters])
+
+  const handleEntityFilter = useCallback((entity: string) => {
+    setFilters({ entity })
+  }, [setFilters])
+
+  const handleRoleFilter = useCallback((role: string) => {
+    setFilters({ role })
+  }, [setFilters])
 
   // Callbacks pour les actions
   const handleCreate = () => {
@@ -99,6 +126,12 @@ export default function UsersPage() {
             onEnable={handleEnable}
             onDisable={handleDisable}
             onReset={handleReset}
+            onSearch={handleSearch}
+            onPageChange={handlePageChange}
+            onEntityFilter={handleEntityFilter}
+            onRoleFilter={handleRoleFilter}
+            pagination={pagination}
+            filters={filters}
           />
         </div>
       </Main>

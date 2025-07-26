@@ -42,7 +42,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { ReceiptModal } from '@/components/receipt-modal'
+// import { ReceiptModal } from '@/components/receipt-modal'
 import { 
   useEditAssignment, 
   useEditData, 

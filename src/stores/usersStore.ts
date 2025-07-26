@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { User, CreateUserData, UpdateUserData } from '@/types/administration'
+import { User, CreateUserData, UpdateUserData, UserFilters } from '@/types/administration'
 import { userService } from '@/services/userService'
 import { toast } from 'sonner'
 
@@ -10,8 +10,23 @@ interface UsersState {
   error: string | null
   selectedUser: User | null
   
+  // Pagination et filtres
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    total: number
+    from: number
+    to: number
+  }
+  filters: {
+    search: string
+    entity: string
+    role: string
+  }
+  
   // Actions
-  fetchUsers: () => Promise<void>
+  fetchUsers: (filters?: UserFilters) => Promise<void>
   createUser: (data: CreateUserData) => Promise<void>
   updateUser: (id: number, data: UpdateUserData) => Promise<void>
   deleteUser: (id: number) => Promise<void>
@@ -19,6 +34,7 @@ interface UsersState {
   disableUser: (id: number) => Promise<void>
   resetUser: (id: number) => Promise<void>
   setSelectedUser: (user: User | null) => void
+  setFilters: (filters: Partial<UserFilters>) => void
   clearError: () => void
 }
 
@@ -28,17 +44,43 @@ export const useUsersStore = create<UsersState>((set) => ({
   loading: false,
   error: null,
   selectedUser: null,
+  
+  // Pagination et filtres
+  pagination: {
+    currentPage: 1,
+    lastPage: 1,
+    perPage: 20,
+    total: 0,
+    from: 0,
+    to: 0
+  },
+  filters: {
+    search: '',
+    entity: '',
+    role: ''
+  },
 
   // Actions
-  fetchUsers: async () => {
+  fetchUsers: async (filters?: UserFilters) => {
     try {
       set({ loading: true, error: null })
-      const response = await userService.getAll()
-      set({ users: response.data, loading: false })
+      const response = await userService.getAll(filters)
+      set({ 
+        users: response.data, 
+        pagination: {
+          currentPage: response.meta.current_page,
+          lastPage: response.meta.last_page,
+          perPage: response.meta.per_page,
+          total: response.meta.total,
+          from: response.meta.from,
+          to: response.meta.to
+        },
+        loading: false 
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des utilisateurs'
       set({ error: errorMessage, loading: false })
-            toast.error(errorMessage, {
+      toast.error(errorMessage, {
         duration: 1000,
       })
     }
@@ -198,6 +240,31 @@ export const useUsersStore = create<UsersState>((set) => ({
 
   setSelectedUser: (user: User | null) => {
     set({ selectedUser: user })
+  },
+
+  setFilters: (filters: Partial<UserFilters>) => {
+    set(state => {
+      const newFilters = { ...state.filters, ...filters }
+      
+      // Si on change de page, on ne change que la page
+      if (filters.page) {
+        return {
+          pagination: { ...state.pagination, currentPage: filters.page }
+        }
+      }
+      
+      // Si on change les filtres de recherche, on revient à la page 1
+      if (filters.search !== undefined || filters.entity !== undefined || filters.role !== undefined) {
+        return {
+          filters: newFilters,
+          pagination: { ...state.pagination, currentPage: 1 }
+        }
+      }
+      
+      return {
+        filters: newFilters
+      }
+    })
   },
 
   clearError: () => {

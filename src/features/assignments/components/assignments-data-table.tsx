@@ -7,7 +7,6 @@ import {
   useReactTable,
   getSortedRowModel,
   SortingState,
-  getFilteredRowModel,
   ColumnFiltersState,
 } from '@tanstack/react-table'
 import {
@@ -31,22 +30,10 @@ interface AssignmentsDataTableProps {
   data: Assignment[]
 }
 
-// Type local pour les quittances du modal
-interface ModalReceipt {
-  id?: number
-  amount: number
-  receipt_type_id: number
-  receipt_type_label?: string
-  comment?: string
-  date?: string
-  isNew?: boolean
-}
-
 export function AssignmentsDataTable({ data }: AssignmentsDataTableProps) {
   const navigate = useNavigate()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
   
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
@@ -85,7 +72,7 @@ export function AssignmentsDataTable({ data }: AssignmentsDataTableProps) {
     setIsReceiptModalOpen(true)
   }
 
-  const handleReceiptSave = (_receipts: ModalReceipt[]) => {
+  const handleReceiptSave = (_receipts: any[]) => {
     toast.success('Quittances sauvegardées avec succès')
     setIsReceiptModalOpen(false)
   }
@@ -106,14 +93,11 @@ export function AssignmentsDataTable({ data }: AssignmentsDataTableProps) {
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
-      globalFilter,
     },
   })
 

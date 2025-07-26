@@ -66,8 +66,20 @@ export function Pagination({
 
   const pageNumbers = getPageNumbers()
 
+  // Temporairement afficher même avec une seule page pour debug
   if (totalPages <= 1) {
-    return null
+    return (
+      <div className="flex items-center justify-between px-2 py-4">
+        <div className="flex-1 text-sm text-gray-700 dark:text-gray-300">
+          Affichage de <span className="font-medium">{startItem}</span> à{' '}
+          <span className="font-medium">{endItem}</span> sur{' '}
+          <span className="font-medium">{totalItems}</span> résultats
+        </div>
+        <div className="text-sm text-gray-500">
+          (Une seule page disponible)
+        </div>
+      </div>
+    )
   }
 
   return (
