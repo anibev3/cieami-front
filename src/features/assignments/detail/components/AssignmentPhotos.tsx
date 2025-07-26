@@ -347,7 +347,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
           
           {/* Type de photo */}
           <Badge variant="outline" className="bg-white/95 text-gray-700 shadow-lg backdrop-blur-sm">
-            {photo.photo_type.label}
+            {photo?.photo_type?.label}
           </Badge>
         </div>
         

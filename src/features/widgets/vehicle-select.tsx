@@ -46,14 +46,17 @@ export function VehicleSelect({
 
   const renderVehicleInfo = (vehicle: Vehicle) => {
     return (
-      <div className="flex flex-col items-start text-left">
-        <div className="flex items-center justify-between w-full">
-          <span className="font-medium">{vehicle.license_plate}</span>
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
+      <div className="flex items-center justify-between">
+        
+        <span className="font-medium">{vehicle.license_plate} - {vehicle.brand?.label}
+          {/* {vehicle.vehicle_model?.label} */}
+          
+          </span>
+        
+        {/* <div className="text-xs text-muted-foreground mt-1">
           {vehicle.brand?.label} {vehicle.vehicle_model?.label}
-        </div>
-        {vehicle.color && (
+        </div> */}
+        {/* {vehicle.color && (
           <span className="text-xs text-muted-foreground">
             Couleur: {vehicle.color.label}
           </span>
@@ -62,7 +65,7 @@ export function VehicleSelect({
           <span className="text-xs text-muted-foreground">
             Carrosserie: {vehicle.bodywork.label}
           </span>
-        )}
+        )} */}
       </div>
     )
   }
@@ -90,7 +93,7 @@ export function VehicleSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[350px] p-0">
+      <PopoverContent className="p-0">
         <Command>
           <CommandInput placeholder="Rechercher un véhicule..." />
           <CommandList>
@@ -111,16 +114,16 @@ export function VehicleSelect({
                       onValueChange(vehicle.id.toString())
                       setOpen(false)
                     }}
-                    className="flex flex-col items-start p-3"
+                    className="flex items-start p-3"
                   >
-                    <div className="flex items-center justify-between w-full">
+                    {/* <div className="flex items-center justify-between w-full"> */}
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
                           value === vehicle.id.toString() ? "opacity-100" : "opacity-0"
                         )}
                       />
-                    </div>
+                    {/* </div> */}
                     {renderVehicleInfo(vehicle)}
                   </CommandItem>
                 ))}

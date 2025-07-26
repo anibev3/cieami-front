@@ -42,12 +42,13 @@ import {
   StarOff,
   CalendarIcon,
   Car,
-  AlertCircle
+  AlertCircle,
+  Receipt
 } from 'lucide-react'
 import { toast } from 'sonner'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
-import { ReceiptModal } from '@/components/receipt-modal'
+import { ReceiptModal } from './components/receipt-modal'
 import { 
   useEditAssignment, 
   useEditData, 
@@ -620,6 +621,16 @@ export default function ReportEditPage() {
   const handleReceiptClose = useCallback(() => {
     navigate({ to: '/assignments' })
   }, [navigate])
+
+
+  // const handleReceiptclick = useCallback((receipts: any[]) => {
+  //   toast.success(`${receipts.length} quittance(s) ajoutée(s) avec succès`)
+  //   setShowReceiptModal(false)
+  // }, [])
+
+  // const handleReceiptClose_ = useCallback(() => {
+  //   setShowReceiptModal(false)
+  // }, [])
 
   // Gestion de la création de point de choc
   const handleCreateShockPoint = useCallback(() => {
@@ -2008,28 +2019,38 @@ export default function ReportEditPage() {
           />
           <Card className="mt-10">
             <CardContent>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 mb-4">
-              <Button 
-                disabled={!hasUnsavedChanges || saving || !claimNatureId || !expertRemark.trim()} 
-                onClick={() => setShowVerificationModal(true)}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Rédaction en cours...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Rédiger le rapport
-                  </>
-                )}
-              </Button>
+              <div className="flex justify-end gap-3">
+                {/* <Button 
+                  onClick={() => setShowReceiptModal(true)}
+                  variant="outline"
+                  className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                >
+                  <Receipt className="mr-2 h-4 w-4" />
+                  Gérer les quittances
+                </Button> */}
+                <Button 
+                  disabled={!hasUnsavedChanges || saving
+                    // || !claimNatureId || !expertRemark.trim()
+                  } 
+                  onClick={() => setShowVerificationModal(true)}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Rédaction en cours...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Rédiger le rapport
+                    </>
+                  )}
+                </Button>
               </div>
               
               {/* Message d'aide pour les champs requis */}
-              {!isEvaluation && (
+              {/* {!isEvaluation && (
                 <>
                 {(!claimNatureId || !expertRemark.trim()) && (
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -2045,7 +2066,7 @@ export default function ReportEditPage() {
                   </div>
                   )}
                 </>
-              )}
+              )} */}
               
             </CardContent>
           </Card>
@@ -2278,7 +2299,6 @@ export default function ReportEditPage() {
           <ReceiptModal
             isOpen={showReceiptModal}
             assignmentId={assignmentId}
-            assignmentAmount={assignmentTotalAmount}
             onSave={handleReceiptSave}
             onClose={handleReceiptClose}
           />

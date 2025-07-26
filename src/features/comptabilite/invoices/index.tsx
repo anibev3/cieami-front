@@ -174,6 +174,8 @@ export default function InvoicesPage() {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
     }
@@ -338,7 +340,7 @@ export default function InvoicesPage() {
                       className="h-auto p-0 font-semibold hover:bg-transparent"
                     >
                       Référence
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
                     </Button>
                   </TableHead>
                 )}
@@ -350,7 +352,7 @@ export default function InvoicesPage() {
                       className="h-auto p-0 font-semibold hover:bg-transparent"
                     >
                       Dossier
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
                     </Button>
                   </TableHead>
                 )}
@@ -362,7 +364,7 @@ export default function InvoicesPage() {
                       className="h-auto p-0 font-semibold hover:bg-transparent"
                     >
                       Date facture
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
                     </Button>
                   </TableHead>
                 )}
@@ -374,7 +376,7 @@ export default function InvoicesPage() {
                       className="h-auto p-0 font-semibold hover:bg-transparent"
                     >
                       Montant
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
                     </Button>
                   </TableHead>
                 )}
@@ -386,7 +388,7 @@ export default function InvoicesPage() {
                       className="h-auto p-0 font-semibold hover:bg-transparent"
                     >
                       Statut
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
                     </Button>
                   </TableHead>
                 )}
@@ -398,7 +400,7 @@ export default function InvoicesPage() {
                       className="h-auto p-0 font-semibold hover:bg-transparent"
                     >
                       Créé par
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
                     </Button>
                   </TableHead>
                 )}
@@ -410,7 +412,7 @@ export default function InvoicesPage() {
                       className="h-auto p-0 font-semibold hover:bg-transparent"
                     >
                       Date expertise
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
                     </Button>
                   </TableHead>
                 )}
@@ -463,10 +465,7 @@ export default function InvoicesPage() {
                         <div className="flex items-center gap-2">
                           {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
                           <span className="font-semibold text-green-600">
-                            {invoice.amount 
-                              ? formatCurrency(Number(invoice.amount))
-                              : formatCurrency(Number(invoice.assignment?.total_amount ?? 0))
-                            }
+                            {formatCurrency(Number(invoice.assignment?.receipt_amount || 0))}
                           </span>
                         </div>
                       </TableCell>

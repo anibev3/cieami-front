@@ -84,7 +84,7 @@ function DelayDetailsModal({
   }
 
   const getProgressColor = () => {
-    if (label === "Édition") {
+    if (label === "Rédaction") {
       // Bloquer le pourcentage à 100% pour l'affichage
       const displayPercent = percent !== null ? Math.min(percent, 100) : 0
       if (displayPercent >= 0 && displayPercent <= 50) return 'bg-green-500'
@@ -236,7 +236,7 @@ function CountdownBadge({ label, expireAt, status, percent }: {
 
   // Fonction pour déterminer la couleur selon le pourcentage (uniquement pour "Édition")
   const getColorByPercentage = (label: string, percent: number | null) => {
-    if (label !== "Édition" || percent === null) return null
+    if (label !== "Rédaction" || percent === null) return null
     
     // Bloquer le pourcentage à 100% pour l'affichage
     const displayPercent = Math.min(percent, 100)
@@ -627,26 +627,26 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       )
     },
   },
-  {
-    accessorKey: 'expertise_date',
-    header: 'Date expertise',
-    cell: ({ row }) => {
-      const expertiseDate = row.getValue('expertise_date') as string
-      const assignment = row.original
-      const isEditionDone = assignment.edition_status === 'done'
-      const isRecoveryDone = assignment.recovery_status === 'done'
-      const isDone = isEditionDone || isRecoveryDone
+  // {
+  //   accessorKey: 'expertise_date',
+  //   header: 'Date expertise',
+  //   cell: ({ row }) => {
+  //     const expertiseDate = row.getValue('expertise_date') as string
+  //     const assignment = row.original
+  //     const isEditionDone = assignment.edition_status === 'done'
+  //     const isRecoveryDone = assignment.recovery_status === 'done'
+  //     const isDone = isEditionDone || isRecoveryDone
       
-      return (
-        <div className={`flex items-center space-x-2`}>
-          {/* <Calendar className="h-4 w-4 text-muted-foreground" /> */}
-          <div className="text-sm text-muted-foreground">
-            {expertiseDate ? formatDate(expertiseDate) : 'Non définie'}
-          </div>
-        </div>
-      )
-    },
-  },
+  //     return (
+  //       <div className={`flex items-center space-x-2`}>
+  //         {/* <Calendar className="h-4 w-4 text-muted-foreground" /> */}
+  //         <div className="text-sm text-muted-foreground">
+  //           {expertiseDate ? formatDate(expertiseDate) : 'Non définie'}
+  //         </div>
+  //       </div>
+  //     )
+  //   },
+  // },
   // {
   //   accessorKey: 'created_at',
   //   header: 'Créé le',
@@ -672,7 +672,7 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
         // className={isDone ? 'bg-green-50' : ''}
         >
           <CountdownBadge
-            label="Édition"
+            label="Rédaction"
             expireAt={assignment.edition_time_expire_at}
             status={assignment.edition_status}
             percent={assignment.edition_per_cent}
@@ -681,40 +681,40 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       )
     },
   },
-  {
-    accessorKey: 'recovery_countdown',
-    header: 'Délai de recouvrement',
-    cell: ({ row }) => {
-      const assignment = row.original
-      const isEditionDone = assignment.edition_status === 'done'
-      const isRecoveryDone = assignment.recovery_status === 'done'
-      const isDone = isEditionDone || isRecoveryDone
+  // {
+  //   accessorKey: 'recovery_countdown',
+  //   header: 'Délai de recouvrement',
+  //   cell: ({ row }) => {
+  //     const assignment = row.original
+  //     const isEditionDone = assignment.edition_status === 'done'
+  //     const isRecoveryDone = assignment.recovery_status === 'done'
+  //     const isDone = isEditionDone || isRecoveryDone
       
-      return (
-        isDone ? (
-        <div 
-        // className={isDone ? 'bg-green-50' : ''}
-        >
-          {/* <CountdownBadge
-            label="Récupération"
-            expireAt={assignment.recovery_time_expire_at}
-            status={assignment.recovery_status}
-            percent={assignment.recovery_per_cent}
-          /> */}
-        </div>
-        ) : (
-          <div>
-            <CountdownBadge
-              label="Récupération"
-              expireAt={assignment.recovery_time_expire_at}
-              status={assignment.recovery_status}
-              percent={assignment.recovery_per_cent}
-            />
-          </div>
-        )
-      )
-    },
-  },
+  //     return (
+  //       isDone ? (
+  //       <div 
+  //       // className={isDone ? 'bg-green-50' : ''}
+  //       >
+  //         {/* <CountdownBadge
+  //           label="Récupération"
+  //           expireAt={assignment.recovery_time_expire_at}
+  //           status={assignment.recovery_status}
+  //           percent={assignment.recovery_per_cent}
+  //         /> */}
+  //       </div>
+  //       ) : (
+  //         <div>
+  //           <CountdownBadge
+  //             label="Récupération"
+  //             expireAt={assignment.recovery_time_expire_at}
+  //             status={assignment.recovery_status}
+  //             percent={assignment.recovery_per_cent}
+  //           />
+  //         </div>
+  //       )
+  //     )
+  //   },
+  // },
   {
     id: 'actions',
     header: 'Actions',

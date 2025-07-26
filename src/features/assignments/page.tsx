@@ -49,6 +49,25 @@ export default function AssignmentsPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['all'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
+  // Initialiser le statut depuis l'URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const statusParam = urlParams.get('status')
+    
+    if (statusParam) {
+      const statusMap: Record<string, string> = {
+        'opened': 'open',
+        'realized': 'realized',
+        'edited': 'edited',
+        'validated': 'validated',
+        'closed': 'closed'
+      }
+      const mappedStatus = statusMap[statusParam] || statusParam
+      setActiveTab(mappedStatus)
+      setSelectedStatuses([mappedStatus])
+    }
+  }, [setActiveTab])
+
   // Charger les assignations au montage
   useEffect(() => {
     if (!isInitialized) {

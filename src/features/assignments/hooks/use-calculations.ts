@@ -92,9 +92,10 @@ export function useCalculations() {
             repair: work.repair,
             paint: work.paint,
             control: work.control,
+            obsolescence: work.obsolescence || false,
             comment: work.comment,
             obsolescence_rate: work.obsolescence_rate,
-            recovery_amoun: work.recovery_amoun,
+            recovery_amount: work.recovery_amount || work.recovery_amoun || 0,
             amount: work.amount
           })),
           paint_type_id: shock.paint_type_id,

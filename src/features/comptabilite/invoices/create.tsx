@@ -36,7 +36,7 @@ import {
   CheckCircle,
   Loader2,
   FileText,
-  Filter,
+  // Filter,
   Settings2,
   ChevronDown,
   Eye
@@ -158,7 +158,9 @@ export default function CreateInvoicePage() {
   }
 
   const isAssignmentEligible = (assignment: any) => {
-    return assignment.status?.code === 'edited' && assignment.receipts && assignment.receipts.length > 0
+    return assignment.receipts && assignment.receipts.length > 0
+    // assignment.status?.code === 'edited' &&
+      
   }
 
   const handleRowClick = (assignment: any) => {
@@ -250,7 +252,7 @@ export default function CreateInvoicePage() {
                   </Badge>
                 </div>
                 <p className="text-xs text-blue-700">
-                  Seuls les dossiers avec le statut "Édité" et possédant au moins une quittance peuvent faire l'objet d'une facturation.
+                  Seuls les dossiers possédant au moins une quittance peuvent faire l'objet d'une facturation.
                 </p>
               </div>
 
@@ -430,9 +432,9 @@ export default function CreateInvoicePage() {
                             {columnVisibility.amount && (
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <DollarSign className="h-4 w-4 text-gray-500" />
+                                  {/* <DollarSign className="h-4 w-4 text-gray-500" /> */}
                                   <span className="font-semibold text-green-600">
-                                    {formatCurrency(Number(assignment.total_amount || 0))}
+                                    {formatCurrency(Number(assignment.receipt_amount || 0))}
                                   </span>
                                 </div>
                               </TableCell>
@@ -546,7 +548,7 @@ export default function CreateInvoicePage() {
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Montant total</Label>
                     <div className="mt-2 text-2xl font-bold text-green-600">
-                      {formatCurrency(Number(selectedAssignment.total_amount))}
+                      {formatCurrency(Number(selectedAssignment.receipt_amount))}
                     </div>
                   </div>
 
@@ -584,7 +586,7 @@ export default function CreateInvoicePage() {
                   <Separator />
 
                   {/* Résumé des éléments */}
-                  <div>
+                  {/* <div>
                     <Label className="text-sm font-medium text-gray-700">Résumé des éléments</Label>
                     <div className="mt-2 space-y-2 text-sm">
                       {selectedAssignment.receipts && selectedAssignment.receipts.length > 0 && (
@@ -623,9 +625,9 @@ export default function CreateInvoicePage() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </div> */}
 
-                  <Separator />
+                  {/* <Separator /> */}
 
                   {/* Bouton de création */}
                   <Button 

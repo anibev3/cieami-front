@@ -32,6 +32,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ClientSelect } from '@/features/widgets/client-select'
+import { VehicleSelect } from '@/features/widgets/vehicle-select'
+import { InsurerSelect } from '@/features/widgets/insurer-select'
+import { RepairerSelect } from '@/features/widgets/repairer-select'
+import { UserSelect } from '@/features/widgets/user-select'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
@@ -1127,35 +1132,24 @@ export default function CreateAssignmentPage() {
                             render={({ field }) => (
                               <FormItem>
                               <div className="flex items-center gap-2 justify-between">
-                                <FormLabel>Client</FormLabel>
+                                <FormLabel>Client <span className="text-red-500">*</span></FormLabel>
                                 <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateClientModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
                               
                                 <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleClientSelection(value)
-                                    }} 
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un client" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {clients.map((client) => (
-                                          <SelectItem key={client.id} value={client.id.toString()}>
-                                            {client.name}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
+                                  <ClientSelect
+                                    value={field.value ? Number(field.value) : null}
+                                    onValueChange={(value: number | null) => {
+                                      field.onChange(value?.toString())
+                                      if (value) {
+                                        handleClientSelection(value.toString())
+                                      }
+                                    }}
+                                    placeholder="Sélectionner un client"
+                                    className="flex-1"
+                                  />
                                   {selectedClient && (
                                     <Button
                                       type="button"
@@ -1179,35 +1173,21 @@ export default function CreateAssignmentPage() {
                             render={({ field }) => (
                               <FormItem>
                               <div className="flex items-center gap-2 justify-between">
-                                <FormLabel>Véhicule</FormLabel>
+                                <FormLabel>Véhicule <span className="text-red-500">*</span></FormLabel>
                                 <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateVehicleModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
                                 </Button>
                               </div>
                                 <div className="flex gap-2">
-                                  <Select 
+                                  <VehicleSelect
+                                    value={field.value}
                                     onValueChange={(value) => {
                                       field.onChange(value)
                                       handleVehicleSelection(value)
-                                    }} 
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un véhicule" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {vehicles.map((vehicle) => (
-                                          <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                                            {vehicle.brand.label} {vehicle.vehicle_model.label} - {vehicle.license_plate}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
-                                  {selectedVehicle && (
+                                    }}
+                                    placeholder="Sélectionner un véhicule"
+                                  />
+                                  {/* {selectedVehicle && (
                                     <Button
                                       type="button"
                                       variant="outline"
@@ -1217,7 +1197,7 @@ export default function CreateAssignmentPage() {
                                     >
                                       <Info className="h-4 w-4" />
                                     </Button>
-                                  )}
+                                  )} */}
                       </div>
                                 <FormMessage />
                               </FormItem>
@@ -1316,28 +1296,18 @@ export default function CreateAssignmentPage() {
                                 </Button>
                               </div>
                                 <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleInsurerSelection(value)
-                                    }} 
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un assureur" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {entities.filter(e => e.entity_type?.code === 'insurer').map((entity) => (
-                                          <SelectItem key={entity.id} value={entity.id.toString()}>
-                                            {entity.name}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
+                                  <InsurerSelect
+                                    value={field.value ? Number(field.value) : null}
+                                    onValueChange={(value: number | null) => {
+                                      field.onChange(value?.toString())
+                                      if (value) {
+                                        handleInsurerSelection(value.toString())
+                                      }
+                                    }}
+                                    placeholder="Sélectionner un assureur"
+                                    className="flex-1"
+                                    showStatus={true}
+                                  />
                                   {selectedInsurer && (
                                     <Button
                                       type="button"
@@ -1367,28 +1337,18 @@ export default function CreateAssignmentPage() {
                                 </Button>
                               </div>
                                 <div className="flex gap-2">
-                                  <Select 
-                                    onValueChange={(value) => {
-                                      field.onChange(value)
-                                      handleRepairerSelection(value)
-                                    }} 
-                                    value={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un réparateur" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                        {entities.filter(e => e.entity_type?.code === 'repairer').map((entity) => (
-                                          <SelectItem key={entity.id} value={entity.id.toString()}>
-                                            {entity.name}
-                                          </SelectItem>
-                                        ))}
-                                      </ScrollArea>
-                                    </SelectContent>
-                                  </Select>
+                                  <RepairerSelect
+                                    value={field.value ? Number(field.value) : null}
+                                    onValueChange={(value: number | null) => {
+                                      field.onChange(value?.toString())
+                                      if (value) {
+                                        handleRepairerSelection(value.toString())
+                                      }
+                                    }}
+                                    placeholder="Sélectionner un réparateur"
+                                    className="flex-1"
+                                    showStatus={true}
+                                  />
                                   {selectedRepairer && (
                                     <Button
                                       type="button"
@@ -1446,7 +1406,7 @@ export default function CreateAssignmentPage() {
                             name="assignment_type_id"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Type de mission</FormLabel>
+                                <FormLabel>Type de mission <span className="text-red-500">*</span></FormLabel>
                                 <div className="flex gap-2">
                                   <Select 
                                     onValueChange={(value) => {
@@ -1492,7 +1452,7 @@ export default function CreateAssignmentPage() {
                             name="expertise_type_id"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Type d'expertise</FormLabel>
+                                <FormLabel>Type d'expertise <span className="text-red-500">*</span></FormLabel>
                                 <div className="flex gap-2">
                                   <Select 
                                     onValueChange={(value) => {
@@ -1542,7 +1502,7 @@ export default function CreateAssignmentPage() {
                           Documents transmis
                         </h3>  */}
                         <div className="flex items-center gap-2 justify-between">
-                          <FormLabel>Documents transmis</FormLabel>
+                                                        <FormLabel>Documents transmis <span className="text-red-500">*</span></FormLabel>
                           <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateDocumentModal(true)} className="shrink-0 w-6 h-6">
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -1703,27 +1663,15 @@ export default function CreateAssignmentPage() {
                               render={({ field }) => (
                               <FormItem className="flex-1">
                                   <FormLabel>Expert</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                >
-                                    <FormControl>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Sélectionner un expert" />
-                            </SelectTrigger>
-                                    </FormControl>
-                            <SelectContent>
-                                      <ScrollArea className="h-[200px]">
-                                      {users
-                                        .filter(user => user.role?.name === 'expert')
-                                        .map((user) => (
-                                          <SelectItem key={user.id} value={user.id.toString()}>
-                                            {user.name}
-                                </SelectItem>
-                              ))}
-                                      </ScrollArea>
-                            </SelectContent>
-                          </Select>
+                                <UserSelect
+                                  value={field.value ? Number(field.value) : null}
+                                  onValueChange={(value: number | null) => {
+                                    field.onChange(value?.toString())
+                                  }}
+                                  placeholder="Sélectionner un expert"
+                                  filterRole="expert"
+                                  showStatus={true}
+                                />
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -2251,7 +2199,6 @@ export default function CreateAssignmentPage() {
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_genre_id: value }))}
                   placeholder="Sélectionner un genre de véhicule"
                   showDescription={false}
-                  required={true}
                 />
               </div>
               <div className="space-y-2">
@@ -2265,7 +2212,6 @@ export default function CreateAssignmentPage() {
                   value={selectedBrandId}
                   onValueChange={setSelectedBrandId}
                   placeholder="Sélectionnez une marque"
-                  required={true}
                 />
               </div>
               <div className="space-y-2">
@@ -2287,7 +2233,6 @@ export default function CreateAssignmentPage() {
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_model_id: value }))}
                   placeholder="Sélectionner un modèle"
                   brandId={selectedBrandId}
-                  required={true}
                 />
               </div>
               <div className="space-y-2">
@@ -2301,7 +2246,6 @@ export default function CreateAssignmentPage() {
                   value={createVehicleForm.color_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, color_id: value }))}
                   placeholder="Sélectionner une couleur"
-                  required={true}
                 />
               </div>
               <div className="space-y-2">

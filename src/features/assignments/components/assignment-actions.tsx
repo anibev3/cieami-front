@@ -6,7 +6,6 @@ import {
   Trash2, 
   Receipt, 
   ExternalLink, 
-  Eye,
   FileText,
   Download,
   CheckCircle,
@@ -53,14 +52,14 @@ export function AssignmentActions({
         show: true,
         destructive: false
       },
-      {
-        key: 'view',
-        label: 'Aperçu rapide',
-        icon: Eye,
-        onClick: () => setIsPreviewModalOpen(true),
-        show: true,
-        destructive: false
-      }
+      // {
+      //   key: 'view',
+      //   label: 'Aperçu rapide',
+      //   icon: Eye,
+      //   onClick: () => setIsPreviewModalOpen(true),
+      //   show: true,
+      //   destructive: false
+      // }
     ]
 
     const statusActions = {

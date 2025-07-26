@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
+  // CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
+//  import { Progress } from '@/components/ui/progress'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -22,7 +22,7 @@ import {
   CheckCircle, 
   UserCheck, 
   Wrench, 
-  TrendingUp,
+  // TrendingUp,
   AlertTriangle,
   Shield,
   Loader2,

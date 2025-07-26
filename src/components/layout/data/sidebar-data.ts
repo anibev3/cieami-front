@@ -27,6 +27,8 @@ import {
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
+import { UserRole } from '@/types/auth'
+// import { Permission, UserRole } from '@/types/auth'
 
 export const sidebarData: SidebarData = {
   user: {
@@ -59,46 +61,54 @@ export const sidebarData: SidebarData = {
           title: 'Dashboard',
           url: '/',
           icon: IconLayoutDashboard,
+          // Dashboard accessible à tous les utilisateurs connectés
         },
-
       ],
     },
     {
       title: 'Gestion des dossiers',
+      // requiredPermission: Permission.VIEW_ASSIGNMENT,
       items: [
         {
           title: 'Dossiers',
           url: '/assignments',
           icon: IconFolder,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Dossiers edition expirés',
           url: '/assignments/edition-expired',
           icon: IconFolder,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Dossiers recouvrement expirés',
           url: '/assignments/recovery-expired',
           icon: IconFolder,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Liste des constats',
           url: '/administration/constat',
           icon: IconFolder,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Coût de fourniture',
           url: '/assignments/cost-of-supply',
           icon: IconCheck,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Statistiques',
           url: '/assignments/statistics',
           icon: IconCalculator,
+          // requiredPermission: Permission.ASSIGNMENT_STATISTICS,
         },
         {
           title: 'Tableaux de dépréciation',
           icon: IconPalette,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
           items: [
             {
               title: 'Liste tous les tableaux',
@@ -115,6 +125,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Gestion des photos',
           icon: IconPalette,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
           items: [
             {
               title: 'Photos',
@@ -137,41 +148,50 @@ export const sidebarData: SidebarData = {
           title: 'Clients',
           url: '/gestion/clients',
           icon: IconUsers,
+          // requiredPermissions: [Permission.VIEW_USER, Permission.VIEW_ASSIGNMENT],
+          // requireAllPermissions: false,
         },
         {
           title: 'Assureurs',
           url: '/gestion/assureurs',
           icon: IconBuilding,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Réparateurs',
           url: '/gestion/reparateurs',
           icon: IconTool,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Photos',
           url: '/gestion/photos',
           icon: IconPalette,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Documents transmis',
           url: '/gestion/documents',
           icon: IconFileText,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Nature des sinistres',
           url: '/gestion/sinistre/nature-sinistre',
           icon: IconFileText,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
           title: 'Remarques experts',
           url: '/gestion/remarque',
           icon: IconFileText,
+          // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
       ],
     },
     {
       title: 'Expertise',
+      // requiredRoles: [UserRole.EXPERT, UserRole.EXPERT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN],
       items: [
         {
           title: 'Points de choc',
@@ -202,6 +222,7 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Réparation',
+      // requiredRoles: [UserRole.EXPERT, UserRole.EXPERT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN],
       items: [
         {
           title: 'Carrosseries',
@@ -248,25 +269,30 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Comptabilité',
+      // requiredRoles: [UserRole.CEO],
       items: [
         {
           title: 'Paiements',
           url: '/comptabilite/payments',
           icon: IconCreditCard,
+          // requiredPermission: Permission.VIEW_PAYMENT,
         },
         {
           title: 'Chèques',
           url: '/comptabilite/checks',
           icon: IconCheck,
+          // requiredPermission: Permission.VIEW_PAYMENT,
         },
         {
           title: 'Factures',
           url: '/comptabilite/invoices',
           icon: IconFileText,
+          // requiredPermission: Permission.VIEW_INVOICE,
         },
         {
           title: 'Configuration',
           icon: IconCalculator,
+          // requiredRoles: [UserRole.ADMIN, UserRole.SYSTEM_ADMIN],
           items: [
             {
               title: 'Types de paiement',
@@ -288,6 +314,8 @@ export const sidebarData: SidebarData = {
         {
           title: 'Rapports',
           icon: IconReceipt,
+          // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
+          // requireAllPermissions: false,
           items: [
             {
               title: 'Rapport des paiements',
@@ -309,6 +337,8 @@ export const sidebarData: SidebarData = {
         {
           title: 'Statistiques',
           icon: IconCalculator,
+          // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
+          // requireAllPermissions: false,
           items: [
             {
               title: 'Statistiques des dossiers',
@@ -321,6 +351,7 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Finances',
+      // requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO],
       items: [
         {
           title: 'Quittances',
@@ -358,11 +389,13 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Administration',
+      // requiredRoles: [UserRole.ADMIN, UserRole.SYSTEM_ADMIN],
       items: [
         {
           title: 'Utilisateurs',
           url: '/administration/users',
           icon: IconUsers,
+          // requiredPermission: Permission.VIEW_USER,
         },
         {
           title: 'Documents',
@@ -467,27 +500,6 @@ export const sidebarData: SidebarData = {
               url: '/administration/constat/type',
               icon: IconBuilding,
             },
-            // {
-            //   title: 'Constat',
-            //   url: '/administration/constat/constat',
-            //   icon: IconCategory,
-            // },
-          ],
-        },
-        {
-          title: 'Constat',
-          icon: IconBuilding,
-          items: [
-            {
-              title: 'Type de constat',
-              url: '/administration/constat/type',
-              icon: IconBuilding,
-            },
-            // {
-            //   title: 'Constat',
-            //   url: '/administration/constat/constat',
-            //   icon: IconCategory,
-            // },
           ],
         },
         {
@@ -508,38 +520,33 @@ export const sidebarData: SidebarData = {
               title: 'Profil',
               url: '/settings',
               icon: IconUserCog,
+              // Accessible à tous les utilisateurs connectés
             },
             {
               title: 'Mise à jour',
               url: '/settings/update',
               icon: IconDownload,
+              // requiredRoles: [UserRole.ADMIN, UserRole.SYSTEM_ADMIN],
             },
             {
               title: 'Compte',
               url: '/settings/account',
               icon: IconTool,
+              // Accessible à tous les utilisateurs connectés
             },
             {
               title: 'Appearance',
               url: '/settings/appearance',
               icon: IconPalette,
+              // Accessible à tous les utilisateurs connectés
             },
-            // {
-            //   title: 'Notifications',
-            //   url: '/settings/notifications',
-            //   icon: IconNotification,
-            // },
-            // {
-            //   title: 'Display',
-            //   url: '/settings/display',
-            //   icon: IconBrowserCheck,
-            // },
           ],
         },
         {
           title: 'Help Center',
           url: '/help-center',
           icon: IconHelp,
+          // Accessible à tous les utilisateurs connectés
         },
       ],
     },

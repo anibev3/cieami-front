@@ -1,4 +1,5 @@
 import { LinkProps } from '@tanstack/react-router'
+import { Permission, UserRole } from '@/types/auth'
 
 interface User {
   name: string
@@ -12,10 +13,27 @@ interface Team {
   plan: string
 }
 
+// Types pour les compteurs dynamiques
+export interface NavItemCounter {
+  key: string // Clé unique pour identifier le compteur
+  value: number // Valeur du compteur
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' // Style du badge
+}
+
 interface BaseNavItem {
   title: string
   badge?: string
   icon?: React.ElementType
+  // ACL properties
+  requiredPermission?: Permission
+  requiredPermissions?: Permission[]
+  requireAllPermissions?: boolean
+  requiredRole?: UserRole
+  requiredRoles?: UserRole[]
+  requireAllRoles?: boolean
+  // Dynamic counters
+  dynamicCounters?: NavItemCounter[]
+  showCounters?: boolean // Afficher ou non les compteurs pour cet élément
 }
 
 type NavLink = BaseNavItem & {
@@ -33,6 +51,16 @@ type NavItem = NavCollapsible | NavLink
 interface NavGroup {
   title: string
   items: NavItem[]
+  // ACL properties for groups
+  requiredPermission?: Permission
+  requiredPermissions?: Permission[]
+  requireAllPermissions?: boolean
+  requiredRole?: UserRole
+  requiredRoles?: UserRole[]
+  requireAllRoles?: boolean
+  // Dynamic counters for groups
+  dynamicCounters?: NavItemCounter[]
+  showCounters?: boolean
 }
 
 interface SidebarData {

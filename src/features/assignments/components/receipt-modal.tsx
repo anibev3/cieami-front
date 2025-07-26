@@ -609,7 +609,7 @@ export function ReceiptModal({
             )}
 
             {/* Résumé des quittances */}
-            {receipts.length > 0 && (
+            {/* {receipts.length > 0 && (
               <Card className="bg-muted shadow-none">
                 <CardContent>
                   <div className="flex items-center justify-between">
@@ -626,7 +626,7 @@ export function ReceiptModal({
                   </div>
                 </CardContent>
               </Card>
-            )}
+            )} */}
           </div>
         )}
 

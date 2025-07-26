@@ -311,7 +311,7 @@ export function ShockSuppliesTable({
                 {!isEvaluation && (
                   <td className="border px-2 py-2 text-center text-xs">
                     <Checkbox 
-                      checked={row.obsolescence} 
+                      checked={row.obsolescence || false}
                       onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
                     />
                   </td>
@@ -371,7 +371,7 @@ export function ShockSuppliesTable({
                 {/* Remise Calculé */}
                 <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0) - (row.discount || 0))}
+                    {formatCurrency(row.amount - (row.discount_amount || 0))}
                   </div>
                 </td>
                 {/* Vétuste (%) */}
@@ -398,20 +398,17 @@ export function ShockSuppliesTable({
                     value={row.discount}
                     onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
                   /> */}
-                  {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0))}
+                  {formatCurrency(row.new_amount_excluding_tax)}
                 </td>
                 {/* Montant TTC */}
                 <td className="border px-2 py-2 text-center text-xs w-35">
                   <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {/* {formatCurrency(row.recovery_amount || 0)} */}
-                    {/* {formatCurrency(row.new_amount || 0)} */}
                     <Input
-                    type="number"
-                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.new_amount}
-                    onChange={e => updateLocalShockWork(i, 'new_amount', Number(e.target.value))}
-                  />
-                    
+                      type="number"
+                      className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                      value={row.recovery_amount || 0}
+                      onChange={e => updateLocalShockWork(i, 'recovery_amount', Number(e.target.value))}
+                    />
                   </div>
                   {/* <Separator className="my-1" />
                   <div className="text-[8px] text-gray-500">

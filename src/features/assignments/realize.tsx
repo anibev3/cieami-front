@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,24 +14,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
@@ -38,39 +28,16 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { 
   ArrowLeft, 
-  Save, 
   Loader2, 
-  Search as SearchIcon, 
-  Eye, 
-  Calendar as CalendarIcon2, 
-  MapPin, 
   User, 
   Car, 
-  Building, 
-  FileText, 
   CheckCircle,
-  Clock,
   DollarSign,
-  FileType,
-  Users,
-  Wrench,
-  Info
 } from 'lucide-react'
-import { useUsersStore } from '@/stores/usersStore'
-import { useReparateursStore } from '@/features/gestion/reparateurs/store'
-import { toast } from 'sonner'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Vehicle } from '@/types/vehicles'
-import { User as UserType } from '@/types/administration'
-import { Entity as EntityType } from '@/types/administration'
-import axiosInstance from '@/lib/axios'
-import { API_CONFIG } from '@/config/api'
+import { UserSelect } from '@/features/widgets/user-select'
+import { RepairerSelect } from '@/features/widgets/repairer-select'
+import { useAssignmentRealizationStore } from '@/stores/assignmentRealizationStore'
+
 
 // Schéma de validation pour la réalisation
 const realizeSchema = z.object({
@@ -79,162 +46,27 @@ const realizeSchema = z.object({
   }),
   expertise_time: z.string().min(1, "L'heure d'expertise est requise"),
   expertise_place: z.string().min(1, 'Le lieu d\'expertise est requis'),
-  point_noted: z.string().min(1, 'Les points notés sont requis'),
+  point_noted: z.string(), // Champ optionnel mais avec valeur par défaut
   directed_by: z.string().min(1, 'L\'expert est requis'),
-  repairer_id: z.string().min(1, 'Le réparateur est requis'),
+  repairer_id: z.string(), // Champ optionnel mais avec valeur par défaut
 })
 
-interface Assignment {
-  id: number
-  reference: string
-  status: {
-    id: number
-    code: string
-    label: string
-    description: string
-  }
-  client: {
-    id: number
-    name: string
-    email: string
-    phone_1?: string
-    phone_2?: string
-    address?: string
-  }
-  vehicle: Vehicle
-  insurer: EntityType | null
-  repairer: EntityType | null
-  assignment_type: {
-    id: number
-    code: string
-    label: string
-    description: string
-  }
-  expertise_type: {
-    id: number
-    code: string
-    label: string
-    description: string
-  }
-  document_transmitted: Array<{
-    id: number
-    code: string
-    label: string
-  }>
-  policy_number: string | null
-  claim_number: string | null
-  claim_starts_at: string | null
-  claim_ends_at: string | null
-  expertise_date: string | null
-  expertise_place: string | null
-  received_at: string
-  administrator: string | null
-  circumstance: string | null
-  damage_declared: string | null
-  observation: string | null
-  point_noted: string | null
-  seen_before_work_date: string | null
-  seen_during_work_date: string | null
-  seen_after_work_date: string | null
-  contact_date: string | null
-  assured_value: string | null
-  salvage_value: string | null
-  new_market_value: string | null
-  depreciation_rate: string | null
-  market_value: string | null
-  work_duration: string | null
-  expert_remark: string | null
-  shock_amount_excluding_tax: string | null
-  shock_amount_tax: string | null
-  shock_amount: string | null
-  other_cost_amount_excluding_tax: string | null
-  other_cost_amount_tax: string | null
-  other_cost_amount: string | null
-  receipt_amount_excluding_tax: string | null
-  receipt_amount_tax: string | null
-  receipt_amount: string | null
-  total_amount_excluding_tax: string | null
-  total_amount_tax: string | null
-  total_amount: string | null
-  amount: number
-  experts: Array<{
-    expert_id: number
-    date: string
-    observation: string | null
-  }>
-  shocks: Array<unknown>
-  other_costs: Array<unknown>
-  receipts: Array<unknown>
-  payments: Array<unknown>
-  invoices: Array<unknown>
-  evaluations: unknown | null
-  created_by: {
-    id: number
-    name: string
-    email: string
-  }
-  updated_by: {
-    id: number
-    name: string
-    email: string
-  }
-  realized_by: {
-    id: number
-    name: string
-    email: string
-  } | null
-  edited_by: {
-    id: number
-    name: string
-    email: string
-  } | null
-  validated_by: unknown | null
-  closed_by: unknown | null
-  cancelled_by: unknown | null
-  work_sheet_established_by: unknown | null
-  expertise_sheet: string | null
-  expertise_report: string | null
-  work_sheet: string | null
-  expert_signature: string | null
-  repairer_signature: string | null
-  customer_signature: string | null
-  created_at: string
-  updated_at: string
-  deleted_at: string | null
-  closed_at: string | null
-  cancelled_at: string | null
-  edited_at: string | null
-  validated_at: string | null
-  realized_at: string | null
-  work_sheet_established_at: string | null
-  edition_time_expire_at: string | null
-  edition_status: string | null
-  edition_per_cent: number | null
-  recovery_time_expire_at: string | null
-  recovery_status: string | null
-  recovery_per_cent: number | null
-}
-
-interface RealizePayload {
-  expertise_date: string
-  expertise_place: string
-  point_noted: string
-  directed_by: string
-  repairer_id: string
-}
+// Interface déplacée vers le service
+import { RealizeAssignmentPayload as RealizePayload } from '@/services/assignmentRealizationService'
 
 export default function RealizeAssignmentPage() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
   const assignmentId = parseInt(id)
   
-  const [loading, setLoading] = useState(false)
-  const [assignment, setAssignment] = useState<Assignment | null>(null)
-  const [showDetailsModal, setShowDetailsModal] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  
-  const { users, fetchUsers } = useUsersStore()
-  const { reparateurs, fetchReparateurs } = useReparateursStore()
+  // Utilisation du store dédié
+  const { 
+    loading, 
+    assignment, 
+    error, 
+    fetchAssignmentDetails, 
+    realizeAssignment 
+  } = useAssignmentRealizationStore()
 
   const form = useForm<z.infer<typeof realizeSchema>>({
     resolver: zodResolver(realizeSchema),
@@ -248,72 +80,55 @@ export default function RealizeAssignmentPage() {
     }
   })
 
-  // Charger les données du dossier
+  // Charger les données du dossier via le store
   useEffect(() => {
-    const loadAssignment = async () => {
-      try {
-        setLoading(true)
-        const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`)
-        const assignmentData = response.data.data
-        setAssignment(assignmentData)
-        
-        // Si le dossier est déjà réalisé, pré-remplir le formulaire
-        if (assignmentData.realized_at) {
-          // Gérer la date d'expertise
-          let expertiseDate = new Date()
-          let timeString = '09:00'
-          
-          if (assignmentData.expertise_date) {
-            expertiseDate = new Date(assignmentData.expertise_date)
-            // Si la date contient une heure, l'extraire
-            if (assignmentData.expertise_date.includes('T')) {
-              const dateTime = new Date(assignmentData.expertise_date)
-              const hours = String(dateTime.getHours()).padStart(2, '0')
-              const minutes = String(dateTime.getMinutes()).padStart(2, '0')
-              timeString = `${hours}:${minutes}`
-            } else {
-              // Si c'est juste une date, utiliser l'heure par défaut
-              timeString = '09:00'
-            }
-          }
-          
-          form.reset({
-            expertise_date: expertiseDate,
-            expertise_time: timeString,
-            expertise_place: assignmentData.expertise_place || '',
-            point_noted: assignmentData.point_noted || '',
-            directed_by: assignmentData.realized_by?.id?.toString() || '',
-            repairer_id: assignmentData.repairer_id?.toString() || '',
-          })
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement du dossier:', error)
-        toast.error('Erreur lors du chargement du dossier')
-      } finally {
-        setLoading(false)
-      }
-    }
-
     if (assignmentId) {
-      loadAssignment()
+      fetchAssignmentDetails(assignmentId)
     }
-  }, [assignmentId, form])
+  }, [assignmentId, fetchAssignmentDetails])
 
-  // Charger les utilisateurs (experts) et réparateurs
+  // Pré-remplir le formulaire quand les données sont chargées
   useEffect(() => {
-    fetchUsers()
-    fetchReparateurs()
-  }, [fetchUsers, fetchReparateurs])
+    if (assignment && assignment.realized_at) {
+      // Gérer la date d'expertise
+      let expertiseDate = new Date()
+      let timeString = '09:00'
+      
+      if (assignment.expertise_date) {
+        expertiseDate = new Date(assignment.expertise_date)
+        // Si la date contient une heure, l'extraire
+        if (assignment.expertise_date.includes('T')) {
+          const dateTime = new Date(assignment.expertise_date)
+          const hours = String(dateTime.getHours()).padStart(2, '0')
+          const minutes = String(dateTime.getMinutes()).padStart(2, '0')
+          timeString = `${hours}:${minutes}`
+        } else {
+          // Si c'est juste une date, utiliser l'heure par défaut
+          timeString = '09:00'
+        }
+      }
+      
+      form.reset({
+        expertise_date: expertiseDate,
+        expertise_time: timeString,
+        expertise_place: assignment.expertise_place || '',
+        point_noted: assignment.point_noted || '',
+        directed_by: assignment.directed_by?.id?.toString() || '',
+        repairer_id: assignment.repairer?.id?.toString() || '',
+      })
+    }
+  }, [assignment, form])
 
-  // Filtrer les experts (utilisateurs avec le rôle expert)
-  const experts = users.filter(user => user.role?.name === 'expert' || user.role?.name === 'expert_manager')
+  // Les utilisateurs et réparateurs sont maintenant chargés automatiquement par les composants dédiés
+
+  // Note: 
+  // - realized_by: utilisateur qui a effectué la réalisation du dossier
+  // - directed_by: expert responsable assigné au dossier (c'est ce qu'on veut dans le formulaire)
 
   // Mode modification de réalisation
   const isEditRealization = assignment?.realized_at && assignment?.realized_by
 
   const onSubmit = async (values: z.infer<typeof realizeSchema>) => {
-    setLoading(true)
-    
     try {
       // Combiner la date et l'heure au format "YYYY-MM-DDTHH:mm"
       const expertiseDateTime = new Date(values.expertise_date)
@@ -337,28 +152,17 @@ export default function RealizeAssignmentPage() {
         repairer_id: values.repairer_id,
       }
 
-      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/realize/${assignmentId}`, payload)
-      toast.success(isEditRealization ? 'Réalisation modifiée avec succès' : 'Dossier réalisé avec succès')
+      await realizeAssignment(assignmentId, payload, isEditRealization)
       navigate({ to: `/assignments/${assignmentId}` })
     } catch (error) {
-      console.error('Erreur lors de la réalisation:', error)
-      toast.error(isEditRealization ? 'Erreur lors de la modification de la réalisation' : 'Erreur lors de la réalisation du dossier')
-    } finally {
-      setLoading(false)
+      // Les erreurs sont gérées par le store
+      console.error('Erreur lors de la soumission:', error)
     }
   }
 
   const handleCancel = () => {
     navigate({ to: `/assignments/${assignmentId}` })
   }
-
-  // Fonction de recherche dans les détails du dossier
-  const filteredDetails = assignment ? Object.entries(assignment).filter(([key, value]) => {
-    if (typeof value === 'object' && value !== null) {
-      return JSON.stringify(value).toLowerCase().includes(searchTerm.toLowerCase())
-    }
-    return String(value).toLowerCase().includes(searchTerm.toLowerCase())
-  }) : []
 
   if (loading && !assignment) {
     return (
@@ -402,16 +206,13 @@ export default function RealizeAssignmentPage() {
               Référence: {assignment.reference} | Statut: {assignment.status.label}
               {isEditRealization && (
                 <span className="ml-2 text-blue-600">
-                  • Réalisé le {new Date(assignment.realized_at!).toLocaleDateString('fr-FR')} par {assignment.realized_by?.name}
+                  • Réalisé le {new Date(assignment.realized_at!).toLocaleDateString('fr-FR')} par {assignment.realized_by?.name} 
+                  {assignment.directed_by && ` (Expert: ${assignment.directed_by.name})`}
                 </span>
               )}
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowDetailsModal(true)} variant="outline">
-          <Eye className="mr-2 h-4 w-4" />
-          Voir tous les détails
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -477,7 +278,7 @@ export default function RealizeAssignmentPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Montant</p>
-                  <p className="font-semibold text-lg">{assignment.amount?.toLocaleString('fr-FR')} F CFA</p>
+                  <p className="font-semibold text-lg">{assignment.total_amount ? parseFloat(assignment.total_amount).toLocaleString('fr-FR') : '0'} F CFA</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Numéro de police</p>
@@ -513,7 +314,7 @@ export default function RealizeAssignmentPage() {
                       name="expertise_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Date d'expertise</FormLabel>
+                          <FormLabel>Date d'expertise <span className="text-red-500">*</span></FormLabel>
                               <FormControl>
                             <Input
                               type="date"
@@ -536,7 +337,7 @@ export default function RealizeAssignmentPage() {
                       name="expertise_time"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Heure d'expertise</FormLabel>
+                          <FormLabel>Heure d'expertise <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
                             <Input
                               type="time"
@@ -556,7 +357,7 @@ export default function RealizeAssignmentPage() {
                     name="expertise_place"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Lieu d'expertise</FormLabel>
+                        <FormLabel>Lieu d'expertise <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 
@@ -576,24 +377,16 @@ export default function RealizeAssignmentPage() {
                       name="directed_by"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Expert responsable</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className='w-full'>
-                                <SelectValue placeholder="Sélectionner un expert" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className='w-full'>
-                              {experts.map((expert) => (
-                                <SelectItem key={expert.id} value={expert.id.toString()}>
-                                  <div className="flex items-center gap-2">
-                                    <User className="h-4 w-4" />
-                                    {expert.name}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Expert responsable <span className="text-red-500">*</span></FormLabel>
+                                                      <UserSelect
+                              value={field.value ? Number(field.value) : null}
+                              onValueChange={(value: number | null) => {
+                                field.onChange(value?.toString() || '')
+                              }}
+                              placeholder="Sélectionner un expert"
+                              filterRole="expert"
+                              showStatus={true}
+                            />
                           <FormMessage />
                         </FormItem>
                       )}
@@ -604,24 +397,15 @@ export default function RealizeAssignmentPage() {
                       name="repairer_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Garage</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className='w-full'>
-                                <SelectValue placeholder="Sélectionner un garage" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className='w-full'>
-                              {reparateurs.map((reparateur) => (
-                                <SelectItem key={reparateur.id} value={reparateur.id.toString()}>
-                                  <div className="flex items-center gap-2">
-                                    <Wrench className="h-4 w-4" />
-                                    {reparateur.name}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Réparateur</FormLabel>
+                                                      <RepairerSelect
+                              value={field.value ? Number(field.value) : null}
+                              onValueChange={(value: number | null) => {
+                                field.onChange(value?.toString() || '')
+                              }}
+                              placeholder="Sélectionner un garage"
+                              showStatus={true}
+                            />
                          <FormMessage />
                         </FormItem>
                       )}
@@ -675,56 +459,6 @@ export default function RealizeAssignmentPage() {
           </Card>
         </div>
       </div>
-
-      {/* Modal des détails complets */}
-      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Info className="h-5 w-5" />
-              Détails complets du dossier
-            </DialogTitle>
-            <DialogDescription>
-              Toutes les informations du dossier {assignment.reference}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Barre de recherche */}
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher dans les détails..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Contenu scrollable */}
-            <div className="max-h-[60vh] overflow-y-auto space-y-4">
-              {filteredDetails.map(([key, value]) => (
-                <Card key={key} className='shadow-none'>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium capitalize">
-                      {key.replace(/_/g, ' ')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {typeof value === 'object' && value !== null ? (
-                      <pre className="text-sm bg-muted p-2 rounded overflow-x-auto">
-                        {JSON.stringify(value, null, 2)}
-                      </pre>
-                    ) : (
-                      <p className="text-sm">{String(value)}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
         </div>
       </Main>
       </>

@@ -12,7 +12,7 @@ import {
   Download, 
   FileText, 
   Car,
-  Receipt,
+  // Receipt,
   CheckCircle,
   AlertTriangle,
   Info
@@ -162,7 +162,7 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {canEdit && (
+          {/* {canEdit && (
             <Button variant="outline" onClick={handleEdit} disabled={loading}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
@@ -173,7 +173,7 @@ export default function InvoiceDetailPage() {
               <Trash2 className="mr-2 h-4 w-4" />
               Supprimer
             </Button>
-          )}
+          )} */}
           {canCancel && (
             <Button variant="outline" onClick={handleCancel} disabled={loading}>
               <AlertTriangle className="mr-2 h-4 w-4" />
@@ -377,7 +377,7 @@ export default function InvoiceDetailPage() {
                     Voir la facture
                   </Button>
                 )}
-                {assignment?.expertise_sheet && (
+                {/* {assignment?.expertise_sheet && (
                   <Button 
                     variant="outline" 
                     className="w-full justify-start text-xs h-8" 
@@ -386,7 +386,7 @@ export default function InvoiceDetailPage() {
                     <Download className="h-3 w-3 mr-2" />
                     Voir la fiche d'expertise
                   </Button>
-                )}
+                )} */}
                 {assignment?.expertise_report && (
                   <Button 
                     variant="outline" 

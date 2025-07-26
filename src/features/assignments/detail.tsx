@@ -46,7 +46,8 @@ import {
   Phone,
   AlertTriangle,
   Shield,
-  Check
+  Check,
+  Trash2
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
@@ -64,6 +65,7 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { useAssignmentsStore } from '@/stores/assignments'
+import { AssignmentActions } from './components/assignment-actions'
 
 interface AssignmentDetail {
   id: number
@@ -608,6 +610,10 @@ export default function AssignmentDetailPage() {
   const [validateModalOpen, setValidateModalOpen] = useState(false)
   const [validating, setValidating] = useState(false)
   const { generateReport, loading: loadingGenerate } = useAssignmentsStore()
+
+  // États pour les modales d'actions
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false)
+  const [selectedAssignmentForReceipt, setSelectedAssignmentForReceipt] = useState<{ id: number, amount: number } | null>(null)
 
   useEffect(() => {
     const fetchAssignment = async () => {
@@ -2118,6 +2124,23 @@ export default function AssignmentDetailPage() {
     }
   }
 
+  // Fonctions de gestion des actions
+  const handleDeleteAssignment = (assignment: AssignmentDetail) => {
+    // TODO: Implémenter la suppression
+    console.log('Supprimer le dossier:', assignment.id)
+    toast.info('Fonction de suppression à implémenter')
+  }
+
+  const handleOpenReceiptModal = (assignmentId: number, amount: number) => {
+    setSelectedAssignmentForReceipt({ id: assignmentId, amount })
+    setReceiptModalOpen(true)
+  }
+
+  const handleViewDetail = (assignmentId: number) => {
+    // Déjà sur la page de détail
+    console.log('Déjà sur la page de détail:', assignmentId)
+  }
+
   const handleValidateAssignment = async () => {
     if (!assignment) return
     
@@ -2143,6 +2166,179 @@ export default function AssignmentDetailPage() {
     } finally {
       setValidating(false)
     }
+  }
+
+  // Fonction pour déterminer les actions disponibles selon le statut
+  const getAvailableActions = (assignment: AssignmentDetail) => {
+    const statusCode = assignment.status.code
+    
+    const actions = []
+
+    // Actions selon le statut
+    switch (statusCode) {
+      case 'pending':
+        actions.push(
+          {
+            key: 'edit',
+            label: 'Modifier',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+            variant: 'outline' as const
+          },
+          {
+            key: 'receipts',
+            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+            icon: Receipt,
+            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+            variant: 'outline' as const
+          },
+          {
+            key: 'delete',
+            label: 'Supprimer',
+            icon: Trash2,
+            onClick: () => handleDeleteAssignment(assignment),
+            variant: 'destructive' as const
+          }
+        )
+        break
+
+      case 'opened':
+        actions.push(
+          {
+            key: 'edit',
+            label: 'Modifier',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+            variant: 'outline' as const
+          },
+          {
+            key: 'realize',
+            label: 'Réaliser le dossier',
+            icon: CheckCircle,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+            variant: 'default' as const
+          }
+        )
+        break
+
+      case 'realized':
+        actions.push(
+          {
+            key: 'edit-realization',
+            label: 'Modifier la réalisation',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+            variant: 'outline' as const
+          },
+          {
+            key: 'write-report',
+            label: 'Rédiger le rapport',
+            icon: FileText,
+            onClick: () => navigate({ to: `/assignments/edite-report/${assignment.id}` }),
+            variant: 'default' as const
+          }
+        )
+        break
+
+      case 'edited':
+        actions.push(
+          {
+            key: 'edit-report',
+            label: 'Modifier la rédaction',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+            variant: 'outline' as const
+          },
+          {
+            key: 'receipts',
+            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+            icon: Receipt,
+            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+            variant: 'outline' as const
+          },
+          {
+            key: 'generate-report',
+            label: 'Générer le rapport',
+            icon: Download,
+            onClick: async () => await generateReport(assignment.id),
+            variant: 'default' as const,
+            loading: loadingGenerate
+          },
+          {
+            key: 'validate',
+            label: 'Valider le dossier',
+            icon: Shield,
+            onClick: () => setValidateModalOpen(true),
+            variant: 'default' as const,
+            className: 'bg-green-600 hover:bg-green-700'
+          }
+        )
+        break
+      case 'in_payment':
+        actions.push(
+          {
+            key: 'edit-report',
+            label: 'Modifier la rédaction',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+            variant: 'outline' as const
+          },
+          {
+            key: 'receipts',
+            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+            icon: Receipt,
+            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+            variant: 'outline' as const
+          },
+          {
+            key: 'generate-report',
+            label: 'Générer le rapport',
+            icon: Download,
+            onClick: async () => await generateReport(assignment.id),
+            variant: 'default' as const,
+            loading: loadingGenerate
+          },
+          {
+            key: 'validate',
+            label: 'Valider le dossier',
+            icon: Shield,
+            onClick: () => setValidateModalOpen(true),
+            variant: 'default' as const,
+            className: 'bg-green-600 hover:bg-green-700'
+          }
+        )
+        break
+
+      case 'closed':
+      case 'paid':
+        actions.push(
+          {
+            key: 'receipts',
+            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+            icon: Receipt,
+            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+            variant: 'outline' as const
+          }
+        )
+        break
+
+      case 'cancelled':
+        // Pas d'actions spécifiques pour les dossiers annulés
+        break
+    }
+
+    // Actions communes (toujours disponibles)
+    actions.push(
+      // {
+      //   key: 'print',
+      //   label: 'Imprimer',
+      //   icon: Printer,
+      //   onClick: () => window.print(),
+      //   variant: 'outline' as const
+      // }
+    )
+
+    return actions
   }
 
   if (loading) {
@@ -2199,35 +2395,23 @@ export default function AssignmentDetailPage() {
               <Badge className={getStatusColor(assignment.status.code)}>
                 {assignment.status.label}
               </Badge>
-              {assignment.status.code === 'edited' && (
-                <Button 
-                  onClick={async () => await generateReport(assignment.id)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={loadingGenerate}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Générer le rapport
-                </Button>
-              )}
-              {assignment.status.code === 'edited' && (
-                <Button 
-                  onClick={() => setValidateModalOpen(true)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Valider le dossier
-                </Button>
-              )}
-              <Button variant="outline" size="icon">
-                <Printer className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => navigate({ to: `/assignments/edit/${assignment.id}` })}>
-                <Edit className="h-4 w-4 mr-2" />
-                Modifier
-              </Button>
+              
+              {/* Actions basées sur le statut */}
+              {getAvailableActions(assignment).map((action) => {
+                const IconComponent = action.icon
+                return (
+                  <Button
+                    key={action.key}
+                    variant={action.variant}
+                    onClick={action.onClick}
+                    disabled={action.loading}
+                    className={action.className}
+                  >
+                    <IconComponent className="h-4 w-4 mr-2" />
+                    {action.loading ? 'Chargement...' : action.label}
+                  </Button>
+                )
+              })}
             </div>
           </div>
 
