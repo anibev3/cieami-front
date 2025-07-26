@@ -98,6 +98,8 @@ export function ShockWorkforceTableV2({
   const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set()) // Lignes modifiées
   const [showCreateWorkforceTypeModal, setShowCreateWorkforceTypeModal] = useState(false)
   const [currentWorkforceIndex, setCurrentWorkforceIndex] = useState<number | null>(null)
+  const [localWithTax, setLocalWithTax] = useState<boolean>(withTax)
+  const [updatingWithTax, setUpdatingWithTax] = useState<boolean>(false)
 
   // Utiliser les stores ou les props externes
   const { workforceTypes: storeWorkforceTypes, loading: workforceTypesLoading, fetchWorkforceTypes } = useWorkforceTypesStore()
@@ -113,6 +115,11 @@ export function ShockWorkforceTableV2({
   useEffect(() => {
     setLocalWorkforces(workforces)
   }, [workforces])
+
+  // Mettre à jour localWithTax quand la prop withTax change
+  useEffect(() => {
+    setLocalWithTax(withTax)
+  }, [withTax])
 
   // Charger les données nécessaires seulement si pas fournies en props
   useEffect(() => {
@@ -210,7 +217,7 @@ export function ShockWorkforceTableV2({
         discount: Number(workforce.discount),
         hourly_rate_id: workforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
         paint_type_id: workforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
-        with_tax: withTax
+        with_tax: localWithTax
       }
 
       // Appel API pour mettre à jour
@@ -255,7 +262,7 @@ export function ShockWorkforceTableV2({
       workforce_type_id: 0,
       nb_hours: 0,
       discount: 0,
-      with_tax: withTax,
+      with_tax: localWithTax,
       work_fee: 0,
       amount_excluding_tax: 0,
       amount_tax: 0,
@@ -285,7 +292,7 @@ export function ShockWorkforceTableV2({
             workforce_type_id: getWorkforceTypeId(workforce),
             nb_hours: Number(workforce.nb_hours),
             discount: Number(workforce.discount),
-            with_tax: withTax
+            with_tax: localWithTax
           }
           
           await onAdd(workforceData)
@@ -385,6 +392,48 @@ export function ShockWorkforceTableV2({
     return modifiedRows.has(index) || newRows.has(index)
   }
 
+  // Fonction pour gérer le changement de withTax
+  const handleWithTaxChange = async (checked: boolean) => {
+    setLocalWithTax(checked)
+    onWithTaxChange?.(checked)
+    
+    // Si il y a des workforces avec un ID, mettre à jour via l'API
+    const existingWorkforce = localWorkforces.find(w => w.id)
+    if (existingWorkforce) {
+      setUpdatingWithTax(true)
+      try {
+        // Utiliser la première workforce existante pour déclencher la mise à jour
+        const firstWorkforce = existingWorkforce
+        // Préparer les données pour l'API
+        const updateData = {
+          workforce_type_id: getWorkforceTypeId(firstWorkforce).toString(),
+          nb_hours: Number(firstWorkforce.nb_hours),
+          discount: Number(firstWorkforce.discount),
+          hourly_rate_id: firstWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
+          paint_type_id: firstWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+          with_tax: checked
+        }
+
+        // Appel API pour mettre à jour
+        await workforceService.updateWorkforce(firstWorkforce.id!, updateData)
+        
+        toast.success('Paramètre TVA mis à jour avec succès')
+        
+        // Rafraîchir les données du dossier
+        if (onAssignmentRefresh) {
+          onAssignmentRefresh()
+        }
+      } catch (_error) {
+          toast.error('Erreur lors de la mise à jour du paramètre TVA')
+        // Restaurer l'ancienne valeur en cas d'erreur
+        setLocalWithTax(!checked)
+        onWithTaxChange?.(!checked)
+      } finally {
+        setUpdatingWithTax(false)
+      }
+    }
+  }
+
   const totals = calculateTotals(localWorkforces)
   const isLoading = workforceTypesLoading || hourlyRatesLoading || paintTypesLoading
 
@@ -463,23 +512,32 @@ export function ShockWorkforceTableV2({
             )}
             {withTax !== undefined && (
               <div className="h-full">
-                <div className="h-full flex justify-between items-center space-y-2 p-3 bg-white rounded-lg border border-gray-200 w-full">
+                <div className="h-full flex justify-between items-center space-y-2 p-3 bg-white rounded-lg border border-gray-200 w-full relative">
+                  {updatingWithTax && (
+                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg z-10">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-green-600" />
+                        <span className="text-xs text-green-600">Mise à jour...</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 py-1 mt-2">
                     <Checkbox
-                      checked={withTax}
-                      onCheckedChange={(checked) => onWithTaxChange?.(checked as boolean)}
+                      checked={localWithTax}
+                      onCheckedChange={(checked) => handleWithTaxChange(checked as boolean)}
+                      disabled={updatingWithTax}
                       className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                     />
                     <span className="text-xs text-gray-600">
-                      {withTax ? 'Avec TVA (18%)' : 'Sans TVA'}
+                      {localWithTax ? 'Avec TVA (18%)' : 'Sans TVA'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 py-1 mt-2">
-                    <div className={`w-3 h-3 rounded-full ${withTax ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`w-3 h-3 rounded-full ${localWithTax ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                     <Label className="text-xs font-medium text-gray-700">Calcul TVA</Label>
                   </div>
 
-                  {withTax && (
+                  {localWithTax && (
                     <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
                       ✓ TVA incluse
                     </div>

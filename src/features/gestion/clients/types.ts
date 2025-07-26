@@ -47,5 +47,5 @@ export interface ClientApiResponse {
 export interface ClientFilters {
   search?: string
   page?: number
-  per_page?: number
+  // per_page?: number 
 } 
