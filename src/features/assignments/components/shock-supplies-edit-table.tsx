@@ -48,6 +48,11 @@ interface ShockWork {
   new_amount_tax?: number
   new_amount?: number
   discount_amount?: number
+  // Nouvelles propriétés de l'API
+  discount_amount_excluding_tax?: number
+  discount_amount_tax?: number
+  amount_excluding_tax?: number
+  amount_tax?: number
 }
 
 export function ShockSuppliesEditTable({
@@ -79,6 +84,7 @@ export function ShockSuppliesEditTable({
 
   // Mettre à jour les données locales quand les props changent
   useEffect(() => {
+    console.log('ShockSuppliesEditTable - shockWorks reçues:', shockWorks)
     setLocalShockWorks(shockWorks)
   }, [shockWorks])
 
@@ -290,9 +296,9 @@ export function ShockSuppliesEditTable({
               <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
                 Montant TTC
               </th>
-              <th className="border px-2 py-2 text-left font-medium text-[10px]">
+              {/* <th className="border px-2 py-2 text-left font-medium text-[10px]">
                 Commentaire
-              </th>
+              </th> */}
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
                 Actions
               </th>
@@ -376,8 +382,10 @@ export function ShockSuppliesEditTable({
                 </td>
                 {/* Remise Calculé */}
                 <td className="border px-2 py-2 text-center text-[10px]">
+
                   <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrency(row.amount - (row.obsolescence_amount_excluding_tax || 0) - (row.discount || 0))}
+                    {/* {formatCurrency(row.amount - (row?.discount_amount_excluding_tax || 0))} */}
+                    {formatCurrency((row.amount || 0) -(row.discount_amount_excluding_tax || 0) )}
                   </div>
                 </td>
                 {/* Vétuste (%) */}
@@ -405,7 +413,7 @@ export function ShockSuppliesEditTable({
                   </div>
                 </td>
                 {/* Commentaire */}
-                <td className="border px-2 py-2 text-[10px]">
+                {/* <td className="border px-2 py-2 text-[10px]">
                   <Input
                     type="text"
                     className="rounded w-20 p-1 border-none focus:border-none focus:ring-0"
@@ -413,7 +421,7 @@ export function ShockSuppliesEditTable({
                     placeholder="Commentaire..."
                     onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
                   />
-                </td>
+                </td> */}
                 {/* Actions */}
                 <td className="border px-2 py-2 text-center text-[10px]">
                   <div className="flex items-center justify-center gap-1">

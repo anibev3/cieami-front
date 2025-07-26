@@ -311,7 +311,7 @@ export function ShockSuppliesTable({
                 {!isEvaluation && (
                   <td className="border px-2 py-2 text-center text-xs">
                     <Checkbox 
-                      checked={row.obsolescence || false}
+                      checked={row.obsolescence}
                       onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
                     />
                   </td>

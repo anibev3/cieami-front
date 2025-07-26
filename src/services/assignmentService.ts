@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import axiosInstance from '@/lib/axios'
 import { 
@@ -21,7 +22,7 @@ class AssignmentService {
     const params = new URLSearchParams({
       page: page.toString(),
       ...(filters?.search && { search: filters.search }),
-      ...(filters?.status_code && { status_code: filters.status_code }),
+      // ...(filters?.status_code && { status_code: filters.status_code }),
       ...(filters?.client_id && { client_id: filters.client_id }),
       ...(filters?.expert_id && { expert_id: filters.expert_id }),
       ...(filters?.assignment_type_id && { assignment_type_id: filters.assignment_type_id }),
@@ -29,7 +30,8 @@ class AssignmentService {
       ...(filters?.date_to && { date_to: filters.date_to }),
     })
 
-    const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}?${params}`)
+    const statusParam = filters?.status_code ? `&status_id=${filters.status_code}` : '';
+    const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}?${params}${statusParam}`)
     return response.data
   }
 

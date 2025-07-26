@@ -22,6 +22,8 @@ export interface Assignment {
   assured_value: number | null
   salvage_value: number | null
   new_value: number | null
+  // Nouvelles propriétés de l'API
+  new_market_value?: string | null
   depreciation_rate: number | null
   market_value: number | null
   work_duration: number | null
@@ -39,11 +41,13 @@ export interface Assignment {
   total_amount_tax: string | null
   total_amount: string | null
   printed_at: string | null
-  emails: string | null
-  qr_codes: string | null
   expert_signature: string | null
   repairer_signature: string | null
   customer_signature: string | null
+  // Nouvelles propriétés de l'API
+  expert_signature_url?: string | null
+  repairer_signature_url?: string | null
+  customer_signature_url?: string | null
   edition_time_expire_at: string | null
   edition_status: string | null
   edition_per_cent: number | null
@@ -106,16 +110,61 @@ export interface Assignment {
   vehicle: {
     id: number
     license_plate: string
-    usage: string
-    type: string
-    option: string
-    mileage: string
+    usage?: string
+    type: string | null
+    option: string | null
+    mileage: string | null
     serial_number: string
     first_entry_into_circulation_date: string | null
     technical_visit_date: string | null
     fiscal_power: number
-    energy: string
+    energy?: string
     nb_seats: number
+    new_market_value?: string | null
+    brand?: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    vehicle_model?: {
+      id: number
+      code: string
+      label: string
+      description: string | null
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    color?: {
+      id: number
+      code: string
+      label: string
+      description: string | null
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    bodywork?: {
+      id: number
+      code: string
+      label: string
+      description: string
+      status?: {
+        id: number
+        code: string
+        label: string
+        description: string
+        deleted_at: string | null
+        created_at: string
+        updated_at: string
+      }
+      created_at: string
+      updated_at: string
+    } | null
     deleted_at: string | null
     created_at: string
     updated_at: string
@@ -154,12 +203,12 @@ export interface Assignment {
     created_at: string
     updated_at: string
   }
-  document_transmitted: {
+  document_transmitted: Array<{
     id: number
     code: string
     label: string
-    description: string
-    status: {
+    description?: string
+    status?: {
       id: number
       code: string
       label: string
@@ -168,9 +217,9 @@ export interface Assignment {
       created_at: string
       updated_at: string
     }
-    created_at: string
-    updated_at: string
-  }
+    created_at?: string
+    updated_at?: string
+  }>
   technical_conclusion: {
     id: number
     code: string
@@ -241,6 +290,7 @@ export interface Assignment {
   } | null
   shocks: Array<{
     id: number
+    with_tax: number
     obsolescence_amount_excluding_tax: string | null
     obsolescence_amount_tax: string | null
     obsolescence_amount: string | null
@@ -256,15 +306,62 @@ export interface Assignment {
     amount_excluding_tax: string
     amount_tax: string
     amount: string
+    shock_point: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    shock_works: Array<{
+      id: number
+      disassembly: boolean
+      replacement: boolean
+      repair: boolean
+      paint: boolean
+      obsolescence: boolean
+      control: boolean
+      comment: string | null
+      amount: string
+      obsolescence_rate: string
+      obsolescence_amount_excluding_tax: string
+      obsolescence_amount_tax: string
+      obsolescence_amount: string
+      recovery_amount_excluding_tax: string
+      recovery_amount_tax: string
+      recovery_amount: string
+      discount: string
+      discount_amount_excluding_tax: string
+      discount_amount_tax: string
+      discount_amount: string
+      new_amount_excluding_tax: string
+      new_amount_tax: string
+      new_amount: string
+      amount_excluding_tax: string | null
+      amount_tax: string | null
+      supply: {
+        id: number
+        label: string
+        description: string
+        deleted_at: string | null
+        created_at: string
+        updated_at: string
+      }
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }>
     workforces: Array<{
       id: number
       nb_hours: string
       work_fee: string
+      with_tax: number
       discount: string
       amount_excluding_tax: string
       amount_tax: string
       amount: string
-      workforce_type_label: string
       workforce_type: {
         id: number
         code: string
@@ -445,6 +542,7 @@ export interface Assignment {
   } | null
   expertise_sheet: string
   expertise_report: string
+  work_sheet: string | null
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -452,6 +550,71 @@ export interface Assignment {
   cancelled_at: string | null
   edited_at: string | null
   realized_at: string | null
+  // Nouvelles propriétés de l'API
+  instructions?: string | null
+  expert_work_sheet_remark?: string | null
+  expert_report_remark?: string | null
+  emails?: Array<{email: string}> | null
+  qr_codes?: string | null
+  evaluations?: {
+    vehicle_age: number
+    diff_year: number
+    diff_month: number
+    theorical_depreciation_rate: string
+    theorical_vehicle_market_value: number
+    market_incidence_rate: number | null
+    less_value_work: number
+    is_up: boolean
+    kilometric_incidence: number
+    market_incidence: number
+    vehicle_market_value: number
+  } | null
+  ascertainments?: Array<{
+    id: number
+    ascertainment_type_id: number
+    very_good: boolean
+    good: boolean
+    acceptable: boolean
+    less_good: boolean
+    bad: boolean
+    very_bad: boolean
+    comment: string | null
+    created_at: string
+    updated_at: string
+  }>
+  payments?: Array<{
+    id: number
+    amount: number
+    payment_method_id: number
+    payment_type_id: number
+    reference: string
+    description: string | null
+    created_at: string
+    updated_at: string
+  }>
+  invoices?: Array<{
+    id: number
+    amount: number
+    invoice_number: string
+    description: string | null
+    created_at: string
+    updated_at: string
+  }>
+  directed_by?: {
+    id: number
+    hash_id: string
+    email: string
+    username: string
+    name: string
+    last_name: string
+    first_name: string
+    telephone: string
+    photo_url: string
+    pending_verification: boolean
+    signature: string | null
+    created_at: string
+    updated_at: string
+  } | null
 }
 
 export interface Receipt {

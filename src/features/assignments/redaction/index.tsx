@@ -273,23 +273,26 @@ interface Assignment {
       replacement: boolean
       repair: boolean
       paint: boolean
+      obsolescence: boolean
       control: boolean
       comment: string | null
       obsolescence_rate: string
       obsolescence_amount_excluding_tax: string
       obsolescence_amount_tax: string
       obsolescence_amount: string
-      recovery_amoun: string
       recovery_amount_excluding_tax: string
       recovery_amount_tax: string
       recovery_amount: string
       discount: string
+      discount_amount_excluding_tax: string
+      discount_amount_tax: string
+      discount_amount: string
       new_amount_excluding_tax: string
       new_amount_tax: string
       new_amount: string
       amount_excluding_tax: string | null
       amount_tax: string | null
-      amount: string | null
+      amount: string
       supply: {
         id: number
         label: string
@@ -1619,7 +1622,11 @@ export default function EditReportPage() {
                                   new_amount_excluding_tax: Number(work.new_amount_excluding_tax) || 0,
                                   new_amount_tax: Number(work.new_amount_tax) || 0,
                                   new_amount: Number(work.new_amount) || 0,
-                                  discount_amount: Number(work.discount_amount) || 0
+                                  discount_amount: Number(work.discount_amount) || 0,
+                                  discount_amount_excluding_tax: Number(work.discount_amount_excluding_tax) || 0,
+                                  discount_amount_tax: Number(work.discount_amount_tax) || 0,
+                                  amount_excluding_tax: Number(work.amount_excluding_tax) || 0,
+                                  amount_tax: Number(work.amount_tax) || 0
                                 }))}
                                 onUpdate={async (index, updatedWork) => {
                                   try {

@@ -144,7 +144,7 @@ export const useAssignmentsEditionExpiredStore = create<AssignmentsStore>((set, 
       const currentFilters: AssignmentFilters = {
         ...filters,
         search: get().searchQuery,
-        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+        status_id: get().activeTab !== 'all' ? get().activeTab : undefined,
       }
       
       const response = await assignmentService.getAssignments(page, currentFilters)
