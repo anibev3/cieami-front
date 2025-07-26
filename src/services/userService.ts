@@ -44,12 +44,12 @@ class UserService {
     if (filters?.page) {
       params.append('page', filters.page.toString())
     }
-    if (filters?.per_page) {
-      params.append('per_page', filters.per_page.toString())
-    }
+    // if (filters?.per_page) {
+    //   params.append('per_page', filters.per_page.toString())
+    // }
 
     const response = await axiosInstance.get<UserResponse>(
-      `${this.baseUrl}?${params.toString()}`
+      `${this.baseUrl}?${params.toString()}&per_page=1000000`
     )
     return response.data
   }
