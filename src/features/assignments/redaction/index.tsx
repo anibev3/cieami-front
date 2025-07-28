@@ -267,6 +267,24 @@ interface Assignment {
       label: string
       description: string
     }
+    paint_type?: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    hourly_rate?: {
+      id: number
+      value: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
     shock_works: Array<{
       id: number
       disassembly: boolean
@@ -1773,15 +1791,14 @@ export default function EditReportPage() {
                                 }}
                                 onAssignmentRefresh={refreshAssignment}
                                 // Nouvelles props pour type de peinture et taux horaire
-                                paintTypeId={1} // Valeur par défaut, à adapter selon vos besoins
-                                hourlyRateId={1} // Valeur par défaut, à adapter selon vos besoins
+                                paintTypeId={shock.paint_type?.id}
+                                hourlyRateId={shock.hourly_rate?.id}
                                 onPaintTypeChange={async (value: number) => {
                                   try {
                                     // Mettre à jour le type de peinture pour ce shock
-                                    // Note: Cette fonctionnalité nécessite une implémentation côté API
-                                    // console.log('Type de peinture changé:', value, 'pour shock:', shock.id)
-                                    // toast.success('Type de peinture mis à jour')
-                                    // refreshAssignment()
+                                    // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
+                                    // qui gère déjà la mise à jour via l'API workforce
+                                    console.log('Type de peinture changé:', value, 'pour shock:', shock.id)
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du type de peinture')
                                   }
@@ -1789,10 +1806,9 @@ export default function EditReportPage() {
                                 onHourlyRateChange={async (value: number) => {
                                   try {
                                     // Mettre à jour le taux horaire pour ce shock
-                                    // Note: Cette fonctionnalité nécessite une implémentation côté API
+                                    // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
+                                    // qui gère déjà la mise à jour via l'API workforce
                                     console.log('Taux horaire changé:', value, 'pour shock:', shock.id)
-                                    toast.success('Taux horaire mis à jour')
-                                    refreshAssignment()
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du taux horaire')
                                   }

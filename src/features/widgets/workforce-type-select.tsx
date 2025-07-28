@@ -44,6 +44,7 @@ export function WorkforceTypeSelect({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
+            size="sm"
             role="combobox"
             aria-expanded={open}
             className={cn(
@@ -57,11 +58,11 @@ export function WorkforceTypeSelect({
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 <span className="truncate">{selectedWorkforceType?.label}</span>
-                {selectedWorkforceType?.code && (
+                {/* {selectedWorkforceType?.code && (
                   <Badge variant="secondary" className="text-xs">
                     {selectedWorkforceType.code}
                   </Badge>
-                )}
+                )} */}
               </div>
             ) : (
               <div className="flex items-center gap-2">

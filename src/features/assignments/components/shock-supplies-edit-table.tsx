@@ -348,7 +348,7 @@ export function ShockSuppliesEditTable({
               </th>
               {!isEvaluation && (
                 <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Vétusté
+                  Vét
                 </th>
               )}
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
@@ -399,28 +399,28 @@ export function ShockSuppliesEditTable({
                   />
                 </td>
                 {/* 'Ctrl' : 'D/p' */}
-                <td className="border px-2 py-2 text-center text-[10px]">
+                <td className="border text-center text-[10px]">
                   <Checkbox 
                     checked={isEvaluation ? row.control : row.disassembly} 
                     onCheckedChange={v => updateLocalShockWork(i, isEvaluation ? 'control' : 'disassembly', v)} 
                   />
                 </td>
                 {/* Remp */}
-                <td className="border px-2 py-2 text-center text-[10px]">
+                <td className="border text-center text-[10px]">
                   <Checkbox 
                     checked={row.replacement} 
                     onCheckedChange={v => updateLocalShockWork(i, 'replacement', v)} 
                   />
                 </td>
                 {/* Rep */}
-                <td className="border px-2 py-2 text-center text-[10px]">
+                <td className="border text-center text-[10px]">
                   <Checkbox 
                     checked={row.repair} 
                     onCheckedChange={v => updateLocalShockWork(i, 'repair', v)} 
                   />
                 </td>
                 {/* Peint */}
-                <td className="border px-2 py-2 text-center text-[10px]">
+                <td className="border text-center text-[10px]">
                   <Checkbox 
                     checked={row.paint} 
                     onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
@@ -428,7 +428,7 @@ export function ShockSuppliesEditTable({
                 </td>
                 {/* Vétusté */}
                 {!isEvaluation && (
-                  <td className="border px-2 py-2 text-center text-[10px]">
+                  <td className="border text-center text-[10px]">
                     <Checkbox 
                       checked={row.obsolescence} 
                       onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
@@ -439,13 +439,13 @@ export function ShockSuppliesEditTable({
                 <td className="border px-2 text-center text-[10px]">
                   <Input
                     type="number"
-                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0 w-30 text-[8px]"
                     value={row.amount}
                     onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
                   />
                 </td>
                 {/* Remise */}
-                <td className="border px-2 py-2 text-center text-[10px]">
+                <td className="border px-1 py-1 text-center text-[10px]">
                   <Input
                     type="number"
                     className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
@@ -475,11 +475,11 @@ export function ShockSuppliesEditTable({
                   {formatCurrency((row.amount || 0) - (row.obsolescence_amount_excluding_tax || 0))}
                 </td>
                 {/* Montant TTC */}
-                <td className="border px-2 py-2 text-center text-[10px] w-35">
+                <td className="border px-2 py-2 text-center text-[10px] w-20">
                   <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
                     <Input
                       type="number"
-                      className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+                      className="rounded p-1 text-center border-none focus:border-none focus:ring-0 w-20 text-[8px]"
                       value={row.new_amount}
                       onChange={e => updateLocalShockWork(i, 'new_amount', Number(e.target.value))}
                     />

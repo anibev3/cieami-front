@@ -52,6 +52,25 @@ interface Workforce {
     label: string
     description?: string
   }
+  // Nouvelles clés de l'API
+  paint_type?: {
+    id: number
+    code: string
+    label: string
+    description: string
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }
+  hourly_rate?: {
+    id: number
+    value: string
+    label: string
+    description: string
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }
 }
 
 interface ShockWorkforceTableV2Props {
@@ -100,6 +119,8 @@ export function ShockWorkforceTableV2({
   const [currentWorkforceIndex, setCurrentWorkforceIndex] = useState<number | null>(null)
   const [localWithTax, setLocalWithTax] = useState<boolean>(withTax)
   const [updatingWithTax, setUpdatingWithTax] = useState<boolean>(false)
+  const [updatingPaintType, setUpdatingPaintType] = useState<boolean>(false)
+  const [updatingHourlyRate, setUpdatingHourlyRate] = useState<boolean>(false)
 
   // Utiliser les stores ou les props externes
   const { workforceTypes: storeWorkforceTypes, loading: workforceTypesLoading, fetchWorkforceTypes } = useWorkforceTypesStore()
@@ -215,16 +236,24 @@ export function ShockWorkforceTableV2({
         workforce_type_id: getWorkforceTypeId(workforce).toString(),
         nb_hours: Number(workforce.nb_hours),
         discount: Number(workforce.discount),
-        hourly_rate_id: workforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
-        paint_type_id: workforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+        // hourly_rate_id: workforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
+        hourly_rate_id: hourlyRateId?.toString(),
+        // paint_type_id: workforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+        paint_type_id: paintTypeId?.toString(),
         with_tax: localWithTax
       }
 
       // Appel API pour mettre à jour
       await workforceService.updateWorkforce(workforce.id, updateData)
       
-      // Mettre à jour les données parent
-      onUpdate(localWorkforces)
+      // Mettre à jour les données parent avec les nouvelles propriétés
+      const updatedWorkforces = [...localWorkforces]
+      updatedWorkforces[index] = {
+        ...updatedWorkforces[index],
+        paint_type: workforce.paint_type,
+        hourly_rate: workforce.hourly_rate
+      }
+      onUpdate(updatedWorkforces)
       
       // Sauvegarder les valeurs originales
       setOriginalValues(prev => ({
@@ -249,6 +278,8 @@ export function ShockWorkforceTableV2({
         updateLocalWorkforce(index, 'workforce_type_id', original.workforce_type_id)
         updateLocalWorkforce(index, 'hourly_rate_id', original.hourly_rate_id)
         updateLocalWorkforce(index, 'paint_type_id', original.paint_type_id)
+        updateLocalWorkforce(index, 'paint_type', original.paint_type)
+        updateLocalWorkforce(index, 'hourly_rate', original.hourly_rate)
       }
     } finally {
       setUpdatingId(null)
@@ -267,8 +298,29 @@ export function ShockWorkforceTableV2({
       amount_excluding_tax: 0,
       amount_tax: 0,
       amount: 0,
-      hourly_rate_id: hourlyRates.length > 0 ? hourlyRates[0].id : 0,
-      paint_type_id: paintTypes.length > 0 ? paintTypes[0].id : 0
+      // hourly_rate_id: hourlyRates.length > 0 ? hourlyRates[0].id : 0,
+      hourly_rate_id: hourlyRateId?.toString(),
+      // paint_type_id: paintTypes.length > 0 ? paintTypes[0].id : 0,
+      paint_type_id: paintTypeId?.toString(),
+      // Initialiser les nouvelles propriétés
+      paint_type: paintTypes.length > 0 ? {
+        id: paintTypes[0].id,
+        code: paintTypes[0].label,
+        label: paintTypes[0].label,
+        description: paintTypes[0].label,
+        deleted_at: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } : undefined,
+      hourly_rate: hourlyRates.length > 0 ? {
+        id: hourlyRates[0].id,
+        value: hourlyRates[0].label,
+        label: hourlyRates[0].label,
+        description: hourlyRates[0].label,
+        deleted_at: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } : undefined
     }
     
     const updated = [...localWorkforces, newWorkforce]
@@ -292,7 +344,11 @@ export function ShockWorkforceTableV2({
             workforce_type_id: getWorkforceTypeId(workforce),
             nb_hours: Number(workforce.nb_hours),
             discount: Number(workforce.discount),
-            with_tax: localWithTax
+            with_tax: localWithTax,
+            // hourly_rate_id: workforce.hourly_rate_id,
+            hourly_rate_id: hourlyRateId?.toString(),
+            // paint_type_id: workforce.paint_type_id,
+            paint_type_id: paintTypeId?.toString()
           }
           
           await onAdd(workforceData)
@@ -381,8 +437,10 @@ export function ShockWorkforceTableV2({
         updateLocalWorkforce(index, 'nb_hours', original.nb_hours)
         updateLocalWorkforce(index, 'discount', original.discount)
         updateLocalWorkforce(index, 'workforce_type_id', original.workforce_type_id)
-        updateLocalWorkforce(index, 'hourly_rate_id', original.hourly_rate_id)
-        updateLocalWorkforce(index, 'paint_type_id', original.paint_type_id)
+        updateLocalWorkforce(index, 'hourly_rate_id', original.hourly_rate?.id)
+        updateLocalWorkforce(index, 'paint_type_id', original.paint_type?.id)
+        updateLocalWorkforce(index, 'paint_type', original.paint_type)
+        updateLocalWorkforce(index, 'hourly_rate', original.hourly_rate)
       }
     }
   }
@@ -396,16 +454,37 @@ export function ShockWorkforceTableV2({
   const handlePaintTypeChange = async (value: number) => {
     onPaintTypeChange?.(value)
     
+    // Mettre à jour toutes les workforces locales avec le nouveau paint_type
+    const selectedPaintType = paintTypes.find(pt => pt.id === value)
+    if (selectedPaintType) {
+      const updatedWorkforces = localWorkforces.map(workforce => ({
+        ...workforce,
+        paint_type_id: value,
+        paint_type: {
+          id: selectedPaintType.id,
+          code: selectedPaintType.label,
+          label: selectedPaintType.label,
+          description: selectedPaintType.label,
+          deleted_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      }))
+      setLocalWorkforces(updatedWorkforces)
+    }
+    
     // Si il y a des workforces avec un ID, mettre à jour via l'API
     const existingWorkforce = localWorkforces.find(w => w.id)
     if (existingWorkforce) {
+      setUpdatingPaintType(true)
       try {
         // Préparer les données pour l'API
         const updateData = {
           workforce_type_id: getWorkforceTypeId(existingWorkforce).toString(),
           nb_hours: Number(existingWorkforce.nb_hours),
           discount: Number(existingWorkforce.discount),
-          hourly_rate_id: existingWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
+          // hourly_rate_id: existingWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
+          hourly_rate_id: hourlyRateId?.toString(),
           paint_type_id: value.toString(),
           with_tax: localWithTax
         }
@@ -421,6 +500,8 @@ export function ShockWorkforceTableV2({
         }
       } catch (_error) {
         toast.error('Erreur lors de la mise à jour du type de peinture')
+      } finally {
+        setUpdatingPaintType(false)
       }
     }
   }
@@ -429,9 +510,30 @@ export function ShockWorkforceTableV2({
   const handleHourlyRateChange = async (value: number) => {
     onHourlyRateChange?.(value)
     
+    // Mettre à jour toutes les workforces locales avec le nouveau hourly_rate
+    const selectedHourlyRate = hourlyRates.find(hr => hr.id === value)
+    if (selectedHourlyRate) {
+      const updatedWorkforces = localWorkforces.map(workforce => ({
+        ...workforce,
+        hourly_rate_id: value,
+        work_fee: selectedHourlyRate.label, // Mettre à jour le work_fee avec la nouvelle valeur
+        hourly_rate: {
+          id: selectedHourlyRate.id,
+          value: selectedHourlyRate.label,
+          label: selectedHourlyRate.label,
+          description: selectedHourlyRate.label,
+          deleted_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      }))
+      setLocalWorkforces(updatedWorkforces)
+    }
+    
     // Si il y a des workforces avec un ID, mettre à jour via l'API
     const existingWorkforce = localWorkforces.find(w => w.id)
     if (existingWorkforce) {
+      setUpdatingHourlyRate(true)
       try {
         // Préparer les données pour l'API
         const updateData = {
@@ -439,7 +541,8 @@ export function ShockWorkforceTableV2({
           nb_hours: Number(existingWorkforce.nb_hours),
           discount: Number(existingWorkforce.discount),
           hourly_rate_id: value.toString(),
-          paint_type_id: existingWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+          // paint_type_id: existingWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+          paint_type_id: paintTypeId?.toString(),
           with_tax: localWithTax
         }
 
@@ -454,6 +557,8 @@ export function ShockWorkforceTableV2({
         }
       } catch (_error) {
         toast.error('Erreur lors de la mise à jour du taux horaire')
+      } finally {
+        setUpdatingHourlyRate(false)
       }
     }
   }
@@ -475,8 +580,10 @@ export function ShockWorkforceTableV2({
           workforce_type_id: getWorkforceTypeId(firstWorkforce).toString(),
           nb_hours: Number(firstWorkforce.nb_hours),
           discount: Number(firstWorkforce.discount),
-          hourly_rate_id: firstWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
-          paint_type_id: firstWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+          // hourly_rate_id: firstWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
+          hourly_rate_id: hourlyRateId?.toString(),
+          // paint_type_id: firstWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
+          paint_type_id: paintTypeId?.toString(),
           with_tax: checked
         }
 
@@ -537,13 +644,14 @@ export function ShockWorkforceTableV2({
         <div className="border rounded bg-gray-50 p-4 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {paintTypeId !== undefined && (
-              <div>
+              <div className="relative">
                 <Label className="text-xs font-medium mb-2">Type de peinture</Label>
                 <Select 
                   value={paintTypeId ? paintTypeId.toString() : ''} 
                   onValueChange={(value) => handlePaintTypeChange(Number(value))}
+                  disabled={updatingPaintType}
                 >
-                  <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''}`}>
+                  <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''} ${updatingPaintType ? 'opacity-50' : ''}`}>
                     <SelectValue placeholder={!paintTypeId ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
                   </SelectTrigger>
                   <SelectContent>
@@ -554,16 +662,25 @@ export function ShockWorkforceTableV2({
                     ))}
                   </SelectContent>
                 </Select>
+                {updatingPaintType && (
+                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg z-10">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      <span className="text-xs text-blue-600 font-medium">Mise à jour...</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {hourlyRateId !== undefined && (
-              <div>
+              <div className="relative">
                 <Label className="text-xs font-medium mb-2">Taux horaire</Label>
                 <Select 
                   value={hourlyRateId ? hourlyRateId.toString() : ''} 
                   onValueChange={(value) => handleHourlyRateChange(Number(value))}
+                  disabled={updatingHourlyRate}
                 >
-                  <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''}`}>
+                  <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''} ${updatingHourlyRate ? 'opacity-50' : ''}`}>
                     <SelectValue placeholder={!hourlyRateId ? "⚠️ Sélectionner un taux" : "Sélectionner..."} />
                   </SelectTrigger>
                   <SelectContent>
@@ -574,6 +691,14 @@ export function ShockWorkforceTableV2({
                     ))}
                   </SelectContent>
                 </Select>
+                {updatingHourlyRate && (
+                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg z-10">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                      <span className="text-xs text-purple-600 font-medium">Mise à jour...</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {withTax !== undefined && (

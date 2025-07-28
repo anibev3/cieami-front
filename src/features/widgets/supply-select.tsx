@@ -45,7 +45,7 @@ export function SupplySelect({
           <Button
             variant="outline"
             role="combobox"
-            size="sm"
+            size="xs"
             aria-expanded={open}
             className={cn(
               "w-full justify-between text-left",
@@ -56,16 +56,16 @@ export function SupplySelect({
           >
             {hasValue ? (
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-blue-500" />
-                <span className="font-medium">{selectedSupply?.label}</span>
-                {selectedSupply?.code && (
+                <Package className="h-3 w-3 text-blue-500" />
+                <span className="font-medium text-xs">{selectedSupply?.label}</span>
+                {/* {selectedSupply?.code && (
                   <Badge variant="secondary" className="text-xs">
                     #{selectedSupply.code}
                   </Badge>
-                )}
+                )} */}
               </div>
             ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
+              <span className="text-muted-foreground text-xs">{placeholder}</span>
             )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
