@@ -123,15 +123,15 @@ export function ViewVehicleDialog({ vehicle, open, onOpenChange }: ViewVehicleDi
                 <label className="text-sm font-medium text-muted-foreground">
                   Marque
                 </label>
-                <p className="text-sm">{vehicle.brand.label}</p>
-                <p className="text-xs text-muted-foreground">{vehicle.brand.description}</p>
+                <p className="text-sm">{vehicle?.brand?.label}</p>
+                <p className="text-xs text-muted-foreground">{vehicle?.brand?.description}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
                   Modèle
                 </label>
-                <p className="text-sm">{vehicle.vehicle_model.label}</p>
-                <p className="text-xs text-muted-foreground">{vehicle.vehicle_model.description}</p>
+                <p className="text-sm">{vehicle?.vehicle_model?.label}</p>
+                <p className="text-xs text-muted-foreground">{vehicle?.vehicle_model?.description}</p>
               </div>
             </div>
           </div>
@@ -144,17 +144,17 @@ export function ViewVehicleDialog({ vehicle, open, onOpenChange }: ViewVehicleDi
                 <label className="text-sm font-medium text-muted-foreground">
                   Couleur
                 </label>
-                <p className="text-sm">{vehicle.color.label}</p>
-                <p className="text-xs text-muted-foreground">{vehicle.color.description}</p>
+                <p className="text-sm">{vehicle?.color?.label}</p>
+                <p className="text-xs text-muted-foreground">{vehicle?.color?.description}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
                   Carrosserie
                 </label>
-                <p className="text-sm">{vehicle.bodywork.label}</p>
-                <p className="text-xs text-muted-foreground">{vehicle.bodywork.description}</p>
+                <p className="text-sm">{vehicle?.bodywork?.label}</p>
+                <p className="text-xs text-muted-foreground">{vehicle?.bodywork?.description}</p>
                 <Badge variant="outline" className="mt-1">
-                  {vehicle.bodywork.status.label}
+                  {vehicle?.bodywork?.status?.label}
                 </Badge>
               </div>
             </div>

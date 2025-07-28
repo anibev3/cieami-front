@@ -1,4 +1,4 @@
-  /* eslint-disable */
+/* eslint-disable */
 
 // @ts-nocheck
 
@@ -124,6 +124,7 @@ import { Route as AuthenticatedAdministrationConstatCreateIndexImport } from './
 import { Route as AuthenticatedComptabilitePaymentEditIdImport } from './routes/_authenticated/comptabilite/payment/edit.$id'
 import { Route as AuthenticatedComptabiliteInvoicesDetailsIdImport } from './routes/_authenticated/comptabilite/invoices/details/$id'
 import { Route as AuthenticatedComptabiliteCheckEditIdImport } from './routes/_authenticated/comptabilite/check/edit.$id'
+import { Route as AuthenticatedAdministrationVehicleIdEditImport } from './routes/_authenticated/administration/vehicle/$id.edit'
 import { Route as AuthenticatedAdministrationConstatDetailsIdImport } from './routes/_authenticated/administration/constat/details/$id'
 
 // Create/Update Routes
@@ -897,6 +898,13 @@ const AuthenticatedComptabiliteCheckEditIdRoute =
     id: '/check/edit/$id',
     path: '/check/edit/$id',
     getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedAdministrationVehicleIdEditRoute =
+  AuthenticatedAdministrationVehicleIdEditImport.update({
+    id: '/administration/vehicle/$id/edit',
+    path: '/administration/vehicle/$id/edit',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 const AuthenticatedAdministrationConstatDetailsIdRoute =
@@ -1680,6 +1688,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministrationConstatDetailsIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/administration/vehicle/$id/edit': {
+      id: '/_authenticated/administration/vehicle/$id/edit'
+      path: '/administration/vehicle/$id/edit'
+      fullPath: '/administration/vehicle/$id/edit'
+      preLoaderRoute: typeof AuthenticatedAdministrationVehicleIdEditImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/comptabilite/check/edit/$id': {
       id: '/_authenticated/comptabilite/check/edit/$id'
       path: '/check/edit/$id'
@@ -1873,6 +1888,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestionRemarqueIndexRoute: typeof AuthenticatedGestionRemarqueIndexRoute
   AuthenticatedGestionSinistreIndexRoute: typeof AuthenticatedGestionSinistreIndexRoute
   AuthenticatedAdministrationConstatDetailsIdRoute: typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  AuthenticatedAdministrationVehicleIdEditRoute: typeof AuthenticatedAdministrationVehicleIdEditRoute
   AuthenticatedAdministrationConstatCreateIndexRoute: typeof AuthenticatedAdministrationConstatCreateIndexRoute
 }
 
@@ -1995,6 +2011,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGestionSinistreIndexRoute,
   AuthenticatedAdministrationConstatDetailsIdRoute:
     AuthenticatedAdministrationConstatDetailsIdRoute,
+  AuthenticatedAdministrationVehicleIdEditRoute:
+    AuthenticatedAdministrationVehicleIdEditRoute,
   AuthenticatedAdministrationConstatCreateIndexRoute:
     AuthenticatedAdministrationConstatCreateIndexRoute,
 }
@@ -2155,6 +2173,7 @@ export interface FileRoutesByFullPath {
   '/gestion/remarque': typeof AuthenticatedGestionRemarqueIndexRoute
   '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  '/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
   '/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
   '/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
@@ -2267,6 +2286,7 @@ export interface FileRoutesByTo {
   '/gestion/remarque': typeof AuthenticatedGestionRemarqueIndexRoute
   '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  '/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
   '/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
   '/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
@@ -2385,6 +2405,7 @@ export interface FileRoutesById {
   '/_authenticated/gestion/remarque/': typeof AuthenticatedGestionRemarqueIndexRoute
   '/_authenticated/gestion/sinistre/': typeof AuthenticatedGestionSinistreIndexRoute
   '/_authenticated/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  '/_authenticated/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
   '/_authenticated/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
   '/_authenticated/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
   '/_authenticated/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
@@ -2503,6 +2524,7 @@ export interface FileRouteTypes {
     | '/gestion/remarque'
     | '/gestion/sinistre'
     | '/administration/constat/details/$id'
+    | '/administration/vehicle/$id/edit'
     | '/comptabilite/check/edit/$id'
     | '/comptabilite/invoices/details/$id'
     | '/comptabilite/payment/edit/$id'
@@ -2614,6 +2636,7 @@ export interface FileRouteTypes {
     | '/gestion/remarque'
     | '/gestion/sinistre'
     | '/administration/constat/details/$id'
+    | '/administration/vehicle/$id/edit'
     | '/comptabilite/check/edit/$id'
     | '/comptabilite/invoices/details/$id'
     | '/comptabilite/payment/edit/$id'
@@ -2730,6 +2753,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gestion/remarque/'
     | '/_authenticated/gestion/sinistre/'
     | '/_authenticated/administration/constat/details/$id'
+    | '/_authenticated/administration/vehicle/$id/edit'
     | '/_authenticated/comptabilite/check/edit/$id'
     | '/_authenticated/comptabilite/invoices/details/$id'
     | '/_authenticated/comptabilite/payment/edit/$id'
@@ -2866,6 +2890,7 @@ export const routeTree = rootRoute
         "/_authenticated/gestion/remarque/",
         "/_authenticated/gestion/sinistre/",
         "/_authenticated/administration/constat/details/$id",
+        "/_authenticated/administration/vehicle/$id/edit",
         "/_authenticated/administration/constat/create/"
       ]
     },
@@ -3331,6 +3356,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/administration/constat/details/$id": {
       "filePath": "_authenticated/administration/constat/details/$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/administration/vehicle/$id/edit": {
+      "filePath": "_authenticated/administration/vehicle/$id.edit.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/comptabilite/check/edit/$id": {

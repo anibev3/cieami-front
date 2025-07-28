@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import {
   flexRender,
   getCoreRowModel,
@@ -18,6 +19,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
 import { Vehicle } from '@/types/vehicles'
 import { createColumns } from '../columns'
 import { VehicleMutateDialog } from './vehicle-mutate-dialog'
@@ -27,16 +30,22 @@ import { useVehiclesStore } from '@/stores/vehicles'
 import { toast } from 'sonner'
 
 export function DataTable() {
+  const navigate = useNavigate()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
   
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   
   const { vehicles, loading, deleteVehicle } = useVehiclesStore()
+
+  const handleCreate = () => {
+    setSelectedVehicle(null)
+    setIsCreateDialogOpen(true)
+  }
 
   const handleView = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle)
@@ -44,8 +53,9 @@ export function DataTable() {
   }
 
   const handleEdit = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle)
-    setIsEditDialogOpen(true)
+    // eslint-disable-next-line no-console
+    console.log('handleEdit called with vehicle:', vehicle)
+    navigate({ to: `/administration/vehicle/${vehicle.id}/edit` })
   }
 
   const handleDelete = (vehicle: Vehicle) => {
@@ -71,6 +81,11 @@ export function DataTable() {
     onEdit: handleEdit,
     onDelete: handleDelete,
   })
+
+  // eslint-disable-next-line no-console
+  console.log('DataTable - vehicles count:', vehicles.length)
+  // eslint-disable-next-line no-console
+  console.log('DataTable - selectedVehicle:', selectedVehicle)
 
   const table = useReactTable({
     data: vehicles,
@@ -98,13 +113,17 @@ export function DataTable() {
 
   return (
     <>
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Rechercher..."
           value={globalFilter ?? ''}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
+        <Button onClick={handleCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nouveau véhicule
+        </Button>
       </div>
       
       <div className="rounded-md border">
@@ -153,17 +172,20 @@ export function DataTable() {
       </div>
 
       {/* Dialogs */}
+      <VehicleMutateDialog
+        key="create-dialog"
+        id={null}
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
+      
       <ViewVehicleDialog
         vehicle={selectedVehicle}
         open={isViewDialogOpen}
         onOpenChange={setIsViewDialogOpen}
       />
       
-      <VehicleMutateDialog
-        id={selectedVehicle?.id || null}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-      />
+
       
       <DeleteVehicleDialog
         vehicle={selectedVehicle}

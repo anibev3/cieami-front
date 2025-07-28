@@ -30,6 +30,24 @@ export interface Vehicle {
     created_at: string
     updated_at: string
   }
+  vehicle_genre: {
+    id: number
+    code: string
+    label: string
+    description: string
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }
+  vehicle_energy: {
+    id: number
+    code: string
+    label: string
+    description: string
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }
   color: {
     id: number
     code: string

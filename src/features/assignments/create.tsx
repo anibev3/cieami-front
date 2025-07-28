@@ -155,7 +155,7 @@ const assignmentSchema = z.object({
   repairer_id: z.string().optional(),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
-  document_transmitted_id: z.array(z.string()).min(1, 'Au moins un document transmis est requis'),
+  document_transmitted_id: z.array(z.string()).optional(),
   policy_number: z.string().optional(),
   claim_number: z.string().optional(),
   claim_starts_at: z.string().optional(),
@@ -466,9 +466,9 @@ export default function CreateAssignmentPage() {
       const values = form.getValues()
       const hasAssignmentType = values.assignment_type_id && values.assignment_type_id.toString().length > 0
       const hasExpertiseType = values.expertise_type_id && values.expertise_type_id.toString().length > 0
-      const hasDocuments = values.document_transmitted_id && values.document_transmitted_id.length > 0
+      // Les documents sont maintenant optionnels
       
-      return hasAssignmentType && hasExpertiseType && hasDocuments
+      return hasAssignmentType && hasExpertiseType
     },
     3: () => {
       const values = form.getValues()
@@ -645,7 +645,7 @@ export default function CreateAssignmentPage() {
         repairer_id: values.repairer_id ? parseInt(values.repairer_id) : null,
         assignment_type_id: parseInt(values.assignment_type_id),
         expertise_type_id: parseInt(values.expertise_type_id),
-        document_transmitted_id: values.document_transmitted_id.map(id => parseInt(id)),
+        document_transmitted_id: values.document_transmitted_id?.map(id => parseInt(id)) || [],
         policy_number: values.policy_number || null,
         claim_number: values.claim_number || null,
         claim_starts_at: values.claim_starts_at || null,
@@ -963,7 +963,7 @@ export default function CreateAssignmentPage() {
                       const isCompleted = section.id === 1 ? 
                         (form.watch('client_id') && form.watch('vehicle_id')) :
                         section.id === 2 ?
-                        (form.watch('assignment_type_id') && form.watch('expertise_type_id') && form.watch('document_transmitted_id')?.length > 0) :
+                        (form.watch('assignment_type_id') && form.watch('expertise_type_id')) :
                         section.id === 3 ?
                         (form.watch('received_at')) :
                         true
@@ -1519,7 +1519,7 @@ export default function CreateAssignmentPage() {
                           Documents transmis
                         </h3>  */}
                         <div className="flex items-center gap-2 justify-between">
-                                                        <FormLabel>Documents transmis <span className="text-red-500">*</span></FormLabel>
+                                                        <FormLabel>Documents transmis</FormLabel>
                           <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateDocumentModal(true)} className="shrink-0 w-6 h-6">
                             <Plus className="h-4 w-4" />
                           </Button>

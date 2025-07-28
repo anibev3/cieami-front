@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-import { VehicleCreate, VehicleUpdate } from '@/types/vehicles'
+import { VehicleUpdate } from '@/types/vehicles'
 import { VehicleModel } from '@/types/vehicle-models'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useVehiclesStore } from '@/stores/vehicles'
@@ -39,7 +39,7 @@ import { Label } from '@/components/ui/label'
 import { ColorSelect } from '@/features/widgets/color-select'
 import { BodyworkSelect } from '@/features/widgets/bodywork-select'
 
-const vehicleSchema = z.object({
+const vehicleEditSchema = z.object({
   license_plate: z.string().min(1, 'La plaque d\'immatriculation est requise'),
   usage: z.string().optional(),
   type: z.string().optional(),
@@ -54,32 +54,30 @@ const vehicleSchema = z.object({
   new_market_value: z.number().optional(),
   payload: z.number().optional(),
   vehicle_model_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  color_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  vehicle_genre_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  vehicle_energy_id: z.string().min(1, 'Le modèle de véhicule est requis'),
+  color_id: z.string().min(1, 'La couleur est requise'),
+  vehicle_genre_id: z.string().min(1, 'Le genre de véhicule est requis'),
+  vehicle_energy_id: z.string().min(1, 'L\'énergie est requise'),
 })
 
-type VehicleFormData = z.infer<typeof vehicleSchema>
+type VehicleEditFormData = z.infer<typeof vehicleEditSchema>
 
-interface VehicleMutateDialogProps {
+interface VehicleEditDialogProps {
   id: number | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-// Types pour les modèles et couleurs (non utilisés, supprimés)
-
-export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDialogProps) {
+export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogProps) {
   // eslint-disable-next-line no-console
-  console.log('VehicleMutateDialog rendered with:', { id, open })
+  console.log('VehicleEditDialog rendered with:', { id, open })
+  
   const [loading, setLoading] = useState(false)
   const [selectedBrandId, setSelectedBrandId] = useState<string>('')
-  const { createVehicle, updateVehicle, currentVehicle, fetchVehicle, setCurrentVehicle } = useVehiclesStore()
+  const { updateVehicle, currentVehicle, fetchVehicle, setCurrentVehicle } = useVehiclesStore()
   const { fetchBrands } = useBrandsStore()
   const { colors, fetchColors } = useColorsStore()
   const { bodyworks, fetchBodyworks } = useBodyworksStore()
   const [showCreateBrandModal, setShowCreateBrandModal] = useState(false)
-  // Ajout de l'état pour la modal de création de modèle de véhicule
   const [showCreateVehicleModelModal, setShowCreateVehicleModelModal] = useState(false)
   const [showCreateColorModal, setShowCreateColorModal] = useState(false)
   const [showCreateBodyworkModal, setShowCreateBodyworkModal] = useState(false)
@@ -89,8 +87,8 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
   const { createBodywork, loading: loadingBodyworks } = useBodyworksStore()
   const { createBrand, brands, loading: loadingBrands } = useBrandsStore()
 
-  const form = useForm<VehicleFormData>({
-    resolver: zodResolver(vehicleSchema),
+  const form = useForm<VehicleEditFormData>({
+    resolver: zodResolver(vehicleEditSchema),
     defaultValues: {
       license_plate: '',
       usage: '',
@@ -137,14 +135,14 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
     description: '',
   })
 
-  const isEditing = !!id
-
   // Charger les données pour l'édition
   useEffect(() => {
-    if (id && open) {
+    if (id && open && (!currentVehicle || currentVehicle.id !== id)) {
+      // eslint-disable-next-line no-console
+      console.log('Fetching vehicle with id:', id)
       fetchVehicle(id)
     }
-  }, [id, open, fetchVehicle])
+  }, [id, open, currentVehicle]) // Retirer fetchVehicle des dépendances
 
   // Charger les données de référence
   useEffect(() => {
@@ -153,20 +151,25 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
       fetchColors()
       fetchBodyworks()
     }
-  }, [open, fetchBrands, fetchColors, fetchBodyworks])
+  }, [open]) // Retirer les fonctions des dépendances
 
   // Réinitialiser le modèle quand la marque change et charger les modèles
   useEffect(() => {
     if (selectedBrandId !== '') {
+      // eslint-disable-next-line no-console
+      console.log('Loading vehicle models for brand:', selectedBrandId)
       form.setValue('vehicle_model_id', '')
       // Charger les modèles pour la marque sélectionnée
       fetchVehicleModels(1, { brand_id: selectedBrandId })
     }
-  }, [selectedBrandId, form, fetchVehicleModels])
+  }, [selectedBrandId]) // Retirer form et fetchVehicleModels des dépendances
 
   // Mettre à jour le formulaire avec les données du véhicule
   useEffect(() => {
-    if (currentVehicle && isEditing) {
+    if (currentVehicle && id && currentVehicle.id === id) {
+      // eslint-disable-next-line no-console
+      console.log('Setting form data with vehicle:', currentVehicle)
+      
       // Mettre à jour la marque sélectionnée pour charger les modèles
       if (currentVehicle.brand) {
         setSelectedBrandId(currentVehicle.brand.id.toString())
@@ -192,14 +195,15 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
         vehicle_energy_id: currentVehicle?.vehicle_energy?.id.toString() || '',
       })
     }
-  }, [currentVehicle, isEditing, form])
+  }, [currentVehicle, id, form])
 
-  const onSubmit = async (data: VehicleFormData) => {
+  const onSubmit = async (data: VehicleEditFormData) => {
+    // eslint-disable-next-line no-console
     console.log('onSubmit called with data:', data)
     setLoading(true)
     
     try {
-      if (isEditing && id) {
+      if (id) {
         const updateData: VehicleUpdate = {
           license_plate: data.license_plate,
           usage: data.usage || undefined,
@@ -219,37 +223,16 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
           vehicle_genre_id: data.vehicle_genre_id || undefined,
           vehicle_energy_id: data.vehicle_energy_id || undefined,
         }
+        // eslint-disable-next-line no-console
         console.log('Updating vehicle with data:', updateData)
         await updateVehicle(id, updateData)
         toast.success('Véhicule mis à jour avec succès')
-      } else {
-        const createData: VehicleCreate = {
-          license_plate: data.license_plate,
-          usage: data.usage || undefined,
-          type: data.type || '',
-          option: data.option || '',
-          bodywork_id: data.bodywork_id || '',
-          mileage: data.mileage || '',
-          serial_number: data.serial_number || '',
-          first_entry_into_circulation_date: data.first_entry_into_circulation_date || undefined,
-          technical_visit_date: data.technical_visit_date || undefined,
-          fiscal_power: Number(data.fiscal_power),
-          nb_seats: Number(data.nb_seats),
-          new_market_value: Number(data.new_market_value),
-          payload: Number(data.payload),
-          vehicle_model_id: data.vehicle_model_id,
-          color_id: data.color_id,
-          vehicle_genre_id: data.vehicle_genre_id || undefined,
-          vehicle_energy_id: data.vehicle_energy_id || undefined,
-        }
-        console.log('Creating vehicle with data:', createData)
-        await createVehicle(createData)
-        toast.success('Véhicule créé avec succès')
       }
       
       onOpenChange(false)
       form.reset()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error in onSubmit:', error)
       // Error handled by store
     } finally {
@@ -353,23 +336,21 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
     setCurrentVehicle(null)
   }
 
+  if (!id) return null
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Modifier le véhicule' : 'Créer un véhicule'}
-          </DialogTitle>
+          <DialogTitle>Modifier le véhicule</DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? 'Modifiez les informations du véhicule ci-dessous.'
-              : 'Remplissez les informations pour créer un nouveau véhicule.'
-            }
+            Modifiez les informations du véhicule ci-dessous.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            // eslint-disable-next-line no-console
             console.log('Form validation errors:', errors)
           })} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -386,20 +367,6 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                   </FormItem>
                 )}
               />
-
-              {/* <FormField
-                control={form.control}
-                name="usage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Usage</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
 
               <FormField
                 control={form.control}
@@ -555,7 +522,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                   </FormItem>
                 )}
               />
-              <FormField
+                            <FormField
                 control={form.control}
                 name="technical_visit_date"
                 render={({ field }) => (
@@ -670,12 +637,13 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 Annuler
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? 'Enregistrement...' : isEditing ? 'Mettre à jour' : 'Créer'}
+                {loading ? 'Enregistrement...' : 'Mettre à jour'}
               </Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
+      
       {/* Modal de création rapide de marque */}
       <Dialog open={showCreateBrandModal} onOpenChange={setShowCreateBrandModal}>
         <DialogContent className="sm:max-w-[425px]">
@@ -856,8 +824,5 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
         </DialogContent>
       </Dialog>
     </Dialog>
-    
-
-      
   )
 } 

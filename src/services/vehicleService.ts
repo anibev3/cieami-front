@@ -24,27 +24,30 @@ class VehicleService {
    * Récupérer un véhicule par son ID
    */
   async getVehicle(id: number): Promise<Vehicle> {
-    const response = await axiosInstance.get<Vehicle>(`${API_CONFIG.ENDPOINTS.VEHICLES}/${id}`)
-    return response.data
+    const response = await axiosInstance.get<{ status: number; message: string | null; data: Vehicle }>(`${API_CONFIG.ENDPOINTS.VEHICLES}/${id}`)
+    return response.data.data
   }
 
   /**
    * Créer un nouveau véhicule
    */
   async createVehicle(vehicleData: VehicleCreate): Promise<Vehicle> {
+    // eslint-disable-next-line no-console
     console.log('vehicleService.createVehicle called with:', vehicleData)
+    // eslint-disable-next-line no-console
     console.log('API endpoint:', API_CONFIG.ENDPOINTS.VEHICLES)
-    const response = await axiosInstance.post<Vehicle>(API_CONFIG.ENDPOINTS.VEHICLES, vehicleData)
+    const response = await axiosInstance.post<{ status: number; message: string | null; data: Vehicle }>(API_CONFIG.ENDPOINTS.VEHICLES, vehicleData)
+    // eslint-disable-next-line no-console
     console.log('API response:', response.data)
-    return response.data
+    return response.data.data
   }
 
   /**
    * Mettre à jour un véhicule
    */
   async updateVehicle(id: number, vehicleData: VehicleUpdate): Promise<Vehicle> {
-    const response = await axiosInstance.put<Vehicle>(`${API_CONFIG.ENDPOINTS.VEHICLES}/${id}`, vehicleData)
-    return response.data
+    const response = await axiosInstance.put<{ status: number; message: string | null; data: Vehicle }>(`${API_CONFIG.ENDPOINTS.VEHICLES}/${id}`, vehicleData)
+    return response.data.data
   }
 
   /**
