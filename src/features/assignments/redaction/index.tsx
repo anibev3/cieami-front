@@ -1779,9 +1779,9 @@ export default function EditReportPage() {
                                   try {
                                     // Mettre à jour le type de peinture pour ce shock
                                     // Note: Cette fonctionnalité nécessite une implémentation côté API
-                                    console.log('Type de peinture changé:', value, 'pour shock:', shock.id)
-                                    toast.success('Type de peinture mis à jour')
-                                    refreshAssignment()
+                                    // console.log('Type de peinture changé:', value, 'pour shock:', shock.id)
+                                    // toast.success('Type de peinture mis à jour')
+                                    // refreshAssignment()
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du type de peinture')
                                   }

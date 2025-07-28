@@ -31,7 +31,7 @@ export function UserSelect({
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const { users, loading, fetchUsers } = useUsersStore()
-  
+
   // Debounce la recherche pour éviter trop d'appels API
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 

@@ -12,4 +12,11 @@ export function formatCurrencyWithoutSymbol(amount: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)
+}
+
+export function formatCurrencyWithoutCurrencySymbol(amount: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(amount)
 } 

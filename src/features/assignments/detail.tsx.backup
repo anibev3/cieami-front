@@ -1425,17 +1425,204 @@ export default function AssignmentDetailPage() {
 
       case 'shocks':
         return (
-              <div className="space-y-6">
-                <ShockDetailTable shocks={assignment.shocks} />
+          <div className="space-y-4">
+            {assignment.shocks && assignment.shocks.length > 0 ? (
+              assignment.shocks.map((shock, index) => (
+              <Card key={shock.id} className="shadow-none">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-sm">
+                    <span>Choc #{index + 1} - {shock.shock_point.label}</span>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Total choc (TTC)</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.amount)}</p>
+                      </div>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Résumé des montants du choc */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                      <div>
+                        <p className="font-medium text-muted-foreground">Main d'œuvre (HT)</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount_excluding_tax)}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground">Main d'œuvre (TVA)</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount_tax)}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground">Main d'œuvre (TTC)</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount)}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground">Total (TTC)</p>
+                        <p className="text-sm font-semibold">{formatCurrency(shock.amount)}</p>
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    {/* Détail des travaux (shock_works) */}
+                    {shock.shock_works && shock.shock_works.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3 text-sm">Détail des fournitures</h4>
+                        <div className="space-y-3">
+                          {shock.shock_works.map((work) => (
+                            <div key={work.id} className="border rounded-lg p-3 bg-muted/30">
+                              <div className="flex items-center justify-between mb-2">
+                                <div>
+                                  <p className="font-medium text-sm">{work.supply.label}</p>
+                                  <p className="text-xs text-muted-foreground">{work.supply.description}</p>
+                                </div>
+                                <Badge variant="outline" className="text-xs">
+                                  {work.replacement ? 'Remplacement' : work.repair ? 'Réparation' : 'Démontage'}
+                                </Badge>
+                              </div>
+                              
+                              {/* Types de travaux */}
+                              <div className="flex flex-wrap gap-1 mb-3">
+                                {work.disassembly && <Badge variant="secondary" className="text-xs">Démontage</Badge>}
+                                {work.replacement && <Badge variant="secondary" className="text-xs">Remplacement</Badge>}
+                                {work.repair && <Badge variant="secondary" className="text-xs">Réparation</Badge>}
+                                {work.paint && <Badge variant="secondary" className="text-xs">Peinture</Badge>}
+                                {work.control && <Badge variant="secondary" className="text-xs">Contrôle</Badge>}
+                              </div>
 
-                {assignment.shocks.some(shock => shock.workforces && shock.workforces.length > 0) && (
-                  <WorkforceDetailTable 
-                    workforces={assignment.shocks.flatMap(shock => shock.workforces || [])} 
-                  />
-                )}
+                              {/* Montants détaillés */}
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Vetusté (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.obsolescence_amount_excluding_tax)}</p>
+                                  <p className="text-xs text-muted-foreground">Taux: {work.obsolescence_rate}%</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Vetusté (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.obsolescence_amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Vetusté (TTC)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.obsolescence_amount)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Récupération (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.recovery_amount_excluding_tax)}</p>
+                                  <p className="text-xs text-muted-foreground">Taux: {work.recovery_amoun}%</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Récupération (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.recovery_amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Récupération (TTC)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.recovery_amount)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Neuf (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.new_amount_excluding_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Neuf (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.new_amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Neuf (TTC)</p>
+                                  <p className="text-sm font-semibold text-primary">{formatCurrency(work.new_amount)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Total (HT)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.amount_excluding_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Total (TVA)</p>
+                                  <p className="text-sm font-semibold">{formatCurrency(work.amount_tax)}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-muted-foreground">Total (TTC)</p>
+                                  <p className="text-sm font-semibold text-primary">{formatCurrency(work.amount)}</p>
+                                </div>
+                              </div>
+
+                              {/* Commentaire */}
+                              {work.comment && (
+                                <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950 rounded text-xs">
+                                  <p className="font-medium text-blue-700 dark:text-blue-300">Commentaire:</p>
+                                  <p className="text-blue-600 dark:text-blue-400">{work.comment}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <Separator />
+                    
+                    {/* Détail des travaux (workforces) */}
+                    {shock.workforces && shock.workforces.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-2 text-sm">Détail des travaux</h4>
+                        <div className="space-y-2">
+                          {shock.workforces.map((workforce) => (
+                            <div key={workforce.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                {workforce.workforce_type.code === 'paint' && <Palette className="h-3 w-3" />}
+                                {workforce.workforce_type.code === 'electricity' && <Zap className="h-3 w-3" />}
+                                {workforce.workforce_type.code === 'metalworking' && <Hammer className="h-3 w-3" />}
+                                {workforce.workforce_type.code === 'saddlery' && <Wrench className="h-3 w-3" />}
+                                <div>
+                                  <p className="font-medium text-xs">{workforce.workforce_type.label}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {workforce.nb_hours}h × {formatCurrency(workforce.work_fee)}/h
+                                    {parseFloat(workforce.discount) > 0 && ` (-${workforce.discount}%)`}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-semibold">{formatCurrency(workforce.amount)}</p>
+                                <p className="text-xs text-muted-foreground">HT: {formatCurrency(workforce.amount_excluding_tax)} | TVA: {formatCurrency(workforce.amount_tax)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Résumé final du choc */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-3 rounded-lg">
+                      <h5 className="font-semibold text-sm mb-2">Résumé du choc #{index + 1}</h5>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Total fournitures</p>
+                          <p className="text-sm font-semibold">{formatCurrency(shock.amount_excluding_tax)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Total main d'œuvre</p>
+                          <p className="text-sm font-semibold">{formatCurrency(shock.workforce_amount)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">TVA</p>
+                          <p className="text-sm font-semibold">{formatCurrency(shock.amount_tax)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Total TTC</p>
+                          <p className="text-sm font-semibold text-primary">{formatCurrency(shock.amount)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Lightning className="h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Aucun choc enregistré</h3>
+                <p className="text-muted-foreground text-sm">Aucun choc n'a été identifié pour ce dossier d'expertise.</p>
               </div>
-
-          
+            )}
+          </div>
         )
 
       case 'costs':
@@ -1461,15 +1648,47 @@ export default function AssignmentDetailPage() {
                       </div>
                     ))}
                   </div>
-                  ) : (
+                                  ) : (
                     <p className="text-muted-foreground text-center py-6 text-sm">Aucun autre coût enregistré</p>
                   )}
                 </CardContent>
               </Card>
 
+              {/* Section des chocs et autres éléments en lecture seule */}
+              <div className="space-y-6">
+                {/* Points de choc */}
+                <ShockDetailTable shocks={assignment.shocks} />
 
-              
-           
+                {/* Main d'œuvre */}
+                {assignment.shocks.some(shock => shock.workforces && shock.workforces.length > 0) && (
+                  <WorkforceDetailTable 
+                    workforces={assignment.shocks.flatMap(shock => shock.workforces || [])} 
+                  />
+                )}
+
+                {/* Recettes */}
+                {assignment.receipts && assignment.receipts.length > 0 && (
+                  <ReceiptDetailTable receipts={assignment.receipts} />
+                )}
+
+                {/* Résumé financier */}
+                <FinancialSummary
+                  shockAmountExcludingTax={assignment.shock_amount_excluding_tax || "0"}
+                  shockAmountTax={assignment.shock_amount_tax || "0"}
+                  shockAmount={assignment.shock_amount || "0"}
+                  otherCostAmountExcludingTax={assignment.other_cost_amount_excluding_tax || "0"}
+                  otherCostAmountTax={assignment.other_cost_amount_tax || "0"}
+                  otherCostAmount={assignment.other_cost_amount || "0"}
+                  receiptAmountExcludingTax={assignment.receipt_amount_excluding_tax || "0"}
+                  receiptAmountTax={assignment.receipt_amount_tax || "0"}
+                  receiptAmount={assignment.receipt_amount || "0"}
+                  totalAmountExcludingTax={assignment.total_amount_excluding_tax || "0"}
+                  totalAmountTax={assignment.total_amount_tax || "0"}
+                  totalAmount={assignment.total_amount || "0"}
+                />
+              </div>
+              </CardContent>
+            </Card>
           </div>
         )
 

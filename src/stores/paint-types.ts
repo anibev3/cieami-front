@@ -117,6 +117,7 @@ export const usePaintTypesStore = create<PaintTypesState & PaintTypesActions>((s
       await get().fetchPaintTypeById(id)
       
       set({ loading: false })
+      
       toast.success('Type de peinture mis à jour avec succès')
       return true
     } catch (_error) {

@@ -119,6 +119,7 @@ import { Route as AuthenticatedAssignmentsDetailsIdImport } from './routes/_auth
 import { Route as AuthenticatedAdministrationVehiculeGenreImport } from './routes/_authenticated/administration/vehicule/genre'
 import { Route as AuthenticatedAdministrationVehiculeEnergieImport } from './routes/_authenticated/administration/vehicule/energie'
 import { Route as AuthenticatedAdministrationVehiculeAgeImport } from './routes/_authenticated/administration/vehicule/age'
+import { Route as AuthenticatedAdministrationVehicleCreateImport } from './routes/_authenticated/administration/vehicle/create'
 import { Route as AuthenticatedAdministrationConstatTypeImport } from './routes/_authenticated/administration/constat/type'
 import { Route as AuthenticatedAdministrationConstatCreateIndexImport } from './routes/_authenticated/administration/constat/create/index'
 import { Route as AuthenticatedComptabilitePaymentEditIdImport } from './routes/_authenticated/comptabilite/payment/edit.$id'
@@ -865,6 +866,13 @@ const AuthenticatedAdministrationVehiculeAgeRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedAdministrationVehicleCreateRoute =
+  AuthenticatedAdministrationVehicleCreateImport.update({
+    id: '/administration/vehicle/create',
+    path: '/administration/vehicle/create',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedAdministrationConstatTypeRoute =
   AuthenticatedAdministrationConstatTypeImport.update({
     id: '/administration/constat/type',
@@ -1492,6 +1500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministrationConstatTypeImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/administration/vehicle/create': {
+      id: '/_authenticated/administration/vehicle/create'
+      path: '/administration/vehicle/create'
+      fullPath: '/administration/vehicle/create'
+      preLoaderRoute: typeof AuthenticatedAdministrationVehicleCreateImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/administration/vehicule/age': {
       id: '/_authenticated/administration/vehicule/age'
       path: '/administration/vehicule/age'
@@ -1868,6 +1883,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedAdministrationConstatTypeRoute: typeof AuthenticatedAdministrationConstatTypeRoute
+  AuthenticatedAdministrationVehicleCreateRoute: typeof AuthenticatedAdministrationVehicleCreateRoute
   AuthenticatedAdministrationVehiculeAgeRoute: typeof AuthenticatedAdministrationVehiculeAgeRoute
   AuthenticatedAdministrationVehiculeEnergieRoute: typeof AuthenticatedAdministrationVehiculeEnergieRoute
   AuthenticatedAdministrationVehiculeGenreRoute: typeof AuthenticatedAdministrationVehiculeGenreRoute
@@ -1973,6 +1989,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedAdministrationConstatTypeRoute:
     AuthenticatedAdministrationConstatTypeRoute,
+  AuthenticatedAdministrationVehicleCreateRoute:
+    AuthenticatedAdministrationVehicleCreateRoute,
   AuthenticatedAdministrationVehiculeAgeRoute:
     AuthenticatedAdministrationVehiculeAgeRoute,
   AuthenticatedAdministrationVehiculeEnergieRoute:
@@ -2145,6 +2163,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
+  '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
   '/administration/vehicule/age': typeof AuthenticatedAdministrationVehiculeAgeRoute
   '/administration/vehicule/energie': typeof AuthenticatedAdministrationVehiculeEnergieRoute
   '/administration/vehicule/genre': typeof AuthenticatedAdministrationVehiculeGenreRoute
@@ -2258,6 +2277,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
+  '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
   '/administration/vehicule/age': typeof AuthenticatedAdministrationVehiculeAgeRoute
   '/administration/vehicule/energie': typeof AuthenticatedAdministrationVehiculeEnergieRoute
   '/administration/vehicule/genre': typeof AuthenticatedAdministrationVehiculeGenreRoute
@@ -2377,6 +2397,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
+  '/_authenticated/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
   '/_authenticated/administration/vehicule/age': typeof AuthenticatedAdministrationVehiculeAgeRoute
   '/_authenticated/administration/vehicule/energie': typeof AuthenticatedAdministrationVehiculeEnergieRoute
   '/_authenticated/administration/vehicule/genre': typeof AuthenticatedAdministrationVehiculeGenreRoute
@@ -2496,6 +2517,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/users'
     | '/administration/constat/type'
+    | '/administration/vehicle/create'
     | '/administration/vehicule/age'
     | '/administration/vehicule/energie'
     | '/administration/vehicule/genre'
@@ -2608,6 +2630,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/users'
     | '/administration/constat/type'
+    | '/administration/vehicle/create'
     | '/administration/vehicule/age'
     | '/administration/vehicule/energie'
     | '/administration/vehicule/genre'
@@ -2725,6 +2748,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
     | '/_authenticated/administration/constat/type'
+    | '/_authenticated/administration/vehicle/create'
     | '/_authenticated/administration/vehicule/age'
     | '/_authenticated/administration/vehicule/energie'
     | '/_authenticated/administration/vehicule/genre'
@@ -2870,6 +2894,7 @@ export const routeTree = rootRoute
         "/_authenticated/tasks/",
         "/_authenticated/users/",
         "/_authenticated/administration/constat/type",
+        "/_authenticated/administration/vehicle/create",
         "/_authenticated/administration/vehicule/age",
         "/_authenticated/administration/vehicule/energie",
         "/_authenticated/administration/vehicule/genre",
@@ -3244,6 +3269,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/administration/constat/type": {
       "filePath": "_authenticated/administration/constat/type.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/administration/vehicle/create": {
+      "filePath": "_authenticated/administration/vehicle/create.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/administration/vehicule/age": {
