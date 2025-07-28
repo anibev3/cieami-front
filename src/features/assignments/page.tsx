@@ -13,9 +13,7 @@ import {
   Search, 
   Filter, 
   X, 
-  Plus,
-
-  Loader2
+  Plus
 } from 'lucide-react'
 import { AssignmentsDataTable } from './components/assignments-data-table'
 import { Pagination } from './components/pagination'
@@ -348,37 +346,28 @@ export default function AssignmentsPage() {
 
           {/* Content */}
           <div className="bg-white dark:bg-gray-800 rounded-sm  border-gray-200 dark:border-gray-700 ">
-            {loading && !isInitialized ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">Chargement des dossiers...</p>
-                </div>
+            <div>
+              {/* DataTable */}
+              <div className=" overflow-hidden">
+                <AssignmentsDataTable data={filteredAssignments} loading={loading} />
               </div>
-            ) : (
-              <div>
-                {/* DataTable */}
-                <div className=" overflow-hidden">
-                  <AssignmentsDataTable data={filteredAssignments} />
-                </div>
 
-                {/* Pagination */}
-                <div className="p-4 border-t">
-                  {/* <div className="text-sm text-gray-600 mb-2">
-                    Debug: currentPage={pagination.currentPage}, totalPages={pagination.totalPages}, totalItems={pagination.totalItems}
-                  </div> */}
-                  <Pagination
-                    currentPage={pagination.currentPage}
-                    totalPages={pagination.totalPages}
-                    totalItems={pagination.totalItems}
-                    perPage={pagination.perPage}
-                    onPageChange={goToPage}
-                    onNextPage={goToNextPage}
-                    onPreviousPage={goToPreviousPage}
-                  />
-                </div>
+              {/* Pagination */}
+              <div className="p-4 border-t">
+                {/* <div className="text-sm text-gray-600 mb-2">
+                  Debug: currentPage={pagination.currentPage}, totalPages={pagination.totalPages}, totalItems={pagination.totalItems}
+                </div> */}
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  totalItems={pagination.totalItems}
+                  perPage={pagination.perPage}
+                  onPageChange={goToPage}
+                  onNextPage={goToNextPage}
+                  onPreviousPage={goToPreviousPage}
+                />
               </div>
-            )}
+            </div>
           </div>
         </div>
       </Main>
