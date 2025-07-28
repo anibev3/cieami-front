@@ -89,16 +89,9 @@ export function AscertainmentTypeDataTable({
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <div>
+      <div className='mb-4'>
         <div className="flex items-center justify-between">
-          <CardTitle>Types de constat</CardTitle>
-          <Button onClick={onCreate} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau type
-          </Button>
-        </div>
-        <div className="flex items-center space-x-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -108,9 +101,16 @@ export function AscertainmentTypeDataTable({
               className="pl-8"
             />
           </div>
+          <Button onClick={onCreate} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau type
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent>
+        <div className="flex items-center space-x-2">
+ 
+        </div>
+      </div>
+      <div>
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -215,7 +215,7 @@ export function AscertainmentTypeDataTable({
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 } 

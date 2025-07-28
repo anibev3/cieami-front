@@ -80,8 +80,10 @@ export function VehicleAgesDialogs({
     if (!selectedVehicleAge) return
     
     try {
-      await deleteVehicleAge(selectedVehicleAge.id)
-      onCloseDelete()
+      const success = await deleteVehicleAge(selectedVehicleAge.id)
+      // if (success.status === 200) {
+      //   onCloseDelete()
+      // }
     } catch (_error) {
       // L'erreur est déjà gérée dans le store
     }

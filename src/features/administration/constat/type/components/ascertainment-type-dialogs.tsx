@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Separator } from '@/components/ui/separator'
 import { formatDate } from '@/utils/format-date'
+import { toast } from 'sonner'
 
 // Types pour les props des dialogues
 interface CreateDialogProps {
@@ -53,7 +54,7 @@ interface DeleteDialogProps {
 
 // Dialogue de création
 export function CreateAscertainmentTypeDialog({ open, onOpenChange }: CreateDialogProps) {
-  const { createAscertainmentType, loading } = useAscertainmentTypeStore()
+  const { createAscertainmentType, loading, fetchAscertainmentTypes } = useAscertainmentTypeStore()
   const [formData, setFormData] = useState<CreateAscertainmentTypeData>({
     label: '',
     description: ''
@@ -62,7 +63,10 @@ export function CreateAscertainmentTypeDialog({ open, onOpenChange }: CreateDial
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const success = await createAscertainmentType(formData)
+
     if (success) {
+      toast.success('Type de constat créé avec succès')
+      fetchAscertainmentTypes()
       onOpenChange(false)
       setFormData({ label: '', description: '' })
     }
@@ -121,7 +125,7 @@ export function CreateAscertainmentTypeDialog({ open, onOpenChange }: CreateDial
 
 // Dialogue de modification
 export function EditAscertainmentTypeDialog({ open, onOpenChange, ascertainmentType }: EditDialogProps) {
-  const { updateAscertainmentType, loading } = useAscertainmentTypeStore()
+  const { updateAscertainmentType, loading, fetchAscertainmentTypes } = useAscertainmentTypeStore()
   const [formData, setFormData] = useState<UpdateAscertainmentTypeData>({
     label: '',
     description: ''
@@ -143,6 +147,7 @@ export function EditAscertainmentTypeDialog({ open, onOpenChange, ascertainmentT
     const success = await updateAscertainmentType(ascertainmentType.id, formData)
     if (success) {
       onOpenChange(false)
+      fetchAscertainmentTypes()
     }
   }
 
@@ -256,11 +261,11 @@ export function ViewAscertainmentTypeDialog({ open, onOpenChange, ascertainmentT
             <Label className="text-sm font-medium text-muted-foreground">Créé par</Label>
             <div className="flex items-center space-x-2 mt-1">
               <img
-                src={ascertainmentType.created_by.photo_url}
-                alt={ascertainmentType.created_by.name}
+                src={ascertainmentType?.created_by?.photo_url}
+                alt={ascertainmentType?.created_by?.name}
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-sm">{ascertainmentType.created_by.name}</span>
+              <span className="text-sm">{ascertainmentType?.created_by?.name}</span>
             </div>
           </div>
           
@@ -268,11 +273,11 @@ export function ViewAscertainmentTypeDialog({ open, onOpenChange, ascertainmentT
             <Label className="text-sm font-medium text-muted-foreground">Modifié par</Label>
             <div className="flex items-center space-x-2 mt-1">
               <img
-                src={ascertainmentType.updated_by.photo_url}
-                alt={ascertainmentType.updated_by.name}
+                src={ascertainmentType?.updated_by?.photo_url}
+                alt={ascertainmentType?.updated_by?.name}
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-sm">{ascertainmentType.updated_by.name}</span>
+              <span className="text-sm">{ascertainmentType?.updated_by?.name}</span>
             </div>
           </div>
         </div>
