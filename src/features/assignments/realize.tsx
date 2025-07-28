@@ -378,7 +378,7 @@ export default function RealizeAssignmentPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Expert responsable <span className="text-red-500">*</span></FormLabel>
-                                                      <UserSelect
+                            <UserSelect
                               value={field.value ? Number(field.value) : null}
                               onValueChange={(value: number | null) => {
                                 field.onChange(value?.toString() || '')

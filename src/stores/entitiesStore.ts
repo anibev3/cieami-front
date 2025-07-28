@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Entity, CreateEntityData, UpdateEntityData } from '@/types/administration'
+import { Entity, CreateEntityData, UpdateEntityData, EntityFilters } from '@/types/administration'
 import { entityService } from '@/services/entityService'
 import { toast } from 'sonner'
 
@@ -11,7 +11,7 @@ interface EntitiesState {
   selectedEntity: Entity | null
   
   // Actions
-  fetchEntities: () => Promise<void>
+  fetchEntities: (filters?: EntityFilters) => Promise<void>
   createEntity: (data: CreateEntityData) => Promise<void>
   updateEntity: (id: number, data: UpdateEntityData) => Promise<void>
   deleteEntity: (id: number) => Promise<void>
@@ -29,10 +29,10 @@ export const useEntitiesStore = create<EntitiesState>((set) => ({
   selectedEntity: null,
 
   // Actions
-  fetchEntities: async () => {
+  fetchEntities: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await entityService.getAll()
+      const response = await entityService.getAll(filters)
       set({ entities: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des entités'

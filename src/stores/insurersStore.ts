@@ -1,12 +1,12 @@
 import { create } from 'zustand'
-import { Insurer } from '@/services/insurerService'
+import { Insurer, InsurerFilters } from '@/services/insurerService'
 import { insurerService } from '@/services/insurerService'
 
 interface InsurersState {
   insurers: Insurer[]
   loading: boolean
   error: string | null
-  fetchInsurers: () => Promise<void>
+  fetchInsurers: (filters?: InsurerFilters) => Promise<void>
 }
 
 export const useInsurersStore = create<InsurersState>((set) => ({
@@ -14,10 +14,10 @@ export const useInsurersStore = create<InsurersState>((set) => ({
   loading: false,
   error: null,
 
-  fetchInsurers: async () => {
+  fetchInsurers: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await insurerService.getAll()
+      const response = await insurerService.getAll(filters)
       set({ insurers: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assureurs'

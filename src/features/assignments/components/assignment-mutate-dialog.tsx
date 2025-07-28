@@ -19,6 +19,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -26,14 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { AssignmentCreate, AssignmentUpdate } from '@/types/assignments'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
 import { useAssignmentTypesStore } from '@/stores/assignmentTypesStore'
+import { UserSelect } from '@/features/widgets/user-select'
 
 const assignmentSchema = z.object({
   reference: z.string().min(1, 'La référence est requise'),
@@ -54,7 +56,7 @@ interface AssignmentMutateDialogProps {
 export function AssignmentMutateDialog({ id, open, onOpenChange }: AssignmentMutateDialogProps) {
   const [loading, setLoading] = useState(false)
   const { createAssignment, updateAssignment, fetchAssignment, currentAssignment } = useAssignmentsStore()
-  const { users, fetchUsers } = useUsersStore()
+  const { fetchUsers } = useUsersStore()
   const { vehicles, fetchVehicles } = useVehiclesStore()
   const { assignmentTypes, fetchAssignmentTypes } = useAssignmentTypesStore()
 
@@ -94,9 +96,9 @@ export function AssignmentMutateDialog({ id, open, onOpenChange }: AssignmentMut
         client_id: currentAssignment.client.id,
         vehicle_id: currentAssignment.vehicle.id,
         assignment_type_id: currentAssignment.assignment_type.id,
-        expert_id: currentAssignment.expert.id,
-        amount: currentAssignment.amount,
-        description: currentAssignment.description || '',
+        expert_id: currentAssignment.created_by.id, // Utiliser created_by comme expert par défaut
+        amount: 0, // Montant par défaut car pas de propriété amount dans Assignment
+        description: '', // Description par défaut car pas de propriété description dans Assignment
       })
     }
   }, [currentAssignment, isEditing, form])
@@ -185,20 +187,14 @@ export function AssignmentMutateDialog({ id, open, onOpenChange }: AssignmentMut
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un client" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {users.map((user) => (
-                        <SelectItem key={user.id} value={user.id.toString()}>
-                          {user.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <UserSelect
+                      value={field.value || null}
+                      onValueChange={(value) => field.onChange(value || 0)}
+                      placeholder="Sélectionner un client"
+                      filterRole="client"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -261,20 +257,14 @@ export function AssignmentMutateDialog({ id, open, onOpenChange }: AssignmentMut
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Expert</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un expert" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {users.map((user) => (
-                          <SelectItem key={user.id} value={user.id.toString()}>
-                            {user.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <UserSelect
+                        value={field.value || null}
+                        onValueChange={(value) => field.onChange(value || 0)}
+                        placeholder="Sélectionner un expert"
+                        filterRole="expert"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

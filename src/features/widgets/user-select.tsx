@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { User, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUsersStore } from '@/stores/usersStore'
-import { UserRole, Status } from '@/types/administration'
+import { UserRole, Status, UserFilters } from '@/types/administration'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface UserSelectProps {
   value?: number | null
@@ -28,20 +29,59 @@ export function UserSelect({
   filterRole
 }: UserSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { users, loading, fetchUsers } = useUsersStore()
+  
+  // Debounce la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
-  // Filtrer les utilisateurs par rôle si spécifié
+  // Fonction pour rechercher les utilisateurs
+  const searchUsers = useCallback(async (query: string) => {
+    const filters: UserFilters = { search: query }
+    if (filterRole) {
+      filters.role = filterRole
+    }
+    await fetchUsers(filters)
+  }, [fetchUsers, filterRole])
+
+  // Effect pour déclencher la recherche quand la requête debounced change
+  useEffect(() => {
+    if (debouncedSearchQuery !== undefined) {
+      searchUsers(debouncedSearchQuery)
+    }
+  }, [debouncedSearchQuery, searchUsers])
+
+  // Charger les utilisateurs au montage si aucun utilisateur n'est chargé
+  useEffect(() => {
+    if (users.length === 0) {
+      const filters: UserFilters = {}
+      if (filterRole) {
+        filters.role = filterRole
+      }
+      fetchUsers(filters)
+    }
+  }, [users.length, fetchUsers, filterRole])
+
+  // Filtrer les utilisateurs par rôle si spécifié (pour l'affichage local)
   const filteredUsers = filterRole 
     ? users.filter(user => user.role.name === filterRole)
     : users
 
-  useEffect(() => {
-    if (users.length === 0) {
-      fetchUsers()
-    }
-  }, [users.length, fetchUsers])
-
   const selectedUser = filteredUsers.find(user => user.id === value)
+
+  // Réinitialiser la recherche quand le popover se ferme
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen) {
+      setSearchQuery('')
+      // Recharger tous les utilisateurs quand on ferme
+      const filters: UserFilters = {}
+      if (filterRole) {
+        filters.role = filterRole
+      }
+      fetchUsers(filters)
+    }
+  }
 
   const getRoleLabel = (role: UserRole) => {
     return role.label
@@ -63,7 +103,7 @@ export function UserSelect({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -102,7 +142,11 @@ export function UserSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Rechercher un utilisateur..." />
+          <CommandInput 
+            placeholder="Rechercher un utilisateur..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? (

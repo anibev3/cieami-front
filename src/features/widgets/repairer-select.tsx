@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Wrench, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEntitiesStore } from '@/stores/entitiesStore'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface RepairerSelectProps {
   value?: number | null
@@ -25,21 +26,48 @@ export function RepairerSelect({
   showStatus = false
 }: RepairerSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { entities, loading, fetchEntities } = useEntitiesStore()
+  
+  // Debounce la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
-  // Filtrer seulement les réparateurs
-  const repairers = entities.filter(entity => entity.entity_type?.code === 'repairer')
+  // Fonction pour rechercher les entités (réparateurs)
+  const searchEntities = useCallback(async (query: string) => {
+    await fetchEntities({ search: query, entity_type: 'repairer' })
+  }, [fetchEntities])
 
+  // Effect pour déclencher la recherche quand la requête debounced change
+  useEffect(() => {
+    if (debouncedSearchQuery !== undefined) {
+      searchEntities(debouncedSearchQuery)
+    }
+  }, [debouncedSearchQuery, searchEntities])
+
+  // Charger les entités au montage si aucune entité n'est chargée
   useEffect(() => {
     if (entities.length === 0) {
       fetchEntities()
     }
   }, [entities.length, fetchEntities])
 
+  // Filtrer seulement les réparateurs
+  const repairers = entities.filter(entity => entity.entity_type?.code === 'repairer')
+
   const selectedRepairer = repairers.find(repairer => repairer.id === value)
 
+  // Réinitialiser la recherche quand le popover se ferme
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen) {
+      setSearchQuery('')
+      // Recharger toutes les entités quand on ferme
+      fetchEntities()
+    }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -83,7 +111,11 @@ export function RepairerSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Rechercher un réparateur..." />
+          <CommandInput 
+            placeholder="Rechercher un réparateur..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? (

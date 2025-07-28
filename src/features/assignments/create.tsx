@@ -1679,7 +1679,7 @@ export default function CreateAssignmentPage() {
                             name={`experts.${idx}.expert_id` as const}
                               render={({ field }) => (
                               <FormItem className="flex-1">
-                                  <FormLabel>Expert</FormLabel>
+                                <FormLabel>Expert</FormLabel>
                                 <UserSelect
                                   value={field.value ? Number(field.value) : null}
                                   onValueChange={(value: number | null) => {

@@ -43,7 +43,8 @@ import {
   CalendarIcon,
   Car,
   AlertCircle,
-  Receipt
+  Receipt,
+  BarChart3
 } from 'lucide-react'
 import { toast } from 'sonner'
 import axiosInstance from '@/lib/axios'
@@ -73,6 +74,7 @@ import type { Shock } from './hooks/use-shock-management'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { Textarea } from '@/components/ui/textarea'
+import { EvaluationDisplay } from './components/evaluation-display'
 
 
 interface OtherCostType {
@@ -126,6 +128,79 @@ interface Ascertainment {
   bad: boolean
   very_bad: boolean
   comment: string | null
+}
+
+interface Evaluation {
+  vehicle: {
+    id: number
+    license_plate: string
+    type: string | null
+    option: string | null
+    mileage: string | null
+    serial_number: string | null
+    first_entry_into_circulation_date: string
+    technical_visit_date: string | null
+    fiscal_power: number
+    payload: number
+    nb_seats: number
+    new_market_value: string
+    brand_id: number
+    vehicle_model_id: number
+    color_id: number
+    bodywork_id: number | null
+    vehicle_genre_id: number
+    vehicle_energy_id: number
+    status_id: number
+    created_by: number
+    created_at: string
+    updated_by: number
+    updated_at: string
+    deleted_by: number | null
+    deleted_at: string | null
+    vehicle_genre: {
+      id: number
+      code: string
+      max_mileage_essence_per_year: string
+      max_mileage_diesel_per_year: string
+      label: string
+      description: string
+      status_id: number
+      created_by: number | null
+      created_at: string
+      updated_by: number | null
+      updated_at: string
+      deleted_by: number | null
+      deleted_at: string | null
+    }
+    vehicle_energy: {
+      id: number
+      code: string
+      label: string
+      description: string
+      status_id: number
+      created_by: number | null
+      created_at: string
+      updated_by: number | null
+      updated_at: string
+      deleted_by: number | null
+      deleted_at: string | null
+    }
+  }
+  expertise_date: string
+  first_entry_into_circulation_date: string
+  vehicle_new_value: string
+  vehicle_age: number
+  vehicle_max_mileage_essence_per_year: string
+  diff_year: number
+  diff_month: number
+  theorical_depreciation_rate: string
+  theorical_vehicle_market_value: number
+  market_incidence_rate: number | null
+  less_value_work: number
+  is_up: boolean
+  kilometric_incidence: number
+  market_incidence: number
+  vehicle_market_value: number
 }
 
 interface CalculationResult {
@@ -278,6 +353,9 @@ export default function ReportEditPage() {
     comment: string
   }>>([])
 
+  // État pour les évaluations existantes
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([])
+
   // Mettre à jour hasUnsavedChanges quand les données changent
   useEffect(() => {
     if (shocks.length > 0 || otherCosts.some(cost => cost.other_cost_type_id !== 0)) {
@@ -372,6 +450,28 @@ export default function ReportEditPage() {
           setMarketIncidenceRate((assignment as any).market_incidence_rate)
         }
       }
+
+      // TODO: Charger les ascertainments existants si disponibles (pour utilisation future)
+      // if ((assignment as any).ascertainments && (assignment as any).ascertainments.length > 0) {
+      //   const existingAscertainments = (assignment as any).ascertainments.map((asc: any) => ({
+      //     ascertainment_type_id: "", // Les ascertainments existants n'ont pas de ascertainment_type_id
+      //     very_good: asc.very_good,
+      //     good: asc.good,
+      //     acceptable: asc.acceptable,
+      //     less_good: asc.less_good,
+      //     bad: asc.bad,
+      //     very_bad: asc.very_bad,
+      //     comment: asc.comment || ''
+      //   }))
+      //   setAscertainments(existingAscertainments)
+      //   toast.success(`${existingAscertainments.length} constatation(s) existante(s) chargée(s) - Note: Type de constatation à sélectionner`)
+      // }
+
+      // TODO: Charger les évaluations existantes si disponibles (pour utilisation future)
+      // if ((assignment as any).evaluations && (assignment as any).evaluations.length > 0) {
+      //   setEvaluations((assignment as any).evaluations)
+      //   toast.success(`${(assignment as any).evaluations.length} évaluation(s) existante(s) chargée(s)`)
+      // }
     }
   }, [assignment, isEvaluation])
   
@@ -475,11 +575,18 @@ export default function ReportEditPage() {
         toast.error('Veuillez sélectionner une nature de sinistre')
         return
       }
-    
-      if (!expertRemark.trim()) {
-        toast.error('Veuillez saisir une remarque d\'expert')
+
+
+      if(!technicalConclusionId) {
+        toast.error('Veuillez sélectionner une conclusion technique')
         return
       }
+
+
+      // if (!expertRemark.trim()) {
+      //   toast.error('Veuillez saisir une remarque d\'expert')
+      //   return
+      // }
     }
     const cleanedShocks = shocks
       .filter(shock => shock.shock_point_id && shock.shock_point_id !== 0)
@@ -986,6 +1093,12 @@ export default function ReportEditPage() {
             total_amount: calculatedData.total_amount,
           })
         }
+
+        // Stocker les évaluations retournées par l'API
+        if (calculatedData.evaluations && calculatedData.evaluations.length > 0) {
+          setEvaluations(calculatedData.evaluations)
+          toast.success(`${calculatedData.evaluations.length} évaluation(s) calculée(s) avec succès`)
+        }
         
         setHasUnsavedChanges(true)
         toast.success('Calcul effectué avec succès')
@@ -1122,12 +1235,12 @@ export default function ReportEditPage() {
                 {saving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Rédaction en cours...
+                    Enregistrement en cours...
                   </>
                 ) : (
                   <>
                     <FileText className="mr-2 h-4 w-4" />
-                    Rédiger le rapport
+                    Enregistrer
                   </>
                 )}
               </Button>
@@ -1154,7 +1267,9 @@ export default function ReportEditPage() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-4">
                       <div className="space-y-2">
-                        <Label htmlFor="claim-nature">Nature de sinistre</Label>
+                        <Label htmlFor="claim-nature">
+                          Nature de sinistre <span className="text-red-500">*</span>
+                        </Label>
                         <ClaimNatureSelect
                           value={claimNatureId}
                           onValueChange={handleClaimNatureChange}
@@ -1163,7 +1278,9 @@ export default function ReportEditPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="technical-conclusion">Conclusion technique</Label>
+                        <Label htmlFor="technical-conclusion">
+                          Conclusion technique <span className="text-red-500">*</span>
+                        </Label>
                         <TechnicalConclusionSelect
                           value={technicalConclusionId || 0}
                           onValueChange={setTechnicalConclusionId}
@@ -1683,6 +1800,7 @@ export default function ReportEditPage() {
               </div>
             </div>
           )}
+
           {/* Liste des points de choc */}
           <div className="space-y-6 mt-10 w-full">
             {hasPreloadedData && (
@@ -2017,6 +2135,94 @@ export default function ReportEditPage() {
             otherCosts={otherCosts}
             calculationResults={calculationResults}
           />
+
+          {/* Section des évaluations existantes */}
+          {evaluations.length > 0 && (
+            <div className="space-y-4 mt-10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                  Évaluations existantes
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                    {evaluations.length} évaluation(s)
+                  </Badge>
+                </h2>
+              </div>
+              <div className="border-b border-gray-200 mb-4"></div>
+              
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          Véhicule
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          Date d'expertise
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          Âge du véhicule
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          Valeur théorique
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          Valeur marché
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          Moins-value
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {evaluations.map((evaluation, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{evaluation.vehicle.license_plate}</span>
+                              <span className="text-xs text-gray-500">
+                                {evaluation.vehicle.vehicle_genre.label}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {new Date(evaluation.expertise_date).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            <div className="flex flex-col">
+                              <span>{evaluation.vehicle_age} mois</span>
+                              <span className="text-xs text-gray-500">
+                                ({evaluation.diff_year}a {evaluation.diff_month}m)
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {evaluation.theorical_vehicle_market_value.toLocaleString('fr-FR')} FCFA
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {evaluation.vehicle_market_value.toLocaleString('fr-FR')} FCFA
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            <span className="text-red-600 font-medium">
+                              {evaluation.less_value_work.toLocaleString('fr-FR')} FCFA
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Affichage des évaluations */}
+          {evaluations.length > 0 && (
+            <div className="mt-8">
+              <EvaluationDisplay evaluations={evaluations} />
+            </div>
+          )}
           <Card className="mt-10">
             <CardContent>
               <div className="flex justify-end gap-3">
@@ -2038,35 +2244,17 @@ export default function ReportEditPage() {
                   {saving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Rédaction en cours...
+                      Enregistrement en cours...
                     </>
                   ) : (
                     <>
                       <FileText className="mr-2 h-4 w-4" />
-                      Rédiger le rapport
+                      Enregistrer
                     </>
                   )}
                 </Button>
               </div>
-              
-              {/* Message d'aide pour les champs requis */}
-              {/* {!isEvaluation && (
-                <>
-                {(!claimNatureId || !expertRemark.trim()) && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-yellow-600" />
-                      <span className="text-sm text-yellow-800">
-                        Pour rédiger le rapport, vous devez remplir :
-                        {!claimNatureId && <span className="font-semibold"> Nature du sinistre</span>}
-                        {!claimNatureId && !expertRemark.trim() && <span>, </span>}
-                        {!expertRemark.trim() && <span className="font-semibold"> Remarque d'expert</span>}
-                      </span>
-                    </div>
-                  </div>
-                  )}
-                </>
-              )} */}
+            
               
             </CardContent>
           </Card>

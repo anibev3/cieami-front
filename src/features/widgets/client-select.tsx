@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { User, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useClientsStore } from '@/features/gestion/clients/store'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface ClientSelectProps {
   value?: number | null
@@ -22,8 +23,25 @@ export function ClientSelect({
   className
 }: ClientSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { clients, loading, fetchClients } = useClientsStore()
+  
+  // Debounce la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
+  // Fonction pour rechercher les clients
+  const searchClients = useCallback(async (query: string) => {
+    await fetchClients({ search: query, page: 1 })
+  }, [fetchClients])
+
+  // Effect pour déclencher la recherche quand la requête debounced change
+  useEffect(() => {
+    if (debouncedSearchQuery !== undefined) {
+      searchClients(debouncedSearchQuery)
+    }
+  }, [debouncedSearchQuery, searchClients])
+
+  // Charger les clients au montage si aucun client n'est chargé
   useEffect(() => {
     if (clients.length === 0) {
       fetchClients()
@@ -32,8 +50,18 @@ export function ClientSelect({
 
   const selectedClient = clients.find(client => client.id === value)
 
+  // Réinitialiser la recherche quand le popover se ferme
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen) {
+      setSearchQuery('')
+      // Recharger tous les clients quand on ferme
+      fetchClients()
+    }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -64,7 +92,11 @@ export function ClientSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Rechercher un client..." />
+          <CommandInput 
+            placeholder="Rechercher un client..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             <CommandEmpty>
               {loading ? (

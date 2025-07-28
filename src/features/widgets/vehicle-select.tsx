@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/popover'
 import { useVehiclesStore } from '@/stores/vehicles'
 import { Vehicle } from '@/types/vehicles'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface VehicleSelectProps {
   value: string
@@ -32,8 +33,25 @@ export function VehicleSelect({
   disabled = false
 }: VehicleSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { vehicles, loading, fetchVehicles } = useVehiclesStore()
+  
+  // Debounce la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
+  // Fonction pour rechercher les véhicules
+  const searchVehicles = useCallback(async (query: string) => {
+    await fetchVehicles(1, { search: query })
+  }, [fetchVehicles])
+
+  // Effect pour déclencher la recherche quand la requête debounced change
+  useEffect(() => {
+    if (debouncedSearchQuery !== undefined) {
+      searchVehicles(debouncedSearchQuery)
+    }
+  }, [debouncedSearchQuery, searchVehicles])
+
+  // Charger les véhicules au montage si aucun véhicule n'est chargé
   useEffect(() => {
     if (vehicles.length === 0) {
       fetchVehicles()
@@ -42,7 +60,15 @@ export function VehicleSelect({
 
   const selectedVehicle = vehicles.find(vehicle => vehicle.id.toString() === value)
 
-
+  // Réinitialiser la recherche quand le popover se ferme
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen) {
+      setSearchQuery('')
+      // Recharger tous les véhicules quand on ferme
+      fetchVehicles()
+    }
+  }
 
   const renderVehicleInfo = (vehicle: Vehicle) => {
     return (
@@ -71,7 +97,7 @@ export function VehicleSelect({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -95,7 +121,11 @@ export function VehicleSelect({
       </PopoverTrigger>
       <PopoverContent className="p-0">
         <Command>
-          <CommandInput placeholder="Rechercher un véhicule..." />
+          <CommandInput 
+            placeholder="Rechercher un véhicule..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             {loading ? (
               <div className="flex items-center justify-center py-6">

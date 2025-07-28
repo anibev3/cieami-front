@@ -29,6 +29,11 @@ export interface Insurer {
   updated_at: string
 }
 
+export interface InsurerFilters {
+  search?: string
+  page?: number
+}
+
 export interface InsurersResponse {
   data: Insurer[]
   links: {
@@ -56,8 +61,10 @@ export interface InsurersResponse {
 const API_URL = 'https://back.roomcodetraining.com/api/v1/insurers'
 
 export const insurerService = {
-  getAll: async (): Promise<InsurersResponse> => {
-    const { data } = await axiosInstance.get(`${API_URL}?per_page=100000`)
+  getAll: async (filters?: InsurerFilters): Promise<InsurersResponse> => {
+    const { data } = await axiosInstance.get(`${API_URL}?per_page=100000`, {
+      params: filters
+    })
     return data
   }
 } 
