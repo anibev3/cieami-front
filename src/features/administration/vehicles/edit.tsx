@@ -29,6 +29,8 @@ import { useBrandsStore } from '@/stores/brands'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
+import { useVehicleGenresStore } from '@/stores/vehicleGenresStore'
+import { useVehicleEnergiesStore } from '@/stores/vehicleEnergiesStore'
 import { VehicleGenreSelect } from '@/features/widgets/vehicle-genre-select'
 import { VehicleEnergySelect } from '@/features/widgets/vehicle-energy-select'
 import { BrandSelect } from '@/features/widgets'
@@ -42,14 +44,14 @@ const vehicleEditSchema = z.object({
   type: z.string().optional(),
   option: z.string().optional(),
   bodywork_id: z.string().optional(),
-  mileage: z.string().optional(),
+  mileage: z.coerce.number().int('Le kilométrage doit être un nombre entier').optional(),
   serial_number: z.string().optional(),
   first_entry_into_circulation_date: z.string().optional(),
   technical_visit_date: z.string().optional(),
-  fiscal_power: z.number().optional(),
-  nb_seats: z.number().optional(),
-  new_market_value: z.number().optional(),
-  payload: z.number().optional(),
+  fiscal_power: z.coerce.number().int('La puissance fiscale doit être un nombre entier').optional(),
+  nb_seats: z.coerce.number().int('Le nombre de places doit être un nombre entier').optional(),
+  new_market_value: z.coerce.number().int('La valeur neuve doit être un nombre entier').optional(),
+  payload: z.coerce.number().int('La charge utile doit être un nombre entier').optional(),
   vehicle_model_id: z.string().min(1, 'Le modèle de véhicule est requis'),
   color_id: z.string().min(1, 'La couleur est requise'),
   vehicle_genre_id: z.string().min(1, 'Le genre de véhicule est requis'),
@@ -71,6 +73,8 @@ export default function EditVehiclePage() {
   const { fetchColors } = useColorsStore()
   const { fetchBodyworks } = useBodyworksStore()
   const { fetchVehicleModels } = useVehicleModelsStore()
+  const { fetchVehicleGenres } = useVehicleGenresStore()
+  const { fetchVehicleEnergies } = useVehicleEnergiesStore()
 
   // eslint-disable-next-line no-console
   console.log('EditVehiclePage - vehicleId:', vehicleId)
@@ -85,14 +89,14 @@ export default function EditVehiclePage() {
       type: '',
       option: '',
       bodywork_id: '',
-      mileage: '',
+      mileage: undefined,
       serial_number: '',
       first_entry_into_circulation_date: '',
       technical_visit_date: '',
-      fiscal_power: 0,
-      nb_seats: 0,
-      new_market_value: 0,
-      payload: 0,
+      fiscal_power: undefined,
+      nb_seats: undefined,
+      new_market_value: undefined,
+      payload: undefined,
       vehicle_model_id: '',
       color_id: '',
       vehicle_genre_id: '',
@@ -112,7 +116,9 @@ export default function EditVehiclePage() {
     fetchBrands()
     fetchColors()
     fetchBodyworks()
-  }, [])
+    fetchVehicleGenres()
+    fetchVehicleEnergies()
+  }, [fetchBrands, fetchColors, fetchBodyworks, fetchVehicleGenres, fetchVehicleEnergies])
 
   // Réinitialiser le modèle quand la marque change et charger les modèles
   useEffect(() => {
@@ -132,20 +138,26 @@ export default function EditVehiclePage() {
         setSelectedBrandId(currentVehicle.brand.id.toString())
       }
       
+      // Log pour déboguer les valeurs
+      console.log('Vehicle genre:', currentVehicle?.vehicle_genre)
+      console.log('Vehicle energy:', currentVehicle?.vehicle_energy)
+      console.log('Vehicle genre ID:', currentVehicle?.vehicle_genre?.id.toString())
+      console.log('Vehicle energy ID:', currentVehicle?.vehicle_energy?.id.toString())
+      
       form.reset({
         license_plate: currentVehicle?.license_plate || '',
         usage: currentVehicle?.usage || '',
         type: currentVehicle?.type || '',
         option: currentVehicle?.option || '',
         bodywork_id: currentVehicle?.bodywork?.id.toString() || '',
-        mileage: currentVehicle?.mileage || '',
+        mileage: currentVehicle?.mileage || undefined,
         serial_number: currentVehicle?.serial_number || '',
         first_entry_into_circulation_date: currentVehicle?.first_entry_into_circulation_date || '',  
         technical_visit_date: currentVehicle?.technical_visit_date || '',
-        fiscal_power: currentVehicle?.fiscal_power || 0,
-        nb_seats: currentVehicle?.nb_seats || 0,
-        new_market_value: currentVehicle?.new_market_value || 0,
-        payload: currentVehicle?.payload || 0,
+        fiscal_power: currentVehicle?.fiscal_power || undefined,
+        nb_seats: currentVehicle?.nb_seats || undefined,
+        new_market_value: currentVehicle?.new_market_value ? Number(currentVehicle.new_market_value) : undefined,
+        payload: currentVehicle?.payload || undefined,
         vehicle_model_id: currentVehicle?.vehicle_model?.id.toString() || '',
         color_id: currentVehicle?.color?.id.toString() || '',
         vehicle_genre_id: currentVehicle?.vehicle_genre?.id.toString() || '',
@@ -169,10 +181,10 @@ export default function EditVehiclePage() {
         serial_number: data.serial_number || undefined,
         first_entry_into_circulation_date: data.first_entry_into_circulation_date || undefined,
         technical_visit_date: data.technical_visit_date || undefined,
-        fiscal_power: Number(data.fiscal_power),
-        nb_seats: Number(data.nb_seats),
-        new_market_value: Number(data.new_market_value),
-        payload: Number(data.payload),
+        fiscal_power: data.fiscal_power ? Number(data.fiscal_power) : undefined,
+        nb_seats: data.nb_seats ? Number(data.nb_seats) : undefined,
+        new_market_value: data.new_market_value ? Number(data.new_market_value) : undefined,
+        payload: data.payload ? Number(data.payload) : undefined,
         vehicle_model_id: data.vehicle_model_id,
         color_id: data.color_id,
         vehicle_genre_id: data.vehicle_genre_id || undefined,
@@ -183,9 +195,25 @@ export default function EditVehiclePage() {
       await updateVehicle(vehicleId, updateData)
       toast.success('Véhicule mis à jour avec succès')
       navigate({ to: '/administration/vehicles' })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error in onSubmit:', error)
-      toast.error('Erreur lors de la mise à jour du véhicule')
+      
+      // Afficher les erreurs de validation spécifiques
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const axiosError = error as any
+      if (axiosError.response?.data?.errors) {
+        const errors = axiosError.response.data.errors
+        Object.keys(errors).forEach(field => {
+          const fieldErrors = errors[field]
+          if (Array.isArray(fieldErrors)) {
+            fieldErrors.forEach(errorMessage => {
+              toast.error(`${field}: ${errorMessage}`)
+            })
+          }
+        })
+      } else {
+        toast.error('Erreur lors de la mise à jour du véhicule')
+      }
     } finally {
       setLoading(false)
     }

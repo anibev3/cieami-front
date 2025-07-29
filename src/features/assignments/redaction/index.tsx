@@ -49,7 +49,8 @@ import {
   Eye,
   Check,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Star
 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -77,6 +78,9 @@ import { TechnicalConclusionSelect } from '@/features/widgets/technical-conclusi
 import { ClaimNatureSelect } from '@/features/widgets/claim-nature-select'
 import { RemarkSelect } from '@/features/widgets/remark-select'
 import { SupplySelect } from '@/features/widgets/supply-select'
+import AscertainmentEdit from '@/features/assignments/components/ascertainment-edit'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface Assignment {
   id: number
@@ -357,6 +361,26 @@ interface Assignment {
       label: string
     }
   }>
+  ascertainments: Array<{
+    id: number
+    ascertainment_type: {
+      id: number
+      code: string
+      label: string
+      description: string
+      created_at: string
+      updated_at: string
+    }
+    very_good: boolean
+    good: boolean
+    acceptable: boolean
+    less_good: boolean
+    bad: boolean
+    very_bad: boolean
+    comment: string | null
+    created_at: string
+    updated_at: string
+  }>
   payments: Array<any>
   invoices: Array<any>
   evaluations: any
@@ -464,6 +488,7 @@ interface OtherCostType {
 export default function EditReportPage() {
   const { id } = useParams({ strict: false }) as { id: string } 
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -479,6 +504,7 @@ export default function EditReportPage() {
   const [newOtherCosts, setNewOtherCosts] = useState([
     { other_cost_type_id: 0, amount: 0 }
   ])
+  const [showMobileSheet, setShowMobileSheet] = useState(false)
   
   // États pour les informations additionnelles (selon le type d'expertise)
   const [generalStateId, setGeneralStateId] = useState<number | null>(null)
@@ -514,6 +540,8 @@ export default function EditReportPage() {
   // États pour les types de peinture et taux horaires
   const [paintTypes, setPaintTypes] = useState([])
   const [hourlyRates, setHourlyRates] = useState([])
+  
+
 
   // Charger les données du dossier
   useEffect(() => {
@@ -831,6 +859,9 @@ export default function EditReportPage() {
     }
   }
 
+  // Fonctions pour gérer les constats
+
+
   // Log de débogage pour le modal
   if (showAddOtherCostModal) {
     // (On peut supprimer ce log après debug)
@@ -896,11 +927,13 @@ export default function EditReportPage() {
         </div>
       </Header>
       <Main>
+        {/* Structure responsive */}
         <div className="flex h-screen">
-          {/* Sidebar rétractable */}
-          <div className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
-            sidebarCollapsed ? 'w-16' : 'w-64'
-          }`}>
+          {/* Sidebar - Desktop seulement */}
+          {!isMobile && (
+            <div className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
+              sidebarCollapsed ? 'w-16' : 'w-64'
+            }`}>
             {/* Header de la sidebar */}
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center gap-3 mb-4">
@@ -1045,7 +1078,7 @@ export default function EditReportPage() {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
+                    <Star className="h-4 w-4" />
                     {!sidebarCollapsed && <span>Constatations</span>}
                   </div>
                 </button>
@@ -1053,12 +1086,14 @@ export default function EditReportPage() {
             </ScrollArea>
           </div>
 
+          )}
+
           {/* Contenu principal avec marge adaptative */}
           <div className={`flex-1 transition-all duration-300 ${
-            sidebarCollapsed ? '' : ''
+            sidebarCollapsed && !isMobile ? '' : ''
           }`}>
             <ScrollArea className="h-full">
-              <div className="p-6">
+              <div className={`p-6 ${isMobile ? 'pb-24' : ''}`}>
 
                 <div className="space-y-4 mb-4">
                   <div className="flex items-center justify-end gap-2">
@@ -1104,7 +1139,7 @@ export default function EditReportPage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
                           <div className="text-center">
                             <div className="text-xs text-gray-600 mb-1">Statut édition</div>
                             <div className="text-sm font-bold text-blue-600">{assignment.edition_status}</div>
@@ -1136,7 +1171,7 @@ export default function EditReportPage() {
                         <CardTitle>Récapitulatif financier</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
                           <div className="text-center">
                             <div className="text-xs text-gray-600 mb-1">Chocs</div>
                             <div className="text-xl font-bold text-blue-600">
@@ -1165,7 +1200,7 @@ export default function EditReportPage() {
                       </CardContent>
                     </Card>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
                       {/* Informations générales */}
                       <Card className="shadow-none">
                         <CardHeader>
@@ -1175,7 +1210,7 @@ export default function EditReportPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div>
                               <label className="text-xs font-medium text-gray-600">Référence</label>
                               <p className="text-base font-semibold">{assignment.reference}</p>
@@ -1266,7 +1301,7 @@ export default function EditReportPage() {
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Plaque</label>
                                 <p className="text-base font-semibold">{assignment.vehicle.license_plate}</p>
@@ -1312,7 +1347,7 @@ export default function EditReportPage() {
                             <Separator />
 
                             {/* Informations détaillées du véhicule */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Marque</label>
                                 <p className="text-base font-semibold">{assignment?.vehicle?.brand?.label}</p>
@@ -1335,7 +1370,7 @@ export default function EditReportPage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
                       {/* Client */}
                       {assignment.client && (
                         <Card className="shadow-none">
@@ -1436,7 +1471,7 @@ export default function EditReportPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="text-xs font-medium text-gray-600">Type de dossier</label>
                               <p className="text-base font-semibold">{assignment.assignment_type.label}</p>
@@ -1484,7 +1519,7 @@ export default function EditReportPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="text-xs font-medium text-gray-600">Valeur assurée</label>
                               <p className="text-base font-semibold">{assignment.assured_value ? formatCurrency(assignment.assured_value) : 'Non renseigné'}</p>
@@ -1524,7 +1559,7 @@ export default function EditReportPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="text-xs font-medium text-gray-600">Vu avant travaux</label>
                               <p className="text-base font-semibold">{assignment.seen_before_work_date ? formatDate(assignment.seen_before_work_date) : 'Non renseigné'}</p>
@@ -1936,6 +1971,20 @@ export default function EditReportPage() {
                   </div>
                 )}
 
+                {/* Constats */}
+                {activeTab === 'constatations' && (
+                  <AscertainmentEdit
+                    ascertainments={assignment.ascertainments || []}
+                    onUpdate={(updatedAscertainments) => {
+                      // Mettre à jour les constatations dans l'état local
+                      setAssignment(prev => prev ? {
+                        ...prev,
+                        ascertainments: updatedAscertainments
+                      } : null)
+                    }}
+                  />
+                )}
+
                 {/* Quittances */}
                 {activeTab === 'receipts' && (
                   <ReceiptManagement
@@ -2210,69 +2259,18 @@ export default function EditReportPage() {
                 )}
 
                 {/* Constatations */}
-                {activeTab === 'constatations' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-bold text-gray-900">Constatations</h2>
-                      <Button 
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="bg-black hover:bg-gray-800"
-                      >
-                        {saving ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Sauvegarde...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Sauvegarder
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    <Card className="shadow-none">
-                      <CardHeader>
-                        <CardTitle>Constatations du véhicule</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="circumstance">Circonstances</Label>
-                            <RichTextEditor
-                              value={circumstance}
-                              onChange={setCircumstance}
-                              placeholder="Décrire les circonstances du sinistre..."
-                              className="min-h-[100px]"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="damage-declared">Dommages déclarés</Label>
-                            <RichTextEditor
-                              value={damageDeclared}
-                              onChange={setDamageDeclared}
-                              placeholder="Décrire les dommages déclarés..."
-                              className="min-h-[100px]"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="observation">Observations</Label>
-                            <RichTextEditor
-                              value={observation}
-                              onChange={setObservation}
-                              placeholder="Ajouter des observations..."
-                              className="min-h-[100px]"
-                            />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
+                {/* {activeTab === 'constatations' && (
+                  <AscertainmentEdit
+                    ascertainments={assignment.ascertainments || []}
+                    onUpdate={(updatedAscertainments) => {
+                      // Mettre à jour les constatations dans l'état local
+                      setAssignment(prev => prev ? {
+                        ...prev,
+                        ascertainments: updatedAscertainments
+                      } : null)
+                    }}
+                  />
+                )} */}
               </div>
             </ScrollArea>
           </div>
@@ -2352,6 +2350,350 @@ export default function EditReportPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Bottom Bar pour Mobile */}
+        {isMobile && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate({ to: '/assignments' })}
+                  className="p-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <p className="text-xs font-medium">#{assignment.reference}</p>
+                  <p className="text-xs text-gray-500">{assignment.status.label}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Badge className={getStatusColor(assignment.status.code)}>
+                  {formatCurrency(assignment.total_amount)}
+                </Badge>
+                <Sheet open={showMobileSheet} onOpenChange={setShowMobileSheet}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="p-2">
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="h-[80vh]">
+                    <SheetHeader>
+                      <SheetTitle>Navigation</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-6 space-y-4">
+                      {/* Navigation mobile */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => {
+                            setActiveTab('overview')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'overview' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span className="text-sm font-medium">Vue d'ensemble</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('shocks')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'shocks' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Calculator className="h-4 w-4" />
+                            <span className="text-sm font-medium">Points de choc</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('costs')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'costs' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            <span className="text-sm font-medium">Autres coûts</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('receipts')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'receipts' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Receipt className="h-4 w-4" />
+                            <span className="text-sm font-medium">Quittances</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('constatations')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'constatations' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Star className="h-4 w-4" />
+                            <span className="text-sm font-medium">Constatations</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('additional-info')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'additional-info' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span className="text-sm font-medium">Infos additionnelles</span>
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* Actions rapides */}
+                      <div className="pt-4 border-t">
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => {
+                              handleSave()
+                              setShowMobileSheet(false)
+                            }}
+                            disabled={saving}
+                            className="flex-1"
+                          >
+                            {saving ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Sauvegarde...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="mr-2 h-4 w-4" />
+                                Sauvegarder
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Barre de navigation mobile */}
+        {isMobile && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate({ to: '/assignments' })}
+                  className="p-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <p className="text-xs font-medium">#{assignment.reference}</p>
+                  <p className="text-xs text-gray-500">{assignment.status.label}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Badge className={getStatusColor(assignment.status.code)}>
+                  {formatCurrency(assignment.total_amount)}
+                </Badge>
+                <Sheet open={showMobileSheet} onOpenChange={setShowMobileSheet}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="p-2">
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="h-[80vh]">
+                    <SheetHeader>
+                      <SheetTitle>Navigation</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-6 space-y-4">
+                      {/* Navigation mobile */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => {
+                            setActiveTab('overview')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'overview' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span className="text-sm font-medium">Vue d'ensemble</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('shocks')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'shocks' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Calculator className="h-4 w-4" />
+                            <span className="text-sm font-medium">Points de choc</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('costs')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'costs' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            <span className="text-sm font-medium">Autres coûts</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('receipts')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'receipts' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Receipt className="h-4 w-4" />
+                            <span className="text-sm font-medium">Quittances</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('constatations')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'constatations' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Star className="h-4 w-4" />
+                            <span className="text-sm font-medium">Constatations</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setActiveTab('additional-info')
+                            setShowMobileSheet(false)
+                          }}
+                          className={`p-3 rounded-lg border text-left transition-colors ${
+                            activeTab === 'additional-info' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span className="text-sm font-medium">Infos additionnelles</span>
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* Actions rapides */}
+                      <div className="pt-4 border-t">
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => {
+                              handleSave()
+                              setShowMobileSheet(false)
+                            }}
+                            disabled={saving}
+                            className="flex-1"
+                          >
+                            {saving ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Sauvegarde...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="mr-2 h-4 w-4" />
+                                Sauvegarder
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </div>
+          </div>
+        )}
       </Main>
     </>
   )
@@ -2442,7 +2784,7 @@ function ShockWorkItem({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -2481,7 +2823,7 @@ function ShockWorkItem({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Taux d'obsolescence (%)</Label>
                 <Input
@@ -2510,7 +2852,7 @@ function ShockWorkItem({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Taux d'obsolescence:</span>
               <p className="font-semibold">{work.obsolescence_rate}%</p>
@@ -2632,7 +2974,7 @@ function WorkforceItem({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Heures :</span>
               <p className="font-semibold">{workforce.nb_hours}</p>
@@ -2789,7 +3131,7 @@ function OtherCostItem({
           </div>
           
           {/* Informations supplémentaires */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div className="text-center bg-blue-50 rounded p-2">
               <div className="text-blue-600 font-medium">Montant HT</div>
               <div className="font-semibold">{formatCurrency(cost.amount_excluding_tax)}</div>
@@ -2804,3 +3146,4 @@ function OtherCostItem({
     </div>
   )
 }
+

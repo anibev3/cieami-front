@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Edit, Trash2, MoreHorizontal, Eye, EyeOff, Calendar, Euro, FileText } from 'lucide-react'
+import { Edit, Trash2, MoreHorizontal, Eye, EyeOff, Calendar } from 'lucide-react'
 import { formatCurrency } from '@/utils/format-currency'
 import { formatDate } from '@/utils/format-date'
 
@@ -23,7 +23,7 @@ export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps):
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="h-8 flex items-center gap-1"
         >
-          <FileText className="h-4 w-4" />
+          {/* <FileText className="h-4 w-4" /> */}
           Référence
         </Button>
       )
@@ -46,7 +46,7 @@ export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps):
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="h-8 flex items-center gap-1"
         >
-          <FileText className="h-4 w-4" />
+          {/* <FileText className="h-4 w-4" /> */}
           Dossier
         </Button>
       )
@@ -69,7 +69,7 @@ export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps):
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="h-8 flex items-center gap-1"
         >
-          <Euro className="h-4 w-4" />
+          {/* <Euro className="h-4 w-4" /> */}
           Montant
         </Button>
       )
@@ -92,7 +92,7 @@ export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps):
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="h-8 flex items-center gap-1"
         >
-          <Calendar className="h-4 w-4" />
+          {/* <Calendar className="h-4 w-4" /> */}
           Date
         </Button>
       )

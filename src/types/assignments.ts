@@ -40,6 +40,8 @@ export interface Assignment {
   total_amount_excluding_tax: string | null
   total_amount_tax: string | null
   total_amount: string | null
+  payment_received: number
+  payment_remains: number
   printed_at: string | null
   expert_signature: string | null
   repairer_signature: string | null

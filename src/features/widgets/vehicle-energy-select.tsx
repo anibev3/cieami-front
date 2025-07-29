@@ -39,6 +39,14 @@ export function VehicleEnergySelect({
   }, [fetchVehicleEnergies, isInitialized])
 
   const selectedEnergy = vehicleEnergies.find(energy => energy.id.toString() === value)
+  
+  // Log pour déboguer
+  // eslint-disable-next-line no-console
+  console.log('VehicleEnergySelect - value:', value)
+  // eslint-disable-next-line no-console
+  console.log('VehicleEnergySelect - vehicleEnergies:', vehicleEnergies)
+  // eslint-disable-next-line no-console
+  console.log('VehicleEnergySelect - selectedEnergy:', selectedEnergy)
 
   return (
     <Select

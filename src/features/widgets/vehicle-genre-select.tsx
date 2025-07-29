@@ -39,6 +39,14 @@ export function VehicleGenreSelect({
   }, [fetchVehicleGenres, isInitialized])
 
   const selectedGenre = vehicleGenres.find(genre => genre.id.toString() === value)
+  
+  // Log pour déboguer
+  // eslint-disable-next-line no-console
+  console.log('VehicleGenreSelect - value:', value)
+  // eslint-disable-next-line no-console
+  console.log('VehicleGenreSelect - vehicleGenres:', vehicleGenres)
+  // eslint-disable-next-line no-console
+  console.log('VehicleGenreSelect - selectedGenre:', selectedGenre)
 
   return (
     <Select

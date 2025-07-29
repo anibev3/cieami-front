@@ -4,7 +4,7 @@ export interface Vehicle {
   usage: string
   type: string
   option: string
-  mileage: string
+  mileage: number
   serial_number: string
   first_entry_into_circulation_date: string | null
   technical_visit_date: string | null
@@ -85,7 +85,7 @@ export interface VehicleCreate {
   type: string
   option: string
   bodywork_id: string
-  mileage: string
+  mileage: number
   serial_number: string
   first_entry_into_circulation_date?: string
   technical_visit_date?: string
@@ -105,7 +105,7 @@ export interface VehicleUpdate {
   type?: string
   option?: string
   bodywork_id?: string
-  mileage?: string
+  mileage?: number
   serial_number?: string
   first_entry_into_circulation_date?: string
   technical_visit_date?: string

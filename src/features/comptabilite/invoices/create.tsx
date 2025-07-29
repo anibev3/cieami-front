@@ -47,6 +47,7 @@ import { formatDate } from '@/utils/format-date'
 import { formatCurrency } from '@/utils/format-currency'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function CreateInvoicePage() {
   const navigate = useNavigate()
@@ -64,7 +65,7 @@ export default function CreateInvoicePage() {
     reference: true,
     client: false,
     vehicle: false,
-    policy: true,
+    policy: false,
     date: false,
     status: true,
     amount: true,
@@ -310,7 +311,8 @@ export default function CreateInvoicePage() {
                     </p>
                   </div>
                 ) : (
-                  <Table>
+                  <ScrollArea className="h-[500px]">
+                                      <Table>
                     <TableHeader>
                       <TableRow>
                         {columnVisibility.reference && (
@@ -346,6 +348,7 @@ export default function CreateInvoicePage() {
                       {filteredAssignments.map((assignment) => {
                         const isSelected = selectedAssignment?.id === assignment.id
                         const isEligible = isAssignmentEligible(assignment)
+                        // const isEligible = true
                         
                         return (
                           <TableRow 
@@ -505,6 +508,7 @@ export default function CreateInvoicePage() {
                       })}
                     </TableBody>
                   </Table>
+                  </ScrollArea>
                 )}
               </div>
             </div>
@@ -544,9 +548,36 @@ export default function CreateInvoicePage() {
 
                   <Separator />
 
-                  {/* Montant total */}
+                  {/* Informations de paiement */}
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Montant total</Label>
+                    <Label className="text-sm font-medium text-gray-700">Informations de paiement</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-600">Montant total :</span>
+                        <span className="font-semibold text-gray-900">
+                          {formatCurrency(Number(selectedAssignment.total_amount))}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                        <span className="text-sm text-gray-600">Déjà payé :</span>
+                        <span className="font-semibold text-green-600">
+                          {formatCurrency(selectedAssignment.payment_received)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
+                        <span className="text-sm text-gray-600">Reste à payer :</span>
+                        <span className="font-semibold text-orange-600">
+                          {formatCurrency(selectedAssignment.payment_remains)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Montant des quittances */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Montant des quittances</Label>
                     <div className="mt-2 text-2xl font-bold text-green-600">
                       {formatCurrency(Number(selectedAssignment.receipt_amount))}
                     </div>

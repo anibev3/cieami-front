@@ -36,6 +36,7 @@ import { ClientSelect } from '@/features/widgets/client-select'
 import { VehicleSelect } from '@/features/widgets/vehicle-select'
 import { InsurerSelect } from '@/features/widgets/insurer-select'
 import { RepairerSelect } from '@/features/widgets/repairer-select'
+import { BrokerSelect } from '@/features/widgets/broker-select'
 import { UserSelect } from '@/features/widgets/user-select'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { useUsersStore } from '@/stores/usersStore'
@@ -120,6 +121,7 @@ interface AssignmentCreatePayload {
   vehicle_mileage: number | null
   insurer_id: number | null
   repairer_id: number | null
+  broker_id: number | null
   assignment_type_id: number
   expertise_type_id: number
   document_transmitted_id: any[]
@@ -153,6 +155,7 @@ const assignmentSchema = z.object({
   vehicle_mileage: z.string().optional(),
   insurer_id: z.string().optional(),
   repairer_id: z.string().optional(),
+  broker_id: z.string().optional(),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
   document_transmitted_id: z.array(z.string()).optional(),
@@ -190,6 +193,7 @@ export default function CreateAssignmentPage() {
   const [showClientModal, setShowClientModal] = useState(false)
   const [showInsurerModal, setShowInsurerModal] = useState(false)
   const [showRepairerModal, setShowRepairerModal] = useState(false)
+  const [showBrokerModal, setShowBrokerModal] = useState(false)
   const [showAssignmentTypeModal, setShowAssignmentTypeModal] = useState(false)
   const [showExpertiseTypeModal, setShowExpertiseTypeModal] = useState(false)
   const [showDocumentModal, setShowDocumentModal] = useState(false)
@@ -284,6 +288,7 @@ export default function CreateAssignmentPage() {
   const [selectedClient, setSelectedClient] = useState<UserType | null>(null)
   const [selectedInsurer, setSelectedInsurer] = useState<EntityType | null>(null)
   const [selectedRepairer, setSelectedRepairer] = useState<EntityType | null>(null)
+  const [selectedBroker, setSelectedBroker] = useState<EntityType | null>(null)
   const [selectedAssignmentType, setSelectedAssignmentType] = useState<AssignmentType | null>(null)
   const [selectedExpertiseType, setSelectedExpertiseType] = useState<ExpertiseType | null>(null)
   const [selectedDocuments, setSelectedDocuments] = useState<DocumentTransmitted[]>([])
@@ -514,8 +519,8 @@ export default function CreateAssignmentPage() {
     if (vehicle) {
       setSelectedVehicle(vehicle)
       // Pré-remplir le kilométrage avec la valeur du véhicule
-      const mileage = parseFloat(vehicle.mileage)
-      if (!isNaN(mileage)) {
+      const mileage = vehicle.mileage
+      if (mileage !== null && mileage !== undefined) {
         form.setValue('vehicle_mileage', mileage.toString())
       }
     }
@@ -567,6 +572,20 @@ export default function CreateAssignmentPage() {
   const openRepairerDetails = (repairer: EntityType) => {
     setSelectedRepairer(repairer)
     setShowRepairerModal(true)
+  }
+
+  // Fonction pour gérer la sélection du courtier
+  const handleBrokerSelection = (brokerId: string) => {
+    const broker = entities.find(e => e.id.toString() === brokerId)
+    if (broker) {
+      setSelectedBroker(broker)
+    }
+  }
+
+  // Fonction pour ouvrir le modal des détails du courtier
+  const openBrokerDetails = (broker: EntityType) => {
+    setSelectedBroker(broker)
+    setShowBrokerModal(true)
   }
 
   // Fonction pour gérer la sélection du type d'assignation
@@ -643,6 +662,7 @@ export default function CreateAssignmentPage() {
         vehicle_mileage: values.vehicle_mileage ? parseInt(values.vehicle_mileage) : null,
         insurer_id: values.insurer_id ? parseInt(values.insurer_id) : null,
         repairer_id: values.repairer_id ? parseInt(values.repairer_id) : null,
+        broker_id: values.broker_id ? parseInt(values.broker_id) : null,
         assignment_type_id: parseInt(values.assignment_type_id),
         expertise_type_id: parseInt(values.expertise_type_id),
         document_transmitted_id: values.document_transmitted_id?.map(id => parseInt(id)) || [],
@@ -1300,7 +1320,7 @@ export default function CreateAssignmentPage() {
                         <Building className="h-5 w-5 text-green-500" />
                           Assureur et Réparateur
                         </h3>
-                    <div className="space-y-4">
+                        <div className="space-y-4">
                           <FormField
                             control={form.control}
                             name="insurer_id"
@@ -1336,7 +1356,7 @@ export default function CreateAssignmentPage() {
                                       <Info className="h-4 w-4" />
                                     </Button>
                                   )}
-                      </div>
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1383,6 +1403,43 @@ export default function CreateAssignmentPage() {
                             )}
                           />
                       </div>
+                      <FormField
+                        control={form.control}
+                        name="broker_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center gap-2 justify-between">
+                              <FormLabel>Courtier</FormLabel>
+                            </div>
+                            <div className="flex gap-2">
+                              <BrokerSelect
+                                value={field.value ? Number(field.value) : null}
+                                onValueChange={(value: number | null) => {
+                                  field.onChange(value?.toString())
+                                  if (value) {
+                                    handleBrokerSelection(value.toString())
+                                  }
+                                }}
+                                placeholder="Sélectionner un courtier"
+                                className="flex-1"
+                                showStatus={true}
+                              />
+                              {selectedBroker && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => openBrokerDetails(selectedBroker)}
+                                  className="shrink-0"
+                                >
+                                  <Info className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField control={form.control} name="received_at" render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Date de réception</FormLabel>
@@ -3120,6 +3177,127 @@ export default function CreateAssignmentPage() {
                   <p className="text-xxs text-purple-600 font-medium">Dernière mise à jour</p>
                   <p className="text-purple-900 font-semibold text-xs">
                     {new Date(selectedAssignmentType.updated_at).toLocaleDateString('fr-FR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal des détails du courtier */}
+      <Dialog open={showBrokerModal} onOpenChange={setShowBrokerModal}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building className="h-2.5 w-2.5" />
+              Détails du courtier
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Informations complètes sur le courtier sélectionné
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedBroker && (
+            <div className="space-y-3">
+              {/* En-tête avec logo */}
+              <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border">
+                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white">
+                  <Building className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900">{selectedBroker?.name || ''}</h3>
+                  <p className="text-gray-600 text-xs">{selectedBroker?.email || ''}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xxs">
+                      {selectedBroker?.entity_type?.label || ''}
+                    </Badge>
+                    <span className="text-xxs text-gray-500">Code: {selectedBroker?.code || ''}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informations principales */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Informations générales</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Nom</span>
+                        <span className="font-semibold text-xs">{selectedBroker?.name || ''}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code</span>
+                        <span className="font-mono text-xxs font-semibold">{selectedBroker?.code || ''}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Email</span>
+                        <span className="font-semibold text-xs">{selectedBroker?.email || ''}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Téléphone</span>
+                        <span className="font-semibold text-xs">{selectedBroker?.telephone || 'Non renseigné'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Statut et type</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Type d'entité</span>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xxs">
+                          {selectedBroker?.entity_type?.label || ''}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Statut</span>
+                        <Badge variant={selectedBroker?.status?.code === 'active' ? "default" : "secondary"} className="text-xxs">
+                          {selectedBroker?.status?.label || ''}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center p-1.5 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 font-medium text-xs">Code du statut</span>
+                        <span className="font-mono text-xxs">{selectedBroker?.status?.code || ''}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Adresse */}
+              {selectedBroker.address && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-base text-gray-900 border-b pb-1">Adresse</h4>
+                  <div className="p-2 bg-gray-50 rounded-lg">
+                    <p className="text-gray-900 font-medium text-xs">{selectedBroker?.address || ''}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Dates */}
+              <div className="flex justify-between items-center p-2 bg-blue-50 rounded-lg">
+                <div>
+                  <p className="text-xxs text-blue-600 font-medium">Créé le</p>
+                  <p className="text-blue-900 font-semibold text-xs">
+                    {new Date(selectedBroker?.created_at).toLocaleDateString('fr-FR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xxs text-blue-600 font-medium">Dernière mise à jour</p>
+                  <p className="text-blue-900 font-semibold text-xs">
+                    {new Date(selectedBroker?.updated_at).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'

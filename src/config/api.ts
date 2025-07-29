@@ -39,6 +39,7 @@ export const API_CONFIG = {
     SHOCK_WORKS: "/shock-works",
     WORKFORCES: "/workforces",
     OTHER_COSTS: "/other-costs",
+    ASCERTAINMENTS: "/ascertainments",
   },
 } as const
 

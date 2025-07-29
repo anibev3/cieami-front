@@ -1,22 +1,25 @@
 import { useState } from 'react'
 import { usePaymentStore } from '@/stores/paymentStore'
+import { useAssignmentsStore } from '@/stores/assignments'
 import { CreatePaymentData } from '@/types/comptabilite'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, Save, FileText, CreditCard, Calendar, Building2 } from 'lucide-react'
+import { ArrowLeft, Save, FileText, CreditCard, Calendar, Building2, AlertCircle } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { AssignmentSelect } from './components/assignment-select'
-import { DatePicker } from './components/date-picker'
-import { PaymentTypeSelect } from './components/payment-type-select'
-import { PaymentMethodSelect } from './components/payment-method-select'
+import { AssignmentSelect } from '@/features/widgets/assignment-select'
+import { DatePicker } from '@/features/widgets/date-picker'
+import { PaymentTypeSelect } from '@/features/widgets/payment-type-select'
+import { PaymentMethodSelect } from '@/features/widgets/payment-method-select'
+import { formatCurrency } from '@/utils/format-currency'
 
 export default function CreatePaymentPage() {
   const navigate = useNavigate()
   const { createPayment, loading } = usePaymentStore()
+  const { assignments } = useAssignmentsStore()
   
   const [formData, setFormData] = useState<CreatePaymentData>({
     assignment_id: '',
@@ -26,8 +29,24 @@ export default function CreatePaymentPage() {
     amount: 0
   })
 
+  // Trouver le dossier sélectionné pour obtenir les informations de paiement
+  const selectedAssignment = assignments.find(
+    assignment => assignment.id.toString() === formData.assignment_id
+  )
+
+  // Calculer le montant maximum autorisé
+  const maxAmount = selectedAssignment ? selectedAssignment.payment_remains : 0
+  const isAmountExceeded = formData.amount > maxAmount
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validation du montant
+    if (isAmountExceeded) {
+      toast.error(`Le montant ne peut pas dépasser le reste à payer (${formatCurrency(maxAmount)})`)
+      return
+    }
+    
     try {
       const result = await createPayment(formData)
       
@@ -148,8 +167,40 @@ export default function CreatePaymentPage() {
                   onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
                   placeholder="0.00"
                   required
-                  className="text-lg font-medium"
+                  // max={maxAmount}
+                  className={`text-lg font-medium ${isAmountExceeded ? 'border-red-500 focus:border-red-500' : ''}`}
                 />
+                
+                {/* Informations de paiement du dossier */}
+                {selectedAssignment && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium text-gray-700">Informations du dossier :</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-gray-600">Montant total :</span>
+                        <span className="ml-1 font-medium">{formatCurrency(Number(selectedAssignment.total_amount))}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Déjà payé :</span>
+                        <span className="ml-1 font-medium text-green-600">{formatCurrency(selectedAssignment.payment_received)}</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-gray-600">Reste à payer :</span>
+                        <span className="ml-1 font-medium text-orange-600">{formatCurrency(selectedAssignment.payment_remains)}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Avertissement si le montant dépasse le reste à payer */}
+                    {isAmountExceeded && (
+                      <div className="flex items-center gap-2 text-red-600 text-xs mt-2">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>Le montant dépasse le reste à payer</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

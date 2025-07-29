@@ -63,7 +63,10 @@ export function AssignmentSelect({
 
   useEffect(() => {
     if (assignments.length === 0) {
-      fetchAssignments()
+      fetchAssignments( 1, {
+        is_selected: true,
+        // status_code: 'edited'
+      })
     }
   }, [fetchAssignments, assignments.length])
 
@@ -274,6 +277,18 @@ export function AssignmentSelect({
                       <p className="font-medium text-muted-foreground">Montant total</p>
                       <p className="font-semibold text-primary">
                         {formatCurrency(Number(selectedAssignmentForDetails.total_amount))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-muted-foreground">Montant payé</p>
+                      <p className="font-semibold text-green-600">
+                        {formatCurrency(selectedAssignmentForDetails.payment_received)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-muted-foreground">Reste à payer</p>
+                      <p className="font-semibold text-orange-600">
+                        {formatCurrency(selectedAssignmentForDetails.payment_remains)}
                       </p>
                     </div>
                   </div>

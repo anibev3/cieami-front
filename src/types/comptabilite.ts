@@ -65,6 +65,8 @@ export interface Assignment {
   total_amount_excluding_tax: string
   total_amount_tax: string
   total_amount: string
+  payment_received: number
+  payment_remains: number
   printed_at: string | null
   expertise_sheet: string | null
   expertise_report: string | null
