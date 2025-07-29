@@ -42,10 +42,10 @@ export default function CreatePaymentPage() {
     e.preventDefault()
     
     // Validation du montant
-    if (isAmountExceeded) {
-      toast.error(`Le montant ne peut pas dépasser le reste à payer (${formatCurrency(maxAmount)})`)
-      return
-    }
+    // if (isAmountExceeded) {
+    //   toast.error(`Le montant ne peut pas dépasser le reste à payer (${formatCurrency(maxAmount)})`)
+    //   return
+    // }
     
     try {
       const result = await createPayment(formData)
