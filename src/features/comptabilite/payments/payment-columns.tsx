@@ -194,16 +194,16 @@ export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps):
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(payment)}>
+        <DropdownMenuContent align="end">
+              {/* <DropdownMenuItem onClick={() => onEdit(payment)}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Supprimer
+                  Annuler
                 </DropdownMenuItem>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -214,12 +214,12 @@ export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps):
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogCancel> Retour </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => onDelete(payment.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Supprimer
+                    Annuler
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

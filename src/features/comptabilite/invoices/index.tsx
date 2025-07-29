@@ -512,12 +512,12 @@ export default function InvoicesPage() {
                               <Eye className="mr-2 h-4 w-4" />
                               Voir les détails
                             </DropdownMenuItem>
-                            {canEdit && (
+                            {/* {canEdit && (
                               <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Modifier
                               </DropdownMenuItem>
-                            )}
+                            )} */}
                             {canCancel && (
                               <DropdownMenuItem onClick={() => handleCancel(Number(invoice.id))}>
                                 <AlertTriangle className="mr-2 h-4 w-4" />

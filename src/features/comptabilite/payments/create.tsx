@@ -89,7 +89,7 @@ export default function CreatePaymentPage() {
               className="hover:bg-blue-100 dark:hover:bg-blue-900/50"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              <h1 className="text-2xl font-bold">Nouveau chèque</h1>
+              <h1 className="text-2xl font-bold">Nouveau paiement</h1>
             </Button>
             {/* <Separator orientation="vertical" className="h-6" /> */}
             
