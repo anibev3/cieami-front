@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Save, CreditCard, Building2, Calendar, Euro, Loader2 } from 'lucide-react'
 import { PaymentSelect } from './components/payment-select'
 import { BankSelect } from './components/bank-select'
-import { DatePicker } from '../payments/components/date-picker'
+import { DatePicker } from '@/features/widgets/date-picker'
 import { toast } from 'sonner'
 
 export default function EditCheckPage() {

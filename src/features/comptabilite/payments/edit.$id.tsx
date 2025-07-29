@@ -9,10 +9,10 @@ import { Separator } from '@/components/ui/separator'
 import { ArrowLeft, Save, Loader2, FileText, CreditCard, Calendar, Building2 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { AssignmentSelect } from './components/assignment-select'
-import { DatePicker } from './components/date-picker'
-import { PaymentTypeSelect } from './components/payment-type-select'
-import { PaymentMethodSelect } from './components/payment-method-select'
+import { AssignmentSelect } from '@/features/widgets/assignment-select'
+import { DatePicker } from '@/features/widgets/date-picker'
+import { PaymentTypeSelect } from '@/features/widgets/payment-type-select'
+import { PaymentMethodSelect } from '@/features/widgets/payment-method-select'
 
 export default function EditPaymentPage() {
   const navigate = useNavigate()

@@ -8,7 +8,7 @@ import {
   Calculator, 
   Loader2
 } from 'lucide-react'
-import { DatePicker } from '@/features/comptabilite/payments/components/date-picker'
+import { DatePicker } from '@/features/widgets/date-picker'
 import { BrandSelect } from '@/features/widgets'
 import { VehicleModelSelect } from './components/vehicle-model-select'
 import { SupplySelect } from './components/supply-select'

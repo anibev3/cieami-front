@@ -752,6 +752,7 @@ export default function CreateAssignmentPage() {
         bodywork_id: createVehicleForm.bodywork_id,
         first_entry_into_circulation_date: createVehicleForm.first_entry_into_circulation_date || undefined,
         technical_visit_date: createVehicleForm.technical_visit_date || undefined,
+        mileage: Number(createVehicleForm.mileage),
       })
       toast.success('Véhicule créé avec succès')
       setShowCreateVehicleModal(false)
