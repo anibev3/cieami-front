@@ -14,8 +14,8 @@ class ReceiptTypeService {
     const params = new URLSearchParams()
     if (filters?.search) params.append('search', filters.search)
     if (filters?.page) params.append('page', filters.page.toString())
-    if (filters?.per_page) params.append('per_page', filters.per_page.toString())
-    const response = await axiosInstance.get<ReceiptTypeResponse>(`${this.baseUrl}?${params.toString()}`)
+    // if (filters?.per_page) params.append('per_page', filters.per_page.toString())
+    const response = await axiosInstance.get<ReceiptTypeResponse>(`${this.baseUrl}?${params.toString()}&per_page=100000`)
     return response.data
   }
 

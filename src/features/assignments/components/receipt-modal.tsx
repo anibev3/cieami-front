@@ -6,13 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+
 import { 
   Receipt, 
   Plus, 
@@ -26,6 +20,7 @@ import {
 import { toast } from 'sonner'
 import { receiptService } from '@/services/receiptService'
 import { receiptTypeService } from '@/services/receiptTypeService'
+import { ReceiptTypeSelect } from '@/features/widgets/receipt-type-select'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 
@@ -103,6 +98,8 @@ export function ReceiptModal({
     receipt_type_id: 0,
     amount: 0
   })
+  
+
 
   // Charger les données au montage du modal
   useEffect(() => {
@@ -177,7 +174,7 @@ export function ReceiptModal({
       return
     }
 
-    const receiptType = receiptTypes.find(type => type.id === formData.receipt_type_id)
+    const receiptType = receiptTypes.find(type => type && type.id === formData.receipt_type_id)
     const newReceipt: Receipt = {
       amount_excluding_tax: '0',
       amount_tax: '0',
@@ -282,7 +279,7 @@ export function ReceiptModal({
 
   const assignmentAmount = assignmentDetail ? parseFloat(assignmentDetail.total_amount) : 0
   const totalReceipts = receipts.reduce((sum, receipt) => sum + (Number(receipt.amount) || 0), 0)
-  const remainingAmount = assignmentAmount - totalReceipts
+  const _remainingAmount = assignmentAmount - totalReceipts
 
   const handleSave = async () => {
     if (receipts.length === 0) {
@@ -331,7 +328,10 @@ export function ReceiptModal({
     loadData()
   }
 
+
+
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
@@ -388,34 +388,19 @@ export function ReceiptModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-gray-700 mb-2">Type de quittance</Label>
-                    <Select 
-                      value={formData.receipt_type_id.toString()} 
+                    <ReceiptTypeSelect
+                      value={formData.receipt_type_id || null}
                       onValueChange={(value) => {
-                        const newReceiptTypeId = Number(value)
+                        const newReceiptTypeId = value || 0
                         setFormData({ 
                           receipt_type_id: newReceiptTypeId,
                           amount: isAutomaticReceiptType(newReceiptTypeId) ? 0 : formData.amount
                         })
                       }}
-                    >
-                      <SelectTrigger className={!formData.receipt_type_id ? 'border-red-300 bg-red-50 w-full' : 'w-full'}>
-                        <SelectValue placeholder="Sélectionner un type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {receiptTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id.toString()}>
-                            <div className="flex items-center gap-2">
-                              <span>{type.label}</span>
-                              {isAutomaticReceiptType(type.id) && (
-                                <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
-                                  Auto
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      placeholder="Sélectionner un type"
+                      className={!formData.receipt_type_id ? 'border-red-300 bg-red-50' : ''}
+                      showCreateOption={true}
+                    />
                   </div>
                   
                   <div>
@@ -557,7 +542,7 @@ export function ReceiptModal({
                       </TableHeader>
                       <TableBody>
                         {calculationResult.receipts.map((calculatedReceipt, index) => {
-                          const receiptType = receiptTypes.find(type => type.id === Number(calculatedReceipt.receipt_type_id))
+                          const receiptType = receiptTypes.find(type => type && type.id === Number(calculatedReceipt.receipt_type_id))
                           return (
                             <TableRow key={index}>
                               <TableCell className="font-medium">
@@ -672,5 +657,8 @@ export function ReceiptModal({
         </div>
       </DialogContent>
     </Dialog>
+
+
+    </>
   )
 } 

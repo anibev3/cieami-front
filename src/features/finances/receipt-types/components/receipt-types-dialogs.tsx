@@ -31,7 +31,7 @@ export function ReceiptTypesDialogs({
   onCloseView,
   onCloseDelete,
 }: ReceiptTypesDialogsProps) {
-  const { createReceiptType, updateReceiptType, deleteReceiptType } = useReceiptTypesStore()
+  const { createReceiptType, updateReceiptType, deleteReceiptType, fetchReceiptTypes } = useReceiptTypesStore()
 
   const [createForm, setCreateForm] = useState<CreateReceiptTypeData>({
     code: '',
@@ -60,6 +60,7 @@ export function ReceiptTypesDialogs({
     e.preventDefault()
     try {
       await createReceiptType(createForm)
+      fetchReceiptTypes()
       onCloseCreate()
     } catch (_error) {
       // Erreur gérée par le store
@@ -93,9 +94,9 @@ export function ReceiptTypesDialogs({
       <Dialog open={isCreateOpen} onOpenChange={onCloseCreate}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Nouveau type de reçu</DialogTitle>
+            <DialogTitle>Nouveau type de quittance</DialogTitle>
             <DialogDescription>
-              Remplissez les informations pour créer un type de reçu.
+              Remplissez les informations pour créer un type de quittance.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateSubmit} className="space-y-4">

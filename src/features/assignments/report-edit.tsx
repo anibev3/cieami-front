@@ -2159,7 +2159,7 @@ export default function ReportEditPage() {
                           Véhicule
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          Date d'expertise
+                          Valeur neuve
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                           Âge du véhicule
@@ -2187,7 +2187,7 @@ export default function ReportEditPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {new Date(evaluation.expertise_date).toLocaleDateString('fr-FR')}
+                            {evaluation.vehicle.new_market_value.toLocaleString('fr-FR')} F CFA
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             <div className="flex flex-col">

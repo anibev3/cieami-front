@@ -3,13 +3,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -33,6 +27,7 @@ import {
 } from 'lucide-react'
 import { receiptService } from '@/services/receiptService'
 import { receiptTypeService } from '@/services/receiptTypeService'
+import { ReceiptTypeSelect } from '@/features/widgets/receipt-type-select'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 
@@ -100,6 +95,8 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
   const [showCalculationResults, setShowCalculationResults] = useState(false)
+  
+
 
   // Charger les types de quittances
   useEffect(() => {
@@ -117,6 +114,8 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
       setLoading(false)
     }
   }
+
+
 
   // Ouvrir le modal de création
   const openCreateModal = () => {
@@ -462,34 +461,19 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
               <div className="grid grid-cols-2 gap-4">
                 <div className='w-full'>
                   <Label className="text-sm font-medium text-gray-700 mb-2">Type de quittance</Label>
-                  <Select 
-                    value={formData.receipt_type_id.toString()} 
+                  <ReceiptTypeSelect
+                    value={formData.receipt_type_id || null}
                     onValueChange={(value) => {
-                      const newReceiptTypeId = Number(value)
+                      const newReceiptTypeId = value || 0
                       setFormData({ 
                         receipt_type_id: newReceiptTypeId,
                         amount: isAutomaticReceiptType(newReceiptTypeId) ? 0 : formData.amount
                       })
                     }}
-                  >
-                    <SelectTrigger className={!formData.receipt_type_id ? 'border-red-300 bg-red-50 w-full' : 'w-full'}>
-                      <SelectValue placeholder="Sélectionner un type" />
-                    </SelectTrigger>
-                    <SelectContent className='w-full'>
-                      {receiptTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id.toString()}>
-                          <div className="flex items-center gap-2">
-                            <span>{type.label}</span>
-                            {isAutomaticReceiptType(type.id) && (
-                              <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
-                                Auto
-                              </Badge>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    placeholder="Sélectionner un type"
+                    className={!formData.receipt_type_id ? 'border-red-300 bg-red-50' : ''}
+                    showCreateOption={true}
+                  />
                 </div>
                 
                 <div>
@@ -551,7 +535,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                 
                 <div className="space-y-3">
                   {receiptsToCreate.map((receipt, index) => {
-                    const receiptType = receiptTypes.find(type => type.id === receipt.receipt_type_id)
+                    const receiptType = receiptTypes.find(type => type && type.id === receipt.receipt_type_id)
                     return (
                       <Card key={index} className="border-blue-200 bg-blue-50 shadow-none w-1/2 flex justify-between">
                         <CardContent className="">
@@ -615,7 +599,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                       </TableHeader>
                       <TableBody>
                         {calculationResult.receipts.map((calculatedReceipt, index) => {
-                          const receiptType = receiptTypes.find(type => type.id === Number(calculatedReceipt.receipt_type_id))
+                          const receiptType = receiptTypes.find(type => type && type.id === Number(calculatedReceipt.receipt_type_id))
                           return (
                             <TableRow key={index}>
                               <TableCell className="font-medium">
@@ -740,21 +724,13 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
           <div className="space-y-4 py-4">
             <div className="w-full">
               <Label className="text-sm font-medium text-gray-700 mb-2">Type de quittance</Label>
-              <Select 
-                value={formData.receipt_type_id.toString()} 
-                onValueChange={(value) => setFormData({ ...formData, receipt_type_id: Number(value) })}
-              >
-                <SelectTrigger className={!formData.receipt_type_id ? 'border-red-300 bg-red-50 w-full' : ''}>
-                  <SelectValue placeholder="Sélectionner un type" />
-                </SelectTrigger>
-                <SelectContent className="w-full">
-                  {receiptTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id.toString()}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ReceiptTypeSelect
+                value={formData.receipt_type_id || null}
+                onValueChange={(value) => setFormData({ ...formData, receipt_type_id: value || 0 })}
+                placeholder="Sélectionner un type"
+                className={!formData.receipt_type_id ? 'border-red-300 bg-red-50' : ''}
+                showCreateOption={false}
+              />
             </div>
             
             <div>
@@ -918,6 +894,8 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
           </div>
         </DialogContent>
       </Dialog>
+
+
     </div>
   )
 } 

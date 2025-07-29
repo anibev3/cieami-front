@@ -46,6 +46,8 @@ export const useReceiptTypesStore = create<ReceiptTypesState>((set) => ({
         receiptTypes: [...state.receiptTypes, newItem],
         loading: false
       }))
+      await useReceiptTypesStore.getState().fetchReceiptTypes()
+
       toast.success('Type de reçu créé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
