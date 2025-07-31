@@ -1329,9 +1329,9 @@ export default function CreateAssignmentPage() {
                               <FormItem>
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Assureur</FormLabel>
-                                <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateInsurerModal(true)} className="shrink-0 w-6 h-6">
+                                {/* <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateInsurerModal(true)} className="shrink-0 w-6 h-6">
                                   <Plus className="h-4 w-4" />
-                                </Button>
+                                </Button> */}
                               </div>
                                 <div className="flex gap-2">
                                   <InsurerSelect
@@ -1352,6 +1352,44 @@ export default function CreateAssignmentPage() {
                                       variant="outline"
                                       size="icon"
                                       onClick={() => openInsurerDetails(selectedInsurer)}
+                                      className="shrink-0"
+                                    >
+                                      <Info className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="broker_id"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center gap-2 justify-between">
+                                  <FormLabel>Courtier</FormLabel>
+                                </div>
+                                <div className="flex gap-2">
+                                  <BrokerSelect
+                                    value={field.value ? Number(field.value) : null}
+                                    onValueChange={(value: number | null) => {
+                                      field.onChange(value?.toString())
+                                      if (value) {
+                                        handleBrokerSelection(value.toString())
+                                      }
+                                    }}
+                                    placeholder="Sélectionner un courtier"
+                                    className="flex-1"
+                                    showStatus={true}
+                                  />
+                                  {selectedBroker && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => openBrokerDetails(selectedBroker)}
                                       className="shrink-0"
                                     >
                                       <Info className="h-4 w-4" />
@@ -1404,43 +1442,6 @@ export default function CreateAssignmentPage() {
                             )}
                           />
                       </div>
-                      <FormField
-                        control={form.control}
-                        name="broker_id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center gap-2 justify-between">
-                              <FormLabel>Courtier</FormLabel>
-                            </div>
-                            <div className="flex gap-2">
-                              <BrokerSelect
-                                value={field.value ? Number(field.value) : null}
-                                onValueChange={(value: number | null) => {
-                                  field.onChange(value?.toString())
-                                  if (value) {
-                                    handleBrokerSelection(value.toString())
-                                  }
-                                }}
-                                placeholder="Sélectionner un courtier"
-                                className="flex-1"
-                                showStatus={true}
-                              />
-                              {selectedBroker && (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => openBrokerDetails(selectedBroker)}
-                                  className="shrink-0"
-                                >
-                                  <Info className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                       <FormField control={form.control} name="received_at" render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Date de réception</FormLabel>
@@ -2027,7 +2028,7 @@ export default function CreateAssignmentPage() {
                     </div>
 
                     {/* Informations complémentaires */}
-                    <div className="space-y-4">
+                    <div className="space-y-4" style={{ display: 'none' }}>
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <Info className="h-4 w-4 text-gray-600" />
                         <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations complémentaires</h3>
