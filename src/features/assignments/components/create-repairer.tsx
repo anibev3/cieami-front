@@ -39,8 +39,8 @@ export function CreateRepairer({ open, onOpenChange, onSubmit }: CreateRepairerP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!form.name || !form.code || !form.email) {
-      toast.error('Nom, code et email obligatoires')
+    if (!form.name || !form.code) {
+      toast.error('Nom et code obligatoires')
       return
     }
 
@@ -94,13 +94,12 @@ export function CreateRepairer({ open, onOpenChange, onSubmit }: CreateRepairerP
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="repairer-email">Email *</Label>
+            <Label htmlFor="repairer-email">Email</Label>
             <Input 
               id="repairer-email" 
               type="email" 
               value={form.email} 
               onChange={e => handleInputChange('email', e.target.value)} 
-              required
               disabled={loading}
             />
           </div>

@@ -56,8 +56,8 @@ export function ReparateursMutateDrawer({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name || !form.email || !form.code) {
-      toast.error('Nom, code et email obligatoires')
+    if (!form.name || !form.code) {
+      toast.error('Nom et code obligatoires')
       return
     }
 
@@ -110,13 +110,12 @@ export function ReparateursMutateDrawer({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">Email</Label>
             <Input 
               id="email" 
               type="email" 
               value={form.email ?? ''} 
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))} 
-              required 
             />
           </div>
           <div className="space-y-2">
