@@ -738,7 +738,7 @@ export default function CreateAssignmentPage() {
 
   const handleCreateVehicle = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!createVehicleForm.license_plate || !createVehicleForm.vehicle_model_id || !createVehicleForm.color_id || !createVehicleForm.vehicle_energy_id || !createVehicleForm.vehicle_genre_id) {
+    if (!createVehicleForm.license_plate) {
       toast.error('Numéro d\'immatriculation, modèle, couleur, énergie et genre de véhicule obligatoires')
       return
     }
@@ -2269,7 +2269,7 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-genre">Genre de véhicule *</Label>
+                <Label htmlFor="vehicle-genre">Genre de véhicule</Label>
                 <VehicleGenreSelect
                   value={createVehicleForm.vehicle_genre_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_genre_id: value }))}
@@ -2279,7 +2279,7 @@ export default function CreateAssignmentPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="vehicle-brand">Marque *</Label>
+                  <Label htmlFor="vehicle-brand">Marque</Label>
                   <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBrandModal(true)} className="shrink-0 w-6 h-6">
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -2292,7 +2292,7 @@ export default function CreateAssignmentPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="vehicle-model">Modèle de véhicule *</Label>
+                  <Label htmlFor="vehicle-model">Modèle de véhicule</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -2313,7 +2313,7 @@ export default function CreateAssignmentPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="vehicle-color">Couleur *</Label>
+                  <Label htmlFor="vehicle-color">Couleur</Label>
                   <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateColorModal(true)} className="shrink-0 w-6 h-6">
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -2338,7 +2338,7 @@ export default function CreateAssignmentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vehicle-energy-type">Énergie *</Label>
+                <Label htmlFor="vehicle-energy-type">Énergie</Label>
                 <VehicleEnergySelect
                   value={createVehicleForm.vehicle_energy_id}
                   onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_energy_id: value }))}
