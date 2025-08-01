@@ -509,6 +509,25 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       )
     },
   },
+  {
+    accessorKey: 'broker',
+    header: 'Courtier',
+    cell: ({ row }) => {
+      const broker = row?.getValue('broker') as Assignment['broker']
+      
+      if (!broker) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
+      
+      return (
+        <div className="flex items-center justify-center space-x-2">
+          <div>
+            <div className="font-medium">{broker.name}</div>
+          </div>
+        </div>
+      )
+    },
+  },
   // {
   //   accessorKey: 'assignment_type',
   //   header: 'Type',

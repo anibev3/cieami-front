@@ -2165,13 +2165,13 @@ export default function ReportEditPage() {
                           Âge du véhicule
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          Valeur théorique
+                          Coefficient de dépréciation théorique
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          Valeur marché
+                          Valeur venale théorique
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          Moins-value
+                           {evaluations[0].is_up ? 'Plus-value incicence kilometrique' : 'Moins-value incicence kilometrique'}
                         </th>
                       </tr>
                     </thead>
@@ -2198,14 +2198,14 @@ export default function ReportEditPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
+                            {evaluation.theorical_depreciation_rate.toLocaleString('fr-FR')} FCFA
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {evaluation.theorical_vehicle_market_value.toLocaleString('fr-FR')} FCFA
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {evaluation.vehicle_market_value.toLocaleString('fr-FR')} FCFA
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
                             <span className="text-red-600 font-medium">
-                              {evaluation.less_value_work.toLocaleString('fr-FR')} FCFA
+                              {evaluation.kilometric_incidence.toLocaleString('fr-FR')} FCFA
                             </span>
                           </td>
                         </tr>

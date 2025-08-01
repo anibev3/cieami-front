@@ -24,7 +24,7 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await axiosInstance.delete(API_CONFIG.ENDPOINTS.AUTH.LOGOUT)
+      // await axiosInstance.delete(API_CONFIG.ENDPOINTS.AUTH.LOGOUT)
     } catch (_error) {
       // Même en cas d'erreur, on supprime le token local
       // L'erreur sera gérée par l'intercepteur axios

@@ -10,10 +10,10 @@ export const useAuthHook = () => {
   const auth = useAuth()
   const navigate = useNavigate()
 
-  // Initialiser l'authentification au montage du composant
+  // Initialiser l'authentification au montage du composant uniquement
   useEffect(() => {
     auth.initializeAuth()
-  }, [auth])
+  }, []) // Dépendance vide pour éviter les boucles infinies
 
   // Fonction de connexion avec redirection
   const loginWithRedirect = async (credentials: Parameters<typeof auth.login>[0]) => {

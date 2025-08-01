@@ -109,6 +109,16 @@ export interface Assignment {
     created_at: string
     updated_at: string
   }
+  broker: {
+    id: number
+    code: string
+    name: string
+    email: string
+    telephone: string | null
+    address: string | null
+    created_at: string
+    updated_at: string
+  } | null
   vehicle: {
     id: number
     license_plate: string

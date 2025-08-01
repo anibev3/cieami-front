@@ -12,6 +12,7 @@ interface AssignmentRealizationState {
   // Actions
   fetchAssignmentDetails: (assignmentId: number) => Promise<void>
   realizeAssignment: (assignmentId: number, payload: RealizeAssignmentPayload, isEdit?: boolean) => Promise<void>
+  updateRealizeAssignment: (assignmentId: number, payload: RealizeAssignmentPayload, isEdit?: boolean) => Promise<void>
   clearError: () => void
   setAssignment: (assignment: any) => void
 }
@@ -94,6 +95,38 @@ export const useAssignmentRealizationStore = create<AssignmentRealizationState>(
     }
   },
 
+
+  updateRealizeAssignment: async (assignmentId: number, payload: RealizeAssignmentPayload, isEdit = false) => {
+    try {
+      set({ loading: true, error: null })
+      
+      const response = await assignmentRealizationService.updateRealizeAssignment(assignmentId, payload)
+      
+      // Mettre à jour l'assignment local avec les nouvelles données
+      set(state => ({
+        assignment: response.data ? { ...state.assignment, ...response.data } : state.assignment,
+        loading: false
+      }))
+      
+      const successMessage = isEdit 
+        ? 'Réalisation modifiée avec succès' 
+        : 'Dossier réalisé avec succès'
+      
+      toast.success(successMessage, {
+        duration: 3000,
+      })
+      
+    } catch (error) {
+      const errorMessage = getErrorMessage(error)
+      set({ error: errorMessage, loading: false })
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+      })
+      
+      throw error // Re-throw pour permettre au composant de gérer la navigation
+    }
+  },
   clearError: () => {
     set({ error: null })
   },

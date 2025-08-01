@@ -65,7 +65,8 @@ export default function RealizeAssignmentPage() {
     assignment, 
     error, 
     fetchAssignmentDetails, 
-    realizeAssignment 
+    realizeAssignment,
+    updateRealizeAssignment
   } = useAssignmentRealizationStore()
 
   const form = useForm<z.infer<typeof realizeSchema>>({
@@ -152,7 +153,11 @@ export default function RealizeAssignmentPage() {
         repairer_id: values.repairer_id,
       }
 
-      await realizeAssignment(assignmentId, payload, isEditRealization)
+      if (isEditRealization) {
+        await updateRealizeAssignment(assignmentId, payload, isEditRealization)
+      } else {
+        await realizeAssignment(assignmentId, payload, isEditRealization)
+      }
       navigate({ to: `/assignments/${assignmentId}` })
     } catch (error) {
       // Les erreurs sont gérées par le store
@@ -384,7 +389,7 @@ export default function RealizeAssignmentPage() {
                                 field.onChange(value?.toString() || '')
                               }}
                               placeholder="Sélectionner un expert"
-                              filterRole="expert"
+                              filterRole="expert,expert_manager"
                               showStatus={true}
                             />
                           <FormMessage />

@@ -44,6 +44,8 @@ export const useACL = () => {
     isValidator: () => aclStore.hasRole(UserRole.VALIDATOR),
     isEditor: () => aclStore.hasRole(UserRole.EDITOR),
     isOpener: () => aclStore.hasRole(UserRole.OPENER),
+    isAccountantManager: () => aclStore.hasRole(UserRole.ACCOUNTANT_MANAGER),
+    isCEO: () => aclStore.hasRole(UserRole.CEO),
     
     // Vérifications de permissions courantes
     canViewUsers: () => aclStore.hasPermission(Permission.VIEW_USER),

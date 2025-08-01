@@ -64,7 +64,10 @@ export function UserSelect({
 
   // Filtrer les utilisateurs par rôle si spécifié (pour l'affichage local)
   const filteredUsers = filterRole 
-    ? users.filter(user => user.role.name === filterRole)
+    ? users.filter(user => {
+        const allowedRoles = filterRole.split(',').map(role => role.trim())
+        return allowedRoles.includes(user.role.name)
+      })
     : users
 
   const selectedUser = filteredUsers.find(user => user.id === value)

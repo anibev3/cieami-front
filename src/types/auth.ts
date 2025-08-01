@@ -83,7 +83,8 @@ export enum UserRole {
   VALIDATOR = 'validator',
   ACCOUNTANT = 'accountant',
   INSURER_ADMIN = 'insurer_admin',
-  REPAIRER_ADMIN = 'repairer_admin'
+  REPAIRER_ADMIN = 'repairer_admin',
+  ACCOUNTANT_MANAGER = 'accountant_manager'
 }
 
 export enum Permission {

@@ -1,7 +1,8 @@
 import axiosInstance from '@/lib/axios'
 import { Client, ClientApiResponse, ClientFilters } from './types'
+import { API_CONFIG } from '@/config/api'
 
-const API_URL = 'https://back.roomcodetraining.com/api/v1/clients'
+const API_URL = API_CONFIG.BASE_URL + '/clients'
 
 export const getClients = async (filters?: ClientFilters, token?: string): Promise<ClientApiResponse> => {
   const { data } = await axiosInstance.get(API_URL + '?per_page=100000', {
