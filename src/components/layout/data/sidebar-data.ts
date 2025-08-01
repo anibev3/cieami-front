@@ -269,7 +269,7 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Comptabilité',
-      // requiredRoles: [UserRole.CEO],
+      requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
       items: [
         {
           title: 'Paiements',
@@ -351,7 +351,7 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Finances',
-      // requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO],
+      requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
       items: [
         {
           title: 'Quittances',
@@ -389,7 +389,7 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Administration',
-      // requiredRoles: [UserRole.ADMIN, UserRole.SYSTEM_ADMIN],
+      requiredRoles: [UserRole.SYSTEM_ADMIN],
       items: [
         {
           title: 'Utilisateurs',

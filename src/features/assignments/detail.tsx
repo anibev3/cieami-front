@@ -81,6 +81,7 @@ import {
   ReceiptDetailTable, 
   FinancialSummary 
 } from './components'
+import { useACL } from '@/hooks/useACL'
 
 interface AssignmentDetail {
   id: number
@@ -297,6 +298,16 @@ interface AssignmentDetail {
     created_at: string
     updated_at: string
   }
+  broker: {
+    id: number
+    code: string
+    name: string
+    email: string
+    telephone: string | null
+    address: string | null
+    created_at: string
+    updated_at: string
+  } | null
   assignment_type: {
     id: number
     code: string
@@ -626,6 +637,7 @@ export default function AssignmentDetailPage() {
   const [validating, setValidating] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate } = useAssignmentsStore()
+  const { isCEO, isValidator } = useACL()
 
   // États pour les modales d'actions
   const [receiptModalOpen, setReceiptModalOpen] = useState(false)
@@ -684,7 +696,7 @@ export default function AssignmentDetailPage() {
       id: 'parties',
       label: 'Parties',
       icon: Users,
-      description: 'Client, assureur et réparateur'
+      description: 'Client, assureur, réparateur et courtier'
     },
     {
       id: 'vehicle',
@@ -1203,6 +1215,88 @@ export default function AssignmentDetailPage() {
                       <Wrench className="h-12 w-12 text-muted-foreground mb-2" />
                       <p className="text-sm font-medium text-muted-foreground">Aucun réparateur assigné</p>
                       <p className="text-xs text-muted-foreground">Le réparateur n'a pas été sélectionné pour ce dossier</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Courtier */}
+              <Card className="shadow-none">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Building className="h-4 w-4" />
+                    Courtier
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {assignment.broker ? (
+                  <div className="space-y-4">
+                    {/* Informations principales */}
+                    <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Informations courtier</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.broker.code}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom du courtier</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.broker.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.broker.email}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Coordonnées */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
+                      <div className="space-y-2">
+                        {assignment.broker.telephone && (
+                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                              <p className="text-sm font-semibold">{assignment.broker.telephone}</p>
+                            </div>
+                          </div>
+                        )}
+                        {assignment.broker.address && (
+                          <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                              <p className="text-xs whitespace-pre-line">{assignment.broker.address}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Informations système */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations système</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Créé le</p>
+                          <p className="font-semibold">{formatDate(assignment.broker.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Modifié le</p>
+                          <p className="font-semibold">{formatDate(assignment.broker.updated_at)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Building className="h-12 w-12 text-muted-foreground mb-2" />
+                      <p className="text-sm font-medium text-muted-foreground">Aucun courtier assigné</p>
+                      <p className="text-xs text-muted-foreground">Le courtier n'a pas été sélectionné pour ce dossier</p>
                     </div>
                   )}
                 </CardContent>
@@ -2096,16 +2190,20 @@ export default function AssignmentDetailPage() {
             onClick: async () => await generateReport(assignment.id),
             variant: 'default' as const,
             loading: loadingGenerate
-          },
-          {
+          }
+        )
+        
+        // Action de validation - seulement pour CEO et Validator
+        if (isCEO() || isValidator()) {
+          actions.push({
             key: 'validate',
             label: 'Valider le dossier',
             icon: Shield,
             onClick: () => setValidateModalOpen(true),
             variant: 'default' as const,
             className: 'bg-green-600 hover:bg-green-700'
-          }
-        )
+          })
+        }
         break
       case 'in_payment':
         actions.push(
@@ -2130,16 +2228,20 @@ export default function AssignmentDetailPage() {
             onClick: async () => await generateReport(assignment.id),
             variant: 'default' as const,
             loading: loadingGenerate
-          },
-          {
+          }
+        )
+        
+        // Action de validation - seulement pour CEO et Validator
+        if (isCEO() || isValidator()) {
+          actions.push({
             key: 'validate',
             label: 'Valider le dossier',
             icon: Shield,
             onClick: () => setValidateModalOpen(true),
             variant: 'default' as const,
             className: 'bg-green-600 hover:bg-green-700'
-          }
-        )
+          })
+        }
         break
 
       case 'closed':
@@ -2443,46 +2545,48 @@ export default function AssignmentDetailPage() {
         </div>
       </Main>
 
+
       {/* Modal de validation */}
-      <Dialog open={validateModalOpen} onOpenChange={setValidateModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <Shield className="h-5 w-5 text-green-600" />
-              Valider le dossier
-            </DialogTitle>
-            <DialogDescription className="text-sm">
-              Êtes-vous sûr de vouloir valider le dossier <strong>{assignment?.reference}</strong> ?
-              <br />
-              Cette action ne peut pas être annulée.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setValidateModalOpen(false)} className="w-full sm:w-auto">
-              Annuler
-            </Button>
-            <Button 
-              onClick={handleValidateAssignment} 
-              disabled={validating}
-              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
-            >
-              {validating ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  <span className="hidden sm:inline">Validation...</span>
-                  <span className="sm:hidden">Validation...</span>
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Valider le dossier</span>
-                  <span className="sm:hidden">Valider</span>
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+        <Dialog open={validateModalOpen} onOpenChange={setValidateModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Shield className="h-5 w-5 text-green-600" />
+                Valider le dossier
+              </DialogTitle>
+              <DialogDescription className="text-sm">
+                Êtes-vous sûr de vouloir valider le dossier <strong>{assignment?.reference}</strong> ?
+                <br />
+                Cette action ne peut pas être annulée.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={() => setValidateModalOpen(false)} className="w-full sm:w-auto">
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleValidateAssignment} 
+                disabled={validating}
+                className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+              >
+                {validating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <span className="hidden sm:inline">Validation...</span>
+                    <span className="sm:hidden">Validation...</span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Valider le dossier</span>
+                    <span className="sm:hidden">Valider</span>
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       {/* Bottom Navigation Bar - Mobile */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg">

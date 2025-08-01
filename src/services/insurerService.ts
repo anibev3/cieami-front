@@ -1,3 +1,4 @@
+import { API_CONFIG } from '@/config/api'
 import axiosInstance from '@/lib/axios'
 
 export interface Insurer {
@@ -58,7 +59,7 @@ export interface InsurersResponse {
   }
 }
 
-const API_URL = 'https://back.roomcodetraining.com/api/v1/insurers'
+const API_URL = API_CONFIG.BASE_URL + '/insurers'
 
 export const insurerService = {
   getAll: async (filters?: InsurerFilters): Promise<InsurersResponse> => {

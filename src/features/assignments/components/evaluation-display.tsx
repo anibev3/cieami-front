@@ -255,14 +255,14 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                       <td className="px-4 py-4 text-sm font-medium text-gray-900">
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-green-500" />
-                          Valeur théorique
+                          Valeur neuve
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-900 font-semibold">
-                        {formatCurrency(evaluation.theorical_vehicle_market_value)}
+                        {formatCurrency(Number(evaluation.vehicle_new_value))}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        Taux dépréciation: {evaluation.theorical_depreciation_rate}%
+                        {/* Taux dépréciation: {evaluation.theorical_depreciation_rate}% */}
                       </td>
                     </tr>
                     
@@ -270,29 +270,106 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                       <td className="px-4 py-4 text-sm font-medium text-gray-900">
                         <div className="flex items-center gap-2">
                           <TrendingDown className="h-4 w-4 text-red-500" />
-                          Valeur marché
+                          Âge à la date d'expertise
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-900 font-semibold">
-                        {formatCurrency(evaluation.vehicle_market_value)}
+                        {evaluation.vehicle_age} mois
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        Incidence marché: {evaluation.market_incidence.toLocaleString('fr-FR')}
+                        {/* Incidence marché: {evaluation.market_incidence.toLocaleString('fr-FR')} */}
                       </td>
                     </tr>
                     
-                    <tr className="hover:bg-gray-50 bg-red-50">
+                    <tr className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-medium text-red-900">
                         <div className="flex items-center gap-2">
                           <TrendingDown className="h-4 w-4 text-red-600" />
-                          Moins-value
+                          Coefficient de dépréciation théorique
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-red-900 font-bold">
-                        {formatCurrency(evaluation.less_value_work)}
+                        {formatCurrency(Number(evaluation.theorical_depreciation_rate))}
                       </td>
-                      <td className="px-4 py-4 text-sm text-red-700">
-                        {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'}
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                      </td>
+                    </tr>
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-red-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-red-600" />
+                          Valeur vénale théorique
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-red-900 font-bold">
+                        {formatCurrency(Number(evaluation.theorical_vehicle_market_value))}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                      </td>
+                    </tr>
+
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-red-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-red-600" />
+                          Moins-value travaux de remise en état
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-red-900 font-bold">
+                        {formatCurrency(Number(evaluation.less_value_work))}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                      </td>
+                    </tr>
+
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-red-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-red-600" />
+                          {evaluation.is_up ? 'Plus-value incicence kilometrique' : 'Moins-value incicence kilometrique'}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-red-900 font-bold">
+                        {formatCurrency(Number(evaluation.kilometric_incidence))}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                      </td>
+                    </tr>
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-red-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-red-600" />
+                          Plus-value incicence du marché
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-red-900 font-bold">
+                        {formatCurrency(Number(evaluation.market_incidence))}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                      </td>
+                    </tr>
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-lg font-medium text-red-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-red-600" />
+                          Valeur vénale
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-lg text-red-900 font-bold">
+                        {formatCurrency(Number(evaluation.vehicle_market_value))}
+                      </td>
+                      <td className="px-4 py-4 text-lg text-gray-500">
+                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
                       </td>
                     </tr>
                   </tbody>

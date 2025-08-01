@@ -1,6 +1,7 @@
 // Configuration de l'API
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://back.roomcodetraining.com/api/v1',
+  // BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://back.roomcodetraining.com/api/v1',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_SUFIX || 'https://back.roomcodetraining.com/',
   TIMEOUT: 10000,
   ENDPOINTS: {
     AUTH: {

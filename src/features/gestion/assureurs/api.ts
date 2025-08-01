@@ -1,7 +1,8 @@
 import axiosInstance from '@/lib/axios'
 import { Assureur, AssureurApiResponse, AssureurFilters } from './types'
+import { API_CONFIG } from '@/config/api'
 
-const API_URL = 'https://back.roomcodetraining.com/api/v1/insurers'
+const API_URL = API_CONFIG.BASE_URL + '/insurers'
 
 export const getAssureurs = async (filters?: AssureurFilters, token?: string): Promise<AssureurApiResponse> => {
   const { data } = await axiosInstance.get(API_URL + '?per_page=100000', {

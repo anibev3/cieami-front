@@ -48,6 +48,17 @@ class AssignmentRealizationService {
     return response.data
   }
 
+  async updateRealizeAssignment(
+    assignmentId: number, 
+    payload: RealizeAssignmentPayload
+  ): Promise<RealizeAssignmentResponse> {
+    const response = await axiosInstance.put<RealizeAssignmentResponse>(
+      `${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update-realize/${assignmentId}`, 
+      payload
+    )
+    return response.data
+  }
+
   /**
    * Récupérer les détails d'un dossier pour la réalisation
    */

@@ -1,9 +1,10 @@
 import axiosInstance from '@/lib/axios'
 import { Reparateur, ReparateurApiResponse, ReparateurFilters } from './types'
 import { CreateEntityData } from '@/types/administration'
+import { API_CONFIG } from '@/config/api'
 
-const API_URL = 'https://back.roomcodetraining.com/api/v1/repairers'
-const API_URL_ = 'https://back.roomcodetraining.com/api/v1/entities'
+const API_URL = API_CONFIG.BASE_URL + '/repairers'
+const API_URL_ = API_CONFIG.BASE_URL + '/entities'
 
 export const getReparateurs = async (filters?: ReparateurFilters, token?: string): Promise<ReparateurApiResponse> => {
   const { data } = await axiosInstance.get(API_URL + '?per_page=100000', {

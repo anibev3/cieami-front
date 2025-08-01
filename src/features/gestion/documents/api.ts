@@ -1,7 +1,8 @@
 import axiosInstance from '@/lib/axios'
 import { DocumentTransmis, DocumentTransmisApiResponse, DocumentTransmisFilters } from './types'
+import { API_CONFIG } from '@/config/api'
 
-const API_URL = 'https://back.roomcodetraining.com/api/v1/document-transmitteds'
+const API_URL = API_CONFIG.BASE_URL + '/document-transmitteds'
 
 export const getDocumentsTransmis = async (filters?: DocumentTransmisFilters, token?: string): Promise<DocumentTransmisApiResponse> => {
   const { data } = await axiosInstance.get(API_URL, {
