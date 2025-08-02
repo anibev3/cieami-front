@@ -189,6 +189,96 @@ export const sidebarData: SidebarData = {
         },
       ],
     },
+        {
+      title: 'Comptabilité',
+      requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.OPENER],
+      items: [
+        {
+          title: 'Paiements',
+          url: '/comptabilite/payments',
+          icon: IconCreditCard,
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.OPENER],
+
+        },
+        {
+          title: 'Chèques',
+          url: '/comptabilite/checks',
+          icon: IconCheck,
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+
+        },
+        {
+          title: 'Factures',
+          url: '/comptabilite/invoices',
+          icon: IconFileText,
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+
+        },
+        {
+          title: 'Configuration',
+          icon: IconCalculator,
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+
+          items: [
+            {
+              title: 'Types de paiement',
+              url: '/comptabilite/payment-types',
+              icon: IconWallet,
+            },
+            {
+              title: 'Méthodes de paiement',
+              url: '/comptabilite/payment-methods',
+              icon: IconCreditCard,
+            },
+            {
+              title: 'Banques',
+              url: '/comptabilite/banks',
+              icon: IconBuildingBank,
+            },
+          ],
+        },
+        {
+          title: 'Rapports',
+          icon: IconReceipt,
+          // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
+          // requireAllPermissions: false,
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+
+          items: [
+            {
+              title: 'Rapport des paiements',
+              url: '/comptabilite/reports/payments',
+              icon: IconReceipt,
+            },
+            {
+              title: 'Rapport des chèques',
+              url: '/comptabilite/reports/checks',
+              icon: IconCheck,
+            },
+            {
+              title: 'État de trésorerie',
+              url: '/comptabilite/reports/treasury',
+              icon: IconCalculator,
+            },
+          ],
+        },
+        {
+          title: 'Statistiques',
+          icon: IconCalculator,
+          // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
+          // requireAllPermissions: false,
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+
+          items: [
+            {
+              title: 'Statistiques des dossiers',
+              url: '/comptabilite/statistics/assignments',
+              icon: IconWallet,
+            }
+          ],
+        },
+      ],
+    },
     {
       title: 'Gestion',
       items: [
@@ -315,88 +405,7 @@ export const sidebarData: SidebarData = {
         },
       ],
     },
-    {
-      title: 'Comptabilité',
-      requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
-      items: [
-        {
-          title: 'Paiements',
-          url: '/comptabilite/payments',
-          icon: IconCreditCard,
-          // requiredPermission: Permission.VIEW_PAYMENT,
-        },
-        {
-          title: 'Chèques',
-          url: '/comptabilite/checks',
-          icon: IconCheck,
-          // requiredPermission: Permission.VIEW_PAYMENT,
-        },
-        {
-          title: 'Factures',
-          url: '/comptabilite/invoices',
-          icon: IconFileText,
-          // requiredPermission: Permission.VIEW_INVOICE,
-        },
-        {
-          title: 'Configuration',
-          icon: IconCalculator,
-          // requiredRoles: [UserRole.ADMIN, UserRole.SYSTEM_ADMIN],
-          items: [
-            {
-              title: 'Types de paiement',
-              url: '/comptabilite/payment-types',
-              icon: IconWallet,
-            },
-            {
-              title: 'Méthodes de paiement',
-              url: '/comptabilite/payment-methods',
-              icon: IconCreditCard,
-            },
-            {
-              title: 'Banques',
-              url: '/comptabilite/banks',
-              icon: IconBuildingBank,
-            },
-          ],
-        },
-        {
-          title: 'Rapports',
-          icon: IconReceipt,
-          // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
-          // requireAllPermissions: false,
-          items: [
-            {
-              title: 'Rapport des paiements',
-              url: '/comptabilite/reports/payments',
-              icon: IconReceipt,
-            },
-            {
-              title: 'Rapport des chèques',
-              url: '/comptabilite/reports/checks',
-              icon: IconCheck,
-            },
-            {
-              title: 'État de trésorerie',
-              url: '/comptabilite/reports/treasury',
-              icon: IconCalculator,
-            },
-          ],
-        },
-        {
-          title: 'Statistiques',
-          icon: IconCalculator,
-          // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
-          // requireAllPermissions: false,
-          items: [
-            {
-              title: 'Statistiques des dossiers',
-              url: '/comptabilite/statistics/assignments',
-              icon: IconWallet,
-            }
-          ],
-        },
-      ],
-    },
+
     {
       title: 'Finances',
       requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
