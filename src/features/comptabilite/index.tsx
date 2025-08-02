@@ -15,8 +15,76 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import SidebarNav from './components/sidebar-nav'
+import { useHasAnyPermission, useHasAnyRole, Permission, UserRole } from '@/stores/aclStore'
+import { useMemo } from 'react'
 
 export default function Comptabilite() {
+  // Hooks pour vérifier les permissions et rôles - appelés au niveau du composant
+  const hasViewPayment = useHasAnyPermission([Permission.VIEW_PAYMENT])
+  const hasViewInvoice = useHasAnyPermission([Permission.VIEW_INVOICE])
+  const hasPaymentStats = useHasAnyPermission([Permission.PAYMENT_STATISTICS])
+  const hasInvoiceStats = useHasAnyPermission([Permission.INVOICE_STATISTICS])
+  
+  const hasAccountantRole = useHasAnyRole([UserRole.ACCOUNTANT, UserRole.ACCOUNTANT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN])
+  const hasManagerRole = useHasAnyRole([UserRole.ACCOUNTANT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN])
+
+  // Configuration complète des éléments du menu avec leurs permissions
+  const allSidebarNavItems = [
+    {
+      title: 'Paiements',
+      icon: <IconUser size={18} />,
+      href: '/comptabilite/payments',
+      checkAccess: () => hasViewPayment,
+    },
+    {
+      title: 'Cheques',
+      icon: <IconTool size={18} />,
+      href: '/comptabilite/checks',
+      checkAccess: () => hasAccountantRole,
+    },
+    {
+      title: 'Factures',
+      icon: <IconFileText size={18} />,
+      href: '/comptabilite/invoices',
+      checkAccess: () => hasViewInvoice,
+    },
+    {
+      title: 'Types de paiement',
+      icon: <IconPalette size={18} />,
+      href: '/comptabilite/payment-types',
+      checkAccess: () => hasManagerRole,
+    },
+    {
+      title: 'Méthodes de paiement',
+      icon: <IconNotification size={18} />,
+      href: '/comptabilite/payment-methods',
+      checkAccess: () => hasManagerRole,
+    },
+    {
+      title: 'Banques',
+      icon: <IconBrowserCheck size={18} />,
+      href: '/comptabilite/banks',
+      checkAccess: () => hasManagerRole,
+    },
+    {
+      title: 'Statistiques',
+      icon: <IconCalculator size={18} />,
+      href: '/comptabilite/statistics/assignments',
+      checkAccess: () => hasPaymentStats || hasInvoiceStats,
+    },
+  ]
+
+  // Filtrer les éléments du menu selon les permissions de l'utilisateur
+  const filteredSidebarNavItems = useMemo(() => {
+    return allSidebarNavItems
+      .filter(item => item.checkAccess())
+      .map(item => ({
+        title: item.title,
+        icon: item.icon,
+        href: item.href
+      }))
+  }, [hasViewPayment, hasViewInvoice, hasPaymentStats, hasInvoiceStats, hasAccountantRole, hasManagerRole])
+
   return (
     <>
       {/* ===== Top Heading ===== */}
@@ -40,7 +108,7 @@ export default function Comptabilite() {
         <Separator className='my-4 lg:my-6' />
         <div className='flex flex-1 flex-col space-y-2 overflow-hidden md:space-y-2 lg:flex-row lg:space-y-0 lg:space-x-12 w-full'>
           <aside className='top-0 lg:sticky lg:w-1/5'>
-            <SidebarNav items={sidebarNavItems} />
+            <SidebarNav items={filteredSidebarNavItems} />
           </aside>
           <div className='flex w-full overflow-y-hidden p-1'>
             <Outlet />
@@ -50,41 +118,3 @@ export default function Comptabilite() {
     </>
   )
 }
-
-const sidebarNavItems = [
-  {
-    title: 'Paiements',
-    icon: <IconUser size={18} />,
-    href: '/comptabilite/payments',
-  },
-  {
-    title: 'Cheques',
-    icon: <IconTool size={18} />,
-    href: '/comptabilite/checks',
-  },
-  {
-    title: 'Factures',
-    icon: <IconFileText size={18} />,
-    href: '/comptabilite/invoices',
-  },
-  {
-    title: 'Types de paiement',
-    icon: <IconPalette size={18} />,
-    href: '/comptabilite/payment-types',
-  },
-  {
-    title: 'Méthodes de paiement',
-    icon: <IconNotification size={18} />,
-    href: '/comptabilite/payment-methods',
-  },
-  {
-    title: 'Banques',
-    icon: <IconBrowserCheck size={18} />,
-    href: '/comptabilite/banks',
-  },
-  {
-    title: 'Statistiques',
-    icon: <IconCalculator size={18} />,
-    href: '/comptabilite/statistics/assignments',
-  },
-]

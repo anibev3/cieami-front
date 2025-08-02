@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   ArrowLeft, 
   Loader2, 
@@ -340,6 +341,12 @@ export default function ReportEditPage() {
   const [selectedRemarkId, setSelectedRemarkId] = useState<number | null>(null)
   const [generalStateId, setGeneralStateId] = useState<number | null>(null)
   const [technicalConclusionId, setTechnicalConclusionId] = useState<number | null>(null)
+  
+  // États pour les nouveaux champs de valeur de marché
+  const [newMarketValue, setNewMarketValue] = useState<number | null>(null)
+  const [vehicleNewMarketValue, setVehicleNewMarketValue] = useState<number | null>(null)
+  const [vehicleNewMarketValueOption, setVehicleNewMarketValueOption] = useState<string | null>(null)
+  
   const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
   
   const [ascertainments, setAscertainments] = useState<Array<{
@@ -672,6 +679,10 @@ export default function ReportEditPage() {
         comment: ascertainment.comment
       })),
       repairer_id: 1,
+      // Nouveaux champs de valeur de marché (pour tous les types de dossiers)
+      new_market_value: newMarketValue || null,
+      vehicle_new_market_value: vehicleNewMarketValue || null,
+      vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
       ...(isEvaluation ? {
         // Champs pour les dossiers d'évaluation
@@ -717,7 +728,7 @@ export default function ReportEditPage() {
       setAssignmentTotalAmount(total)
       setShowReceiptModal(true)
     }
-  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration])
+  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration, newMarketValue, vehicleNewMarketValue, vehicleNewMarketValueOption])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -955,6 +966,10 @@ export default function ReportEditPage() {
       // Constats
       ascertainments: validAscertainments,
       assignment_id: assignmentId,
+      // Nouveaux champs de valeur de marché (pour tous les types de dossiers)
+      new_market_value: newMarketValue || null,
+      vehicle_new_market_value: vehicleNewMarketValue || null,
+      vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
       ...(isEvaluation ? {
         // Champs pour les dossiers d'évaluation
@@ -1001,7 +1016,10 @@ export default function ReportEditPage() {
     expertisePlace,
     assuredValue,
     salvageValue,
-    workDuration
+    workDuration,
+    newMarketValue,
+    vehicleNewMarketValue,
+    vehicleNewMarketValueOption
   ])
 
   // Fonction unifiée pour effectuer le calcul
@@ -1548,6 +1566,88 @@ export default function ReportEditPage() {
               </div>
             </div>
           )}
+
+          {/* Valeur de marché - Disponible pour tous les types de dossiers */}
+          <div className="space-y-6 mt-10 mb-10">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Valeur de marché
+            </h2>
+            
+            <Card className='shadow-none'>
+              <CardHeader>
+                <CardTitle className="text-base">Valeur de marché du véhicule</CardTitle>
+                <CardDescription>
+                  Définissez la valeur de marché selon la disponibilité du véhicule
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicle-new-market-value-option">
+                      État de commercialisation <span className="text-red-500">*</span>
+                    </Label>
+                    <Select 
+                      value={vehicleNewMarketValueOption || ''} 
+                      onValueChange={(value) => {
+                        setVehicleNewMarketValueOption(value)
+                        // Reset des valeurs selon la sélection
+                        if (value === 'fa' || value === 'nc') {
+                          setVehicleNewMarketValue(null)
+                        } else if (value === 'value') {
+                          setNewMarketValue(null)
+                        }
+                      }}
+                    >
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder="Sélectionner l'état de commercialisation..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fa">Fabrication abandonnée</SelectItem>
+                        <SelectItem value="nc">Non commercialisé</SelectItem>
+                        <SelectItem value="value">Autres</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Affichage conditionnel des champs de valeur */}
+                  {(vehicleNewMarketValueOption === 'fa' || vehicleNewMarketValueOption === 'nc') && (
+                    <div className="space-y-2">
+                      <Label htmlFor="new-market-value">
+                        Nouvelle valeur de marché (FCFA) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="new-market-value"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={newMarketValue || ''}
+                        onChange={(e) => setNewMarketValue(parseFloat(e.target.value) || null)}
+                        placeholder="Saisir la nouvelle valeur de marché"
+                      />
+                    </div>
+                  )}
+
+                  {vehicleNewMarketValueOption === 'value' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="vehicle-new-market-value">
+                        Valeur de marché du véhicule (FCFA) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="vehicle-new-market-value"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={vehicleNewMarketValue || ''}
+                        onChange={(e) => setVehicleNewMarketValue(parseFloat(e.target.value) || null)}
+                        placeholder="Saisir la valeur de marché du véhicule"
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           {isEvaluation && (
             <div>
               {/* Section des paramètres d'évaluation - EN PREMIER PLAN */}
@@ -2187,7 +2287,7 @@ export default function ReportEditPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {evaluation.vehicle.new_market_value.toLocaleString('fr-FR')} F CFA
+                            {Number(evaluation.vehicle.new_market_value).toLocaleString()} F CFA
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             <div className="flex flex-col">
@@ -2198,10 +2298,10 @@ export default function ReportEditPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {evaluation.theorical_depreciation_rate.toLocaleString('fr-FR')} FCFA
+                            {Number(evaluation.theorical_depreciation_rate).toLocaleString()} FCFA
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {evaluation.theorical_vehicle_market_value.toLocaleString('fr-FR')} FCFA
+                            {Number(evaluation.theorical_vehicle_market_value).toLocaleString()} FCFA
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             <span className="text-red-600 font-medium">
