@@ -222,6 +222,55 @@ interface Assignment {
     label: string
     description: string
   } | null
+  claim_nature: {
+    id: number
+    code: string
+    label: string
+    description: string
+    status: {
+      id: number
+      code: string
+      label: string
+      description: string
+      deleted_at: string | null
+      created_at: string
+      updated_at: string
+    }
+    created_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      signature: string | null
+      created_at: string
+      updated_at: string
+    } | null
+    updated_by: {
+      id: number
+      hash_id: string
+      email: string
+      username: string
+      name: string
+      last_name: string
+      first_name: string
+      telephone: string
+      photo_url: string
+      pending_verification: boolean
+      signature: string | null
+      created_at: string
+      updated_at: string
+    } | null
+    deleted_by: any
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
+  } | null
   general_state: {
     id: number
     code: string
@@ -561,6 +610,7 @@ export default function EditReportPage() {
           // Pré-remplir les informations additionnelles
           setGeneralStateId(assignmentData.general_state?.id || null)
           setTechnicalConclusionId(assignmentData.technical_conclusion?.id || null)
+          setClaimNatureId(assignmentData.claim_nature?.id || null)
           setExpertRemark(assignmentData.expert_report_remark || '')
           setExpertisePlace(assignmentData.expertise_place || '')
           setAssuredValue(parseFloat(assignmentData.assured_value || '0'))
@@ -591,6 +641,7 @@ export default function EditReportPage() {
           // Pré-remplir les informations additionnelles
           setGeneralStateId(assignmentData.general_state?.id || null)
           setTechnicalConclusionId(assignmentData.technical_conclusion?.id || null)
+          setClaimNatureId(assignmentData.claim_nature?.id || null)
           setExpertRemark(assignmentData.expert_report_remark || '')
           setExpertisePlace(assignmentData.expertise_place || '')
           setAssuredValue(parseFloat(assignmentData.assured_value || '0'))
