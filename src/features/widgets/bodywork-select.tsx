@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useBodyworksStore } from '@/stores/bodyworks'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface BodyworkSelectProps {
   value: string
@@ -30,13 +31,28 @@ export function BodyworkSelect({
   disabled = false
 }: BodyworkSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { bodyworks, loading, fetchBodyworks } = useBodyworksStore()
+  
+  // Debouncer la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
+  // Charger les carrosseries initiales
   useEffect(() => {
-    if (bodyworks.length === 0) {
-      fetchBodyworks()
+    if (bodyworks.length === 0 && !debouncedSearchQuery) {
+      fetchBodyworks(1, {})
     }
-  }, [fetchBodyworks, bodyworks.length])
+  }, [fetchBodyworks, bodyworks.length, debouncedSearchQuery])
+
+  // Effectuer la recherche quand la query change
+  useEffect(() => {
+    if (debouncedSearchQuery) {
+      fetchBodyworks(1, { search: debouncedSearchQuery })
+    } else if (debouncedSearchQuery === '') {
+      // Recharger toutes les carrosseries quand la recherche est vide
+      fetchBodyworks(1, {})
+    }
+  }, [debouncedSearchQuery, fetchBodyworks])
 
   const selectedBodywork = bodyworks.find(b => b.id.toString() === value)
 
@@ -64,8 +80,12 @@ export function BodyworkSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
-        <Command>
-          <CommandInput placeholder="Rechercher une carrosserie..." />
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Rechercher une carrosserie..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             {loading ? (
               <div className="flex items-center justify-center py-6">
@@ -73,7 +93,9 @@ export function BodyworkSelect({
                 Chargement des carrosseries...
               </div>
             ) : bodyworks.length === 0 ? (
-              <CommandEmpty>Aucune carrosserie trouvée.</CommandEmpty>
+              <CommandEmpty>
+                {searchQuery ? 'Aucune carrosserie trouvée pour cette recherche.' : 'Aucune carrosserie trouvée.'}
+              </CommandEmpty>
             ) : (
               <CommandGroup>
                 {bodyworks.map((bodywork) => (
@@ -92,7 +114,12 @@ export function BodyworkSelect({
                           : 'mr-2 h-4 w-4 opacity-0'
                       }
                     />
-                    {bodywork?.label}
+                    <div className="flex flex-col">
+                      <span className="font-medium">{bodywork?.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {bodywork?.description} - {bodywork?.code}
+                      </span>
+                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>

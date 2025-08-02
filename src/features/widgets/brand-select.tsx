@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useBrandsStore } from '@/stores/brands'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface BrandSelectProps {
   value: string
@@ -31,13 +32,28 @@ export function BrandSelect({
   disabled = false
 }: BrandSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { brands, loading, fetchBrands } = useBrandsStore()
+  
+  // Debouncer la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
+  // Charger les marques initiales
   useEffect(() => {
-    if (brands.length === 0) {
-      fetchBrands()
+    if (brands.length === 0 && !debouncedSearchQuery) {
+      fetchBrands(1, {})
     }
-  }, [fetchBrands, brands.length])
+  }, [fetchBrands, brands.length, debouncedSearchQuery])
+
+  // Effectuer la recherche quand la query change
+  useEffect(() => {
+    if (debouncedSearchQuery) {
+      fetchBrands(1, { search: debouncedSearchQuery })
+    } else if (debouncedSearchQuery === '') {
+      // Recharger toutes les marques quand la recherche est vide
+      fetchBrands(1, {})
+    }
+  }, [debouncedSearchQuery, fetchBrands])
 
   const selectedBrand = brands.find(brand => brand.id.toString() === value)
 
@@ -65,8 +81,12 @@ export function BrandSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
-        <Command>
-          <CommandInput placeholder="Rechercher une marque..." />
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Rechercher une marque..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             {loading ? (
               <div className="flex items-center justify-center py-6">
@@ -74,7 +94,9 @@ export function BrandSelect({
                 Chargement des marques...
               </div>
             ) : brands.length === 0 ? (
-              <CommandEmpty>Aucune marque trouvée.</CommandEmpty>
+              <CommandEmpty>
+                {searchQuery ? 'Aucune marque trouvée pour cette recherche.' : 'Aucune marque trouvée.'}
+              </CommandEmpty>
             ) : (                  
               <CommandGroup>
                 {brands.map((brand) => (

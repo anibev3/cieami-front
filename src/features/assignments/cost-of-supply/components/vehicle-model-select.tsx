@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface VehicleModelSelectProps {
   value: string
@@ -33,17 +34,26 @@ export function VehicleModelSelect({
   brandId
 }: VehicleModelSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { vehicleModels, loading, fetchVehicleModels } = useVehicleModelsStore()
+  
+  // Debouncer la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
   useEffect(() => {
-    // Si on a un brandId, on filtre les modèles par marque
-    if (brandId) {
-      fetchVehicleModels(1, { brand_id: brandId })
-    } else {
-      // Sinon on charge tous les modèles
-      fetchVehicleModels(1, { is_selected: true })
-    }
-  }, [fetchVehicleModels, brandId])
+    // Construire les filtres de base
+    const baseFilters = brandId 
+      ? { brand_id: brandId } 
+      : { is_selected: true }
+
+    // Ajouter la recherche si elle existe
+    const filters = debouncedSearchQuery 
+      ? { ...baseFilters, search: debouncedSearchQuery }
+      : baseFilters
+
+    // Charger les modèles avec les filtres appropriés
+    fetchVehicleModels(1, filters)
+  }, [fetchVehicleModels, brandId, debouncedSearchQuery])
 
   const selectedVehicleModel = vehicleModels.find(model => model.id.toString() === value)
 
@@ -76,8 +86,12 @@ export function VehicleModelSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Rechercher un modèle..." />
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Rechercher un modèle..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             {loading ? (
               <div className="flex items-center justify-center py-6">
@@ -89,7 +103,9 @@ export function VehicleModelSelect({
                 Sélectionnez une marque
               </div>
             ) : vehicleModels.length === 0 ? (
-              <CommandEmpty>Aucun modèle trouvé pour cette marque.</CommandEmpty>
+              <CommandEmpty>
+                {searchQuery ? 'Aucun modèle trouvé pour cette recherche.' : 'Aucun modèle trouvé pour cette marque.'}
+              </CommandEmpty>
             ) : (
               <CommandGroup>
                 {vehicleModels.map((model) => (

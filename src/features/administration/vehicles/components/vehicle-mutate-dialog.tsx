@@ -53,10 +53,10 @@ const vehicleSchema = z.object({
   nb_seats: z.number().optional(),
   new_market_value: z.number().optional(),
   payload: z.number().optional(),
-  vehicle_model_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  color_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  vehicle_genre_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  vehicle_energy_id: z.string().min(1, 'Le modèle de véhicule est requis'),
+  vehicle_model_id: z.string().optional(),
+  color_id: z.string().optional(),
+  vehicle_genre_id: z.string().optional(),
+  vehicle_energy_id: z.string().optional(),
 })
 
 type VehicleFormData = z.infer<typeof vehicleSchema>
@@ -406,7 +406,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 name="vehicle_genre_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Genre de véhicule *</FormLabel>
+                    <FormLabel>Genre de véhicule</FormLabel>
                     <FormControl>
                       <VehicleGenreSelect
                         value={field.value}
@@ -422,12 +422,12 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
 
               {/* Marque */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <FormLabel>Marque *</FormLabel>
-                  <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBrandModal(true)} className="shrink-0 w-6 h-6">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
+                                  <div className="flex items-center gap-2 mb-1">
+                    <FormLabel>Marque</FormLabel>
+                    <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBrandModal(true)} className="shrink-0 w-6 h-6">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 <BrandSelect
                   value={selectedBrandId}
                   onValueChange={setSelectedBrandId}
@@ -443,7 +443,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center gap-2 mb-1">
-                      <FormLabel>Modèle de véhicule *</FormLabel>
+                      <FormLabel>Modèle de véhicule</FormLabel>
                       <Button
                         type="button"
                         variant="outline"
@@ -473,7 +473,7 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center gap-2 mb-1">
-                      <FormLabel>Couleur *</FormLabel>
+                      <FormLabel>Couleur</FormLabel>
                       <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateColorModal(true)} className="shrink-0 w-6 h-6">
                         <Plus className="h-4 w-4" />
                       </Button>

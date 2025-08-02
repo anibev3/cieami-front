@@ -6,6 +6,7 @@ import {
   BodyworkCreate,
   BodyworkUpdate,
   BodyworksResponse,
+  BodyworkFilters,
 } from '@/types/bodyworks'
 
 interface BodyworksState {
@@ -29,7 +30,7 @@ interface BodyworksActions {
   clearError: () => void
 
   // Actions CRUD
-  fetchBodyworks: (page?: number) => Promise<void>
+  fetchBodyworks: (page?: number, filters?: BodyworkFilters) => Promise<void>
   fetchBodyworkById: (id: number) => Promise<void>
   createBodywork: (data: BodyworkCreate) => Promise<boolean>
   updateBodywork: (id: number, data: BodyworkUpdate) => Promise<boolean>
@@ -60,10 +61,10 @@ export const useBodyworksStore = create<BodyworksState & BodyworksActions>((set,
   setCurrentBodywork: (bodywork) => set({ currentBodywork: bodywork }),
   clearError: () => set({ error: null }),
 
-  fetchBodyworks: async (page = 1) => {
+  fetchBodyworks: async (page = 1, filters) => {
     try {
       set({ loading: true, error: null })
-      const response: BodyworksResponse = await bodyworksService.getAll(page)
+      const response: BodyworksResponse = await bodyworksService.getAll(page, filters)
       
       set({
         bodyworks: response.data,

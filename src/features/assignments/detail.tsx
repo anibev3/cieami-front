@@ -637,7 +637,7 @@ export default function AssignmentDetailPage() {
   const [validating, setValidating] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate } = useAssignmentsStore()
-  const { isCEO, isValidator } = useACL()
+  const { isCEO, isValidator, isExpertManager } = useACL()
 
   // États pour les modales d'actions
   const [receiptModalOpen, setReceiptModalOpen] = useState(false)
@@ -2194,7 +2194,7 @@ export default function AssignmentDetailPage() {
         )
         
         // Action de validation - seulement pour CEO et Validator
-        if (isCEO() || isValidator()) {
+        if (isCEO() || isValidator() || isExpertManager()) {
           actions.push({
             key: 'validate',
             label: 'Valider le dossier',

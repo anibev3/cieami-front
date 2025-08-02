@@ -22,6 +22,11 @@ export interface BodyworkUpdate {
   description?: string
 }
 
+export interface BodyworkFilters {
+  search?: string
+  status?: string
+}
+
 export interface BodyworksResponse {
   data: Bodywork[]
   links: {

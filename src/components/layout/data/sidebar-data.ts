@@ -139,6 +139,54 @@ export const sidebarData: SidebarData = {
             },
           ],
         },
+
+
+        {
+          title: 'Véhicules',
+          icon: IconCar,
+          items: [
+            {
+              title: 'Liste des véhicules',
+              url: '/administration/vehicles',
+              icon: IconCar,
+            },
+            {
+              title: 'Couleurs',
+              url: '/administration/colors',
+              icon: IconPalette,
+            },
+            {
+              title: 'Marques',
+              url: '/administration/brands',
+              icon: IconPackages,
+            },
+            {
+              title: 'États de véhicules',
+              url: '/administration/vehicle-states',
+              icon: IconTool,
+            },
+            {
+              title: 'Modèles de véhicules',
+              url: '/administration/vehicle-models',
+              icon: IconCategory,
+            },
+            {
+              title: 'Genre de véhicule',
+              url: '/administration/vehicule/genre',
+              icon: IconCategory,
+            },
+            {
+              title: 'Énergie de véhicule',
+              url: '/administration/vehicule/energie',
+              icon: IconCategory,
+            },
+            {
+              title: 'Âge de véhicule',
+              url: '/administration/vehicule/age',
+              icon: IconCategory,
+            },
+          ],
+        },
       ],
     },
     {
@@ -441,52 +489,6 @@ export const sidebarData: SidebarData = {
             {
               title: 'Type d\'entité',
               url: '/administration/entity-types',
-              icon: IconCategory,
-            },
-          ],
-        },
-        {
-          title: 'Véhicules',
-          icon: IconCar,
-          items: [
-            {
-              title: 'Liste des véhicules',
-              url: '/administration/vehicles',
-              icon: IconCar,
-            },
-            {
-              title: 'Couleurs',
-              url: '/administration/colors',
-              icon: IconPalette,
-            },
-            {
-              title: 'Marques',
-              url: '/administration/brands',
-              icon: IconPackages,
-            },
-            {
-              title: 'États de véhicules',
-              url: '/administration/vehicle-states',
-              icon: IconTool,
-            },
-            {
-              title: 'Modèles de véhicules',
-              url: '/administration/vehicle-models',
-              icon: IconCategory,
-            },
-            {
-              title: 'Genre de véhicule',
-              url: '/administration/vehicule/genre',
-              icon: IconCategory,
-            },
-            {
-              title: 'Énergie de véhicule',
-              url: '/administration/vehicule/energie',
-              icon: IconCategory,
-            },
-            {
-              title: 'Âge de véhicule',
-              url: '/administration/vehicule/age',
               icon: IconCategory,
             },
           ],

@@ -4,14 +4,21 @@ import {
   BodyworkUpdate,
   BodyworksResponse,
   BodyworkResponse,
+  BodyworkFilters,
 } from '@/types/bodyworks'
 
 const BASE_URL = '/bodyworks'
 
 export const bodyworksService = {
-  // Récupérer toutes les carrosseries avec pagination
-  getAll: async (page: number = 1): Promise<BodyworksResponse> => {
-    const response = await axiosInstance.get(`${BASE_URL}?page=${page}`)
+  // Récupérer toutes les carrosseries avec pagination et filtres
+  getAll: async (page: number = 1, filters?: BodyworkFilters): Promise<BodyworksResponse> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      ...(filters?.search && { search: filters.search }),
+      ...(filters?.status && { status: filters.status }),
+    })
+
+    const response = await axiosInstance.get(`${BASE_URL}?${params}&per_page=1000000`)
     return response.data
   },
 

@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useColorsStore } from '@/stores/colors'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface ColorSelectProps {
   value: string
@@ -30,13 +31,28 @@ export function ColorSelect({
   disabled = false
 }: ColorSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { colors, loading, fetchColors } = useColorsStore()
+  
+  // Debouncer la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
+  // Charger les couleurs initiales
   useEffect(() => {
-    if (colors.length === 0) {
-      fetchColors()
+    if (colors.length === 0 && !debouncedSearchQuery) {
+      fetchColors(1, {})
     }
-  }, [fetchColors, colors.length])
+  }, [fetchColors, colors.length, debouncedSearchQuery])
+
+  // Effectuer la recherche quand la query change
+  useEffect(() => {
+    if (debouncedSearchQuery) {
+      fetchColors(1, { search: debouncedSearchQuery })
+    } else if (debouncedSearchQuery === '') {
+      // Recharger toutes les couleurs quand la recherche est vide
+      fetchColors(1, {})
+    }
+  }, [debouncedSearchQuery, fetchColors])
 
   const selectedColor = colors.find(color => color.id.toString() === value)
 
@@ -64,8 +80,12 @@ export function ColorSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
-        <Command>
-          <CommandInput placeholder="Rechercher une couleur..." />
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Rechercher une couleur..." 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             {loading ? (
               <div className="flex items-center justify-center py-6">
@@ -73,7 +93,9 @@ export function ColorSelect({
                 Chargement des couleurs...
               </div>
             ) : colors.length === 0 ? (
-              <CommandEmpty>Aucune couleur trouvée.</CommandEmpty>
+              <CommandEmpty>
+                {searchQuery ? 'Aucune couleur trouvée pour cette recherche.' : 'Aucune couleur trouvée.'}
+              </CommandEmpty>
             ) : (
               <CommandGroup>
                 {colors.map((color) => (
@@ -92,7 +114,12 @@ export function ColorSelect({
                           : 'mr-2 h-4 w-4 opacity-0'
                       }
                     />
-                    {color.label}
+                    <div className="flex flex-col">
+                      <span className="font-medium">{color.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {color.description} - {color.code}
+                      </span>
+                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>

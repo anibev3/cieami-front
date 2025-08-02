@@ -77,6 +77,7 @@ import { useBrandsStore } from '@/stores/brands'
 import { ColorSelect } from '@/features/widgets/color-select'
 import { BodyworkSelect } from '@/features/widgets/bodywork-select'
 import { CreateRepairer } from '@/features/assignments/components/create-repairer'
+import { VehicleMutateDialog } from '@/features/administration/vehicles/components/vehicle-mutate-dialog'
 
 // Types pour les experts
 interface Expert {
@@ -219,25 +220,7 @@ export default function CreateAssignmentPage() {
     address: '',
   })
   
-  const [createVehicleForm, setCreateVehicleForm] = useState({
-    license_plate: '',
-    usage: '',
-    type: '',
-    option: '',
-    mileage: '',
-    serial_number: '',
-    fiscal_power: 0,
-    nb_seats: 0,
-    new_market_value: 0,
-    payload: 0,
-    vehicle_model_id: '',
-    color_id: '',
-    bodywork_id: '',
-    vehicle_genre_id: '',
-    vehicle_energy_id: '',
-    first_entry_into_circulation_date: '',
-    technical_visit_date: '',
-  })
+  // Removed createVehicleForm - now using VehicleMutateDialog
   
   const [createInsurerForm, setCreateInsurerForm] = useState({
     name: '',
@@ -447,12 +430,7 @@ export default function CreateAssignmentPage() {
     fetchBrands()
   }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
 
-  // Réinitialiser le modèle quand la marque change
-  useEffect(() => {
-    if (selectedBrandId !== '') {
-      setCreateVehicleForm(prev => ({ ...prev, vehicle_model_id: '' }))
-    }
-  }, [selectedBrandId])
+  // Removed effect for vehicle model reset - now handled by VehicleMutateDialog
 
   // Validations par étape
   const stepValidations = {
@@ -736,39 +714,7 @@ export default function CreateAssignmentPage() {
     }
   }
 
-  const handleCreateVehicle = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!createVehicleForm.license_plate || !createVehicleForm.vehicle_model_id || !createVehicleForm.color_id || !createVehicleForm.vehicle_energy_id || !createVehicleForm.vehicle_genre_id) {
-      toast.error('Numéro d\'immatriculation, modèle, couleur, énergie et genre de véhicule obligatoires')
-      return
-    }
-    try {
-      await createVehicle({
-        ...createVehicleForm,
-        fiscal_power: Number(createVehicleForm.fiscal_power),
-        nb_seats: Number(createVehicleForm.nb_seats),
-        new_market_value: Number(createVehicleForm.new_market_value),
-        payload: Number(createVehicleForm.payload),
-        bodywork_id: createVehicleForm.bodywork_id,
-        first_entry_into_circulation_date: createVehicleForm.first_entry_into_circulation_date || undefined,
-        technical_visit_date: createVehicleForm.technical_visit_date || undefined,
-        mileage: Number(createVehicleForm.mileage),
-      })
-      toast.success('Véhicule créé avec succès')
-      setShowCreateVehicleModal(false)
-              setCreateVehicleForm({
-          license_plate: '', usage: '', type: '', option: '', mileage: '',
-          serial_number: '', fiscal_power: 0, nb_seats: 0, new_market_value: 0, payload: 0,
-          vehicle_model_id: '', color_id: '', bodywork_id: '',
-          vehicle_genre_id: '', vehicle_energy_id: '',
-          first_entry_into_circulation_date: '', technical_visit_date: '',
-        })
-        setSelectedBrandId('')
-      fetchVehicles() // Recharger la liste
-    } catch (error) {
-      toast.error('Erreur lors de la création du véhicule')
-    }
-  }
+    // Removed handleCreateVehicle - now using VehicleMutateDialog
 
   const handleCreateInsurer = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -841,11 +787,7 @@ export default function CreateAssignmentPage() {
     try {
       await createVehicleModel({ ...createVehicleModelForm, brand_id: selectedBrandId })
       await fetchVehicleModels(1, { brand_id: selectedBrandId }) // Rafraîchir la liste pour la marque
-      // Sélection automatique du nouveau modèle
-      const newModel = vehicleModels.find(m => m.code === createVehicleModelForm.code && m.label === createVehicleModelForm.label && m.brand.id.toString() === selectedBrandId)
-      if (newModel) {
-        setCreateVehicleForm(f => ({ ...f, vehicle_model_id: newModel.id.toString() }))
-      }
+      // Removed automatic selection - handled by VehicleMutateDialog
       toast.success('Modèle créé avec succès')
       setShowCreateVehicleModelModal(false)
       setCreateVehicleModelForm({ code: '', label: '', description: '', brand_id: '' })
@@ -863,11 +805,7 @@ export default function CreateAssignmentPage() {
     try {
       await createColor(createColorForm)
       await fetchColors() // Rafraîchir la liste
-      // Sélection automatique de la nouvelle couleur
-      const newColor = colors.find(c => c.code === createColorForm.code && c.label === createColorForm.label)
-      if (newColor) {
-        setCreateVehicleForm(f => ({ ...f, color_id: newColor.id.toString() }))
-      }
+      // Removed automatic color selection - handled by VehicleMutateDialog
       toast.success('Couleur créée avec succès')
       setShowCreateColorModal(false)
       setCreateColorForm({ code: '', label: '', description: '' })
@@ -885,11 +823,7 @@ export default function CreateAssignmentPage() {
     try {
       await createBodywork(createBodyworkForm)
       await fetchBodyworks() // Rafraîchir la liste
-      // Sélection automatique de la nouvelle carrosserie
-      const newBodywork = bodyworks.find(b => b.code === createBodyworkForm.code && b.label === createBodyworkForm.label)
-      if (newBodywork) {
-        setCreateVehicleForm(f => ({ ...f, bodywork_id: newBodywork.id.toString() }))
-      }
+      // Removed automatic bodywork selection - handled by VehicleMutateDialog
       toast.success('Carrosserie créée avec succès')
       setShowCreateBodyworkModal(false)
       setCreateBodyworkForm({ code: '', label: '', description: '' })
@@ -2249,207 +2183,11 @@ export default function CreateAssignmentPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showCreateVehicleModal} onOpenChange={setShowCreateVehicleModal}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Créer un véhicule</DialogTitle>
-            <DialogDescription>
-              Remplissez les informations pour créer un nouveau véhicule.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreateVehicle} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-license">Plaque d'immatriculation *</Label>
-                <Input 
-                  id="vehicle-license" 
-                  value={createVehicleForm.license_plate} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, license_plate: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-genre">Genre de véhicule *</Label>
-                <VehicleGenreSelect
-                  value={createVehicleForm.vehicle_genre_id}
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_genre_id: value }))}
-                  placeholder="Sélectionner un genre de véhicule"
-                  showDescription={false}
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="vehicle-brand">Marque *</Label>
-                  <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBrandModal(true)} className="shrink-0 w-6 h-6">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <BrandSelect
-                  value={selectedBrandId}
-                  onValueChange={setSelectedBrandId}
-                  placeholder="Sélectionnez une marque"
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="vehicle-model">Modèle de véhicule *</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setShowCreateVehicleModelModal(true)}
-                    className="shrink-0 w-6 h-6"
-                    disabled={!selectedBrandId}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <VehicleModelSelect
-                  value={createVehicleForm.vehicle_model_id}
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_model_id: value }))}
-                  placeholder="Sélectionner un modèle"
-                  brandId={selectedBrandId}
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="vehicle-color">Couleur *</Label>
-                  <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateColorModal(true)} className="shrink-0 w-6 h-6">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <ColorSelect
-                  value={createVehicleForm.color_id}
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, color_id: value }))}
-                  placeholder="Sélectionner une couleur"
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="vehicle-bodywork">Carrosserie </Label>
-                  <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateBodyworkModal(true)} className="shrink-0 w-6 h-6">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <BodyworkSelect
-                  value={createVehicleForm.bodywork_id}
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, bodywork_id: value }))}
-                  placeholder="Sélectionner une carrosserie"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-energy-type">Énergie *</Label>
-                <VehicleEnergySelect
-                  value={createVehicleForm.vehicle_energy_id}
-                  onValueChange={value => setCreateVehicleForm(f => ({ ...f, vehicle_energy_id: value }))}
-                  placeholder="Sélectionner un type d'énergie"
-                  showDescription={false}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-mileage">Kilométrage </Label>
-                <Input 
-                  id="vehicle-mileage" 
-                  type="number" 
-                  value={createVehicleForm.mileage} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, mileage: e.target.value }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-first-circulation">Date de première mise en circulation </Label>
-                <Input 
-                  id="vehicle-first-circulation" 
-                  type="date"
-                  value={createVehicleForm.first_entry_into_circulation_date || ''} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, first_entry_into_circulation_date: e.target.value }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-technical-visit">Date de visite technique</Label>
-                <Input 
-                  id="vehicle-technical-visit" 
-                  type="date"
-                  value={createVehicleForm.technical_visit_date || ''} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, technical_visit_date: e.target.value }))} 
-                />
-              </div>
-              {/* <div className="space-y-2">
-                <Label htmlFor="vehicle-usage">Usage </Label>
-                <Input 
-                  id="vehicle-usage" 
-                  value={createVehicleForm.usage} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, usage: e.target.value }))} 
-                  required 
-                />
-              </div> */}
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-type">Type </Label>
-                <Input 
-                  id="vehicle-type" 
-                  value={createVehicleForm.type} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, type: e.target.value }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-option">Option </Label>
-                <Input 
-                  id="vehicle-option" 
-                  value={createVehicleForm.option} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, option: e.target.value }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-power">Puissance fiscale </Label>
-                <Input 
-                  id="vehicle-power" 
-                  type="number" 
-                  value={createVehicleForm.fiscal_power} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, fiscal_power: Number(e.target.value) }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-payload-capacity">Charge utile </Label>
-                <Input 
-                  id="vehicle-payload-capacity" 
-                  type="number"
-                  value={createVehicleForm.payload} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, payload: Number(e.target.value) }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-serial">Numéro de série </Label>
-                <Input 
-                  id="vehicle-serial" 
-                  value={createVehicleForm.serial_number} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, serial_number: e.target.value }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-new-value">Valeur neuve </Label>
-                <Input 
-                  id="vehicle-new-value" 
-                  type="number"
-                  value={createVehicleForm.new_market_value} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, new_market_value: Number(e.target.value) }))} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicle-seats">Nombre de places </Label>
-                <Input 
-                  id="vehicle-seats" 
-                  type="number" 
-                  value={createVehicleForm.nb_seats} 
-                  onChange={e => setCreateVehicleForm(f => ({ ...f, nb_seats: Number(e.target.value) }))} 
-                />
-              </div>
-              
-            </div>
-            <DialogFooter>
-              <Button type="submit">Créer le véhicule</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <VehicleMutateDialog 
+        id={null}
+        open={showCreateVehicleModal}
+        onOpenChange={setShowCreateVehicleModal}
+      />
 
       <Dialog open={showCreateInsurerModal} onOpenChange={setShowCreateInsurerModal}>
         <DialogContent className="sm:max-w-[425px]">
@@ -2527,7 +2265,7 @@ export default function CreateAssignmentPage() {
           <DialogHeader>
             <DialogTitle>Créer un document transmis</DialogTitle>
             <DialogDescription>
-              Remplissez les informations pour créer un nouveau document transmis.
+              Remplissez les informations pour créer un nouveau document transmis.  
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateDocument} className="space-y-4">

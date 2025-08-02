@@ -50,10 +50,10 @@ const vehicleCreateSchema = z.object({
   nb_seats: z.number().optional(),
   new_market_value: z.number().optional(),
   payload: z.number().optional(),
-  vehicle_model_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  color_id: z.string().min(1, 'La couleur est requise'),
-  vehicle_genre_id: z.string().min(1, 'Le genre de véhicule est requis'),
-  vehicle_energy_id: z.string().min(1, 'L\'énergie est requise'),
+  vehicle_model_id: z.string().optional(),
+  color_id: z.string().optional(),
+  vehicle_genre_id: z.string().optional(),
+  vehicle_energy_id: z.string().optional(),
 })
 
 type VehicleCreateFormData = z.infer<typeof vehicleCreateSchema>
@@ -116,19 +116,19 @@ export default function CreateVehiclePage() {
       const createData: VehicleCreate = {
         license_plate: data.license_plate,
         usage: data.usage || undefined,
-        type: data.type || '',
-        option: data.option || '',
-        bodywork_id: data.bodywork_id || '',
-        mileage: data.mileage || '',
-        serial_number: data.serial_number || '',
+        type: data.type || undefined,
+        option: data.option || undefined,
+        bodywork_id: data.bodywork_id || undefined,
+        mileage: data.mileage || undefined,
+        serial_number: data.serial_number || undefined,
         first_entry_into_circulation_date: data.first_entry_into_circulation_date || undefined,
         technical_visit_date: data.technical_visit_date || undefined,
         fiscal_power: Number(data.fiscal_power),
         nb_seats: Number(data.nb_seats),
         new_market_value: Number(data.new_market_value),
         payload: Number(data.payload),
-        vehicle_model_id: data.vehicle_model_id,
-        color_id: data.color_id,
+        vehicle_model_id: data.vehicle_model_id || undefined,
+        color_id: data.color_id || undefined,
         vehicle_genre_id: data.vehicle_genre_id || undefined,
         vehicle_energy_id: data.vehicle_energy_id || undefined,
       }
@@ -207,7 +207,7 @@ export default function CreateVehiclePage() {
                     name="vehicle_genre_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Genre de véhicule *</FormLabel>
+                        <FormLabel>Genre de véhicule</FormLabel>
                         <FormControl>
                           <VehicleGenreSelect
                             value={field.value}
@@ -222,7 +222,7 @@ export default function CreateVehiclePage() {
                   />
 
                   <div className="space-y-2">
-                    <FormLabel>Marque *</FormLabel>
+                    <FormLabel>Marque</FormLabel>
                     <BrandSelect
                       value={selectedBrandId}
                       onValueChange={setSelectedBrandId}
@@ -235,7 +235,7 @@ export default function CreateVehiclePage() {
                     name="vehicle_model_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Modèle de véhicule *</FormLabel>
+                        <FormLabel>Modèle de véhicule</FormLabel>
                         <VehicleModelSelect
                           value={field.value}
                           onValueChange={field.onChange}
