@@ -713,8 +713,8 @@ export default function CreateAssignmentPage() {
       toast.error('Erreur lors de la création du client')
     }
   }
-
-    // Removed handleCreateVehicle - now using VehicleMutateDialog
+  
+  // Removed handleCreateVehicle - now using VehicleMutateDialog
 
   const handleCreateInsurer = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -2188,6 +2188,7 @@ export default function CreateAssignmentPage() {
         open={showCreateVehicleModal}
         onOpenChange={setShowCreateVehicleModal}
       />
+
 
       <Dialog open={showCreateInsurerModal} onOpenChange={setShowCreateInsurerModal}>
         <DialogContent className="sm:max-w-[425px]">
