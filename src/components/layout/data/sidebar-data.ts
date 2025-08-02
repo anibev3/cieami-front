@@ -446,13 +446,13 @@ export const sidebarData: SidebarData = {
     },
     {
       title: 'Administration',
-      requiredRoles: [UserRole.SYSTEM_ADMIN],
+      // requiredRoles: [UserRole.SYSTEM_ADMIN],
       items: [
         {
           title: 'Utilisateurs',
           url: '/administration/users',
           icon: IconUsers,
-          // requiredPermission: Permission.VIEW_USER,
+          requiredRoles: [UserRole.SYSTEM_ADMIN],
         },
         {
           title: 'Documents',
@@ -489,6 +489,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Entités',
           icon: IconBuilding,
+          requiredRoles: [UserRole.SYSTEM_ADMIN],
           items: [
             {
               title: 'Entité',

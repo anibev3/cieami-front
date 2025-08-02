@@ -4,6 +4,7 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { SearchProvider } from '@/context/search-context'
 import { DocumentsTransmisDataTable } from './data-table'
 import { DocumentsDialogs } from './components/documents-dialogs'
 import { DocumentsPrimaryButtons } from './components/documents-primary-buttons'
@@ -47,7 +48,7 @@ export default function DocumentsTransmisPage() {
   }
 
   return (
-    <>
+    <SearchProvider>
       <Header fixed>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
@@ -87,6 +88,6 @@ export default function DocumentsTransmisPage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
         onSuccess={handleSuccess}
       />
-    </>
+    </SearchProvider>
   )
 } 
