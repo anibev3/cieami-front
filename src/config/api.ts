@@ -2,7 +2,7 @@
 export const API_CONFIG = {
   // BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://back.roomcodetraining.com/api/v1',
   BASE_URL: import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_SUFIX,
-  TIMEOUT: 10000,
+  TIMEOUT: 180000,
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/auth/tokens',
