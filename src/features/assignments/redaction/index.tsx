@@ -1442,50 +1442,7 @@ export default function EditReportPage() {
                               <p className="text-base font-semibold">{assignment.claim_ends_at ? formatDate(assignment.claim_ends_at) : 'Non renseigné'}</p>
                             </div>
                           </div>
-                          
-                          <Separator />
-                          
-                          <div>
-                            <RichTextEditor
-                              label="Circonstances"
-                              value={circumstance}
-                              onChange={setCircumstance}
-                              placeholder="Décrivez les circonstances de l'accident..."
-                              className="mb-4"
-                            />
-                          </div>
-                          
-                          <div>
-                            <RichTextEditor
-                              label="Dégâts déclarés"
-                              value={damageDeclared}
-                              onChange={setDamageDeclared}
-                              placeholder="Décrivez les dégâts déclarés..."
-                              className="mb-4"
-                            />
-                          </div>
-                          
-                          <div>
-                            <RichTextEditor
-                              label="Points notés"
-                              value={assignment.point_noted || ''}
-                              onChange={(value) => {
-                                console.log('Points notés modifiés:', value)
-                              }}
-                              placeholder="Ajoutez des points notés..."
-                              className="mb-4"
-                            />
-                          </div>
-                          
-                          <div>
-                            <RichTextEditor
-                              label="Observation générale"
-                              value={observation}
-                              onChange={setObservation}
-                              placeholder="Ajoutez vos observations générales..."
-                              className="mb-4"
-                            />
-                          </div>
+                        
                         </CardContent>
                       </Card>
 
@@ -1895,6 +1852,7 @@ export default function EditReportPage() {
                                 {/* Sélecteur de point de choc modifiable */}
                                 <div className="flex-1">
                                   <ShockPointSelect
+                                    className='w-1/2'
                                     value={shock.shock_point.id}
                                     onValueChange={async (newShockPointId) => {
                                       try {
@@ -1930,12 +1888,12 @@ export default function EditReportPage() {
                                   {/* Bouton de suppression */}
                                   <Button
                                     variant="ghost"
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => handleDeleteShock(shock.id)}
-                                    className="p-1 h-6 w-6 hover:bg-red-50 hover:text-red-600 transition-all duration-200 rounded-md"
+                                    className="p-1 hover:bg-red-50 text-xs bg-red-100 hover:text-red-600 transition-all duration-200 rounded-md"
                                     title="Supprimer ce choc"
                                   >
-                                    <Trash2 className="h-3 w-3" />
+                                    <Trash2 className="h-1 w-1" /> Supprimer
                                   </Button>
                                 </div>
                               </div>
@@ -2628,6 +2586,50 @@ export default function EditReportPage() {
                           {/* </>
                         )} */}
 
+                                                  <Separator />
+                          
+                          <div>
+                            <RichTextEditor
+                              label="Circonstances"
+                              value={circumstance}
+                              onChange={setCircumstance}
+                              placeholder="Décrivez les circonstances de l'accident..."
+                              className="mb-4"
+                            />
+                          </div>
+                          
+                          <div>
+                            <RichTextEditor
+                              label="Dégâts déclarés"
+                              value={damageDeclared}
+                              onChange={setDamageDeclared}
+                              placeholder="Décrivez les dégâts déclarés..."
+                              className="mb-4"
+                            />
+                          </div>
+                          
+                          <div>
+                            <RichTextEditor
+                              label="Points notés"
+                              value={assignment.point_noted || ''}
+                              onChange={(value) => {
+                                console.log('Points notés modifiés:', value)
+                              }}
+                              placeholder="Ajoutez des points notés..."
+                              className="mb-4"
+                            />
+                          </div>
+                          
+                          <div>
+                            <RichTextEditor
+                              label="Observation générale"
+                              value={observation}
+                              onChange={setObservation}
+                              placeholder="Ajoutez vos observations générales..."
+                              className="mb-4"
+                            />
+                          </div>
+
                         {/* Message d'aide pour les champs requis */}
                         {!isEvaluation && (
                           <>
@@ -2648,19 +2650,9 @@ export default function EditReportPage() {
                   </div>
                 )}
 
-                {/* Constatations */}
-                {/* {activeTab === 'constatations' && (
-                  <AscertainmentEdit
-                    ascertainments={assignment.ascertainments || []}
-                    onUpdate={(updatedAscertainments) => {
-                      // Mettre à jour les constatations dans l'état local
-                      setAssignment(prev => prev ? {
-                        ...prev,
-                        ascertainments: updatedAscertainments
-                      } : null)
-                    }}
-                  />
-                )} */}
+
+
+                
               </div>
             </ScrollArea>
           </div>
