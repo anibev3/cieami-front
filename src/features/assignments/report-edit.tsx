@@ -344,7 +344,7 @@ export default function ReportEditPage() {
   
   // États pour les nouveaux champs de valeur de marché
   const [newMarketValue, setNewMarketValue] = useState<number | null>(null)
-  const [vehicleNewMarketValue, setVehicleNewMarketValue] = useState<number | null>(null)
+  // const [vehicleNewMarketValue, setVehicleNewMarketValue] = useState<number | null>(null)
   const [vehicleNewMarketValueOption, setVehicleNewMarketValueOption] = useState<string | null>(null)
   const [depreciationRate, setDepreciationRate] = useState<number | null>(null)
   const [marketValue, setMarketValue] = useState<number | null>(null)
@@ -492,9 +492,9 @@ export default function ReportEditPage() {
       if ((assignment as any).market_value) {
         setMarketValue((assignment as any).market_value)
       }
-      if ((assignment as any).vehicle_new_market_value) {
-        setVehicleNewMarketValue((assignment as any).vehicle_new_market_value)
-      }
+      // if ((assignment as any).vehicle_new_market_value) {
+      //   setVehicleNewMarketValue((assignment as any).vehicle_new_market_value)
+      // }
       if ((assignment as any).vehicle_new_market_value_option) {
         setVehicleNewMarketValueOption((assignment as any).vehicle_new_market_value_option)
       }
@@ -702,7 +702,7 @@ export default function ReportEditPage() {
       new_market_value: newMarketValue || null,
       depreciation_rate: depreciationRate || null,
       market_value: marketValue || null,
-      vehicle_new_market_value: vehicleNewMarketValue || null,
+      // vehicle_new_market_value: vehicleNewMarketValue || null,
       vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
       ...(isEvaluation ? {
@@ -749,7 +749,9 @@ export default function ReportEditPage() {
       setAssignmentTotalAmount(total)
       setShowReceiptModal(true)
     }
-  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration, newMarketValue, vehicleNewMarketValue, vehicleNewMarketValueOption, ascertainments, assignment?.vehicle?.id, depreciationRate, expertiseDate, marketIncidenceRate, marketValue])
+  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration, newMarketValue,
+    // vehicleNewMarketValue,
+    vehicleNewMarketValueOption, ascertainments, assignment?.vehicle?.id, depreciationRate, expertiseDate, marketIncidenceRate, marketValue])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -991,7 +993,7 @@ export default function ReportEditPage() {
       new_market_value: newMarketValue || null,
       depreciation_rate: depreciationRate || null,
       market_value: marketValue || null,
-      vehicle_new_market_value: vehicleNewMarketValue || null,
+      // vehicle_new_market_value: vehicleNewMarketValue || null,
       vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
       ...(isEvaluation ? {
@@ -1041,7 +1043,7 @@ export default function ReportEditPage() {
     salvageValue,
     workDuration,
     newMarketValue,
-    vehicleNewMarketValue,
+    // vehicleNewMarketValue,
     vehicleNewMarketValueOption,
     depreciationRate,
     marketValue
@@ -1550,7 +1552,7 @@ export default function ReportEditPage() {
                         />
                       </div>
 
-                      <div className="space-y-2">
+                      {/* <div className="space-y-2">
                         <Label htmlFor="work-duration">Durée des travaux</Label>
                         <Input
                           id="work-duration"
@@ -1558,7 +1560,7 @@ export default function ReportEditPage() {
                           onChange={(e) => setWorkDuration(e.target.value)}
                           placeholder="Ex: 15 jours"
                         />
-                      </div>
+                      </div> */}
 
                       <div className="space-y-2">
                         <Label htmlFor="assured-value">Valeur assurée (FCFA)</Label>
@@ -1618,9 +1620,11 @@ export default function ReportEditPage() {
                         setVehicleNewMarketValueOption(value)
                         // Reset des valeurs selon la sélection
                         if (value === 'fa' || value === 'nc') {
-                          setVehicleNewMarketValue(null)
-                        } else if (value === 'value') {
+                          // setVehicleNewMarketValue(null)
                           setNewMarketValue(null)
+
+                        } else if (value === 'value') {
+                          // setNewMarketValue(null)
                         }
                       }}
                     >
@@ -1630,13 +1634,13 @@ export default function ReportEditPage() {
                       <SelectContent>
                         <SelectItem value="fa">Fabrication abandonnée</SelectItem>
                         <SelectItem value="nc">Non commercialisé</SelectItem>
-                        <SelectItem value="value">Autres</SelectItem>
+                        <SelectItem value="value">Valeur neuve</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Affichage conditionnel des champs de valeur */}
-                  {(vehicleNewMarketValueOption === 'fa' || vehicleNewMarketValueOption === 'nc') && (
+                  {/* {(vehicleNewMarketValueOption === 'fa' || vehicleNewMarketValueOption === 'nc') && (
                     <div className="space-y-2">
                       <Label htmlFor="new-market-value">
                         Valeur neuve du véhicule (FCFA)<span className="text-red-500">*</span>
@@ -1651,21 +1655,35 @@ export default function ReportEditPage() {
                         placeholder="Saisir la nouvelle valeur de marché"
                       />
                     </div>
-                  )}
+                  )} */}
 
                   {vehicleNewMarketValueOption === 'value' && (
+                    // <div className="space-y-2">
+                    //   <Label htmlFor="vehicle-new-market-value">
+                    //     Montant de la valeur neuve (FCFA) <span className="text-red-500">*</span>
+                    //   </Label>
+                    //   <Input
+                    //     id="vehicle-new-market-value"
+                    //     type="number"
+                    //     min="0"
+                    //     step="1000"
+                    //     value={vehicleNewMarketValue || ''}
+                    //     onChange={(e) => setVehicleNewMarketValue(parseFloat(e.target.value) || null)}
+                    //     placeholder="Saisir la valeur de marché du véhicule"
+                    //   />
+                    // </div>
                     <div className="space-y-2">
-                      <Label htmlFor="vehicle-new-market-value">
-                        Valeur de marché du véhicule (FCFA) <span className="text-red-500">*</span>
+                      <Label htmlFor="new-market-value">
+                        Valeur neuve du véhicule (FCFA)<span className="text-red-500">*</span>
                       </Label>
                       <Input
-                        id="vehicle-new-market-value"
+                        id="new-market-value"
                         type="number"
                         min="0"
                         step="1000"
-                        value={vehicleNewMarketValue || ''}
-                        onChange={(e) => setVehicleNewMarketValue(parseFloat(e.target.value) || null)}
-                        placeholder="Saisir la valeur de marché du véhicule"
+                        value={newMarketValue || ''}
+                        onChange={(e) => setNewMarketValue(parseFloat(e.target.value) || null)}
+                        placeholder="Saisir la nouvelle valeur de marché"
                       />
                     </div>
                   )}

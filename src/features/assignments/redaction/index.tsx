@@ -590,6 +590,11 @@ export default function EditReportPage() {
   const [paintTypes, setPaintTypes] = useState([])
   const [hourlyRates, setHourlyRates] = useState([])
   
+  // États pour les nouveaux champs de valeur de marché
+  const [newMarketValue, setNewMarketValue] = useState<number | null>(null)
+  const [vehicleNewMarketValueOption, setVehicleNewMarketValueOption] = useState<string | null>(null)
+  const [depreciationRate, setDepreciationRate] = useState<number | null>(null)
+  const [marketValue, setMarketValue] = useState<number | null>(null)
 
 
   // Charger les données du dossier
@@ -821,6 +826,25 @@ export default function EditReportPage() {
     }
   }
 
+  // Initialiser les valeurs de marché quand l'assignation est chargée
+  useEffect(() => {
+    if (assignment) {
+      // Initialiser les nouveaux champs de valeur de marché
+      if ((assignment as any).new_market_value) {
+        setNewMarketValue((assignment as any).new_market_value)
+      }
+      if ((assignment as any).depreciation_rate) {
+        setDepreciationRate((assignment as any).depreciation_rate)
+      }
+      if ((assignment as any).market_value) {
+        setMarketValue((assignment as any).market_value)
+      }
+      if ((assignment as any).vehicle_new_market_value_option) {
+        setVehicleNewMarketValueOption((assignment as any).vehicle_new_market_value_option)
+      }
+    }
+  }, [assignment])
+
   // Fonction pour obtenir la couleur du statut
   const getStatusColor = (statusCode: string) => {
     switch (statusCode) {
@@ -871,6 +895,12 @@ export default function EditReportPage() {
           if (instructions) payload.instructions = instructions
           if (marketIncidenceRate) payload.market_incidence_rate = Number(marketIncidenceRate)
         }
+
+        // Champs de valeur de marché (pour tous les types d'expertise)
+        if (newMarketValue) payload.new_market_value = Number(newMarketValue)
+        if (depreciationRate) payload.depreciation_rate = Number(depreciationRate)
+        if (marketValue) payload.market_value = Number(marketValue)
+        if (vehicleNewMarketValueOption) payload.vehicle_new_market_value_option = vehicleNewMarketValueOption
 
         await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITE_ELEMENTS}/${assignment.id}`, payload)
       }
@@ -2101,9 +2131,9 @@ export default function EditReportPage() {
                         <CardTitle>Informations complémentaires</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        {!isEvaluation ? (
+                        {/* {!isEvaluation ? (
                           // Champs pour les dossiers NON-évaluation
-                          <>
+                          <> */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                            <div className="space-y-2">
                                <Label htmlFor="general-state">État général *</Label>
@@ -2289,10 +2319,10 @@ export default function EditReportPage() {
                                 />
                               </div>
                             </div>
-                          </>
-                        ) : (
-                          // Champs pour les dossiers d'évaluation
-                          <>
+                          {/* </>
+                        // ) : (
+                        //   // Champs pour les dossiers d'évaluation
+                        //   <> */}
                             <div className="space-y-2">
                               <Label htmlFor="instructions">Instructions de l'expert</Label>
                               <RichTextEditor
@@ -2312,9 +2342,96 @@ export default function EditReportPage() {
                                 onChange={(e) => setMarketIncidenceRate(parseFloat(e.target.value) || 0)}
                                 placeholder="0"
                               />
+                        </div>
+                        
+                                              {/* Section de modification des valeurs de marché */}
+                      <Card className="shadow-none">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <DollarSign className="h-5 w-5 text-blue-600" />
+                            Modifier les valeurs de marché
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="vehicle-new-market-value-option">
+                                Option de la valeur neuve du véhicule<span className="text-red-500">*</span>
+                              </Label>
+                              <Select 
+                                value={vehicleNewMarketValueOption || ''} 
+                                onValueChange={(value) => {
+                                  setVehicleNewMarketValueOption(value)
+                                  // Reset de la valeur neuve lors du changement d'option
+                                  setNewMarketValue(null)
+                                }}
+                              >
+                                <SelectTrigger className='w-full'>
+                                  <SelectValue placeholder="Sélectionner l'état de commercialisation..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="fa">Fabrication abandonnée</SelectItem>
+                                  <SelectItem value="nc">Non commercialisé</SelectItem>
+                                  <SelectItem value="value">Valeur neuve</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
-                          </>
-                        )}
+
+                            {vehicleNewMarketValueOption === 'value' && (
+                              <div className="space-y-2">
+                                <Label htmlFor="new-market-value">
+                                  Valeur neuve du véhicule (FCFA)<span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                  id="new-market-value"
+                                  type="number"
+                                  min="0"
+                                  step="1000"
+                                  value={newMarketValue || ''}
+                                  onChange={(e) => setNewMarketValue(parseFloat(e.target.value) || null)}
+                                  placeholder="Saisir la nouvelle valeur de marché"
+                                />
+                              </div>
+                            )}
+
+                            {/* Champs supplémentaires de valeur de marché */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="depreciation-rate">
+                                  Taux de dépréciation (%)
+                                </Label>
+                                <Input
+                                  id="depreciation-rate"
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  step="0.01"
+                                  value={depreciationRate || ''}
+                                  onChange={(e) => setDepreciationRate(parseFloat(e.target.value) || null)}
+                                  placeholder="Saisir le taux de dépréciation"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="market-value">
+                                  Valeur vénale (FCFA)
+                                </Label>
+                                <Input
+                                  id="market-value"
+                                  type="number"
+                                  min="0"
+                                  step="1000"
+                                  value={marketValue || ''}
+                                  onChange={(e) => setMarketValue(parseFloat(e.target.value) || null)}
+                                  placeholder="Saisir la valeur vénale"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                          {/* </>
+                        )} */}
 
                         {/* Message d'aide pour les champs requis */}
                         {!isEvaluation && (

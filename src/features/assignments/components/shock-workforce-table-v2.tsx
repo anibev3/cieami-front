@@ -65,7 +65,7 @@ interface Workforce {
   hourly_rate_id?: string | number
   paint_type_id?: string | number
   // Champ pour la peinture partielle/totale (workforce_type_id = 1)
-  is_total_paint?: boolean
+  all_paint?: boolean
   // Additional fields for display
   workforce_type?: {
     id: number
@@ -196,12 +196,12 @@ function SortableWorkforceRow({
         <td className="border px-2 py-2 text-center text-[10px]">
           <div className="flex items-center justify-center gap-2">
             <Checkbox
-              checked={row.is_total_paint || false}
-              onCheckedChange={(checked) => updateLocalWorkforce(index, 'is_total_paint', checked)}
+              checked={row.all_paint || false}
+              onCheckedChange={(checked) => updateLocalWorkforce(index, 'all_paint', checked)}
               className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
             <span className="text-xs text-gray-600">
-              {row.is_total_paint ? 'Totale' : 'Partielle'}
+              {row.all_paint ? 'Totale' : 'Partielle'}
             </span>
           </div>
         </td>
