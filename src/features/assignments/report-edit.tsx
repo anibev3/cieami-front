@@ -45,7 +45,12 @@ import {
   Car,
   AlertCircle,
   Receipt,
-  BarChart3
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  Package,
+  Users
 } from 'lucide-react'
 import { toast } from 'sonner'
 import axiosInstance from '@/lib/axios'
@@ -348,6 +353,9 @@ export default function ReportEditPage() {
   const [vehicleNewMarketValueOption, setVehicleNewMarketValueOption] = useState<string | null>(null)
   const [depreciationRate, setDepreciationRate] = useState<number | null>(null)
   const [marketValue, setMarketValue] = useState<number | null>(null)
+  
+  // État pour gérer les chocs collapsés (par défaut tous ouverts)
+  const [collapsedShocks, setCollapsedShocks] = useState<Set<string | number>>(new Set())
   
   const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
   
@@ -791,7 +799,18 @@ export default function ReportEditPage() {
     toast.success('Fourniture créée avec succès')
   }, [reloadData])
 
-
+  // Fonction pour toggle le collapse d'un choc
+  const toggleShockCollapse = useCallback((shockId: string | number) => {
+    setCollapsedShocks(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(shockId)) {
+        newSet.delete(shockId)
+      } else {
+        newSet.add(shockId)
+      }
+      return newSet
+    })
+  }, [])
 
   // Fonction de mise à jour avec calcul automatique global
   const updateShockWithGlobalCalculation = useCallback((shockIndex: number, updatedShock: Shock) => {
@@ -2017,22 +2036,92 @@ export default function ReportEditPage() {
               </div>
             )}
             
+            {/* Contrôles globaux de collapse */}
+            {shocks.length > 0 && (
+              <div className="flex justify-end mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const allShockIds = shocks.map((s, i) => s.uid || i)
+                    const allCollapsed = allShockIds.every(id => collapsedShocks.has(id))
+                    if (allCollapsed) {
+                      // Expand all
+                      setCollapsedShocks(new Set())
+                    } else {
+                      // Collapse all
+                      setCollapsedShocks(new Set(allShockIds))
+                    }
+                  }}
+                  className="text-xs"
+                >
+                  {shocks.every((s, i) => collapsedShocks.has(s.uid || i)) ? (
+                    <>
+                      <ChevronDown className="mr-1 h-3 w-3" />
+                      Tout développer
+                    </>
+                  ) : (
+                    <>
+                      <ChevronUp className="mr-1 h-3 w-3" />
+                      Tout réduire
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            
             {shocks.map((shock, index) => {
               const s = shock as Shock;
+              const shockId = s.uid || index; // Utiliser l'uid ou l'index comme identifiant
               return (
-                <Card key={s.uid} className="shadow-none">
-                  <CardHeader>
+                <Card key={s.uid} className={`overflow-hidden transition-all duration-200 ${
+                  collapsedShocks.has(shockId) 
+                    ? 'shadow-sm border-gray-200' 
+                    : 'shadow-md border-blue-200 bg-gradient-to-r from-blue-50/30 to-transparent'
+                }`}>
+                  <CardHeader className="bg-gray-50 border-b border-gray-200">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <MapPin className="h-5 w-5" />
-                          {shockPoints.find(p => p.id === s.shock_point_id)?.label || `Point de choc`}
-                        </CardTitle>
-                        <CardDescription className="text-sm">
-                          Point de choc avec {s.shock_works.length} fourniture(s) et {s.workforces.length} main d'œuvre
-                        </CardDescription>
+                      <div className="flex items-center gap-3 flex-1">
+                        {/* Bouton de collapse */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleShockCollapse(shockId)}
+                          className="p-1 h-8 w-8 hover:bg-gray-200/80 hover:shadow-sm transition-all duration-200 rounded-md"
+                        >
+                          {collapsedShocks.has(shockId) ? (
+                            <ChevronRight className="h-4 w-4 text-gray-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-600" />
+                          )}
+                        </Button>
+                        
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-2">
+                            <MapPin className="h-5 w-5" />
+                            {shockPoints.find(p => p.id === s.shock_point_id)?.label || `Point de choc`}
+                          </CardTitle>
+                          <CardDescription className="text-sm">
+                            <div className="flex items-center gap-4 mt-1">
+                              <span className="inline-flex items-center gap-1">
+                                <Package className="h-3 w-3" />
+                                {s.shock_works.length}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {s.workforces.length}
+                              </span>
+                              {calculationResults[index] && (
+                                <span className="font-medium text-gray-900">
+                                  {((calculationResults[index].shocks[0] as any)?.total_shock_amount || 0).toLocaleString('fr-FR')} F CFA
+                                </span>
+                              )}
+                            </div>
+                          </CardDescription>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      
+                      <div className="flex items-center gap-2 ml-4">
                         {calculationResults[index] && (
                           <Badge variant="default" className="bg-green-100 text-green-800">
                             <Check className="mr-1 h-3 w-3" />
@@ -2051,7 +2140,18 @@ export default function ReportEditPage() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  
+                  {/* Body collapsible avec animation */}
+                  <div 
+                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                      collapsedShocks.has(shockId) 
+                        ? 'max-h-0 opacity-0 border-t-0' 
+                        : 'max-h-[5000px] opacity-100 border-t border-gray-100'
+                    }`}
+                  >
+                    <CardContent className={`space-y-6 ${
+                      collapsedShocks.has(shockId) ? 'p-0' : 'p-6'
+                    } transition-all duration-300`}>
                     {/* Fournitures */}
                     <ShockSuppliesTable
                       supplies={supplies}
@@ -2248,7 +2348,8 @@ export default function ReportEditPage() {
                         </div>
                       </div>
                     )}
-                  </CardContent>
+                    </CardContent>
+                  </div>
                 </Card>
               );
             })}

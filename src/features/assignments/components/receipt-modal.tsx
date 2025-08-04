@@ -236,7 +236,7 @@ export function ReceiptModal({
       // Créer les quittances avec les montants calculés
       const receiptsToCreateWithCalculatedAmounts = calculationResult.receipts.map(calculatedReceipt => ({
         receipt_type_id: Number(calculatedReceipt.receipt_type_id),
-        amount: calculatedReceipt.amount
+        amount: calculatedReceipt.amount_excluding_tax
       }))
 
       await receiptService.createMultipleReceipts(assignmentId, receiptsToCreateWithCalculatedAmounts)
