@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
@@ -8,8 +9,6 @@ import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Loader2, Check, X, GripVertical, ArrowUpDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { workforceService } from '@/services/workforce-service'
-import axiosInstance from '@/lib/axios'
-import { API_CONFIG } from '@/config/api'
 import { useWorkforceTypesStore } from '@/stores/workforce-types'
 import { useHourlyRatesStore } from '@/stores/hourly-rates'
 import { usePaintTypesStore } from '@/stores/paint-types'
@@ -99,7 +98,7 @@ interface ShockWorkforceTableV2Props {
   shockId: number
   workforces: Workforce[]
   onUpdate: (updatedWorkforces: Workforce[]) => void
-  onAdd?: (workforceData?: any) => Promise<void> // Prop optionnelle - maintenant géré en interne
+  onAdd?: (workforceData?: any) => Promise<void> // Nouvelle prop pour l'API POST
   onAssignmentRefresh?: () => void // Callback pour rafraîchir les données du dossier
   // Nouvelles props pour la cohérence avec shock-workforce-table.tsx
   workforceTypes?: any[]
@@ -126,7 +125,7 @@ interface SortableWorkforceRowProps {
   newRows: Set<number>
   updateLocalWorkforce: (index: number, field: keyof Workforce, value: any) => void
   handleCreateWorkforceType: (index: number) => void
-  handleValidateRow: (index: number) => Promise<void>
+  saveWorkforce: (index: number) => Promise<void>
   handleRemoveRow: (index: number) => Promise<void>
   cancelChanges: (index: number) => void
   hasChanges: (index: number) => boolean
@@ -143,7 +142,7 @@ function SortableWorkforceRow({
   newRows,
   updateLocalWorkforce,
   handleCreateWorkforceType,
-  handleValidateRow,
+  saveWorkforce,
   handleRemoveRow,
   cancelChanges,
   hasChanges,
@@ -263,10 +262,10 @@ function SortableWorkforceRow({
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => handleValidateRow(index)}
+              onClick={() => saveWorkforce(index)}
               disabled={updatingId === (row.id || index)}
               className="h-5 w-5 hover:bg-green-50 hover:text-green-600"
-              title={newRows.has(index) ? "Valider l'ajout" : "Sauvegarder"}
+              title="Sauvegarder"
             >
               {updatingId === (row.id || index) ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -305,7 +304,7 @@ export function ShockWorkforceTableV2({
   shockId,
   workforces,
   onUpdate,
-  onAdd: _onAdd, // Préfixé pour indiquer qu'il n'est pas utilisé
+  onAdd,
   onAssignmentRefresh,
   workforceTypes: externalWorkforceTypes,
   paintTypes: externalPaintTypes,
@@ -322,6 +321,7 @@ export function ShockWorkforceTableV2({
 }: ShockWorkforceTableV2Props) {
   const [localWorkforces, setLocalWorkforces] = useState<Workforce[]>(workforces)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [creatingId, setCreatingId] = useState<string | null>(null)
   const [originalValues, setOriginalValues] = useState<Record<number, Partial<Workforce>>>({})
   const [newRows, setNewRows] = useState<Set<number>>(new Set()) // Lignes nouvellement ajoutées
   const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set()) // Lignes modifiées
@@ -617,52 +617,42 @@ export function ShockWorkforceTableV2({
     const workforce = localWorkforces[index]
     
     if (newRows.has(index)) {
-      // Nouvelle ligne, faire l'appel API POST avec le nouveau payload
-      try {
-        setUpdatingId(workforce.id || index)
-        
-        // Construire le payload selon l'API
-        const payload = {
-          shock_id: shockId.toString(),
-          hourly_rate_id: hourlyRateId?.toString() || "1",
-          with_tax: localWithTax ? 1 : 0,
-          paint_type_id: paintTypeId?.toString() || "1",
-          workforces: [
-            {
-              workforce_type_id: getWorkforceTypeId(workforce).toString(),
-              nb_hours: Number(workforce.nb_hours),
-              discount: Number(workforce.discount),
-              all_paint: workforce.all_paint || false
-            }
-          ]
+      // Nouvelle ligne, appeler onAdd (API POST)
+      if (onAdd) {
+        try {
+          setCreatingId(workforce.uid || '')
+          
+          const workforceData = {
+            workforce_type_id: getWorkforceTypeId(workforce),
+            nb_hours: Number(workforce.nb_hours),
+            discount: Number(workforce.discount),
+            with_tax: localWithTax,
+            // hourly_rate_id: workforce.hourly_rate_id,
+            hourly_rate_id: hourlyRateId?.toString(),
+            // paint_type_id: workforce.paint_type_id,
+            paint_type_id: paintTypeId?.toString()
+          }
+          
+          await onAdd(workforceData)
+          
+          setNewRows(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(index)
+            return newSet
+          })
+          
+          setModifiedRows(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(index)
+            return newSet
+          })
+          
+          toast.success('Main d\'œuvre créée avec succès')
+        } catch (_error) {
+          toast.error('Erreur lors de la création de la main d\'œuvre')
+        } finally {
+          setCreatingId(null)
         }
-        
-        // Appel API direct
-        await axiosInstance.post(`${API_CONFIG.ENDPOINTS.WORKFORCES}`, payload)
-        
-        setNewRows(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(index)
-          return newSet
-        })
-        
-        setModifiedRows(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(index)
-          return newSet
-        })
-        
-        toast.success('Main d\'œuvre créée avec succès')
-        
-        // Rafraîchir les données du dossier
-        if (onAssignmentRefresh) {
-          onAssignmentRefresh()
-        }
-      } catch (error: any) {
-        void error // Ignore l'erreur pour le linting
-        toast.error('Erreur lors de la création de la main d\'œuvre')
-      } finally {
-        setUpdatingId(null)
       }
     } else {
       // Ligne existante, utiliser la logique existante
@@ -1125,7 +1115,7 @@ export function ShockWorkforceTableV2({
                   newRows={newRows}
                   updateLocalWorkforce={updateLocalWorkforce}
                   handleCreateWorkforceType={handleCreateWorkforceType}
-                  handleValidateRow={handleValidateRow}
+                  saveWorkforce={saveWorkforce}
                   handleRemoveRow={handleRemoveRow}
                   cancelChanges={cancelChanges}
                   hasChanges={hasChanges}

@@ -43,7 +43,7 @@ export const API_CONFIG = {
     ASCERTAINMENTS: "/ascertainments",
     // Endpoints pour la réorganisation
     SHOCKS: "/shocks",
-    ADD_SHOCK_IN_MODIF: "/store/point",
+    ADD_SHOCK_IN_MODIF: "/shocks/store/point",
     ORDER_SHOCK_WORKS: "/shocks",
     ORDER_WORKFORCES: "/shocks",
   },
