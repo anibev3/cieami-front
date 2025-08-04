@@ -30,6 +30,8 @@ import {
   FileText, 
   Car, 
   User, 
+  Users,
+  Package,
   Building2, 
   Calculator,
   Receipt,
@@ -50,6 +52,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Star
 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
@@ -602,6 +606,9 @@ export default function EditReportPage() {
   const [showShockModal, setShowShockModal] = useState(false)
   const [selectedShockPointId, setSelectedShockPointId] = useState(0)
   const [showCreateShockPointModal, setShowCreateShockPointModal] = useState(false)
+  
+  // État pour gérer les chocs collapsés (par défaut tous ouverts)
+  const [collapsedShocks, setCollapsedShocks] = useState<Set<number>>(new Set())
 
 
   // Charger les données du dossier
@@ -832,6 +839,19 @@ export default function EditReportPage() {
     await refreshAssignment()
     setShowCreateShockPointModal(false)
     toast.success('Point de choc créé avec succès')
+  }
+
+  // Fonction pour toggle le collapse d'un choc
+  const toggleShockCollapse = (shockId: number) => {
+    setCollapsedShocks(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(shockId)) {
+        newSet.delete(shockId)
+      } else {
+        newSet.add(shockId)
+      }
+      return newSet
+    })
   }
 
   // Fonction de formatage des montants
@@ -1770,23 +1790,79 @@ export default function EditReportPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-bold text-gray-900">Points de choc</h2>
-                      <Button 
-                        onClick={() => setShowShockModal(true)}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Ajouter un point de choc
-                      </Button>
+                      <div className="flex items-center gap-3">
+                        {assignment.shocks && assignment.shocks.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const allShockIds = assignment.shocks.map(s => s.id)
+                                const allCollapsed = allShockIds.every(id => collapsedShocks.has(id))
+                                if (allCollapsed) {
+                                  // Expand all
+                                  setCollapsedShocks(new Set())
+                                } else {
+                                  // Collapse all
+                                  setCollapsedShocks(new Set(allShockIds))
+                                }
+                              }}
+                              className="text-xs"
+                            >
+                              {assignment.shocks.every(s => collapsedShocks.has(s.id)) ? (
+                                <>
+                                  <ChevronDown className="mr-1 h-3 w-3" />
+                                  Tout développer
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronUp className="mr-1 h-3 w-3" />
+                                  Tout réduire
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                        <Button 
+                          onClick={() => setShowShockModal(true)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Ajouter un point de choc
+                        </Button>
+                      </div>
                     </div>
 
                     {assignment.shocks && assignment.shocks.length > 0 ? (
                       assignment.shocks.map((shock) => (
-                        <div key={shock.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div key={shock.id} className={`border rounded-lg overflow-hidden transition-all duration-200 ${
+                          collapsedShocks.has(shock.id) 
+                            ? 'border-gray-200 shadow-sm' 
+                            : 'border-blue-200 shadow-md bg-gradient-to-r from-blue-50/30 to-transparent'
+                        }`}>
                           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 justify-between w-full">
-                                <div className="flex items-center gap-2">
-                                  {/* Sélecteur de point de choc modifiable */}
+                              <div className="flex items-center gap-3 flex-1">
+                                {/* Bouton de collapse */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleShockCollapse(shock.id)}
+                                  className="p-1 h-8 w-8 hover:bg-gray-200/80 hover:shadow-sm transition-all duration-200 rounded-md"
+                                >
+                                  <div className={`transform transition-transform duration-200 ${
+                                    collapsedShocks.has(shock.id) ? 'rotate-0' : 'rotate-0'
+                                  }`}>
+                                    {collapsedShocks.has(shock.id) ? (
+                                      <ChevronRight className="h-4 w-4 text-gray-600" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4 text-gray-600" />
+                                    )}
+                                  </div>
+                                </Button>
+                                
+                                {/* Sélecteur de point de choc modifiable */}
+                                <div className="flex-1">
                                   <ShockPointSelect
                                     value={shock.shock_point.id}
                                     onValueChange={async (newShockPointId) => {
@@ -1804,14 +1880,38 @@ export default function EditReportPage() {
                                     showSelectedInfo={true}
                                   />
                                 </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  {shock.shock_works?.length || 0} fourniture(s) • {shock.workforces?.length || 0} main d'œuvre • Total: {formatCurrency(shock.amount)}
+                              </div>
+                              
+                              {/* Résumé à droite */}
+                              <div className="text-sm text-gray-600 ml-4 whitespace-nowrap">
+                                <div className="flex items-center gap-4">
+                                  <span className="inline-flex items-center gap-1">
+                                    <Package className="h-3 w-3" />
+                                    {shock.shock_works?.length || 0}
+                                  </span>
+                                  <span className="inline-flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    {shock.workforces?.length || 0}
+                                  </span>
+                                  <span className="font-medium text-gray-900">
+                                    {formatCurrency(shock.amount)}
+                                  </span>
                                 </div>
                               </div>
                             </div>
                           </div>
                           
-                          <div className="p-4 space-y-4">
+                          {/* Body collapsible avec animation */}
+                          <div 
+                            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                              collapsedShocks.has(shock.id) 
+                                ? 'max-h-0 opacity-0 border-t-0' 
+                                : 'max-h-[5000px] opacity-100 border-t border-gray-100'
+                            }`}
+                          >
+                            <div className={`space-y-4 ${
+                              collapsedShocks.has(shock.id) ? 'p-0' : 'p-4'
+                            } transition-all duration-300`}>
                             {/* Tableau des fournitures */}
                             <div>
                               <ShockSuppliesEditTable
@@ -2011,6 +2111,7 @@ export default function EditReportPage() {
                                 onReorderSave={(workforceIds) => handleReorderWorkforces(shock.id, workforceIds)}
                               />
                             </div>
+                          </div>
                           </div>
                         </div>
                       ))
@@ -2409,7 +2510,7 @@ export default function EditReportPage() {
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <Label htmlFor="vehicle-new-market-value-option">
-                                Option de la valeur neuve du véhicule<span className="text-red-500">*</span>
+                                Option de la valeur neuve du véhicule
                               </Label>
                               <Select 
                                 value={vehicleNewMarketValueOption || ''} 
@@ -2430,10 +2531,10 @@ export default function EditReportPage() {
                               </Select>
                             </div>
 
-                            {vehicleNewMarketValueOption === 'value' && (
+                            {/* {vehicleNewMarketValueOption === 'value' && ( */}
                               <div className="space-y-2">
                                 <Label htmlFor="new-market-value">
-                                  Valeur neuve du véhicule (FCFA)<span className="text-red-500">*</span>
+                                  Valeur neuve du véhicule (FCFA)
                                 </Label>
                                 <Input
                                   id="new-market-value"
@@ -2445,7 +2546,7 @@ export default function EditReportPage() {
                                   placeholder="Saisir la nouvelle valeur de marché"
                                 />
                               </div>
-                            )}
+                            {/* // )} */}
 
                             {/* Champs supplémentaires de valeur de marché */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

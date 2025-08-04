@@ -2,8 +2,8 @@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+// import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
@@ -279,12 +279,12 @@ export function ShockSuppliesEditTable({
   onSupplyCreated,
   isEvaluation = false,
   // Nouvelles props pour type de peinture et taux horaire
-  paintTypes = [],
-  hourlyRates = [],
+  // paintTypes = [],
+  // hourlyRates = [],
   paintTypeId,
-  hourlyRateId,
-  onPaintTypeChange,
-  onHourlyRateChange,
+  // hourlyRateId,
+  // onPaintTypeChange,
+  // onHourlyRateChange,
   // Props pour la réorganisation
   shockId,
   onReorderSave,
@@ -606,7 +606,7 @@ export function ShockSuppliesEditTable({
       </div>
 
       {/* Autres informations - seulement si les props sont fournies */}
-      {(paintTypeId !== undefined || hourlyRateId !== undefined) && (
+      {/* {(paintTypeId !== undefined || hourlyRateId !== undefined) && (
         <div className="border rounded bg-gray-50 p-4 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {paintTypeId !== undefined && (
@@ -651,7 +651,7 @@ export function ShockSuppliesEditTable({
             )}
           </div>
         </div>
-      )}
+      )} */}
 
       <DndContext
         sensors={sensors}
