@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Trash2, Plus, Calculator, Loader2, Check, X } from 'lucide-react'
+import { Trash2, Plus, Calculator, Loader2, Check, X, GripVertical, ArrowUpDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { workforceService } from '@/services/workforce-service'
 import { useWorkforceTypesStore } from '@/stores/workforce-types'
@@ -15,6 +15,25 @@ import { usePaintTypesStore } from '@/stores/paint-types'
 import { WorkforceTypeSelect } from '@/features/widgets/workforce-type-select'
 import { WorkforceTypeMutateDialog } from '@/features/expertise/type-main-oeuvre/components/workforce-type-mutate-dialog'
 import { WorkforceType } from '@/types/workforce-types'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import {
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface PaintType {
   id: number
@@ -45,6 +64,8 @@ interface Workforce {
   amount_ttc?: number | string
   hourly_rate_id?: string | number
   paint_type_id?: string | number
+  // Champ pour la peinture partielle/totale (workforce_type_id = 1)
+  is_total_paint?: boolean
   // Additional fields for display
   workforce_type?: {
     id: number
@@ -90,6 +111,187 @@ interface ShockWorkforceTableV2Props {
   onHourlyRateChange?: (value: number) => void
   onWithTaxChange?: (value: boolean) => void
   onWorkforceTypeCreated?: (newWorkforceType: any) => void
+  // Props pour la réorganisation
+  onReorderSave?: (workforceIds: number[]) => Promise<void>
+  hasReorderChanges?: boolean
+}
+
+// Composant pour une ligne triable
+interface SortableWorkforceRowProps {
+  row: Workforce
+  index: number
+  workforceTypes: WorkforceType[]
+  modifiedRows: Set<number>
+  newRows: Set<number>
+  updateLocalWorkforce: (index: number, field: keyof Workforce, value: any) => void
+  handleCreateWorkforceType: (index: number) => void
+  saveWorkforce: (index: number) => Promise<void>
+  handleRemoveRow: (index: number) => Promise<void>
+  cancelChanges: (index: number) => void
+  hasChanges: (index: number) => boolean
+  formatCurrency: (amount: number | string) => string
+  getWorkforceTypeId: (workforce: Workforce) => number
+  updatingId: number | null
+}
+
+function SortableWorkforceRow({
+  row,
+  index,
+  workforceTypes,
+  modifiedRows,
+  newRows,
+  updateLocalWorkforce,
+  handleCreateWorkforceType,
+  saveWorkforce,
+  handleRemoveRow,
+  cancelChanges,
+  hasChanges,
+  formatCurrency,
+  getWorkforceTypeId,
+  updatingId
+}: SortableWorkforceRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: row.uid || row.id || index })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(index) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''} ${newRows.has(index) ? 'bg-green-50 border-l-4 border-l-green-400' : ''} ${isDragging ? 'z-10 bg-white shadow-lg' : ''}`}
+    >
+      {/* Drag Handle */}
+      <td className="border px-2 py-2 text-center text-[10px] w-8">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab hover:cursor-grabbing text-gray-400 hover:text-gray-600 flex justify-center"
+        >
+          <GripVertical className="h-3 w-3" />
+        </div>
+      </td>
+      {/* Désignation */}
+      <td className="border px-3 py-2 text-[10px]">
+        <WorkforceTypeSelect
+          value={getWorkforceTypeId(row)}
+          onValueChange={(value) => updateLocalWorkforce(index, 'workforce_type_id', value)}
+          workforceTypes={workforceTypes as any}
+          placeholder={!getWorkforceTypeId(row) ? "⚠️ Sélectionner un type" : "Sélectionner..."}
+          onCreateNew={() => handleCreateWorkforceType(index)}
+        />
+      </td>
+            {/* Colonne peinture partielle/totale si workforce_type_id = 1 */}
+      {row.workforce_type_id === 1 && (
+        <td className="border px-2 py-2 text-center text-[10px]">
+          <div className="flex items-center justify-center gap-2">
+            <Checkbox
+              checked={row.is_total_paint || false}
+              onCheckedChange={(checked) => updateLocalWorkforce(index, 'is_total_paint', checked)}
+              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <span className="text-xs text-gray-600">
+              {row.is_total_paint ? 'Totale' : 'Partielle'}
+            </span>
+          </div>
+        </td>
+      )}
+      {/* Tps(H) */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <Input
+          type="number"
+          className="w-full border rounded p-1 text-center text-[10px]"
+          value={row.nb_hours}
+          onChange={e => updateLocalWorkforce(index, 'nb_hours', Number(e.target.value))}
+        />
+      </td>
+      {/* Remise (%) */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <Input
+          type="number"
+          className="w-full border rounded p-1 text-center text-[10px]"
+          value={row.discount}
+          onChange={e => updateLocalWorkforce(index, 'discount', Number(e.target.value))}
+        />
+      </td>
+      {/* Tx horr (FCFA) */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <div className="text-gray-600 font-medium">
+          {formatCurrency(row.work_fee || 0)}
+        </div>
+      </td>
+      {/* Montant HT */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <div className="text-green-600 font-medium">
+          {formatCurrency(row.amount_excluding_tax || 0)}
+        </div>
+      </td>
+      {/* Montant TVA */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <div className="text-blue-600 font-medium">
+          {formatCurrency(row.amount_tax || 0)}
+        </div>
+      </td>
+      {/* Montant TTC */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <div className="text-purple-600 font-bold">
+          {formatCurrency(row.amount || 0)}
+        </div>
+      </td>
+
+      {/* Actions */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <div className="flex items-center justify-center gap-1">
+          {hasChanges(index) && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => saveWorkforce(index)}
+              disabled={updatingId === (row.id || index)}
+              className="h-5 w-5 hover:bg-green-50 hover:text-green-600"
+              title="Sauvegarder"
+            >
+              {updatingId === (row.id || index) ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Check className="h-3 w-3" />
+              )}
+            </Button>
+          )}
+          {hasChanges(index) && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => cancelChanges(index)}
+              className="h-5 w-5 hover:bg-yellow-50 hover:text-yellow-600"
+              title="Annuler"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => handleRemoveRow(index)}
+            className="h-5 w-5 hover:bg-red-50 hover:text-red-600"
+            title="Supprimer"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  )
 }
 
 export function ShockWorkforceTableV2({
@@ -107,7 +309,9 @@ export function ShockWorkforceTableV2({
   onPaintTypeChange,
   onHourlyRateChange,
   onWithTaxChange,
-  onWorkforceTypeCreated
+  onWorkforceTypeCreated,
+  onReorderSave,
+  hasReorderChanges = false
 }: ShockWorkforceTableV2Props) {
   const [localWorkforces, setLocalWorkforces] = useState<Workforce[]>(workforces)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
@@ -121,6 +325,15 @@ export function ShockWorkforceTableV2({
   const [updatingWithTax, setUpdatingWithTax] = useState<boolean>(false)
   const [updatingPaintType, setUpdatingPaintType] = useState<boolean>(false)
   const [updatingHourlyRate, setUpdatingHourlyRate] = useState<boolean>(false)
+  const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
+
+  // Senseurs pour le drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   // Utiliser les stores ou les props externes
   const { workforceTypes: storeWorkforceTypes, loading: workforceTypesLoading, fetchWorkforceTypes } = useWorkforceTypesStore()
@@ -197,6 +410,64 @@ export function ShockWorkforceTableV2({
     updated[index] = { ...updated[index], [field]: value }
     setLocalWorkforces(updated)
     setModifiedRows(prev => new Set([...prev, index]))
+  }
+
+  // Fonction pour gérer le drag and drop
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = localWorkforces.findIndex(item => item.uid === active.id)
+      const newIndex = localWorkforces.findIndex(item => item.uid === over.id)
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(localWorkforces, oldIndex, newIndex)
+        setLocalWorkforces(newOrder)
+        setHasLocalReorderChanges(true)
+        
+        // Mettre à jour les indices modifiés
+        const newModifiedRows = new Set<number>()
+        modifiedRows.forEach(oldIdx => {
+          let newIdx = oldIdx
+          if (oldIdx === oldIndex) {
+            newIdx = newIndex
+          } else if (oldIndex < newIndex && oldIdx > oldIndex && oldIdx <= newIndex) {
+            newIdx = oldIdx - 1
+          } else if (oldIndex > newIndex && oldIdx >= newIndex && oldIdx < oldIndex) {
+            newIdx = oldIdx + 1
+          }
+          newModifiedRows.add(newIdx)
+        })
+        setModifiedRows(newModifiedRows)
+
+        // Mettre à jour les indices des nouvelles lignes
+        const newNewRows = new Set<number>()
+        newRows.forEach(oldIdx => {
+          let newIdx = oldIdx
+          if (oldIdx === oldIndex) {
+            newIdx = newIndex
+          } else if (oldIndex < newIndex && oldIdx > oldIndex && oldIdx <= newIndex) {
+            newIdx = oldIdx - 1
+          } else if (oldIndex > newIndex && oldIdx >= newIndex && oldIdx < oldIndex) {
+            newIdx = oldIdx + 1
+          }
+          newNewRows.add(newIdx)
+        })
+        setNewRows(newNewRows)
+      }
+    }
+  }
+
+  // Fonction pour sauvegarder la réorganisation
+  const handleReorderSave = async () => {
+    if (!onReorderSave) return
+    
+    const workforceIds = localWorkforces
+      .filter(workforce => workforce.id) // Seulement les éléments avec un ID (pas les nouveaux)
+      .map(workforce => workforce.id!)
+    
+    await onReorderSave(workforceIds)
+    setHasLocalReorderChanges(false)
   }
 
   // Fonction pour ouvrir le modal de création de type de main d'œuvre
@@ -610,6 +881,9 @@ export function ShockWorkforceTableV2({
   const totals = calculateTotals(localWorkforces)
   const isLoading = workforceTypesLoading || hourlyRatesLoading || paintTypesLoading
 
+  // Vérifier si on a des lignes avec workforce_type_id = 1 pour afficher la colonne peinture
+  const hasPaintWorkforce = localWorkforces.some(workforce => workforce.workforce_type_id === 1)
+
   return (
     <div className="space-y-4">
       {/* Header with actions */}
@@ -618,7 +892,19 @@ export function ShockWorkforceTableV2({
           <Calculator className="h-5 w-5 text-green-600" />
           Main d'œuvre(s)
         </h4>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {/* Bouton de réorganisation */}
+          {(hasLocalReorderChanges || hasReorderChanges) && (
+            <Button 
+              variant="outline" 
+              size="xs"
+              onClick={handleReorderSave}
+              className="text-purple-600 text-xs border-purple-200 hover:bg-purple-50"
+            >
+              <ArrowUpDown className="mr-2 h-4 w-4" />
+              Réorganiser
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="xs"
@@ -740,13 +1026,27 @@ export function ShockWorkforceTableV2({
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border text-[10px]">
-          <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="border px-3 py-2 text-left font-medium">
-                Désignation
-              </th>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-[10px]">
+            <thead>
+              <tr className="bg-gray-50 border-b">
+                <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
+                  <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
+                </th>
+                <th className="border px-3 py-2 text-left font-medium">
+                  Désignation
+                </th>
+              {/* Colonne peinture conditionnelle */}
+              {hasPaintWorkforce && (
+                <th className="border px-2 py-2 text-center font-medium text-blue-600">
+                  Type Peinture
+                </th>
+              )}
               <th className="border px-2 py-2 text-center font-medium">
                 Tps(H)
               </th>
@@ -765,118 +1065,55 @@ export function ShockWorkforceTableV2({
               <th className="border px-2 py-2 text-center font-medium text-purple-600">
                 Montant TTC
               </th>
+
               <th className="border px-2 py-2 text-center font-medium">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody>
-            {localWorkforces.length === 0 && (
-              <tr>
-                <td colSpan={8} className="text-center text-muted-foreground py-8">
-                  {isLoading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Chargement...</span>
-                    </div>
-                  ) : (
-                    'Aucune ligne de main d\'œuvre'
-                  )}
-                </td>
-              </tr>
-            )}
-            {localWorkforces.map((row, i) => (
-              <tr key={row.uid || row.id || i} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
-                <td className="border px-3 py-2">
-                  
-                  <WorkforceTypeSelect
-                    value={row.workforce_type_id}
-                    onValueChange={(value) => updateLocalWorkforce(i, 'workforce_type_id', value)}
-                    workforceTypes={workforceTypes}
-                    placeholder={!row.workforce_type_id ? "⚠️ Sélectionner un type" : "Sélectionner..."}
-                    onCreateNew={() => handleCreateWorkforceType(i)}
-                  />
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <Input
-                    type="number"
-                    className="rounded border-none text-center text-xs"
-                    value={Number(row.nb_hours) || 0}
-                    onChange={e => updateLocalWorkforce(i, 'nb_hours', Number(e.target.value))}
-                  />
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <Input
-                    type="number"
-                    className="rounded border-none text-center text-xs"
-                    value={Number(row.discount) || 0}
-                    onChange={e => updateLocalWorkforce(i, 'discount', Number(e.target.value))}
-                  />
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="text-gray-600 text-xs font-medium">
-                    {formatCurrency(Number(row.work_fee || 0))}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="text-green-600 text-xs font-medium">
-                    {formatCurrency(row.amount_excluding_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="text-blue-600 text-xs font-medium">
-                    {formatCurrency(row.amount_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="text-purple-600 text-xs font-bold">
-                    {formatCurrency(row.amount || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    {hasChanges(i) && (
-                      <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleValidateRow(i)}
-                          disabled={updatingId === row.id || creatingId === row.uid}
-                          className="h-6 w-6 hover:bg-green-50 hover:text-green-600"
-                        >
-                          {updatingId === row.id || creatingId === row.uid ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Check className="h-3 w-3" />
-                          )}
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => cancelChanges(i)}
-                          disabled={updatingId === row.id || creatingId === row.uid}
-                          className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </>
+          <SortableContext
+            items={localWorkforces.map((workforce, index) => workforce.uid || workforce.id || index)}
+            strategy={verticalListSortingStrategy}
+          >
+            <tbody>
+              {localWorkforces.length === 0 && (
+                <tr>
+                  <td colSpan={hasPaintWorkforce ? 10 : 9} className="text-center text-muted-foreground py-8">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Chargement...</span>
+                      </div>
+                    ) : (
+                      'Aucune ligne de main d\'œuvre'
                     )}
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleRemoveRow(i)}
-                      disabled={updatingId === row.id || creatingId === row.uid}
-                      className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+                  </td>
+                </tr>
+              )}
+              {localWorkforces.map((row, i) => (
+                <SortableWorkforceRow
+                  key={row.uid || row.id || i}
+                  row={row}
+                  index={i}
+                  workforceTypes={workforceTypes}
+                  modifiedRows={modifiedRows}
+                  newRows={newRows}
+                  updateLocalWorkforce={updateLocalWorkforce}
+                  handleCreateWorkforceType={handleCreateWorkforceType}
+                  saveWorkforce={saveWorkforce}
+                  handleRemoveRow={handleRemoveRow}
+                  cancelChanges={cancelChanges}
+                  hasChanges={hasChanges}
+                  formatCurrency={formatCurrency}
+                  getWorkforceTypeId={getWorkforceTypeId}
+                  updatingId={updatingId}
+                />
+              ))}
+            </tbody>
+          </SortableContext>
         </table>
       </div>
+    </DndContext>
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">

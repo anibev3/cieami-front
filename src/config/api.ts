@@ -1,7 +1,7 @@
 // Configuration de l'API
 export const API_CONFIG = {
   // BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://back.roomcodetraining.com/api/v1',
-  BASE_URL: import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_SUFIX || 'https://back.roomcodetraining.com/',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_SUFIX,
   TIMEOUT: 10000,
   ENDPOINTS: {
     AUTH: {
@@ -41,6 +41,8 @@ export const API_CONFIG = {
     WORKFORCES: "/workforces",
     OTHER_COSTS: "/other-costs",
     ASCERTAINMENTS: "/ascertainments",
+    // Endpoints pour la réorganisation
+    SHOCKS: "/shocks",
   },
 } as const
 

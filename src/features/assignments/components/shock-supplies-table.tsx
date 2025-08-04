@@ -2,12 +2,30 @@
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Trash2, Plus, Calculator, Check, Loader2 } from 'lucide-react'
+import { Trash2, Plus, Calculator, Check, Loader2, GripVertical } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import React from 'react'
 // import { Separator } from '@/components/ui/separator'
 import { SupplySelect } from '@/features/widgets/supply-select'
 import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import {
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface Supply {
   id: number
@@ -44,6 +62,194 @@ interface ShockWork {
   discount_amount?: number
 }
 
+// Composant pour une ligne triable
+interface SortableRowProps {
+  row: ShockWork
+  index: number
+  supplies: Supply[]
+  modifiedRows: Set<number>
+  validatingRows: Set<number>
+  isEvaluation: boolean
+  updateLocalShockWork: (index: number, field: keyof ShockWork, value: any) => void
+  handleCreateSupply: (index: number) => void
+  handleValidateRow: (index: number) => Promise<void>
+  onRemove: (index: number) => void
+  formatCurrency: (amount: number | undefined) => string
+}
+
+function SortableRow({
+  row,
+  index,
+  supplies,
+  modifiedRows,
+  validatingRows,
+  isEvaluation,
+  updateLocalShockWork,
+  handleCreateSupply,
+  handleValidateRow,
+  onRemove,
+  formatCurrency
+}: SortableRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: row.uid })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(index) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''} ${isDragging ? 'z-10 bg-white shadow-lg' : ''}`}
+    >
+      {/* Drag Handle */}
+      <td className="border px-2 py-2 text-center text-xs w-8">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab hover:cursor-grabbing text-gray-400 hover:text-gray-600 flex justify-center"
+        >
+          <GripVertical className="h-4 w-4" />
+        </div>
+      </td>
+      {/* Fournitures */}
+      <td className="border px-3 py-2 text-xs">
+        <SupplySelect
+          value={row.supply_id}
+          onValueChange={(value) => updateLocalShockWork(index, 'supply_id', value)}
+          supplies={supplies}
+          placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
+          onCreateNew={() => handleCreateSupply(index)}
+        />
+      </td>
+      {/* 'Ctrl' : 'D/p' */}
+      <td className="border px-2 py-2 text-center text-xs">
+        <Checkbox 
+          checked={isEvaluation ? row.control : row.disassembly} 
+          onCheckedChange={v => updateLocalShockWork(index, isEvaluation ? 'control' : 'disassembly', v)} 
+        />
+      </td>
+      {/* Remp */}
+      <td className="border px-2 py-2 text-center text-xs">
+        <Checkbox 
+          checked={row.replacement} 
+          onCheckedChange={v => updateLocalShockWork(index, 'replacement', v)} 
+        />
+      </td>
+      {/* Rep */}
+      <td className="border px-2 py-2 text-center text-xs">
+        <Checkbox 
+          checked={row.repair} 
+          onCheckedChange={v => updateLocalShockWork(index, 'repair', v)} 
+        />
+      </td>
+      {/* Peint */}
+      <td className="border px-2 py-2 text-center text-xs">
+        <Checkbox 
+          checked={row.paint} 
+          onCheckedChange={v => updateLocalShockWork(index, 'paint', v)} 
+        />
+      </td>
+      {/* Vétusté */}
+      {!isEvaluation && (
+        <td className="border px-2 py-2 text-center text-xs">
+          <Checkbox 
+            checked={row.obsolescence}
+            onCheckedChange={v => updateLocalShockWork(index, 'obsolescence', v)} 
+          />
+        </td>
+      )}
+      {/* Montant HT */}
+      <td className="border px-2 text-center text-xs w-40">
+        <Input
+          type="number"
+          className="w-full rounded p-1 text-center border-none focus:border-none focus:ring-0"
+          value={row.amount}
+          onChange={e => updateLocalShockWork(index, 'amount', Number(e.target.value))}
+        />
+      </td>
+      {/* Remise */}
+      <td className="border px-2 py-2 text-center text-xs">
+        <Input
+          type="number"
+          className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+          value={row.discount}
+          onChange={e => updateLocalShockWork(index, 'discount', Number(e.target.value))}
+        />
+      </td>
+      {/* Remise Calculé */}
+      <td className="border px-2 py-2 text-center text-xs w-40">
+        <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+          {formatCurrency(row.amount - (row.discount_amount || 0))}
+        </div>
+      </td>
+      {/* Vétuste (%) */}
+      <td className="border px-2 text-center text-xs">
+        <Input
+          type="number"
+          className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+          value={row.obsolescence_rate}
+          onChange={e => updateLocalShockWork(index, 'obsolescence_rate', Number(e.target.value))}
+        />
+      </td>
+      {/* Vétuste calculée */}
+      <td className="border px-2 text-center text-xs w-40">
+        {formatCurrency(row.new_amount_excluding_tax)}
+      </td>
+      {/* Montant TTC */}
+      <td className="border px-2 py-2 text-center text-xs w-35">
+        <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+          <Input
+            type="number"
+            className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
+            value={row.recovery_amount || 0}
+            onChange={e => updateLocalShockWork(index, 'recovery_amount', Number(e.target.value))}
+          />
+        </div>
+      </td>
+      {/* Actions */}
+      <td className="border px-2 py-2 text-center text-xs">
+        <div className="flex items-center justify-center gap-1">
+          {modifiedRows.has(index) && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => handleValidateRow(index)}
+              disabled={validatingRows.has(index)}
+              className="h-6 w-6 hover:bg-green-50 hover:text-green-600"
+              title="Valider les modifications"
+            >
+              {validatingRows.has(index) ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => onRemove(index)}
+            className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
+            title="Supprimer la ligne"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
 export function ShockSuppliesTable({
   supplies,
   shockWorks,
@@ -52,6 +258,7 @@ export function ShockSuppliesTable({
   onRemove,
   onValidateRow,
   onSupplyCreated,
+  onReorder,
   isEvaluation = false
 }: {
   supplies: Supply[]
@@ -61,6 +268,7 @@ export function ShockSuppliesTable({
   onRemove: (index: number) => void
   onValidateRow: (index: number) => Promise<void>
   onSupplyCreated?: (newSupply: any) => void
+  onReorder?: (reorderedWorks: ShockWork[]) => void
   isEvaluation?: boolean
 }) {
   // État local pour gérer les modifications et la validation
@@ -69,6 +277,14 @@ export function ShockSuppliesTable({
   const [validatingRows, setValidatingRows] = useState<Set<number>>(new Set())
   const [showCreateSupplyModal, setShowCreateSupplyModal] = useState(false)
   const [currentSupplyIndex, setCurrentSupplyIndex] = useState<number | null>(null)
+
+  // Senseurs pour le drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   // Mettre à jour les données locales quand les props changent
   useEffect(() => {
@@ -81,6 +297,54 @@ export function ShockSuppliesTable({
     updated[index] = { ...updated[index], [field]: value }
     setLocalShockWorks(updated)
     setModifiedRows(prev => new Set([...prev, index]))
+  }
+
+  // Fonction pour gérer le drag and drop
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = localShockWorks.findIndex(item => item.uid === active.id)
+      const newIndex = localShockWorks.findIndex(item => item.uid === over.id)
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(localShockWorks, oldIndex, newIndex)
+        setLocalShockWorks(newOrder)
+        
+        // Communiquer le changement d'ordre au composant parent
+        onReorder?.(newOrder)
+        
+        // Mettre à jour les indices modifiés
+        const newModifiedRows = new Set<number>()
+        modifiedRows.forEach(oldIdx => {
+          let newIdx = oldIdx
+          if (oldIdx === oldIndex) {
+            newIdx = newIndex
+          } else if (oldIndex < newIndex && oldIdx > oldIndex && oldIdx <= newIndex) {
+            newIdx = oldIdx - 1
+          } else if (oldIndex > newIndex && oldIdx >= newIndex && oldIdx < oldIndex) {
+            newIdx = oldIdx + 1
+          }
+          newModifiedRows.add(newIdx)
+        })
+        setModifiedRows(newModifiedRows)
+
+        // Mettre à jour les indices en cours de validation
+        const newValidatingRows = new Set<number>()
+        validatingRows.forEach(oldIdx => {
+          let newIdx = oldIdx
+          if (oldIdx === oldIndex) {
+            newIdx = newIndex
+          } else if (oldIndex < newIndex && oldIdx > oldIndex && oldIdx <= newIndex) {
+            newIdx = oldIdx - 1
+          } else if (oldIndex > newIndex && oldIdx >= newIndex && oldIdx < oldIndex) {
+            newIdx = oldIdx + 1
+          }
+          newValidatingRows.add(newIdx)
+        })
+        setValidatingRows(newValidatingRows)
+      }
+    }
   }
 
   // Fonction de validation d'une ligne
@@ -141,7 +405,7 @@ export function ShockSuppliesTable({
   }
 
   // Fonction de formatage des montants
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
     // return new Intl.NumberFormat('fr-FR', {
     //   style: 'currency',
     //   currency: 'XOF',
@@ -149,7 +413,7 @@ export function ShockSuppliesTable({
     //   maximumFractionDigits: 0,
     // }).format(amount || 0)
 
-    return (amount / 1000).toFixed(3) || '0.000'
+    return ((amount || 0) / 1000).toFixed(3) || '0.000'
   }
 
   // Calculer les totaux
@@ -202,10 +466,18 @@ export function ShockSuppliesTable({
 
       </div>
 
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
       <div className="overflow-x-auto">
         <table className="min-w-full border text-xs">
           <thead>
             <tr className="bg-gray-50 border-b">
+                <th className="border px-2 py-2 text-center font-medium text-xs w-8">
+                  <GripVertical className="h-4 w-4 mx-auto text-gray-400" />
+                </th>
               <th className="border px-3 py-2 text-left font-medium text-xs">
                 Fournitures
               </th>
@@ -229,7 +501,6 @@ export function ShockSuppliesTable({
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Montant HT
               </th>
-
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Remise
               </th>
@@ -242,227 +513,47 @@ export function ShockSuppliesTable({
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Vétuste calculée
               </th>
-              {/* <th className="border px-2 py-2 text-center font-medium text-blue-600 text-xs">
-                Vetusté
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-green-600 text-xs">
-                Récupération
-              </th> */}
               <th className="border px-2 py-2 text-center font-medium text-purple-600 text-xs">
                 Montant TTC
               </th>
-              {/* <th className="border px-2 py-2 text-left font-medium text-xs">
-                Commentaire
-              </th> */}
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Actions
               </th>
             </tr>
           </thead>
+            <SortableContext
+              items={localShockWorks.map(work => work.uid)}
+              strategy={verticalListSortingStrategy}
+            >
           <tbody>
             {localShockWorks.length === 0 && (
               <tr>
-                <td colSpan={16} className="text-center text-muted-foreground py-8 text-xs">
+                    <td colSpan={15} className="text-center text-muted-foreground py-8 text-xs">
                   Aucune fourniture ajoutée
                 </td>
               </tr>
             )}
             {localShockWorks.map((row, i) => (
-              <tr key={row.uid} className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(i) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''}`}>
-                {/* Fournitures */}
-                <td className="border px-3 py-2 text-xs">
-                  <SupplySelect
-                    value={row.supply_id}
-                    onValueChange={(value) => updateLocalShockWork(i, 'supply_id', value)}
+                  <SortableRow
+                    key={row.uid}
+                    row={row}
+                    index={i}
                     supplies={supplies}
-                    placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
-                    onCreateNew={() => handleCreateSupply(i)}
+                    modifiedRows={modifiedRows}
+                    validatingRows={validatingRows}
+                    isEvaluation={isEvaluation}
+                    updateLocalShockWork={updateLocalShockWork}
+                    handleCreateSupply={handleCreateSupply}
+                    handleValidateRow={handleValidateRow}
+                    onRemove={onRemove}
+                    formatCurrency={formatCurrency}
                   />
-                </td>
-                {/* 'Ctrl' : 'D/p' */}
-                <td className="border px-2 py-2 text-center text-xs">
-                  <Checkbox 
-                    checked={isEvaluation ? row.control : row.disassembly} 
-                    onCheckedChange={v => updateLocalShockWork(i, isEvaluation ? 'control' : 'disassembly', v)} 
-                  />
-                </td>
-                {/* Remp */}
-                <td className="border px-2 py-2 text-center text-xs">
-                  <Checkbox 
-                    checked={row.replacement} 
-                    onCheckedChange={v => updateLocalShockWork(i, 'replacement', v)} 
-                  />
-                </td>
-                {/* Rep */}
-                <td className="border px-2 py-2 text-center text-xs">
-                  <Checkbox 
-                    checked={row.repair} 
-                    onCheckedChange={v => updateLocalShockWork(i, 'repair', v)} 
-                  />
-                </td>
-                {/* Peint */}
-                <td className="border px-2 py-2 text-center text-xs">
-                  <Checkbox 
-                    checked={row.paint} 
-                    onCheckedChange={v => updateLocalShockWork(i, 'paint', v)} 
-                  />
-                </td>
-                {/* Vétusté */}
-                {!isEvaluation && (
-                  <td className="border px-2 py-2 text-center text-xs">
-                    <Checkbox 
-                      checked={row.obsolescence}
-                      onCheckedChange={v => updateLocalShockWork(i, 'obsolescence', v)} 
-                    />
-                  </td>
-                )}
-                {/* Montant HT */}
-                <td className="border px-2 text-center text-xs w-40">
-                  {/* <Input
-                    type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.obsolescence_rate}
-                    onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
-                  /> */}
-                  <Input
-                    type="number"
-                    className="w-full rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.amount}
-                    onChange={e => updateLocalShockWork(i, 'amount', Number(e.target.value))}
-                  />
-                  {/* {formatCurrency(row.amount || 0)} */}
-                </td>
-
-                {/* Remise */}
-                <td className="border px-2 py-2 text-center text-xs">
-                  <Input
-                    type="number"
-                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.discount}
-                    onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
-                  />
-
-                </td>
-                
-                {/* <td className="border w-35 px-2 py-2 text-center text-xs">
-                  <div className="text-blue-600 font-medium">
-                    {formatCurrency(row.obsolescence_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.obsolescence_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.obsolescence_amount_tax || 0)}
-                  </div>
-                </td>
-                <td className="border px-2 py-2 text-center text-xs w-35">
-                  <div className="text-green-600 font-medium">
-                    {formatCurrency(row.recovery_amount || 0)}
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.recovery_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.recovery_amount_tax || 0)}
-                  </div>
-                </td> */}
-                {/* Remise Calculé */}
-                <td className="border px-2 py-2 text-center text-xs w-40">
-                  <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrency(row.amount - (row.discount_amount || 0))}
-                  </div>
-                </td>
-                {/* Vétuste (%) */}
-                <td className="border px-2 text-center text-xs">
-                  {/* <Input
-                    type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.recovery_amount}
-                    onChange={e => updateLocalShockWork(i, 'recovery_amount', Number(e.target.value))}
-                  /> */}
-                  <Input
-                    type="number"
-                    className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.obsolescence_rate}
-                    onChange={e => updateLocalShockWork(i, 'obsolescence_rate', Number(e.target.value))}
-                  />
-                  {/* {formatCurrency(row.obsolescence_rate || 0)} */}
-                </td>
-                {/* Vétuste calculée */}
-                <td className="border px-2 text-center text-xs w-40">
-                  {/* <Input
-                    type="number"
-                    className="rounded w-17 p-1 text-center border-none focus:border-none focus:ring-0"
-                    value={row.discount}
-                    onChange={e => updateLocalShockWork(i, 'discount', Number(e.target.value))}
-                  /> */}
-                  {formatCurrency(row.new_amount_excluding_tax)}
-                </td>
-                {/* Montant TTC */}
-                <td className="border px-2 py-2 text-center text-xs w-35">
-                  <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    <Input
-                      type="number"
-                      className="rounded p-1 text-center border-none focus:border-none focus:ring-0"
-                      value={row.recovery_amount || 0}
-                      onChange={e => updateLocalShockWork(i, 'recovery_amount', Number(e.target.value))}
-                    />
-                  </div>
-                  {/* <Separator className="my-1" />
-                  <div className="text-[8px] text-gray-500">
-                    HT: {formatCurrency(row.new_amount_excluding_tax || 0)}
-                  </div>
-                  <div className="text-[8px] text-gray-500">
-                    TVA: {formatCurrency(row.new_amount_tax || 0)}
-                  </div> */}
-                </td>
-                {/* Commentaire */}
-                {/* <td className="border px-2 py-2 text-xs">
-                  <Input
-                    type="text"
-                    className="rounded w-20 p-1 border-none focus:border-none focus:ring-0"
-                    value={row.comment}
-                    placeholder="Commentaire..."
-                    onChange={e => updateLocalShockWork(i, 'comment', e.target.value)}
-                  />
-                </td> */}
-                {/* Actions */}
-                <td className="border px-2 py-2 text-center text-xs">
-                  <div className="flex items-center justify-center gap-1">
-                    {modifiedRows.has(i) && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleValidateRow(i)}
-                        disabled={validatingRows.has(i)}
-                        className="h-6 w-6 hover:bg-green-50 hover:text-green-600"
-                        title="Valider les modifications"
-                      >
-                        {validatingRows.has(i) ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" />
-                        )}
-                      </Button>
-                    )}
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => onRemove(i)}
-                      className="h-6 w-6 hover:bg-red-50 hover:text-red-600"
-                      title="Supprimer la ligne"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
             ))}
           </tbody>
+            </SortableContext>
         </table>
       </div>
+      </DndContext>
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">

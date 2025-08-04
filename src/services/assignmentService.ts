@@ -139,6 +139,28 @@ class AssignmentService {
     const response = await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}/generate`)
     return response.data
   }
+
+  /**
+   * Réorganiser les travaux de choc (fournitures)
+   */
+  async reorderShockWorks(shockId: number, shockWorkIds: number[]): Promise<{ message: string }> {
+    const response = await axiosInstance.put<{ message: string }>(
+      `${API_CONFIG.ENDPOINTS.SHOCKS}/${shockId}/order-shock-works`,
+      { shock_works: shockWorkIds }
+    )
+    return response.data
+  }
+
+  /**
+   * Réorganiser les main d'œuvre de choc
+   */
+  async reorderWorkforces(shockId: number, workforceIds: number[]): Promise<{ message: string }> {
+    const response = await axiosInstance.put<{ message: string }>(
+      `${API_CONFIG.ENDPOINTS.SHOCKS}/${shockId}/order-workforces`,
+      { workforces: workforceIds }
+    )
+    return response.data
+  }
 }
 
 // Export d'une instance singleton

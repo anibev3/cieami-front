@@ -57,7 +57,10 @@ const NavBadge = ({ children, variant = 'secondary' }: {
   children: ReactNode
   variant?: 'default' | 'secondary' | 'destructive' | 'outline'
 }) => (
-  <Badge variant={variant} className='rounded-full px-1 py-0 text-xs ml-auto'>
+  <Badge 
+    variant={variant} 
+    className='bg-secondary text-white hover:bg-secondary/90 rounded-full px-2 py-0 text-xs ml-auto shadow-sm'
+  >
     {children}
   </Badge>
 )
@@ -268,21 +271,26 @@ const SidebarMenuCollapsedDropdown = ({
             <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side='right' align='start' sideOffset={4}>
-          <DropdownMenuLabel>
+        <DropdownMenuContent 
+          side='right' 
+          align='start' 
+          sideOffset={4}
+          className="bg-white border-primary/20 shadow-lg"
+        >
+          <DropdownMenuLabel className="text-primary font-semibold">
             {item.title} {item.badge ? `(${item.badge})` : ''}
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="bg-primary/20" />
           {item.items.map((sub) => (
             <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
               <Link
                 to={sub.url}
-                className={`${checkIsActive(href, sub) ? 'bg-secondary' : ''}`}
+                className={`hover:bg-primary hover:text-white ${checkIsActive(href, sub) ? 'bg-secondary text-white' : ''}`}
               >
                 {sub.icon && <sub.icon />}
                 <span className='max-w-52 text-wrap'>{sub.title}</span>
                 {sub.badge && (
-                  <span className='ml-auto text-xs'>{sub.badge}</span>
+                  <span className='ml-auto text-xs bg-secondary text-white px-1 rounded'>{sub.badge}</span>
                 )}
               </Link>
             </DropdownMenuItem>

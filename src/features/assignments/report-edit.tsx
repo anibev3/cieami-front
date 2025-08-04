@@ -346,6 +346,8 @@ export default function ReportEditPage() {
   const [newMarketValue, setNewMarketValue] = useState<number | null>(null)
   const [vehicleNewMarketValue, setVehicleNewMarketValue] = useState<number | null>(null)
   const [vehicleNewMarketValueOption, setVehicleNewMarketValueOption] = useState<string | null>(null)
+  const [depreciationRate, setDepreciationRate] = useState<number | null>(null)
+  const [marketValue, setMarketValue] = useState<number | null>(null)
   
   const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
   
@@ -479,6 +481,23 @@ export default function ReportEditPage() {
       //   setEvaluations((assignment as any).evaluations)
       //   toast.success(`${(assignment as any).evaluations.length} évaluation(s) existante(s) chargée(s)`)
       // }
+
+      // Initialiser les nouveaux champs de valeur de marché
+      if ((assignment as any).new_market_value) {
+        setNewMarketValue((assignment as any).new_market_value)
+      }
+      if ((assignment as any).depreciation_rate) {
+        setDepreciationRate((assignment as any).depreciation_rate)
+      }
+      if ((assignment as any).market_value) {
+        setMarketValue((assignment as any).market_value)
+      }
+      if ((assignment as any).vehicle_new_market_value) {
+        setVehicleNewMarketValue((assignment as any).vehicle_new_market_value)
+      }
+      if ((assignment as any).vehicle_new_market_value_option) {
+        setVehicleNewMarketValueOption((assignment as any).vehicle_new_market_value_option)
+      }
     }
   }, [assignment, isEvaluation])
   
@@ -681,6 +700,8 @@ export default function ReportEditPage() {
       repairer_id: 1,
       // Nouveaux champs de valeur de marché (pour tous les types de dossiers)
       new_market_value: newMarketValue || null,
+      depreciation_rate: depreciationRate || null,
+      market_value: marketValue || null,
       vehicle_new_market_value: vehicleNewMarketValue || null,
       vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
@@ -728,7 +749,7 @@ export default function ReportEditPage() {
       setAssignmentTotalAmount(total)
       setShowReceiptModal(true)
     }
-  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration, newMarketValue, vehicleNewMarketValue, vehicleNewMarketValueOption])
+  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration, newMarketValue, vehicleNewMarketValue, vehicleNewMarketValueOption, ascertainments, assignment?.vehicle?.id, depreciationRate, expertiseDate, marketIncidenceRate, marketValue])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -968,6 +989,8 @@ export default function ReportEditPage() {
       assignment_id: assignmentId,
       // Nouveaux champs de valeur de marché (pour tous les types de dossiers)
       new_market_value: newMarketValue || null,
+      depreciation_rate: depreciationRate || null,
+      market_value: marketValue || null,
       vehicle_new_market_value: vehicleNewMarketValue || null,
       vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
@@ -1019,7 +1042,9 @@ export default function ReportEditPage() {
     workDuration,
     newMarketValue,
     vehicleNewMarketValue,
-    vehicleNewMarketValueOption
+    vehicleNewMarketValueOption,
+    depreciationRate,
+    marketValue
   ])
 
   // Fonction unifiée pour effectuer le calcul
@@ -1585,7 +1610,7 @@ export default function ReportEditPage() {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="vehicle-new-market-value-option">
-                      État de commercialisation <span className="text-red-500">*</span>
+                      Option de la valeur neuve du véhicule<span className="text-red-500">*</span>
                     </Label>
                     <Select 
                       value={vehicleNewMarketValueOption || ''} 
@@ -1614,7 +1639,7 @@ export default function ReportEditPage() {
                   {(vehicleNewMarketValueOption === 'fa' || vehicleNewMarketValueOption === 'nc') && (
                     <div className="space-y-2">
                       <Label htmlFor="new-market-value">
-                        Nouvelle valeur de marché (FCFA) <span className="text-red-500">*</span>
+                        Valeur neuve du véhicule (FCFA)<span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="new-market-value"
@@ -1644,6 +1669,40 @@ export default function ReportEditPage() {
                       />
                     </div>
                   )}
+
+                  {/* Champs supplémentaires de valeur de marché */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="depreciation-rate">
+                        Taux de dépréciation (%)
+                      </Label>
+                      <Input
+                        id="depreciation-rate"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={depreciationRate || ''}
+                        onChange={(e) => setDepreciationRate(parseFloat(e.target.value) || null)}
+                        placeholder="Saisir le taux de dépréciation"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="market-value">
+                        Valeur vénale (FCFA)
+                      </Label>
+                      <Input
+                        id="market-value"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={marketValue || ''}
+                        onChange={(e) => setMarketValue(parseFloat(e.target.value) || null)}
+                        placeholder="Saisir la valeur vénale"
+                      />
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -2023,6 +2082,10 @@ export default function ReportEditPage() {
                         await calculateSingleShock(index)
                       }}
                       onSupplyCreated={handleSupplyCreated}
+                      onReorder={(reorderedWorks) => {
+                        const updatedShock = { ...s, shock_works: reorderedWorks }
+                        updateShock(index, updatedShock)
+                      }}
                     />
 
 
@@ -2086,6 +2149,10 @@ export default function ReportEditPage() {
                         // Rafraîchir les données après création
                         await reloadData()
                         toast.success('Type de main d\'œuvre créé avec succès')
+                      }}
+                      onReorder={(reorderedWorkforces) => {
+                        const updatedShock = { ...s, workforces: reorderedWorkforces }
+                        updateShock(index, updatedShock)
                       }}
                     />
 
@@ -2663,11 +2730,11 @@ function AscertainmentItem({
       <td className="px-4 py-3 whitespace-nowrap">
         <div className="space-y-2">
           {/* Badge de qualité */}
-          {qualityScore > 0 && (
+           {/* {qualityScore > 0 && (
             <Badge className={`${qualityColor} mb-2`}>
               {qualityLabel}
             </Badge>
-          )}
+          )} */}
           
           {/* Checkboxes de qualité */}
           <div className="grid grid-cols-2 gap-1 text-xs">

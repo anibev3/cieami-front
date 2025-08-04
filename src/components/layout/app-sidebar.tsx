@@ -32,17 +32,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   
   return (
     <Sidebar collapsible='icon' variant='sidebar' {...props}>
-      <SidebarHeader>
+      {/* Header avec gradient décoratif */}
+      <SidebarHeader className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-secondary/20 to-secondary/5 rounded-lg -z-10"></div>
         <TeamSwitcher teams={sidebarData.teams} />
       </SidebarHeader>
-      <SidebarContent>
+      
+      {/* Contenu principal avec effet glassmorphism */}
+      <SidebarContent className="relative">
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
         {navGroupsWithCounters.map((props) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-      <SidebarFooter>
+      
+      {/* Footer avec accent */}
+      <SidebarFooter className="relative border-t border-white/10">
+        <div className="absolute inset-0 bg-gradient-to-t from-primary-700/20 to-transparent -z-10"></div>
         <NavUser user={sidebarData.user} />
       </SidebarFooter>
+      
       <SidebarRail />
     </Sidebar>
   )

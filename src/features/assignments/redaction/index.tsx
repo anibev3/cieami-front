@@ -763,6 +763,30 @@ export default function EditReportPage() {
     }
   }
 
+  // Fonction pour réorganiser les fournitures d'un choc
+  const handleReorderShockWorks = async (shockId: number, shockWorkIds: number[]) => {
+    try {
+      await assignmentService.reorderShockWorks(shockId, shockWorkIds)
+      await refreshAssignment()
+      toast.success('Ordre des fournitures mis à jour')
+    } catch (error) {
+      console.error('Erreur lors de la réorganisation des fournitures:', error)
+      toast.error('Erreur lors de la réorganisation des fournitures')
+    }
+  }
+
+  // Fonction pour réorganiser les main d'œuvre d'un choc
+  const handleReorderWorkforces = async (shockId: number, workforceIds: number[]) => {
+    try {
+      await assignmentService.reorderWorkforces(shockId, workforceIds)
+      await refreshAssignment()
+      toast.success('Ordre des main d\'œuvre mis à jour')
+    } catch (error) {
+      console.error('Erreur lors de la réorganisation des main d\'œuvre:', error)
+      toast.error('Erreur lors de la réorganisation des main d\'œuvre')
+    }
+  }
+
   // Fonction de formatage des montants
   const formatCurrency = (amount: string | number | null) => {
     if (amount === null || amount === undefined) return '0 FCFA'
@@ -1821,6 +1845,8 @@ export default function EditReportPage() {
                                   // Validation automatique après modification
                                   toast.success('Fourniture validée')
                                 }}
+                                shockId={shock.id}
+                                onReorderSave={(shockWorkIds) => handleReorderShockWorks(shock.id, shockWorkIds)}
                               />
                             </div>
 
@@ -1899,6 +1925,7 @@ export default function EditReportPage() {
                                     toast.error('Erreur lors de la mise à jour du taux horaire')
                                   }
                                 }}
+                                onReorderSave={(workforceIds) => handleReorderWorkforces(shock.id, workforceIds)}
                               />
                             </div>
                           </div>

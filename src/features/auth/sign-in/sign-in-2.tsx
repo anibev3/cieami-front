@@ -1,4 +1,3 @@
-import ViteLogo from '@/assets/vite.svg'
 import { UserAuthForm } from './components/user-auth-form'
 import { RedirectIfAuthenticated } from '@/components/auth/RedirectIfAuthenticated'
 
@@ -18,19 +17,12 @@ export default function SignIn2() {
           </video>
           {/* <div className='absolute inset-0 bg-zinc-900/70' /> */}
           <div className='relative z-20 flex items-center text-lg font-medium'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='2'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              className='mr-2 h-6 w-6'
-            >
-              <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
-            </svg>
-            Expert Auto
+            <img
+              src='/images/logo/logo1.png'
+              alt='Expert Auto Logo'
+              className='mr-3 h-40 w-auto'
+            />
+
           </div>
 
           {/* <img
@@ -53,6 +45,14 @@ export default function SignIn2() {
         </div>
         <div className='lg:p-8'>
           <div className='mx-auto flex w-full flex-col justify-center space-y-2 sm:w-[350px]'>
+            {/* Logo section pour mobile/tablette */}
+            <div className='flex justify-center mb-6 lg:hidden'>
+              <img
+                src='/images/logo/logo1.png'
+                alt='Expert Auto Logo'
+                className='h-16 w-auto'
+              />
+            </div>
             <div className='flex flex-col space-y-2 text-left'>
               <h1 className='text-2xl font-semibold tracking-tight'>Connexion</h1>
               <p className='text-muted-foreground text-sm'>

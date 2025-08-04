@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
-import { useParams, useNavigate } from '@tanstack/react-router'
+import { useParams, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -629,9 +629,15 @@ interface AssignmentDetail {
 export default function AssignmentDetailPage() {
   const { id } = useParams({ strict: false }) as { id: string }
   const navigate = useNavigate()
+  const search = useSearch({ strict: false }) as { section?: string }
   const [assignment, setAssignment] = useState<AssignmentDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeSection, setActiveSection] = useState('parties')
+  
+  // Initialiser activeSection avec le paramètre d'URL ou 'parties' par défaut
+  const [activeSection, setActiveSection] = useState(() => {
+    const validSections = ['parties', 'vehicle', 'photos', 'shocks', 'costs', 'receipts', 'experts', 'documents', 'tracking']
+    return search.section && validSections.includes(search.section) ? search.section : 'parties'
+  })
   const [pdfViewer, setPdfViewer] = useState<{ open: boolean, url: string, title?: string }>({ open: false, url: '', title: '' })
   const [validateModalOpen, setValidateModalOpen] = useState(false)
   const [validating, setValidating] = useState(false)
@@ -658,6 +664,14 @@ export default function AssignmentDetailPage() {
 
     fetchAssignment()
   }, [id])
+
+  // Synchroniser activeSection avec les changements d'URL
+  useEffect(() => {
+    const validSections = ['parties', 'vehicle', 'photos', 'shocks', 'costs', 'receipts', 'experts', 'documents', 'tracking']
+    if (search.section && validSections.includes(search.section) && search.section !== activeSection) {
+      setActiveSection(search.section)
+    }
+  }, [search.section, activeSection])
 
   const formatCurrency = (amount: string | null | undefined) => {
     const value = amount === null || amount === undefined ? 0 : parseFloat(amount)
@@ -689,6 +703,15 @@ export default function AssignmentDetailPage() {
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200'
     }
+  }
+
+  // Fonction pour changer de section et mettre à jour l'URL
+  const changeActiveSection = (sectionId: string) => {
+    setActiveSection(sectionId)
+    // Mettre à jour l'URL avec le paramètre section
+    const url = new URL(window.location.href)
+    url.searchParams.set('section', sectionId)
+    window.history.pushState({}, '', url.toString())
   }
 
   const sidebarItems = [
@@ -2369,7 +2392,7 @@ export default function AssignmentDetailPage() {
                       return (
                         <button
                           key={item.id}
-                          onClick={() => setActiveSection(item.id)}
+                          onClick={() => changeActiveSection(item.id)}
                           className={cn(
                             "w-full flex items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-muted/50 text-xs",
                             activeSection === item.id
@@ -2646,7 +2669,7 @@ export default function AssignmentDetailPage() {
                   <button
                     key={item.id}
                     onClick={() => {
-                      setActiveSection(item.id)
+                      changeActiveSection(item.id)
                       setBottomSheetOpen(false)
                     }}
                     className={cn(

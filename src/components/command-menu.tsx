@@ -45,12 +45,15 @@ export function CommandMenu() {
 
   return (
     <CommandDialog modal open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder='Type a command or search...' />
-      <CommandList>
+      <CommandInput 
+        placeholder='Type a command or search...' 
+        className="border-primary/20 focus:border-primary bg-gradient-to-r from-primary/5 to-primary/10"
+      />
+      <CommandList className="bg-gradient-to-b from-primary/5 to-white">
         <ScrollArea type='hover' className='h-72 pr-1'>
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty className="text-primary/70">No results found.</CommandEmpty>
           {navGroupsWithCounters.map((group) => (
-            <CommandGroup key={group.title} heading={group.title}>
+            <CommandGroup key={group.title} heading={group.title} className="[&_[cmdk-group-heading]]:text-primary [&_[cmdk-group-heading]]:font-semibold">
               {group.items.map((navItem, i) => {
                 if (navItem.url) {
                   return (
@@ -60,13 +63,14 @@ export function CommandMenu() {
                       onSelect={() => {
                         runCommand(() => navigate({ to: navItem.url }))
                       }}
+                      className="hover:bg-primary/10 hover:text-primary aria-selected:bg-primary aria-selected:text-white"
                     >
                       <div className='mr-2 flex h-4 w-4 items-center justify-center'>
-                        <IconArrowRightDashed className='text-muted-foreground/80 size-2' />
+                        <IconArrowRightDashed className='text-primary/60 size-2' />
                       </div>
                       <span className="flex-1">{navItem.title}</span>
                       {navItem.showCounters && navItem.dynamicCounters && navItem.dynamicCounters.length > 0 && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
+                        <Badge variant="secondary" className="ml-2 text-xs bg-secondary text-white">
                           {navItem.dynamicCounters.find(c => c.key === 'all' || c.key === 'total')?.value || 0}
                         </Badge>
                       )}
@@ -81,15 +85,16 @@ export function CommandMenu() {
                     onSelect={() => {
                       runCommand(() => navigate({ to: subItem.url }))
                     }}
+                    className="hover:bg-primary/10 hover:text-primary aria-selected:bg-primary aria-selected:text-white"
                   >
                     <div className='mr-2 flex h-4 w-4 items-center justify-center'>
-                      <IconArrowRightDashed className='text-muted-foreground/80 size-2' />
+                      <IconArrowRightDashed className='text-primary/60 size-2' />
                     </div>
                     <span className="flex-1">
-                      {navItem.title} <IconChevronRight className="inline h-3 w-3" /> {subItem.title}
+                      {navItem.title} <IconChevronRight className="inline h-3 w-3 text-secondary" /> {subItem.title}
                     </span>
                     {subItem.showCounters && subItem.dynamicCounters && subItem.dynamicCounters.length > 0 && (
-                      <Badge variant="secondary" className="ml-2 text-xs">
+                      <Badge variant="secondary" className="ml-2 text-xs bg-secondary text-white">
                         {subItem.dynamicCounters.find(c => c.key === 'all' || c.key === 'total')?.value || 0}
                       </Badge>
                     )}
@@ -98,17 +103,26 @@ export function CommandMenu() {
               })}
             </CommandGroup>
           ))}
-          <CommandSeparator />
-          <CommandGroup heading='Theme'>
-            <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
-              <IconSun /> <span>Light</span>
+          <CommandSeparator className="bg-primary/20" />
+          <CommandGroup heading='Theme' className="[&_[cmdk-group-heading]]:text-primary [&_[cmdk-group-heading]]:font-semibold">
+            <CommandItem 
+              onSelect={() => runCommand(() => setTheme('light'))}
+              className="hover:bg-primary/10 hover:text-primary aria-selected:bg-primary aria-selected:text-white"
+            >
+              <IconSun className="text-secondary" /> <span>Light</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
-              <IconMoon className='scale-90' />
+            <CommandItem 
+              onSelect={() => runCommand(() => setTheme('dark'))}
+              className="hover:bg-primary/10 hover:text-primary aria-selected:bg-primary aria-selected:text-white"
+            >
+              <IconMoon className='scale-90 text-secondary' />
               <span>Dark</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
-              <IconDeviceLaptop />
+            <CommandItem 
+              onSelect={() => runCommand(() => setTheme('system'))}
+              className="hover:bg-primary/10 hover:text-primary aria-selected:bg-primary aria-selected:text-white"
+            >
+              <IconDeviceLaptop className="text-secondary" />
               <span>System</span>
             </CommandItem>
           </CommandGroup>
