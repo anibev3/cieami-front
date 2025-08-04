@@ -1926,7 +1926,9 @@ export default function EditReportPage() {
                                   toast.success('Fourniture validée')
                                 }}
                                 shockId={shock.id}
+                                paintTypeId={shock.paint_type?.id || 1}
                                 onReorderSave={(shockWorkIds) => handleReorderShockWorks(shock.id, shockWorkIds)}
+                                onAssignmentRefresh={refreshAssignment}
                               />
                             </div>
 

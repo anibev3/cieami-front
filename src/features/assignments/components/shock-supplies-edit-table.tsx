@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
 import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
+import axiosInstance from '@/lib/axios'
+import { API_CONFIG } from '@/config/api'
 import {
   DndContext,
   closestCenter,
@@ -247,7 +249,7 @@ function SortableSupplyRow({
               variant="ghost"
               onClick={() => handleValidateRow(index)}
               className="h-5 w-5 hover:bg-green-50 hover:text-green-600"
-              title="Valider les modifications"
+              title={newRows.has(index) ? "Valider l'ajout" : "Valider les modifications"}
             >
               <Check className="h-3 w-3" />
             </Button>
@@ -271,7 +273,7 @@ export function ShockSuppliesEditTable({
   supplies,
   shockWorks,
   onUpdate,
-  onAdd,
+  // onAdd,
   onRemove,
   onValidateRow,
   onSupplyCreated,
@@ -286,7 +288,9 @@ export function ShockSuppliesEditTable({
   // Props pour la réorganisation
   shockId,
   onReorderSave,
-  hasReorderChanges = false
+  hasReorderChanges = false,
+  // Callback pour rafraîchir les données du dossier
+  onAssignmentRefresh
 }: {
   supplies: Supply[]
   shockWorks: ShockWork[]
@@ -307,6 +311,8 @@ export function ShockSuppliesEditTable({
   shockId?: number
   onReorderSave?: (shockWorkIds: number[]) => Promise<void>
   hasReorderChanges?: boolean
+  // Callback pour rafraîchir les données du dossier
+  onAssignmentRefresh?: () => void
 }) {
   // État local pour gérer les modifications et la validation
   const [localShockWorks, setLocalShockWorks] = useState<ShockWork[]>(shockWorks)
@@ -420,7 +426,7 @@ export function ShockSuppliesEditTable({
     }
     setLocalShockWorks(prev => [...prev, newWork])
     setNewRows(prev => new Set([...prev, localShockWorks.length])) // Marquer comme nouvelle ligne
-    onAdd(newWork) // Appeler la fonction parent pour créer en base
+    // onAdd(newWork) // Appeler la fonction parent pour créer en base
   }
 
   // Fonction pour ouvrir le modal de création de fourniture
@@ -450,11 +456,52 @@ export function ShockSuppliesEditTable({
   // Fonction de validation d'une ligne
   const handleValidateRow = async (index: number) => {
     setValidatingRows(prev => new Set([...prev, index]))
+    
     try {
-      // Appliquer les modifications locales et déclencher la validation côté parent
       const shockWork = localShockWorks[index]
-      await onUpdate(index, shockWork)
-      await onValidateRow(index)
+      
+      if (newRows.has(index)) {
+        // Nouvelle ligne - API POST /shock-works avec le nouveau payload
+        if (!shockId || !paintTypeId) {
+          toast.error('ID du choc ou type de peinture manquant')
+          return
+        }
+        
+        const payload = {
+          shock_id: shockId.toString(),
+          paint_type_id: paintTypeId.toString(),
+          shock_works: [
+            {
+              supply_id: shockWork.supply_id.toString(),
+              disassembly: shockWork.disassembly,
+              replacement: shockWork.replacement,
+              repair: shockWork.repair,
+              paint: shockWork.paint,
+              obsolescence: shockWork.obsolescence || false,
+              control: shockWork.control,
+              obsolescence_rate: Number(shockWork.obsolescence_rate),
+              recovery_amount: Number(shockWork.recovery_amount || 0),
+              discount: Number(shockWork.discount),
+              amount: Number(shockWork.amount),
+              comment: shockWork.comment || ""
+            }
+          ]
+        }
+        
+        // Appel API direct
+        await axiosInstance.post(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}`, payload)
+        
+        toast.success('Fourniture créée avec succès')
+        
+        // Rafraîchir les données du dossier
+        if (onAssignmentRefresh) {
+          onAssignmentRefresh()
+        }
+      } else {
+        // Ligne existante - utiliser la logique existante
+        await onUpdate(index, shockWork)
+        await onValidateRow(index)
+      }
       
       // Marquer comme non modifié et non nouveau
       setModifiedRows(prev => {
@@ -467,9 +514,9 @@ export function ShockSuppliesEditTable({
         newSet.delete(index)
         return newSet
       })
-    } catch (error) {
-      // Gérer l'erreur silencieusement
-      void error
+    } catch (error: any) {
+      void error // Ignore l'erreur pour le linting
+      toast.error(newRows.has(index) ? 'Erreur lors de la création de la fourniture' : 'Erreur lors de la mise à jour')
     } finally {
       setValidatingRows(prev => {
         const newSet = new Set(prev)
