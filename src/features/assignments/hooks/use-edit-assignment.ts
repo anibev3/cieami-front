@@ -102,6 +102,7 @@ interface ApiWorkforce {
   amount_excluding_tax: string
   amount_tax: string
   amount: string
+  all_paint?: boolean
 }
 
 interface ApiShockPoint {
@@ -180,6 +181,7 @@ export interface FormattedShockData {
     amount_excluding_tax: number
     amount_tax: number
     amount: number
+    all_paint?: boolean
   }>
   comment: string
   with_tax: boolean
@@ -235,6 +237,7 @@ export function useEditAssignment(assignmentId: number) {
         amount_excluding_tax: parseFloat(workforce.amount_excluding_tax) || 0,
         amount_tax: parseFloat(workforce.amount_tax) || 0,
         amount: parseFloat(workforce.amount) || 0,
+        all_paint: workforce.all_paint || false,
       })) || [],
       comment: '',
       with_tax: true,

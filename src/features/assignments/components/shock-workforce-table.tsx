@@ -64,7 +64,7 @@ interface Workforce {
   hourly_rate_id?: string | number
   paint_type_id?: string | number
   // Champ pour la peinture partielle/totale (workforce_type_id = 1)
-  is_total_paint?: boolean
+  all_paint?: boolean
 }
 
 interface ShockWorkforceTableProps {
@@ -157,12 +157,12 @@ function SortableWorkforceRow({
         <td className="border px-2 py-2 text-center">
           <div className="flex items-center justify-center gap-2">
             <Checkbox
-              checked={row.is_total_paint || false}
-              onCheckedChange={(checked) => updateLocalWorkforce(index, 'is_total_paint', checked)}
+              checked={row.all_paint || false}
+              onCheckedChange={(checked) => updateLocalWorkforce(index, 'all_paint', checked)}
               className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
             <span className="text-xs text-gray-600">
-              {row.is_total_paint ? 'Complète' : 'Partielle'}
+              {row.all_paint ? 'Complète' : 'Partielle'}
             </span>
           </div>
         </td>
@@ -170,7 +170,7 @@ function SortableWorkforceRow({
         <td className="border px-2 py-2 text-center">
           <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-gray-600">
-              {/* {row.is_total_paint ? 'Complète' : 'Partielle'} */}
+              {/* {row.all_paint ? 'Complète' : 'Partielle'} */}
             </span>
           </div>
         </td>
@@ -532,9 +532,12 @@ export function ShockWorkforceTable({
                   Désignation
                 </th>
                 {/* Colonne peinture conditionnelle */}
-                {hasPaintWorkforce && (
+                {hasPaintWorkforce ? (
                   <th className="border px-2 py-2 text-center font-medium text-blue-600">
                     Peinture
+                  </th>
+                ) : (
+                  <th className="border text-center font-medium text-blue-600">
                   </th>
                 )}
                 <th className="border px-2 py-2 text-center font-medium">

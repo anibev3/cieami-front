@@ -684,7 +684,8 @@ export default function ReportEditPage() {
         workforces: shock.workforces.map((workforce: any) => ({
           workforce_type_id: workforce.workforce_type_id,
           nb_hours: workforce.nb_hours,
-          discount: workforce.discount
+          discount: workforce.discount,
+          all_paint: workforce.all_paint || false
         }))
       })),
       other_costs: cleanedOtherCosts.map(c => ({
@@ -974,7 +975,8 @@ export default function ReportEditPage() {
         workforces: shock.workforces.filter((workforce: any) => workforce.workforce_type_id && workforce.workforce_type_id !== 0).map((workforce: any) => ({
           workforce_type_id: workforce.workforce_type_id,
           nb_hours: workforce.nb_hours,
-          discount: workforce.discount
+          discount: workforce.discount,
+          all_paint: workforce.all_paint || false
         }))
       }))
       .filter(shock => (shock.shock_works.length > 0 || shock.workforces.length > 0) && shock.paint_type_id && shock.hourly_rate_id)
@@ -2227,7 +2229,8 @@ export default function ReportEditPage() {
                           discount: 0,
                           amount_excluding_tax: 0,
                           amount_tax: 0,
-                          amount: 0
+                          amount: 0,
+                          all_paint: false
                         }
                         const updatedShock = { ...s, workforces: [...s.workforces, newWorkforce] }
                         updateShock(index, updatedShock)

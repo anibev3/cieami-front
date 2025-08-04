@@ -36,6 +36,8 @@ export interface Workforce {
   amount_excluding_tax: number
   amount_tax: number
   amount: number
+  // Champ pour la peinture partielle/totale (workforce_type_id = 1)
+  all_paint?: boolean
 }
 
 export interface Shock {
@@ -149,7 +151,8 @@ export function useShockManagement(initialShocks?: Shock[]) {
       discount: 0,
       amount_excluding_tax: 0,
       amount_tax: 0,
-      amount: 0
+      amount: 0,
+      all_paint: false
     }
     
     setShocks(prev => prev.map((shock, i) => 
