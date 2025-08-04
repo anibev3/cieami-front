@@ -46,6 +46,7 @@ export const API_CONFIG = {
     ADD_SHOCK_IN_MODIF: "/shocks/store/point",
     ORDER_SHOCK_WORKS: "/shocks",
     ORDER_WORKFORCES: "/shocks",
+    DELETE_SHOCK: "/shocks",
   },
 } as const
 

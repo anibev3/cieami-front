@@ -54,7 +54,8 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Star
+  Star,
+  AlertTriangle
 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -609,6 +610,11 @@ export default function EditReportPage() {
   
   // État pour gérer les chocs collapsés (par défaut tous ouverts)
   const [collapsedShocks, setCollapsedShocks] = useState<Set<number>>(new Set())
+  
+  // États pour la suppression de choc
+  const [showDeleteShockDialog, setShowDeleteShockDialog] = useState(false)
+  const [shockToDelete, setShockToDelete] = useState<number | null>(null)
+  const [deletingShock, setDeletingShock] = useState(false)
 
 
   // Charger les données du dossier
@@ -852,6 +858,31 @@ export default function EditReportPage() {
       }
       return newSet
     })
+  }
+
+  // Fonction pour ouvrir le dialogue de suppression de choc
+  const handleDeleteShock = (shockId: number) => {
+    setShockToDelete(shockId)
+    setShowDeleteShockDialog(true)
+  }
+
+  // Fonction pour confirmer la suppression de choc
+  const confirmDeleteShock = async () => {
+    if (!shockToDelete) return
+    
+    setDeletingShock(true)
+    try {
+      await assignmentService.deleteShock(shockToDelete)
+      toast.success('Choc supprimé avec succès')
+      await refreshAssignment()
+    } catch (error) {
+      console.error('Erreur lors de la suppression du choc:', error)
+      toast.error('Erreur lors de la suppression du choc')
+    } finally {
+      setDeletingShock(false)
+      setShowDeleteShockDialog(false)
+      setShockToDelete(null)
+    }
   }
 
   // Fonction de formatage des montants
@@ -1896,6 +1927,16 @@ export default function EditReportPage() {
                                   <span className="font-medium text-gray-900">
                                     {formatCurrency(shock.amount)}
                                   </span>
+                                  {/* Bouton de suppression */}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteShock(shock.id)}
+                                    className="p-1 h-6 w-6 hover:bg-red-50 hover:text-red-600 transition-all duration-200 rounded-md"
+                                    title="Supprimer ce choc"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
                                 </div>
                               </div>
                             </div>
@@ -3066,6 +3107,47 @@ export default function EditReportPage() {
         onOpenChange={setShowCreateShockPointModal}
         onSuccess={handleShockPointCreated}
       />
+
+      {/* Dialogue de confirmation de suppression de choc */}
+      <Dialog open={showDeleteShockDialog} onOpenChange={setShowDeleteShockDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmer la suppression
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce point de choc ? Cette action est irréversible et supprimera également toutes les fournitures et main d'œuvre associées.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteShockDialog(false)}
+              disabled={deletingShock}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteShock}
+              disabled={deletingShock}
+            >
+              {deletingShock ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Suppression...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Supprimer
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

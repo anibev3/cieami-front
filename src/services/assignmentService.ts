@@ -161,6 +161,16 @@ class AssignmentService {
     )
     return response.data
   }
+
+  /**
+   * Supprimer un choc
+   */
+  async deleteShock(shockId: number): Promise<{ message: string }> {
+    const response = await axiosInstance.delete<{ message: string }>(
+      `${API_CONFIG.ENDPOINTS.DELETE_SHOCK}/${shockId}`
+    )
+    return response.data
+  }
 }
 
 // Export d'une instance singleton
