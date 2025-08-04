@@ -63,7 +63,7 @@ import { useRemarkStore } from '@/stores/remarkStore'
 import { ShockSuppliesTable } from './components/shock-supplies-table'
 import { ShockWorkforceTable } from './components/shock-workforce-table'
 import { OtherCostTypeSelect } from '@/features/widgets/reusable-selects'   
-import { ShockPointSelect } from '@/features/widgets/shock-point-select'
+import { ShockPointCreateModal } from '@/components/modals'
 import { AscertainmentTypeSelect } from '@/features/widgets/ascertainment-type-select'
 import { ClaimNatureSelect } from '@/features/widgets'
 import { RemarkSelect } from '@/features/widgets'
@@ -1621,7 +1621,7 @@ export default function ReportEditPage() {
                         // Reset des valeurs selon la sélection
                         if (value === 'fa' || value === 'nc') {
                           // setVehicleNewMarketValue(null)
-                          setNewMarketValue(null)
+                          // setNewMarketValue(null)
 
                         } else if (value === 'value') {
                           // setNewMarketValue(null)
@@ -1657,8 +1657,8 @@ export default function ReportEditPage() {
                     </div>
                   )} */}
 
-                  {vehicleNewMarketValueOption === 'value' && (
-                    // <div className="space-y-2">
+                  {/* {vehicleNewMarketValueOption === 'value' && ( */}
+                    {/* // <div className="space-y-2">
                     //   <Label htmlFor="vehicle-new-market-value">
                     //     Montant de la valeur neuve (FCFA) <span className="text-red-500">*</span>
                     //   </Label>
@@ -1671,7 +1671,7 @@ export default function ReportEditPage() {
                     //     onChange={(e) => setVehicleNewMarketValue(parseFloat(e.target.value) || null)}
                     //     placeholder="Saisir la valeur de marché du véhicule"
                     //   />
-                    // </div>
+                    // </div> */}
                     <div className="space-y-2">
                       <Label htmlFor="new-market-value">
                         Valeur neuve du véhicule (FCFA)<span className="text-red-500">*</span>
@@ -1686,7 +1686,7 @@ export default function ReportEditPage() {
                         placeholder="Saisir la nouvelle valeur de marché"
                       />
                     </div>
-                  )}
+                  {/* // )} */}
 
                   {/* Champs supplémentaires de valeur de marché */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -2444,88 +2444,16 @@ export default function ReportEditPage() {
             </CardContent>
           </Card>
           {/* Modal d'ajout de point de choc */}
-          <Dialog open={showShockModal} onOpenChange={setShowShockModal}>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-lg">
-                  <MapPin className="h-6 w-6 text-blue-600" />
-                  Ajouter un point de choc
-                </DialogTitle>
-                <DialogDescription className="text-sm">
-                  Sélectionnez un point de choc à ajouter au dossier pour commencer l'expertise
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-6 py-4">
-                {/* Section de sélection */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
-                        <MapPin className="h-4 w-4 text-blue-500" />
-                        Point de choc à ajouter
-                      </div>
-                    </div>
-                    <div>
-                      <Button variant="outline" onClick={handleCreateShockPoint}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Créer un nouveau point de choc
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <ShockPointSelect
-                    value={selectedShockPointId}
-                    onValueChange={setSelectedShockPointId}
-                    shockPoints={shockPoints}
-                    showSelectedInfo={true}
-                    onCreateNew={handleCreateShockPoint}
-                  />
-                </div>
-
-
-
-                {/* Statistiques */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-xl font-bold text-blue-600">{shockPoints.length}</div>
-                      <div className="text-xs text-gray-600">Points disponibles</div>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-green-600">{shocks.length}</div>
-                      <div className="text-xs text-gray-600">Points ajoutés</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowShockModal(false)
-                    setSelectedShockPointId(0)
-                  }}
-                  className="px-6"
-                >
-                  Annuler
-                </Button>
-                <Button 
-                  disabled={!selectedShockPointId} 
-                  onClick={() => {
-                    addShock(selectedShockPointId)
-                    setShowShockModal(false)
-                    setSelectedShockPointId(0)
-                  }}
-                  className="px-6 bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Ajouter le point
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <ShockPointCreateModal
+            open={showShockModal}
+            onOpenChange={setShowShockModal}
+            selectedShockPointId={selectedShockPointId}
+            onSelectedShockPointIdChange={setSelectedShockPointId}
+            shockPoints={shockPoints}
+            shocks={shocks}
+            onCreateShockPoint={handleCreateShockPoint}
+            onAddShock={addShock}
+          />
 
           {/* Modal de vérification */}
           <Dialog open={showVerificationModal} onOpenChange={setShowVerificationModal}>

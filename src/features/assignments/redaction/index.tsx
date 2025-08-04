@@ -81,6 +81,8 @@ import { SupplySelect } from '@/features/widgets/supply-select'
 import AscertainmentEdit from '@/features/assignments/components/ascertainment-edit'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { ShockPointCreateModal } from '@/components/modals'
+import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/components/shock-point-mutate-dialog'
 
 interface Assignment {
   id: number
@@ -596,6 +598,11 @@ export default function EditReportPage() {
   const [depreciationRate, setDepreciationRate] = useState<number | null>(null)
   const [marketValue, setMarketValue] = useState<number | null>(null)
 
+  // États pour le modal d'ajout de point de choc
+  const [showShockModal, setShowShockModal] = useState(false)
+  const [selectedShockPointId, setSelectedShockPointId] = useState(0)
+  const [showCreateShockPointModal, setShowCreateShockPointModal] = useState(false)
+
 
   // Charger les données du dossier
   useEffect(() => {
@@ -790,6 +797,41 @@ export default function EditReportPage() {
       console.error('Erreur lors de la réorganisation des main d\'œuvre:', error)
       toast.error('Erreur lors de la réorganisation des main d\'œuvre')
     }
+  }
+
+  // Fonction pour ajouter un point de choc
+  const handleAddShock = async (shockPointId: number) => {
+    if (!assignment) return
+
+    try {
+      const payload = {
+        assignment_id: assignment.id.toString(),
+        shocks: [
+          {
+            shock_point_id: shockPointId.toString()
+          }
+        ]
+      }
+
+      await axiosInstance.post(`${API_CONFIG.ENDPOINTS.ADD_SHOCK_IN_MODIF}`, payload)
+      await refreshAssignment()
+      toast.success('Point de choc ajouté avec succès')
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du point de choc:', error)
+      toast.error('Erreur lors de l\'ajout du point de choc')
+    }
+  }
+
+  // Fonction pour créer un nouveau point de choc
+  const handleCreateShockPoint = () => {
+    setShowCreateShockPointModal(true)
+  }
+
+  // Fonction appelée après création d'un point de choc
+  const handleShockPointCreated = async () => {
+    await refreshAssignment()
+    setShowCreateShockPointModal(false)
+    toast.success('Point de choc créé avec succès')
   }
 
   // Fonction de formatage des montants
@@ -1728,6 +1770,13 @@ export default function EditReportPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-bold text-gray-900">Points de choc</h2>
+                      <Button 
+                        onClick={() => setShowShockModal(true)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Ajouter un point de choc
+                      </Button>
                     </div>
 
                     {assignment.shocks && assignment.shocks.length > 0 ? (
@@ -1773,6 +1822,7 @@ export default function EditReportPage() {
                                   price: supply.price || 0
                                 }))}
                                 shockWorks={(shock.shock_works || []).map((work: any) => ({
+                                  id: work.id, // ID réel de l'API pour la réorganisation
                                   uid: work.id?.toString() || crypto.randomUUID(),
                                   supply_id: work.supply?.id || 0,
                                   supply_label: work.supply?.label || '',
@@ -1887,7 +1937,8 @@ export default function EditReportPage() {
                               <ShockWorkforceTableV2
                                 shockId={shock.id}
                                 workforces={(shock.workforces || []).filter(w => w.id !== undefined).map(w => ({
-                                  id: w.id!,
+                                  id: w.id!, // ID réel de l'API pour la réorganisation
+                                  uid: w.id?.toString() || crypto.randomUUID(), // UID pour le drag & drop
                                   workforce_type: w.workforce_type,
                                   workforce_type_id: w.workforce_type?.id || 0,
                                   nb_hours: w.nb_hours,
@@ -2890,6 +2941,28 @@ export default function EditReportPage() {
           </div>
         )}
       </Main>
+
+      {/* Modal d'ajout de point de choc */}
+      <ShockPointCreateModal
+        open={showShockModal}
+        onOpenChange={setShowShockModal}
+        selectedShockPointId={selectedShockPointId}
+        onSelectedShockPointIdChange={setSelectedShockPointId}
+        shockPoints={shockPoints}
+        shocks={assignment?.shocks?.map(shock => ({
+          id: shock.id,
+          shock_point_id: shock.shock_point.id
+        })) || []}
+        onCreateShockPoint={handleCreateShockPoint}
+        onAddShock={handleAddShock}
+      />
+
+      {/* Modal de création de point de choc */}
+      <ShockPointMutateDialog
+        open={showCreateShockPointModal}
+        onOpenChange={setShowCreateShockPointModal}
+        onSuccess={handleShockPointCreated}
+      />
     </>
   )
 }

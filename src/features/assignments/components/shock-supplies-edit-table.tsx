@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
 import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
 import {
@@ -186,6 +188,56 @@ function SortableSupplyRow({
           />
         </td>
       )}
+      {/* Montant HT */}
+      <td className="border px-2 text-center text-[10px] w-40">
+        <Input
+          type="number"
+          className="w-full rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
+          value={row.amount}
+          onChange={e => updateLocalShockWork(index, 'amount', Number(e.target.value))}
+        />
+      </td>
+      {/* Remise */}
+      <td className="border px-2 py-2 text-center text-[10px]">
+        <Input
+          type="number"
+          className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
+          value={row.discount}
+          onChange={e => updateLocalShockWork(index, 'discount', Number(e.target.value))}
+        />
+      </td>
+      {/* Remise Calculé */}
+      <td className="border px-2 py-2 text-center text-[10px] w-40">
+        <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+          {_formatCurrency(row.amount - (row.discount_amount || 0))}
+        </div>
+      </td>
+      {/* Vétuste (%) */}
+      <td className="border px-2 text-center text-[10px]">
+        <Input
+          type="number"
+          className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
+          value={row.obsolescence_rate}
+          onChange={e => updateLocalShockWork(index, 'obsolescence_rate', Number(e.target.value))}
+        />
+      </td>
+      {/* Vétuste calculée */}
+      <td className="border px-2 text-center text-[10px] w-40">
+        <div className="text-gray-600 font-medium">
+          {_formatCurrency(row.new_amount_excluding_tax || 0)}
+        </div>
+      </td>
+      {/* Montant TTC */}
+      <td className="border px-2 py-2 text-center text-[10px] w-35">
+        <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+          <Input
+            type="number"
+            className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
+            value={row.recovery_amount || 0}
+            onChange={e => updateLocalShockWork(index, 'recovery_amount', Number(e.target.value))}
+          />
+        </div>
+      </td>
       {/* Actions */}
       <td className="border px-2 py-2 text-center text-[10px]">
         <div className="flex items-center justify-center gap-1">
@@ -337,8 +389,13 @@ export function ShockSuppliesEditTable({
     if (!onReorderSave || !shockId) return
     
     const shockWorkIds = localShockWorks
-      .filter(work => work.id) // Seulement les éléments avec un ID (pas les nouveaux)
+      .filter(work => work.id && work.id > 0) // Seulement les éléments avec un ID valide (pas les nouveaux)
       .map(work => work.id!)
+    
+    if (shockWorkIds.length === 0) {
+      toast.error('Aucun élément à réorganiser trouvé')
+      return
+    }
     
     await onReorderSave(shockWorkIds)
     setHasLocalReorderChanges(false)
@@ -446,14 +503,23 @@ export function ShockSuppliesEditTable({
   // Calculer les totaux
   const totals = localShockWorks.reduce((acc, work) => {
     return {
-      count: acc.count + 1,
-      amount: acc.amount + (work.amount || 0),
-      discount: acc.discount + (work.discount_amount || 0),
       obsolescence: acc.obsolescence + (work.obsolescence_amount || 0),
       recovery: acc.recovery + (work.recovery_amount || 0),
-      new: acc.new + (work.new_amount || 0)
+      new: acc.new + (work.new_amount || 0),
+      obsolescence_ht: acc.obsolescence_ht + (work.obsolescence_amount_excluding_tax || 0),
+      recovery_ht: acc.recovery_ht + (work.recovery_amount_excluding_tax || 0),
+      new_ht: acc.new_ht + (work.new_amount_excluding_tax || 0),
+      obsolescence_tva: acc.obsolescence_tva + (work.obsolescence_amount_tax || 0),
+      recovery_tva: acc.recovery_tva + (work.recovery_amount_tax || 0),
+      new_tva: acc.new_tva + (work.new_amount_tax || 0),
+      discount_amount: acc.discount_amount + (work.discount_amount || 0)
     }
-  }, { count: 0, amount: 0, discount: 0, obsolescence: 0, recovery: 0, new: 0 })
+  }, { 
+    obsolescence: 0, recovery: 0, new: 0, 
+    obsolescence_ht: 0, recovery_ht: 0, new_ht: 0,
+    obsolescence_tva: 0, recovery_tva: 0, new_tva: 0,
+    discount_amount: 0
+  })
 
   return (
     <div className="space-y-3">
@@ -573,6 +639,24 @@ export function ShockSuppliesEditTable({
                   </th>
                 )}
                 <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  Montant HT
+                </th>
+                <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  Remise
+                </th>
+                <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  Remise Calculé
+                </th>
+                <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  Vétuste (%)
+                </th>
+                <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  Vétuste calculée
+                </th>
+                <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
+                  Montant TTC
+                </th>
+                <th className="border px-2 py-2 text-center font-medium text-[10px]">
                   Actions
                 </th>
               </tr>
@@ -584,7 +668,7 @@ export function ShockSuppliesEditTable({
               <tbody>
                 {localShockWorks.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="text-center text-muted-foreground py-8 text-[10px]">
+                    <td colSpan={14} className="text-center text-muted-foreground py-8 text-[10px]">
                       Aucune fourniture ajoutée
                     </td>
                   </tr>
@@ -613,22 +697,52 @@ export function ShockSuppliesEditTable({
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
-        <div className="text-[10px] text-center items-center flex justify-around">
+        <div className="text-xs flex flex-wrap gap-4 justify-around">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
-            <div className="text-lg font-bold text-gray-800">{totals.count}</div>
+            <div className="text-lg font-bold text-gray-800">{localShockWorks.length}</div>
+          </div>
+          
+          {/* <div className="text-center">
+            <div className="text-blue-600 font-medium">Vetusté HT</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_ht)}</div>
+          </div> */}
+          {/* <div className="text-center">
+            <div className="text-blue-600 font-medium">Vetusté TVA</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_tva)}</div>
+          </div> */}
+          <div className="text-center">
+            <div className="text-blue-600 font-medium">Vetusté TTC</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
+          </div>
+
+          <div className="text-center">
+            <div className="text-blue-600 font-medium">Remise TTC</div>
+            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.discount_amount)}</div>
+          </div>
+          {/* <div className="text-center">
+            <div className="text-green-600 font-medium">Récupération HT</div>
+            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_ht)}</div>
           </div>
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Montant total</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.amount)}</div>
+            <div className="text-green-600 font-medium">Récupération TVA</div>
+            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_tva)}</div>
+          </div> */}
+          <div className="text-center">
+            <div className="text-green-600 font-medium">Récupération TTC</div>
+            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery)}</div>
           </div>
           <div className="text-center">
-            <div className="text-green-600 font-medium">Remise</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.discount)}</div>
+            <div className="text-purple-600 font-medium">Montant Final HT</div>
+            <div className={`text-base font-bold ${totals.new_ht >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+              {formatCurrency(totals.new_ht)}
+            </div>
           </div>
           <div className="text-center">
-            <div className="text-purple-600 font-medium">Final</div>
-            <div className="text-base font-bold text-purple-700">{formatCurrency(totals.new)}</div>
+            <div className="text-purple-600 font-medium">Montant Final TTC</div>
+            <div className={`text-base font-bold ${totals.new >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+              {formatCurrency(totals.new)}
+            </div>
           </div>
         </div>
       </div>

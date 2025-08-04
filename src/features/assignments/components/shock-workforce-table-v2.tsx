@@ -192,7 +192,7 @@ function SortableWorkforceRow({
         />
       </td>
             {/* Colonne peinture partielle/totale si workforce_type_id = 1 */}
-      {row.workforce_type_id === 1 && (
+      {row.workforce_type_id === 1 ? (
         <td className="border px-2 py-2 text-center text-[10px]">
           <div className="flex items-center justify-center gap-2">
             <Checkbox
@@ -201,9 +201,15 @@ function SortableWorkforceRow({
               className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
             <span className="text-xs text-gray-600">
-              {row.all_paint ? 'Totale' : 'Partielle'}
+              {row.all_paint ? 'Complète' : 'Partielle'}
             </span>
           </div>
+        </td>
+      ): (
+        <td className="border px-2 py-2 text-center text-[10px]">
+          <span className="text-xs text-gray-600">
+            {/* {row.all_paint ? 'Totale' : 'Partielle'} */}
+          </span>
         </td>
       )}
       {/* Tps(H) */}
@@ -463,8 +469,13 @@ export function ShockWorkforceTableV2({
     if (!onReorderSave) return
     
     const workforceIds = localWorkforces
-      .filter(workforce => workforce.id) // Seulement les éléments avec un ID (pas les nouveaux)
+      .filter(workforce => workforce.id && workforce.id > 0) // Seulement les éléments avec un ID valide (pas les nouveaux)
       .map(workforce => workforce.id!)
+    
+    if (workforceIds.length === 0) {
+      toast.error('Aucun élément à réorganiser trouvé')
+      return
+    }
     
     await onReorderSave(workforceIds)
     setHasLocalReorderChanges(false)
