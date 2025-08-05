@@ -73,11 +73,7 @@ import { ReceiptManagement } from '@/features/assignments/components/receipt-man
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+
 import { GeneralStateSelect } from '@/features/widgets/general-state-select'
 import { TechnicalConclusionSelect } from '@/features/widgets/technical-conclusion-select'
 import { ClaimNatureSelect } from '@/features/widgets/claim-nature-select'
@@ -572,10 +568,10 @@ export default function EditReportPage() {
   const [marketIncidenceRate, setMarketIncidenceRate] = useState<number>(0)
   
   // États pour les dates et valeurs
-  const [seenBeforeWorkDate, setSeenBeforeWorkDate] = useState<Date | null>(null)
-  const [seenDuringWorkDate, setSeenDuringWorkDate] = useState<Date | null>(null)
-  const [seenAfterWorkDate, setSeenAfterWorkDate] = useState<Date | null>(null)
-  const [contactDate, setContactDate] = useState<Date | null>(null)
+  const [seenBeforeWorkDate, setSeenBeforeWorkDate] = useState<string | null>(null)
+  const [seenDuringWorkDate, setSeenDuringWorkDate] = useState<string | null>(null)
+  const [seenAfterWorkDate, setSeenAfterWorkDate] = useState<string | null>(null)
+  const [contactDate, setContactDate] = useState<string | null>(null)
   const [expertisePlace, setExpertisePlace] = useState('')
   const [assuredValue, setAssuredValue] = useState<number>(0)
   const [salvageValue, setSalvageValue] = useState<number>(0)
@@ -738,16 +734,16 @@ export default function EditReportPage() {
           
           // Pré-remplir les dates
           if (assignmentData.seen_before_work_date) {
-            setSeenBeforeWorkDate(new Date(assignmentData.seen_before_work_date))
+            setSeenBeforeWorkDate(assignmentData.seen_before_work_date)
           }
           if (assignmentData.seen_during_work_date) {
-            setSeenDuringWorkDate(new Date(assignmentData.seen_during_work_date))
+            setSeenDuringWorkDate(assignmentData.seen_during_work_date)
           }
           if (assignmentData.seen_after_work_date) {
-            setSeenAfterWorkDate(new Date(assignmentData.seen_after_work_date))
+            setSeenAfterWorkDate(assignmentData.seen_after_work_date)
           }
           if (assignmentData.contact_date) {
-            setContactDate(new Date(assignmentData.contact_date))
+            setContactDate(assignmentData.contact_date)
           }
         } else {
           setAssignment(response as unknown as Assignment)
@@ -769,16 +765,16 @@ export default function EditReportPage() {
           
           // Pré-remplir les dates
           if (assignmentData.seen_before_work_date) {
-            setSeenBeforeWorkDate(new Date(assignmentData.seen_before_work_date))
+            setSeenBeforeWorkDate(assignmentData.seen_before_work_date)
           }
           if (assignmentData.seen_during_work_date) {
-            setSeenDuringWorkDate(new Date(assignmentData.seen_during_work_date))
+            setSeenDuringWorkDate(assignmentData.seen_during_work_date)
           }
           if (assignmentData.seen_after_work_date) {
-            setSeenAfterWorkDate(new Date(assignmentData.seen_after_work_date))
+            setSeenAfterWorkDate(assignmentData.seen_after_work_date)
           }
           if (assignmentData.contact_date) {
-            setContactDate(new Date(assignmentData.contact_date))
+            setContactDate(assignmentData.contact_date)
           }
         }
       } catch (err) {
@@ -1081,10 +1077,10 @@ export default function EditReportPage() {
           if (claimNatureId) payload.claim_nature_id = claimNatureId.toString()
           if (selectedRemarkId) payload.report_remark_id = selectedRemarkId.toString()
           if (expertRemark) payload.expert_report_remark = expertRemark
-          if (seenBeforeWorkDate) payload.seen_before_work_date = seenBeforeWorkDate.toISOString()
-          if (seenDuringWorkDate) payload.seen_during_work_date = seenDuringWorkDate.toISOString()
-          if (seenAfterWorkDate) payload.seen_after_work_date = seenAfterWorkDate.toISOString()
-          if (contactDate) payload.contact_date = contactDate.toISOString()
+                  if (seenBeforeWorkDate) payload.seen_before_work_date = seenBeforeWorkDate
+        if (seenDuringWorkDate) payload.seen_during_work_date = seenDuringWorkDate
+        if (seenAfterWorkDate) payload.seen_after_work_date = seenAfterWorkDate
+        if (contactDate) payload.contact_date = contactDate
           if (expertisePlace) payload.expertise_place = expertisePlace
           if (assuredValue) payload.assured_value = Number(assuredValue)
           if (salvageValue) payload.salvage_value = Number(salvageValue)
@@ -2451,94 +2447,46 @@ export default function EditReportPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-2">
                                 <Label htmlFor="seen-before-work">Date de visite avant les travaux</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className="w-full justify-start text-left font-normal"
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {seenBeforeWorkDate ? format(seenBeforeWorkDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={seenBeforeWorkDate || undefined}
-                                      onSelect={(date) => setSeenBeforeWorkDate(date || null)}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <Input
+                                  id="seen-before-work"
+                                  type="date"
+                                  value={seenBeforeWorkDate || ''}
+                                  onChange={(e) => setSeenBeforeWorkDate(e.target.value || null)}
+                                  className="w-full"
+                                />
                               </div>
 
                               <div className="space-y-2">
                                 <Label htmlFor="seen-during-work">Date de visite pendant les travaux</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className="w-full justify-start text-left font-normal"
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {seenDuringWorkDate ? format(seenDuringWorkDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={seenDuringWorkDate || undefined}
-                                      onSelect={(date) => setSeenDuringWorkDate(date || null)}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <Input
+                                  id="seen-during-work"
+                                  type="date"
+                                  value={seenDuringWorkDate || ''}
+                                  onChange={(e) => setSeenDuringWorkDate(e.target.value || null)}
+                                  className="w-full"
+                                />
                               </div>
 
                               <div className="space-y-2">
                                 <Label htmlFor="seen-after-work">Date de visite après les travaux</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className="w-full justify-start text-left font-normal"
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {seenAfterWorkDate ? format(seenAfterWorkDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={seenAfterWorkDate || undefined}
-                                      onSelect={(date) => setSeenAfterWorkDate(date || null)}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <Input
+                                  id="seen-after-work"
+                                  type="date"
+                                  value={seenAfterWorkDate || ''}
+                                  onChange={(e) => setSeenAfterWorkDate(e.target.value || null)}
+                                  className="w-full"
+                                />
                               </div>
 
                               <div className="space-y-2">
                                 <Label htmlFor="contact-date">Date de contact</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className="w-full justify-start text-left font-normal"
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {contactDate ? format(contactDate, 'PPP', { locale: fr }) : 'Sélectionner une date'}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={contactDate || undefined}
-                                      onSelect={(date) => setContactDate(date || null)}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <Input
+                                  id="contact-date"
+                                  type="date"
+                                  value={contactDate || ''}
+                                  onChange={(e) => setContactDate(e.target.value || null)}
+                                  className="w-full"
+                                />
                               </div>
 
                               <div className="space-y-2">

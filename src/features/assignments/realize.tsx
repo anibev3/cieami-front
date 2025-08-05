@@ -41,7 +41,9 @@ import { useAssignmentRealizationStore } from '@/stores/assignmentRealizationSto
 
 // Schéma de validation pour la réalisation
 const realizeSchema = z.object({
-  expertise_date: z.date().nullable().optional(),
+  expertise_date: z.date().nullable().refine((date) => date !== null, {
+    message: "La date d'expertise est requise",
+  }),
   expertise_time: z.string().optional(),
   expertise_place: z.string().optional(),
   point_noted: z.string().optional(),

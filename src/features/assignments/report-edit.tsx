@@ -8,14 +8,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+
 import { Label } from '@/components/ui/label'
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+
 import { Main } from '@/components/layout/main'
 import {
   Dialog,
@@ -41,7 +40,7 @@ import {
   TrendingUp,
   Star,
   StarOff,
-  CalendarIcon,
+
   Car,
   AlertCircle,
   Receipt,
@@ -77,7 +76,7 @@ import { TechnicalConclusionSelect } from '@/features/widgets/technical-conclusi
 import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/components/shock-point-mutate-dialog'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import type { Shock } from './hooks/use-shock-management'
-import { Calendar } from '@/components/ui/calendar'
+
 import { cn } from '@/lib/utils'
 import { Textarea } from '@/components/ui/textarea'
 import { EvaluationDisplay } from './components/evaluation-display'
@@ -1416,110 +1415,35 @@ export default function ReportEditPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="seen-before-work">Date de visite avant travaux</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left text-sm",
-                                !seenBeforeWorkDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {seenBeforeWorkDate ? (
-                                format(new Date(seenBeforeWorkDate), "dd/MM/yyyy", { locale: fr })
-                              ) : (
-                                <span>Sélectionner une date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={seenBeforeWorkDate ? new Date(seenBeforeWorkDate) : undefined}
-                              initialFocus
-                              onSelect={(date) => {
-                                if (date) {
-                                  setSeenBeforeWorkDate(date.toISOString().split('T')[0])
-                                } else {
-                                  setSeenBeforeWorkDate(null)
-                                }
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Input
+                          id="seen-before-work"
+                          type="date"
+                          value={seenBeforeWorkDate || ''}
+                          onChange={(e) => setSeenBeforeWorkDate(e.target.value || null)}
+                          className="w-full"
+                        />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="seen-during-work">Date de visite pendant travaux</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left text-sm",
-                                !seenDuringWorkDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {seenDuringWorkDate ? (
-                                format(new Date(seenDuringWorkDate), "dd/MM/yyyy", { locale: fr })
-                              ) : (
-                                <span>Sélectionner une date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={seenDuringWorkDate ? new Date(seenDuringWorkDate) : undefined}
-                              initialFocus
-                              onSelect={(date) => {
-                                if (date) {
-                                  setSeenDuringWorkDate(date.toISOString().split('T')[0])
-                                } else {
-                                  setSeenDuringWorkDate(null)
-                                }
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Input
+                          id="seen-during-work"
+                          type="date"
+                          value={seenDuringWorkDate || ''}
+                          onChange={(e) => setSeenDuringWorkDate(e.target.value || null)}
+                          className="w-full"
+                        />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="seen-after-work">Date de visite après travaux</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left text-sm",
-                                !seenAfterWorkDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {seenAfterWorkDate ? (
-                                format(new Date(seenAfterWorkDate), "dd/MM/yyyy", { locale: fr })
-                              ) : (
-                                <span>Sélectionner une date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={seenAfterWorkDate ? new Date(seenAfterWorkDate) : undefined}
-                              initialFocus
-                              onSelect={(date) => {
-                                if (date) {
-                                  setSeenAfterWorkDate(date.toISOString().split('T')[0])
-                                } else {
-                                  setSeenAfterWorkDate(null)
-                                }
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Input
+                          id="seen-after-work"
+                          type="date"
+                          value={seenAfterWorkDate || ''}
+                          onChange={(e) => setSeenAfterWorkDate(e.target.value || null)}
+                          className="w-full"
+                        />
                       </div>
                     </div>
                   </CardContent>
@@ -1537,38 +1461,13 @@ export default function ReportEditPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="contact-date">Date de contact</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left text-sm",
-                                !contactDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {contactDate ? (
-                                format(new Date(contactDate), "dd/MM/yyyy", { locale: fr })
-                              ) : (
-                                <span>Sélectionner une date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={contactDate ? new Date(contactDate) : undefined}
-                              initialFocus
-                              onSelect={(date) => {
-                                if (date) {
-                                  setContactDate(date.toISOString().split('T')[0])
-                                } else {
-                                  setContactDate(null)
-                                }
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Input
+                          id="contact-date"
+                          type="date"
+                          value={contactDate || ''}
+                          onChange={(e) => setContactDate(e.target.value || null)}
+                          className="w-full"
+                        />
                       </div>
 
                       <div className="space-y-2">
@@ -1770,43 +1669,15 @@ export default function ReportEditPage() {
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-3">
                     <div>
                       <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4 text-blue-600" />
                         Date d'expertise
                         {!expertiseDate && <span className="text-red-500 ml-1">*</span>}
                       </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left text-sm",
-                              !expertiseDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {expertiseDate ? (
-                              format(new Date(expertiseDate), "EEEE, d MMMM yyyy", { locale: fr })
-                            ) : (
-                              <span>Sélectionner une date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={expertiseDate ? new Date(expertiseDate) : undefined}
-                            initialFocus
-                            onSelect={(date) => {
-                              if (date) {
-                                setExpertiseDate(date.toISOString().split('T')[0])
-                              } else {
-                                setExpertiseDate(null)
-                              }
-                            }}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        type="date"
+                        value={expertiseDate || ''}
+                        onChange={(e) => setExpertiseDate(e.target.value || null)}
+                        className="w-full"
+                      />
                     </div>
                     <div>
                       <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
