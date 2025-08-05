@@ -41,14 +41,12 @@ import { useAssignmentRealizationStore } from '@/stores/assignmentRealizationSto
 
 // Schéma de validation pour la réalisation
 const realizeSchema = z.object({
-  expertise_date: z.date({
-    required_error: "La date d'expertise est requise",
-  }),
-  expertise_time: z.string().min(1, "L'heure d'expertise est requise"),
-  expertise_place: z.string().min(1, 'Le lieu d\'expertise est requis'),
-  point_noted: z.string(), // Champ optionnel mais avec valeur par défaut
-  directed_by: z.string().min(1, 'L\'expert est requis'),
-  repairer_id: z.string(), // Champ optionnel mais avec valeur par défaut
+  expertise_date: z.date().nullable().optional(),
+  expertise_time: z.string().optional(),
+  expertise_place: z.string().optional(),
+  point_noted: z.string().optional(),
+  directed_by: z.string().min(1, 'L\'expert responsable est requis'),
+  repairer_id: z.string().optional(),
 })
 
 // Interface déplacée vers le service
@@ -72,8 +70,8 @@ export default function RealizeAssignmentPage() {
   const form = useForm<z.infer<typeof realizeSchema>>({
     resolver: zodResolver(realizeSchema),
     defaultValues: {
-      expertise_date: new Date(),
-      expertise_time: '09:00',
+      expertise_date: null,
+      expertise_time: '',
       expertise_place: '',
       point_noted: '',
       directed_by: '',
@@ -92,7 +90,7 @@ export default function RealizeAssignmentPage() {
   useEffect(() => {
     if (assignment && assignment.realized_at) {
       // Gérer la date d'expertise
-      let expertiseDate = new Date()
+      let expertiseDate = null
       let timeString = '09:00'
       
       if (assignment.expertise_date) {
@@ -131,27 +129,31 @@ export default function RealizeAssignmentPage() {
 
   const onSubmit = async (values: z.infer<typeof realizeSchema>) => {
     try {
-      // Combiner la date et l'heure au format "YYYY-MM-DDTHH:mm"
-      const expertiseDateTime = new Date(values.expertise_date)
-      const [hours, minutes] = values.expertise_time.split(':')
-      expertiseDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+      // Gérer la date et l'heure de manière optionnelle
+      let formattedDateTime: string | null = null
       
-      // Formater la date au format "YYYY-MM-DDTHH:mm"
-      const year = expertiseDateTime.getFullYear()
-      const month = String(expertiseDateTime.getMonth() + 1).padStart(2, '0')
-      const day = String(expertiseDateTime.getDate()).padStart(2, '0')
-      const formattedHours = String(expertiseDateTime.getHours()).padStart(2, '0')
-      const formattedMinutes = String(expertiseDateTime.getMinutes()).padStart(2, '0')
-      
-      const formattedDateTime = `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`
+      if (values.expertise_date && values.expertise_time) {
+        const expertiseDateTime = new Date(values.expertise_date)
+        const [hours, minutes] = values.expertise_time.split(':')
+        expertiseDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+        
+        // Formater la date au format "YYYY-MM-DDTHH:mm"
+        const year = expertiseDateTime.getFullYear()
+        const month = String(expertiseDateTime.getMonth() + 1).padStart(2, '0')
+        const day = String(expertiseDateTime.getDate()).padStart(2, '0')
+        const formattedHours = String(expertiseDateTime.getHours()).padStart(2, '0')
+        const formattedMinutes = String(expertiseDateTime.getMinutes()).padStart(2, '0')
+        
+        formattedDateTime = `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`
+      }
       
       const payload: RealizePayload = {
         expertise_date: formattedDateTime,
-        expertise_place: values.expertise_place,
-        point_noted: values.point_noted,
+        expertise_place: values.expertise_place || null,
+        point_noted: values.point_noted || null,
         directed_by: values.directed_by,
-        repairer_id: values.repairer_id,
-      }
+        repairer_id: values.repairer_id || null,
+      }      
 
       if (isEditRealization) {
         await updateRealizeAssignment(assignmentId, payload, isEditRealization)
@@ -319,19 +321,19 @@ export default function RealizeAssignmentPage() {
                       name="expertise_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Date d'expertise <span className="text-red-500">*</span></FormLabel>
-                              <FormControl>
+                          <FormLabel>Date d'expertise</FormLabel>
+                          <FormControl>
                             <Input
                               type="date"
                               value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
                               onChange={(e) => {
-                                const date = e.target.value ? new Date(e.target.value) : new Date()
+                                const date = e.target.value ? new Date(e.target.value) : null
                                 field.onChange(date)
                               }}
                               max={format(new Date(), 'yyyy-MM-dd')}
                               className="w-full"
                             />
-                              </FormControl>
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -342,7 +344,7 @@ export default function RealizeAssignmentPage() {
                       name="expertise_time"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Heure d'expertise <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel>Heure d'expertise</FormLabel>
                           <FormControl>
                             <Input
                               type="time"
@@ -362,7 +364,7 @@ export default function RealizeAssignmentPage() {
                     name="expertise_place"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Lieu d'expertise <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel>Lieu d'expertise</FormLabel>
                         <FormControl>
                           <Input 
                             {...field} 

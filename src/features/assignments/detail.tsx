@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 import { useParams, useNavigate, useSearch } from '@tanstack/react-router'
@@ -74,12 +75,9 @@ import {
 } from '@/components/ui/sheet'
 import { toast } from 'sonner'
 import { useAssignmentsStore } from '@/stores/assignments'
-import { AssignmentActions } from './components/assignment-actions'
 import { 
   ShockDetailTable, 
   WorkforceDetailTable, 
-  ReceiptDetailTable, 
-  FinancialSummary 
 } from './components'
 import { useACL } from '@/hooks/useACL'
 
@@ -418,6 +416,7 @@ interface AssignmentDetail {
       amount_excluding_tax: string
       amount_tax: string
       amount: string
+      with_tax: number | null
       workforce_type: {
         id: number
         code: string
@@ -1543,11 +1542,14 @@ export default function AssignmentDetailPage() {
       case 'shocks':
         return (
               <div className="space-y-6">
-                <ShockDetailTable shocks={assignment.shocks} />
+                <ShockDetailTable shocks={assignment.shocks as any} assignment_status={assignment.status.code} assignment_id={assignment.id.toString()} />
 
                 {assignment.shocks.some(shock => shock.workforces && shock.workforces.length > 0) && (
                   <WorkforceDetailTable 
-                    workforces={assignment.shocks.flatMap(shock => shock.workforces || [])} 
+                    workforces={assignment.shocks.flatMap(shock => shock.workforces || []).map(workforce => ({
+                      ...workforce,
+                      with_tax: workforce.with_tax // Valeur par défaut pour la compatibilité
+                    })) as any} 
                   />
                 )}
               </div>
@@ -2416,7 +2418,7 @@ export default function AssignmentDetailPage() {
             {/* Contenu principal */}
             <div className="flex-1">
               {/* Suivi & Statuts */}
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none">
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none py-2">
                 <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 items-center px-3 sm:px-6">
                   {/* Si l'un des statuts est "done", afficher seulement "Validé" */}
                                       {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (

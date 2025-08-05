@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ArrowLeft, Edit, Trash2, Eye } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import { Label } from '@/components/ui/label'
 

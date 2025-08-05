@@ -2,11 +2,11 @@ import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 
 export interface RealizeAssignmentPayload {
-  expertise_date: string
-  expertise_place: string
-  point_noted: string
+  expertise_date: string | null
+  expertise_place: string | null
+  point_noted: string | null
   directed_by: string
-  repairer_id: string
+  repairer_id: string | null
 }
 
 export interface RealizeAssignmentResponse {

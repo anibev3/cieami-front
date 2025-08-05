@@ -144,7 +144,7 @@ interface Evaluation {
     option: string | null
     mileage: string | null
     serial_number: string | null
-    first_entry_into_circulation_date: string
+    first_entry_into_circulation_date: string | null
     technical_visit_date: string | null
     fiscal_power: number
     payload: number
@@ -192,8 +192,8 @@ interface Evaluation {
       deleted_at: string | null
     }
   }
-  expertise_date: string
-  first_entry_into_circulation_date: string
+  expertise_date: string | null
+  first_entry_into_circulation_date: string | null
   vehicle_new_value: string
   vehicle_age: number
   vehicle_max_mileage_essence_per_year: string
@@ -322,7 +322,7 @@ export default function ReportEditPage() {
 
   // États pour l'évaluation et les constats
   const [marketIncidenceRate, setMarketIncidenceRate] = useState(0) // Valeur par défaut de 6%
-  const [expertiseDate, setExpertiseDate] = useState(new Date().toISOString().split('T')[0])
+  const [expertiseDate, setExpertiseDate] = useState<string | null>(null)
   
   // États pour les données des selects
   const [generalStates, setGeneralStates] = useState<any[]>([])
@@ -331,10 +331,10 @@ export default function ReportEditPage() {
   const [instructions, setInstructions] = useState('')
   
   // États pour les champs supplémentaires des dossiers NON-évaluation
-  const [seenBeforeWorkDate, setSeenBeforeWorkDate] = useState<string>('')
-  const [seenDuringWorkDate, setSeenDuringWorkDate] = useState<string>('')
-  const [seenAfterWorkDate, setSeenAfterWorkDate] = useState<string>('')
-  const [contactDate, setContactDate] = useState<string>('')
+  const [seenBeforeWorkDate, setSeenBeforeWorkDate] = useState<string | null>(null)
+  const [seenDuringWorkDate, setSeenDuringWorkDate] = useState<string | null>(null)
+  const [seenAfterWorkDate, setSeenAfterWorkDate] = useState<string | null>(null)
+  const [contactDate, setContactDate] = useState<string | null>(null)
   const [expertisePlace, setExpertisePlace] = useState('')
   const [assuredValue, setAssuredValue] = useState<number>(0)
   const [salvageValue, setSalvageValue] = useState<number>(0)
@@ -1441,6 +1441,8 @@ export default function ReportEditPage() {
                               onSelect={(date) => {
                                 if (date) {
                                   setSeenBeforeWorkDate(date.toISOString().split('T')[0])
+                                } else {
+                                  setSeenBeforeWorkDate(null)
                                 }
                               }}
                             />
@@ -1475,6 +1477,8 @@ export default function ReportEditPage() {
                               onSelect={(date) => {
                                 if (date) {
                                   setSeenDuringWorkDate(date.toISOString().split('T')[0])
+                                } else {
+                                  setSeenDuringWorkDate(null)
                                 }
                               }}
                             />
@@ -1509,6 +1513,8 @@ export default function ReportEditPage() {
                               onSelect={(date) => {
                                 if (date) {
                                   setSeenAfterWorkDate(date.toISOString().split('T')[0])
+                                } else {
+                                  setSeenAfterWorkDate(null)
                                 }
                               }}
                             />
@@ -1556,6 +1562,8 @@ export default function ReportEditPage() {
                               onSelect={(date) => {
                                 if (date) {
                                   setContactDate(date.toISOString().split('T')[0])
+                                } else {
+                                  setContactDate(null)
                                 }
                               }}
                             />
@@ -1792,6 +1800,8 @@ export default function ReportEditPage() {
                             onSelect={(date) => {
                               if (date) {
                                 setExpertiseDate(date.toISOString().split('T')[0])
+                              } else {
+                                setExpertiseDate(null)
                               }
                             }}
                           />

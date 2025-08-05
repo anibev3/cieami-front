@@ -1,8 +1,6 @@
-import React from 'react'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrencyWithoutCurrencySymbol } from '@/utils/format-currency'
-import { Clock, DollarSign, Calculator } from 'lucide-react'
+import { Clock, Calculator } from 'lucide-react'
 
 interface Workforce {
   id: number

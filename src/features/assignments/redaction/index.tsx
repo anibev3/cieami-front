@@ -616,6 +616,100 @@ export default function EditReportPage() {
   const [shockToDelete, setShockToDelete] = useState<number | null>(null)
   const [deletingShock, setDeletingShock] = useState(false)
 
+  // États pour le modal d'édition de choc
+  const [showEditShockWarning, setShowEditShockWarning] = useState(false)
+  const [highlightedShockId, setHighlightedShockId] = useState<number | null>(null)
+
+  // Fonction pour changer d'onglet et mettre à jour l'URL
+  const changeActiveTab = (tab: string) => {
+    setActiveTab(tab)
+    // Mettre à jour l'URL avec le paramètre tab
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', tab)
+    window.history.replaceState({}, '', url.toString())
+  }
+
+  // Initialiser l'onglet actif depuis l'URL au chargement
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tabFromUrl = urlParams.get('tab')
+    if (tabFromUrl && ['overview', 'shocks', 'costs', 'receipts', 'additional-info', 'constatations'].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [])
+
+  // Gérer les paramètres d'URL pour l'édition de choc et la surbrillance
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const info = urlParams.get('info')
+    const shockId = urlParams.get('shock_id')
+
+    // Gérer le modal d'avertissement d'édition de choc
+    if (info === 'edit-shocks') {
+      setShowEditShockWarning(true)
+      // Supprimer le paramètre info de l'URL
+      urlParams.delete('info')
+      const newUrl = new URL(window.location.href)
+      newUrl.search = urlParams.toString()
+      window.history.replaceState({}, '', newUrl.toString())
+    }
+
+    // Gérer la surbrillance du choc
+    if (shockId) {
+      const shockIdNum = parseInt(shockId, 10)
+      if (!isNaN(shockIdNum)) {
+        setHighlightedShockId(shockIdNum)
+        // Supprimer le paramètre shock_id de l'URL
+        urlParams.delete('shock_id')
+        const newUrl = new URL(window.location.href)
+        newUrl.search = urlParams.toString()
+        window.history.replaceState({}, '', newUrl.toString())
+        setTimeout(() => {
+          // S'assurer que l'onglet shocks est actif et scroller vers le choc
+          if (activeTab !== 'shocks') {
+            console.log("================> 1 activeTab", activeTab)
+            changeActiveTab('shocks')
+            // Attendre un peu plus longtemps si on a changé d'onglet
+            setTimeout(() => {
+              const shockElement = document.querySelector(`[data-shock-id="${shockIdNum}"]`)
+              console.log("================> 2 shockElement", shockElement)
+              if (shockElement) {
+                console.log("================> 3 shockElement", shockElement)
+                shockElement.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'center',
+                  inline: 'nearest'
+                })
+              }
+            }, 800)
+          } else {
+            console.log("================> 4 activeTab", activeTab)
+            // Scroll automatique vers le choc après un court délai pour laisser le DOM se mettre à jour
+            setTimeout(() => {
+
+              const shockElement = document.querySelector(`[data-shock-id="${shockIdNum}"]`)
+              console.log("================> 5 shockElement", shockElement)
+              if (shockElement) {
+                console.log("================> 6 shockElement", shockElement)
+                shockElement.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'center',
+                  inline: 'nearest'
+                })
+              }
+            }, 500)
+          }
+          
+          // Retirer la surbrillance après 30 secondes
+          setTimeout(() => {
+            console.log("================> 7 highlightedShockId", highlightedShockId)
+            setHighlightedShockId(null)
+          }, 30000)
+        }, 4000)
+      }
+    }
+  }, [])
+
 
   // Charger les données du dossier
   useEffect(() => {
@@ -883,6 +977,18 @@ export default function EditReportPage() {
       setShowDeleteShockDialog(false)
       setShockToDelete(null)
     }
+  }
+
+  // Fonctions pour gérer le modal d'avertissement d'édition de choc
+  const handleEditShockWarningClose = () => {
+    setShowEditShockWarning(false)
+    // Retourner en arrière
+    window.history.back()
+  }
+
+  const handleEditShockWarningContinue = () => {
+    setShowEditShockWarning(false)
+    // L'utilisateur peut continuer à éditer
   }
 
   // Fonction de formatage des montants
@@ -1198,7 +1304,7 @@ export default function EditReportPage() {
             <ScrollArea className="flex-1">
               <nav className="p-4 space-y-1">
                 <button
-                  onClick={() => setActiveTab('overview')}
+                  onClick={() => changeActiveTab('overview')}
                   className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
                     activeTab === 'overview' 
                       ? 'bg-gray-100 text-gray-900 font-medium' 
@@ -1212,7 +1318,7 @@ export default function EditReportPage() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('shocks')}
+                  onClick={() => changeActiveTab('shocks')}
                   className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
                     activeTab === 'shocks' 
                       ? 'bg-gray-100 text-gray-900 font-medium' 
@@ -1226,7 +1332,7 @@ export default function EditReportPage() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('costs')}
+                  onClick={() => changeActiveTab('costs')}
                   className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
                     activeTab === 'costs' 
                       ? 'bg-gray-100 text-gray-900 font-medium' 
@@ -1240,7 +1346,7 @@ export default function EditReportPage() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('receipts')}
+                  onClick={() => changeActiveTab('receipts')}
                   className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
                     activeTab === 'receipts' 
                       ? 'bg-gray-100 text-gray-900 font-medium' 
@@ -1254,7 +1360,7 @@ export default function EditReportPage() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('additional-info')}
+                  onClick={() => changeActiveTab('additional-info')}
                   className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
                     activeTab === 'additional-info' 
                       ? 'bg-gray-100 text-gray-900 font-medium' 
@@ -1268,7 +1374,7 @@ export default function EditReportPage() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('constatations')}
+                  onClick={() => changeActiveTab('constatations')}
                   className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
                     activeTab === 'constatations' 
                       ? 'bg-gray-100 text-gray-900 font-medium' 
@@ -1823,11 +1929,16 @@ export default function EditReportPage() {
 
                     {assignment.shocks && assignment.shocks.length > 0 ? (
                       assignment.shocks.map((shock) => (
-                        <div key={shock.id} className={`border rounded-lg overflow-hidden transition-all duration-200 ${
-                          collapsedShocks.has(shock.id) 
-                            ? 'border-gray-200 shadow-sm' 
-                            : 'border-blue-200 shadow-md bg-gradient-to-r from-blue-50/30 to-transparent'
-                        }`}>
+                        <div 
+                          key={shock.id} 
+                          data-shock-id={shock.id}
+                          className={`border rounded-lg overflow-hidden transition-all duration-200 ${
+                            highlightedShockId === shock.id
+                              ? 'border-orange-400 shadow-lg bg-gradient-to-r from-orange-50/50 to-yellow-50/50 animate-pulse'
+                              : collapsedShocks.has(shock.id) 
+                                ? 'border-gray-200 shadow-sm' 
+                                : 'border-blue-200 shadow-md bg-gradient-to-r from-blue-50/30 to-transparent'
+                          }`}>
                           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3 flex-1">
@@ -3136,6 +3247,36 @@ export default function EditReportPage() {
                   Supprimer
                 </>
               )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialogue d'avertissement d'édition de choc */}
+      <Dialog open={showEditShockWarning} onOpenChange={setShowEditShockWarning}>
+        <DialogContent className="w-1/3">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Modification des informations de choc
+            </DialogTitle>
+            <DialogDescription>
+              Vous êtes sur le point de modifier les informations d'un choc. Assurez-vous d'avoir sauvegardé toutes vos modifications avant de continuer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={handleEditShockWarningClose}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleEditShockWarningContinue}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Continuer
             </Button>
           </div>
         </DialogContent>

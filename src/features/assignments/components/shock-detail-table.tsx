@@ -7,8 +7,10 @@ import {
   Paintbrush, 
   Settings, 
   RotateCcw, 
-  Package
+  Package,
+  Pencil
 } from 'lucide-react'
+import { useRouter } from '@tanstack/react-router'
 
 interface ShockWork {
   id: number
@@ -56,10 +58,13 @@ interface Shock {
 }
 
 interface ShockDetailTableProps {
-  shocks: Shock[]
+  shocks: Shock[],
+  assignment_status: string,
+  assignment_id: string
 }
 
-export function ShockDetailTable({ shocks }: ShockDetailTableProps) {
+export function ShockDetailTable({ shocks, assignment_status, assignment_id }: ShockDetailTableProps) {
+  const router = useRouter()
   if (!shocks || shocks.length === 0) {
     return (
       <Card>
@@ -88,6 +93,16 @@ export function ShockDetailTable({ shocks }: ShockDetailTableProps) {
                 {shock.shock_point.code}
               </Badge>
             </h4>
+            {assignment_status === 'edited' && (
+              <Badge variant="outline" className="text-[10px] bg-primary text-white cursor-pointer" onClick={() => {
+                router.navigate({
+                  to: `/assignments/edit-report/${assignment_id}?tab=shocks&info=edit-shocks&shock_id=${shock.id}`,
+                })
+              }}>
+                <Pencil className="h-2 w-2" />
+                Modifié les chocs
+              </Badge>
+            )}
           </div>
 
           <div className="overflow-x-auto">
