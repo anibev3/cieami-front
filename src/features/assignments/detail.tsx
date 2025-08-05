@@ -2206,14 +2206,6 @@ export default function AssignmentDetailPage() {
             onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
             variant: 'outline' as const
           },
-          {
-            key: 'generate-report',
-            label: 'Générer le rapport',
-            icon: Download,
-            onClick: async () => await generateReport(assignment.id),
-            variant: 'default' as const,
-            loading: loadingGenerate
-          }
         )
         
         // Action de validation - seulement pour CEO et Validator
@@ -2294,6 +2286,14 @@ export default function AssignmentDetailPage() {
       //   onClick: () => window.print(),
       //   variant: 'outline' as const
       // }
+      {
+            key: 'generate-report',
+            label: 'Générer le rapport',
+            icon: Download,
+            onClick: async () => await generateReport(assignment.id),
+            variant: 'default' as const,
+            loading: loadingGenerate
+          }
     )
 
     return actions
@@ -2337,7 +2337,7 @@ export default function AssignmentDetailPage() {
       </Header>
 
       <Main>
-        <div className="w-full space-y-4 lg:space-y-6 px-2 sm:px-4 lg:px-6 pb-20 lg:pb-0">
+        <div className="w-full space-y-4 lg:space-y-6 pb-20 lg:pb-0">
           {/* En-tête */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3 sm:gap-4">

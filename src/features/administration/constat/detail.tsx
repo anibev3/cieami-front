@@ -119,7 +119,7 @@ export default function AscertainmentDetailPage() {
       </Header>
 
       <Main>
-        <div className="container mx-auto py-6">
+        <div className="container mx-auto">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
@@ -162,7 +162,7 @@ export default function AscertainmentDetailPage() {
 
           <div className="grid gap-6">
             {/* Informations de base */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle>Informations de base</CardTitle>
               </CardHeader>
@@ -191,7 +191,7 @@ export default function AscertainmentDetailPage() {
             </Card>
 
             {/* Affectation */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle>Affectation</CardTitle>
               </CardHeader>
@@ -245,7 +245,7 @@ export default function AscertainmentDetailPage() {
             </Card>
 
             {/* Type de constat */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle>Type de constat</CardTitle>
               </CardHeader>
@@ -273,7 +273,7 @@ export default function AscertainmentDetailPage() {
             </Card>
 
             {/* Qualité */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle>Évaluation de la qualité</CardTitle>
               </CardHeader>
@@ -329,7 +329,7 @@ export default function AscertainmentDetailPage() {
             </Card>
 
             {/* Documents */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Documents</CardTitle>
               </CardHeader>
@@ -370,10 +370,10 @@ export default function AscertainmentDetailPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Utilisateurs */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle>Utilisateurs</CardTitle>
               </CardHeader>
