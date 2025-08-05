@@ -4,11 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { CalendarIcon, Calculator, Loader2 } from 'lucide-react'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { Calculator, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDepreciationTablesStore } from '@/stores/depreciationTablesStore'
 import { TheoreticalValueCalculationData } from '@/services/depreciationTableService'
@@ -61,9 +57,7 @@ export function TheoreticalValueCalculator() {
       newErrors.vehicle_new_value = 'La valeur neuve doit être supérieure à 0'
     }
 
-    if (formData.vehicle_mileage < 0) {
-      newErrors.vehicle_mileage = 'Le kilométrage ne peut pas être négatif'
-    }
+
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -116,95 +110,47 @@ export function TheoreticalValueCalculator() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date de première mise en circulation *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.first_entry_into_circulation_date && "text-muted-foreground",
-                      errors.first_entry_into_circulation_date && "border-destructive"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.first_entry_into_circulation_date ? (
-                      format(new Date(formData.first_entry_into_circulation_date), "PPP", { locale: fr })
-                    ) : (
-                      <span>Sélectionner une date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.first_entry_into_circulation_date ? new Date(formData.first_entry_into_circulation_date) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setFormData(f => ({ 
-                          ...f, 
-                          first_entry_into_circulation_date: format(date, 'yyyy-MM-dd')
-                        }))
-                        // Réinitialiser l'erreur de date d'expertise si elle existe
-                        if (errors.expertise_date) {
-                          setErrors(prev => ({ ...prev, expertise_date: '' }))
-                        }
-                      }
-                    }}
-                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="first_entry_date">Date de première mise en circulation *</Label>
+              <Input
+                id="first_entry_date"
+                type="date"
+                value={formData.first_entry_into_circulation_date}
+                onChange={(e) => {
+                  setFormData(f => ({ 
+                    ...f, 
+                    first_entry_into_circulation_date: e.target.value
+                  }))
+                  // Réinitialiser l'erreur de date d'expertise si elle existe
+                  if (errors.expertise_date) {
+                    setErrors(prev => ({ ...prev, expertise_date: '' }))
+                  }
+                }}
+                className={cn(
+                  errors.first_entry_into_circulation_date && "border-destructive"
+                )}
+              />
               {errors.first_entry_into_circulation_date && (
                 <p className="text-sm text-destructive">{errors.first_entry_into_circulation_date}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>Date d'expertise *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.expertise_date && "text-muted-foreground",
-                      errors.expertise_date && "border-destructive"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.expertise_date ? (
-                      format(new Date(formData.expertise_date), "PPP", { locale: fr })
-                    ) : (
-                      <span>Sélectionner une date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.expertise_date ? new Date(formData.expertise_date) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setFormData(f => ({ 
-                          ...f, 
-                          expertise_date: format(date, 'yyyy-MM-dd')
-                        }))
-                      }
-                    }}
-                    disabled={(date) => {
-                      const today = new Date()
-                      const firstEntryDate = formData.first_entry_into_circulation_date ? new Date(formData.first_entry_into_circulation_date) : null
-                      
-                      return date > today || 
-                             date < new Date("1900-01-01") || 
-                             (firstEntryDate ? date <= firstEntryDate : false)
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="expertise_date">Date d'expertise *</Label>
+              <Input
+                id="expertise_date"
+                type="date"
+                value={formData.expertise_date}
+                onChange={(e) => {
+                  setFormData(f => ({ 
+                    ...f, 
+                    expertise_date: e.target.value
+                  }))
+                }}
+                min={formData.first_entry_into_circulation_date}
+                className={cn(
+                  errors.expertise_date && "border-destructive"
+                )}
+              />
               {errors.expertise_date && (
                 <p className="text-sm text-destructive">{errors.expertise_date}</p>
               )}
@@ -269,8 +215,6 @@ export function TheoreticalValueCalculator() {
                 <Input
                   id="mileage"
                   type="number"
-                  min="0"
-                  step="1000"
                   value={formData.vehicle_mileage || 0}
                   onChange={(e) => setFormData(f => ({ ...f, vehicle_mileage: Number(e.target.value) || 0 }))}
                   placeholder="Ex: 50000"

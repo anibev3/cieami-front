@@ -100,7 +100,7 @@ export function ShockDetailTable({ shocks, assignment_status, assignment_id }: S
                 })
               }}>
                 <Pencil className="h-2 w-2" />
-                Modifié les chocs
+                Modifier le choc
               </Badge>
             )}
           </div>
