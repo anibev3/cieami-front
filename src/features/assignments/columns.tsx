@@ -678,6 +678,10 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     },
   },
   {
+    accessorKey: 'created_by.name',
+    header: 'Créé par',
+  },
+  {
     accessorKey: 'edition_countdown',
     header: 'Délai d\'édition',
     cell: ({ row }) => {
