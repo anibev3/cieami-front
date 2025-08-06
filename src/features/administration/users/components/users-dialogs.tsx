@@ -93,6 +93,7 @@ export function UsersDialogs({
         telephone: selectedUser.telephone,
         entity_id: selectedUser.entity.id,
         role: selectedUser.role.name,
+        code: selectedUser.code,
       })
     }
   }, [isEditOpen, selectedUser])
@@ -256,7 +257,6 @@ export function UsersDialogs({
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div className="grid  gap-4">
-
               <div className="space-y-2">
                 <Label htmlFor="edit-email">Email</Label>
                 <Input
@@ -293,13 +293,13 @@ export function UsersDialogs({
                 onChange={(e) => setEditForm({ ...editForm, telephone: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 grid grid-cols-2 gap-4">
               <Label htmlFor="edit-entity">Entité</Label>
               <Select
                 value={editForm.entity_id ? String(editForm.entity_id) : ''}
                 onValueChange={(value) => setEditForm({ ...editForm, entity_id: Number(value) })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Sélectionner une entité" />
                 </SelectTrigger>
                 <SelectContent>
@@ -311,13 +311,13 @@ export function UsersDialogs({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 grid grid-cols-2 gap-4">
               <Label htmlFor="edit-role">Rôle</Label>
               <Select
                 value={editForm.role || ''}
                 onValueChange={(value) => setEditForm({ ...editForm, role: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Sélectionner un rôle" />
                 </SelectTrigger>
                 <SelectContent>
@@ -329,6 +329,17 @@ export function UsersDialogs({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* code */}
+            <div className="space-y-2 grid grid-cols-2 gap-4">
+              <Label htmlFor="edit-code">Code</Label>
+              <Input
+                id="edit-code"
+                value={editForm.code || ''}
+                onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
+              />
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onCloseEdit}>
                 Annuler

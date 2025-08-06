@@ -666,17 +666,17 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
   //     )
   //   },
   // },
-  // {
-  //   accessorKey: 'created_at',
-  //   header: 'Créé le',
-  //   cell: ({ row }) => {
-  //     return (
-  //       <div className="text-sm text-muted-foreground">
-  //         {formatDate(row.getValue('created_at'))}
-  //       </div>
-  //     )
-  //   },
-  // },
+  {
+    accessorKey: 'created_at',
+    header: 'Créé le',
+    cell: ({ row }) => {
+      return (
+        <div className="text-sm text-muted-foreground">
+          {formatDate(row.getValue('created_at'))}
+        </div>
+      )
+    },
+  },
   {
     accessorKey: 'edition_countdown',
     header: 'Délai d\'édition',

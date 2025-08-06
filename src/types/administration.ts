@@ -66,6 +66,7 @@ export interface User {
   role: UserRole
   status: Status
   signature: string | null
+  code: string
   created_at: string
   updated_at: string
 }
@@ -113,6 +114,7 @@ export interface UpdateUserData {
   telephone?: string
   entity_id?: number
   role?: string
+  code?: string
 }
 
 export interface UserFilters {

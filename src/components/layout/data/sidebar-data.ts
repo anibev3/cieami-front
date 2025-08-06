@@ -452,7 +452,7 @@ export const sidebarData: SidebarData = {
           title: 'Utilisateurs',
           url: '/administration/users',
           icon: IconUsers,
-          requiredRoles: [UserRole.SYSTEM_ADMIN],
+          requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.ADMIN],
         },
         {
           title: 'Documents',
