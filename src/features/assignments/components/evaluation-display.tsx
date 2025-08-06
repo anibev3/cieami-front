@@ -1,7 +1,9 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { 
   BarChart3, 
   Car, 
@@ -88,11 +90,81 @@ interface Evaluation {
   vehicle_market_value: number
 }
 
-interface EvaluationDisplayProps {
-  evaluations: Evaluation[]
+
+// "evaluation": {
+//     "theorical_depreciation_rate": "11.66",
+//     "theorical_vehicle_market_value": 37,
+//     "market_incidence_rate": 0,
+//     "less_value_work": "351096.00",
+//     "is_up": true,
+//     "kilometric_incidence": 120000,
+//     "market_incidence": 0,
+//     "vehicle_market_value": 119963,
+//     "vehicle_age": 8,
+//     "diff_year": 1,
+//     "diff_month": 8,
+// }
+
+
+interface EditableEvaluationData {
+  theorical_depreciation_rate: string | number
+  theorical_vehicle_market_value: number
+  market_incidence_rate: number
+  less_value_work: number
+  is_up: boolean
+  kilometric_incidence: number
+  market_incidence: number
+  vehicle_market_value: number
+  vehicle_age: number
+  diff_year: number
+  diff_month: number
 }
 
-export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
+interface EvaluationDisplayProps {
+  evaluations: Evaluation[]
+  onEvaluationChange?: (evaluationData: EditableEvaluationData) => void
+}
+
+export function EvaluationDisplay({ evaluations, onEvaluationChange }: EvaluationDisplayProps) {
+  // États pour les champs modifiables de l'évaluation
+  const [editableEvaluation, setEditableEvaluation] = useState<EditableEvaluationData | null>(null)
+
+  // Initialiser les valeurs modifiables à partir de la première évaluation
+  useEffect(() => {
+    if (evaluations.length > 0 && !editableEvaluation) {
+      const firstEvaluation = evaluations[0]
+      setEditableEvaluation({
+        theorical_depreciation_rate: firstEvaluation.theorical_depreciation_rate || '',
+        theorical_vehicle_market_value: firstEvaluation.theorical_vehicle_market_value || 0,
+        market_incidence_rate: firstEvaluation.market_incidence_rate || 0,
+        less_value_work: firstEvaluation.less_value_work || 0,
+        is_up: firstEvaluation.is_up || false,
+        kilometric_incidence: firstEvaluation.kilometric_incidence || 0,
+        market_incidence: firstEvaluation.market_incidence || 0,
+        vehicle_market_value: firstEvaluation.vehicle_market_value || 0,
+        vehicle_age: firstEvaluation.vehicle_age || 0,
+        diff_year: firstEvaluation.diff_year || 0,
+        diff_month: firstEvaluation.diff_month || 0,
+      })
+    }
+  }, [evaluations, editableEvaluation])
+
+  // Fonction pour mettre à jour les valeurs modifiables
+  const updateEditableField = (field: keyof EditableEvaluationData, value: string | number | boolean) => {
+    if (!editableEvaluation) return
+    
+    const updatedEvaluation: EditableEvaluationData = {
+      ...editableEvaluation,
+      [field]: value
+    }
+    setEditableEvaluation(updatedEvaluation)
+    
+    // Notifier le parent des changements
+    if (onEvaluationChange) {
+      onEvaluationChange(updatedEvaluation)
+    }
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -168,7 +240,7 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
             <CardContent className="p-6">
               {/* Informations du véhicule */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <div className="space-y-3">
+                <div className="space-y-3 border border-gray-200 p-3 rounded-md">
                   <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                     <Car className="h-4 w-4 text-blue-500" />
                     Informations véhicule
@@ -193,7 +265,7 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 border border-gray-200 p-3 rounded-md">
                   <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-green-500" />
                     Dates importantes
@@ -214,7 +286,7 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 border border-gray-200 p-3 rounded-md">
                   <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                     <Gauge className="h-4 w-4 text-orange-500" />
                     Kilométrage
@@ -274,10 +346,91 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-900 font-semibold">
-                        {evaluation.vehicle_age} mois
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={editableEvaluation?.vehicle_age || '0'}
+                            onChange={(e) => updateEditableField('vehicle_age', Number(e.target.value))}
+                            className="w-20 h-8 text-sm font-semibold text-gray-900 bg-gray-50 border-gray-200 focus:border-gray-400"
+                            step="1"
+                          />
+                          <span className="text-sm">mois</span>
+                        </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        {/* Incidence marché: {evaluation.market_incidence.toLocaleString('fr-FR')} */}
+                        Modifiable
+                      </td>
+                    </tr>
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-blue-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-blue-600" />
+                          Taux d'incidence marché
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-blue-900 font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={editableEvaluation?.market_incidence_rate || '0'}
+                            onChange={(e) => updateEditableField('market_incidence_rate', Number(e.target.value))}
+                            className="w-20 h-8 text-sm font-semibold text-blue-900 bg-blue-50 border-blue-200 focus:border-blue-400"
+                            step="0.01"
+                          />
+                          <span className="text-sm">%</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        Modifiable
+                      </td>
+                    </tr>
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-purple-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-purple-600" />
+                          Différence en années
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-purple-900 font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={editableEvaluation?.diff_year || '0'}
+                            onChange={(e) => updateEditableField('diff_year', Number(e.target.value))}
+                            className="w-20 h-8 text-sm font-semibold text-purple-900 bg-purple-50 border-purple-200 focus:border-purple-400"
+                            step="1"
+                          />
+                          <span className="text-sm">années</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        Modifiable
+                      </td>
+                    </tr>
+
+                    <tr className="hover:bg-gray-50">
+                      <td className="px-4 py-4 text-sm font-medium text-orange-900">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4 text-orange-600" />
+                          Différence en mois
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-orange-900 font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={editableEvaluation?.diff_month || '0'}
+                            onChange={(e) => updateEditableField('diff_month', Number(e.target.value))}
+                            className="w-20 h-8 text-sm font-semibold text-orange-900 bg-orange-50 border-orange-200 focus:border-orange-400"
+                            step="1"
+                          />
+                          <span className="text-sm">mois</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        Modifiable
                       </td>
                     </tr>
                     
@@ -289,10 +442,16 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-red-900 font-bold">
-                        {formatCurrency(Number(evaluation.theorical_depreciation_rate))}
+                        <Input
+                          type="number"
+                          value={editableEvaluation?.theorical_depreciation_rate || '0'}
+                          onChange={(e) => updateEditableField('theorical_depreciation_rate', e.target.value)}
+                          className="w-32 h-8 text-sm font-bold text-red-900 bg-red-50 border-red-200 focus:border-red-400"
+                          step="0.01"
+                        />
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                        Modifiable
                       </td>
                     </tr>
 
@@ -304,10 +463,16 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-red-900 font-bold">
-                        {formatCurrency(Number(evaluation.theorical_vehicle_market_value))}
+                        <Input
+                          type="number"
+                          value={editableEvaluation?.theorical_vehicle_market_value || '0'}
+                          onChange={(e) => updateEditableField('theorical_vehicle_market_value', Number(e.target.value))}
+                          className="w-32 h-8 text-sm font-bold text-red-900 bg-red-50 border-red-200 focus:border-red-400"
+                          step="1"
+                        />
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                        Modifiable
                       </td>
                     </tr>
 
@@ -320,10 +485,16 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-red-900 font-bold">
-                        {formatCurrency(Number(evaluation.less_value_work))}
+                        <Input
+                          type="number"
+                          value={editableEvaluation?.less_value_work || '0'}
+                          onChange={(e) => updateEditableField('less_value_work', Number(e.target.value))}
+                          className="w-32 h-8 text-sm font-bold text-red-900 bg-red-50 border-red-200 focus:border-red-400"
+                          step="1"
+                        />
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                        Modifiable
                       </td>
                     </tr>
 
@@ -332,14 +503,28 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                       <td className="px-4 py-4 text-sm font-medium text-red-900">
                         <div className="flex items-center gap-2">
                           <TrendingDown className="h-4 w-4 text-red-600" />
-                          {evaluation.is_up ? 'Plus-value incicence kilometrique' : 'Moins-value incicence kilometrique'}
+                          {editableEvaluation?.is_up ? 'Plus-value incidence kilométrique' : 'Moins-value incidence kilométrique'}
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-red-900 font-bold">
-                        {formatCurrency(Number(evaluation.kilometric_incidence))}
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={editableEvaluation?.kilometric_incidence || '0'}
+                            onChange={(e) => updateEditableField('kilometric_incidence', Number(e.target.value))}
+                            className="w-28 h-8 text-sm font-bold text-red-900 bg-red-50 border-red-200 focus:border-red-400"
+                            step="1"
+                          />
+                          <Checkbox
+                            checked={editableEvaluation?.is_up || false}
+                            onCheckedChange={(checked) => updateEditableField('is_up', checked)}
+                            className="ml-2"
+                          />
+                          <span className="text-xs text-gray-600">Plus-value</span>
+                        </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                        Modifiable
                       </td>
                     </tr>
 
@@ -347,14 +532,20 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                       <td className="px-4 py-4 text-sm font-medium text-red-900">
                         <div className="flex items-center gap-2">
                           <TrendingDown className="h-4 w-4 text-red-600" />
-                          Plus-value incicence du marché
+                          Plus-value incidence du marché
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-red-900 font-bold">
-                        {formatCurrency(Number(evaluation.market_incidence))}
+                        <Input
+                          type="number"
+                          value={editableEvaluation?.market_incidence || '0'}
+                          onChange={(e) => updateEditableField('market_incidence', Number(e.target.value))}
+                          className="w-32 h-8 text-sm font-bold text-red-900 bg-red-50 border-red-200 focus:border-red-400"
+                          step="1"
+                        />
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                        Modifiable
                       </td>
                     </tr>
 
@@ -366,10 +557,16 @@ export function EvaluationDisplay({ evaluations }: EvaluationDisplayProps) {
                         </div>
                       </td>
                       <td className="px-4 py-4 text-lg text-red-900 font-bold">
-                        {formatCurrency(Number(evaluation.vehicle_market_value))}
+                        <Input
+                          type="number"
+                          value={editableEvaluation?.vehicle_market_value || '0'}
+                          onChange={(e) => updateEditableField('vehicle_market_value', Number(e.target.value))}
+                          className="w-40 h-10 text-lg font-bold text-red-900 bg-red-50 border-red-200 focus:border-red-400"
+                          step="1"
+                        />
                       </td>
                       <td className="px-4 py-4 text-lg text-gray-500">
-                        {/* {evaluation.is_up ? 'Valeur en hausse' : 'Valeur en baisse'} */}
+                        Modifiable
                       </td>
                     </tr>
                   </tbody>

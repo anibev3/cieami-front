@@ -5,9 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
 
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Table,
@@ -30,10 +28,9 @@ import {
   Search, 
   Filter, 
   Eye, 
-  Edit, 
   Trash2, 
   Download,
-  Calendar as CalendarIcon,
+
   FileText,
   User,
   Loader2,
@@ -41,7 +38,6 @@ import {
   Settings2,
   ChevronDown,
   MoreHorizontal,
-  ArrowUpDown,
   RefreshCw,
   AlertTriangle
 } from 'lucide-react'
@@ -72,8 +68,6 @@ export default function InvoicesPage() {
     amount_max: ''
   })
   const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [dateFromOpen, setDateFromOpen] = useState(false)
-  const [dateToOpen, setDateToOpen] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     reference: true,
     assignment: true,
@@ -144,25 +138,6 @@ export default function InvoicesPage() {
     }))
   }
 
-  const handleFilterDateFrom = (date: Date | undefined) => {
-    if (date) {
-      setFilters(prev => ({ 
-        ...prev, 
-        date_from: date.toISOString().split('T')[0] 
-      }))
-    }
-    setDateFromOpen(false)
-  }
-
-  const handleFilterDateTo = (date: Date | undefined) => {
-    if (date) {
-      setFilters(prev => ({ 
-        ...prev, 
-        date_to: date.toISOString().split('T')[0] 
-      }))
-    }
-    setDateToOpen(false)
-  }
 
   const getStatusColor = (statusCode: string) => {
     switch (statusCode) {
@@ -427,7 +402,7 @@ export default function InvoicesPage() {
                 const isDeleted = invoice.deleted_at !== null
                 const canCancel = !isCancelled && !isDeleted
                 const canGenerate = invoice.status?.code !== 'generated' && !isDeleted && !isCancelled
-                const canEdit = !isCancelled && !isDeleted
+                // const canEdit = !isCancelled && !isDeleted
                 const canDelete = !isCancelled && !isDeleted
                 return (
                   <TableRow key={invoice.id} className="hover:bg-muted/50">
@@ -454,7 +429,6 @@ export default function InvoicesPage() {
                     {columnVisibility.date && (
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                           {formatDate(invoice.date)}
                         </div>
                       </TableCell>
@@ -568,54 +542,22 @@ export default function InvoicesPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Date de début</Label>
-              <Popover open={dateFromOpen} onOpenChange={setDateFromOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !filters.date_from && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.date_from ? formatDate(filters.date_from) : "Sélectionnez une date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={filters.date_from ? new Date(filters.date_from) : undefined}
-                    onSelect={handleFilterDateFrom}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={filters.date_from || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, date_from: e.target.value }))}
+                className="w-full"
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Date de fin</Label>
-              <Popover open={dateToOpen} onOpenChange={setDateToOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !filters.date_to && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.date_to ? formatDate(filters.date_to) : "Sélectionnez une date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={filters.date_to ? new Date(filters.date_to) : undefined}
-                    onSelect={handleFilterDateTo}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={filters.date_to || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, date_to: e.target.value }))}
+                className="w-full"
+              />
             </div>
 
             <div className="space-y-2">

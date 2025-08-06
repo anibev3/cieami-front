@@ -2220,7 +2220,9 @@ export default function AssignmentDetailPage() {
             variant: 'default' as const,
             className: 'bg-green-600 hover:bg-green-700'
           })
+          
         }
+
         break
       case 'in_payment':
         actions.push(
@@ -2271,6 +2273,15 @@ export default function AssignmentDetailPage() {
             onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
             variant: 'outline' as const
           }
+        )
+        actions.push(
+          {
+            key: 'edit-report',
+            label: 'Modifier la rédaction',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+            variant: 'outline' as const
+          },
         )
         break
 

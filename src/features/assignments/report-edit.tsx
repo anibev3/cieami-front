@@ -371,6 +371,7 @@ export default function ReportEditPage() {
 
   // État pour les évaluations existantes
   const [evaluations, setEvaluations] = useState<Evaluation[]>([])
+  const [editableEvaluationData, setEditableEvaluationData] = useState<any>(null)
 
   // Mettre à jour hasUnsavedChanges quand les données changent
   useEffect(() => {
@@ -574,6 +575,12 @@ export default function ReportEditPage() {
     setAscertainments(newAscertainments)
   }
 
+  // Fonction pour gérer les changements d'évaluation
+  const handleEvaluationChange = useCallback((evaluationData: any) => {
+    setEditableEvaluationData(evaluationData)
+    setHasUnsavedChanges(true)
+  }, [setHasUnsavedChanges])
+
   const getQualityScore = (ascertainment: any) => {
     if (ascertainment.very_good) return 6
     if (ascertainment.good) return 5
@@ -717,6 +724,10 @@ export default function ReportEditPage() {
         // Champs pour les dossiers d'évaluation
         instructions: instructions,
         market_incidence_rate: marketIncidenceRate,
+        // Données d'évaluation modifiées
+        ...(editableEvaluationData && {
+          evaluation: editableEvaluationData
+        })
       } : {
         // Champs pour les dossiers NON-évaluation
         general_state_id: generalStateId || 1,
@@ -759,7 +770,7 @@ export default function ReportEditPage() {
     }
   }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration, newMarketValue,
     // vehicleNewMarketValue,
-    vehicleNewMarketValueOption, ascertainments, assignment?.vehicle?.id, depreciationRate, expertiseDate, marketIncidenceRate, marketValue])
+    vehicleNewMarketValueOption, ascertainments, assignment?.vehicle?.id, depreciationRate, expertiseDate, marketIncidenceRate, marketValue, editableEvaluationData])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -1020,6 +1031,10 @@ export default function ReportEditPage() {
         // Champs pour les dossiers d'évaluation
         instructions: instructions,
         market_incidence_rate: marketIncidenceRate,
+        // Données d'évaluation modifiées
+        ...(editableEvaluationData && {
+          evaluation: editableEvaluationData
+        })
       } : {
         // Champs pour les dossiers NON-évaluation
         
@@ -1066,7 +1081,8 @@ export default function ReportEditPage() {
     // vehicleNewMarketValue,
     vehicleNewMarketValueOption,
     depreciationRate,
-    marketValue
+    marketValue,
+    editableEvaluationData
   ])
 
   // Fonction unifiée pour effectuer le calcul
@@ -2390,7 +2406,10 @@ export default function ReportEditPage() {
           {/* Affichage des évaluations */}
           {evaluations.length > 0 && (
             <div className="mt-8">
-              <EvaluationDisplay evaluations={evaluations} />
+              <EvaluationDisplay 
+                evaluations={evaluations} 
+                onEvaluationChange={handleEvaluationChange}
+              />
             </div>
           )}
           <Card className="mt-10">

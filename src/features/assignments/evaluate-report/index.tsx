@@ -37,7 +37,7 @@ import {
   StarOff,
   TrendingUp,
   DollarSign,
-  Calendar as CalendarIcon,
+
   Car,
   AlertCircle
 } from 'lucide-react'
@@ -65,11 +65,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
 import { ShockSuppliesEvaluateTable } from '../components/shock-supplies-evaluate-table'
 import { ShockWorkforceEvaluateTable } from '../components/shock-workforce-evaluate-table'
 
@@ -1096,43 +1092,19 @@ export default function EvaluateReportPage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-3">
                 <div>
                   <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-blue-600" />
                     Date d'expertise
                     {!expertiseDate && <span className="text-red-500 ml-1">*</span>}
                   </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left text-sm",
-                          !expertiseDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {expertiseDate ? (
-                          format(new Date(expertiseDate), "EEEE, d MMMM yyyy", { locale: fr })
-                        ) : (
-                          <span>Sélectionner une date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={expertiseDate ? new Date(expertiseDate) : undefined}
-                        initialFocus
-                        onSelect={(date) => {
-                          if (date) {
-                            setExpertiseDate(date.toISOString().split('T')[0])
-                            // Déclencher le calcul automatique après un délai
-                            setTimeout(() => triggerAutoCalculation(), 1000)
-                          }
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="date"
+                    value={expertiseDate || ''}
+                    onChange={(e) => {
+                      setExpertiseDate(e.target.value || '')
+                      // Déclencher le calcul automatique après un délai
+                      setTimeout(() => triggerAutoCalculation(), 1000)
+                    }}
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <Label className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">

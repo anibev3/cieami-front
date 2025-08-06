@@ -3,12 +3,9 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, Search as SearchIcon, FileText, TrendingUp, BarChart3 } from 'lucide-react'
-import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+import { Search as SearchIcon, FileText, TrendingUp, BarChart3 } from 'lucide-react'
+// import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/utils/format-currency'
 import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
 import { StatisticsDataTable } from './components/statistics-data-table'
@@ -65,8 +62,8 @@ export default function AssignmentStatisticsPage() {
 
     // Construire les filtres de base (dates + dossier)
     const baseFilters: Record<string, string | number | undefined> = {
-      start_date: format(startDate, 'yyyy-MM-dd'),
-      end_date: format(endDate, 'yyyy-MM-dd'),
+      start_date: startDate ? startDate.toISOString().split('T')[0] : undefined,
+      end_date: endDate ? endDate.toISOString().split('T')[0] : undefined,
       assignment_id: selectedAssignmentId ? parseInt(selectedAssignmentId) : undefined
     }
 
@@ -209,57 +206,23 @@ export default function AssignmentStatisticsPage() {
                 {/* Date de début */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Date de début</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !startDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate ? format(startDate, "PPP", { locale: fr }) : "Sélectionner une date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={startDate}
-                        onSelect={setStartDate}
-                        initialFocus
-                        locale={fr}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="date"
+                    value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                    onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : undefined)}
+                    className="w-full"
+                  />
                 </div>
 
                 {/* Date de fin */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Date de fin</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !endDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {endDate ? format(endDate, "PPP", { locale: fr }) : "Sélectionner une date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={endDate}
-                        onSelect={setEndDate}
-                        initialFocus
-                        locale={fr}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="date"
+                    value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                    onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : undefined)}
+                    className="w-full"
+                  />
                 </div>
 
                 {/* Dossier spécifique */}
