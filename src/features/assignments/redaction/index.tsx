@@ -3161,7 +3161,7 @@ export default function EditReportPage() {
 
       {/* Dialogue de confirmation de suppression de choc */}
       <Dialog open={showDeleteShockDialog} onOpenChange={setShowDeleteShockDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md w-1/3">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />

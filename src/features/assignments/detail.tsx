@@ -77,7 +77,6 @@ import { toast } from 'sonner'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { 
   ShockDetailTable, 
-  WorkforceDetailTable, 
 } from './components'
 import { useACL } from '@/hooks/useACL'
 
@@ -1541,20 +1540,9 @@ export default function AssignmentDetailPage() {
 
       case 'shocks':
         return (
-              <div className="space-y-6">
-                <ShockDetailTable shocks={assignment.shocks as any} assignment_status={assignment.status.code} assignment_id={assignment.id.toString()} />
-
-                {assignment.shocks.some(shock => shock.workforces && shock.workforces.length > 0) && (
-                  <WorkforceDetailTable 
-                    workforces={assignment.shocks.flatMap(shock => shock.workforces || []).map(workforce => ({
-                      ...workforce,
-                      with_tax: workforce.with_tax // Valeur par défaut pour la compatibilité
-                    })) as any} 
-                  />
-                )}
-              </div>
-
-          
+          <div className="space-y-6">
+            <ShockDetailTable shocks={assignment.shocks as any} assignment_status={assignment.status.code} assignment_id={assignment.id.toString()} />
+          </div>
         )
 
       case 'costs':
