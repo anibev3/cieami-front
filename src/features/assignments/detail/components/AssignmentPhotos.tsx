@@ -12,6 +12,7 @@ import { Tabs } from '@/components/ui/tabs'
 import { Upload, Camera, Star, Edit, Trash2, X, Plus, Grid3X3, Eye, Loader2, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag } from 'lucide-react'
 import { CreatePhotoData, UpdatePhotoData, Photo, PhotoType } from '@/types/gestion'
 import { photoService } from '@/services/photoService'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 interface AssignmentPhotosProps {
   assignmentId: string
@@ -57,7 +58,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   })
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
+  const [uploading, setUploading] = useState(false)
   // Photo viewer states
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
@@ -249,6 +250,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
 
   const handleUpload = async () => {
     try {
+      setUploading(true)
       await createPhotos(uploadData)
       setIsUploadDialogOpen(false)
       setUploadData({
@@ -264,6 +266,8 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
       ])
     } catch (_error) {
       // Error handled by store
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -354,28 +358,48 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
         {/* Actions au centre (visible au hover) */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
           <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                openPhotoViewer(photo)
-              }}
-              className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
-            >
-              <Eye className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                openEditDialog(photo)
-              }}
-              className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
-            >
-              <Edit className="h-5 w-5" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openPhotoViewer(photo)
+                  }}
+                  className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                >
+                  <Eye className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Voir la photo</p>
+              </TooltipContent>
+            </Tooltip>
+
+            
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    openEditDialog(photo)
+                  }}
+                  className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                >
+                  <Edit className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Modifier la photo</p>
+              </TooltipContent>
+            </Tooltip>
+
+
+            <Tooltip>
+              <TooltipTrigger>
             <Button
               variant="secondary"
               size="sm"
@@ -384,17 +408,25 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 handleSetAsCover(photo.id)
               }}
               disabled={photo.is_cover}
-              className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
+              className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
             >
               <Star className="h-5 w-5" />
             </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Modifier la photo</p>
+              </TooltipContent>
+            </Tooltip>
+            
+
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="secondary" 
                   size="sm"
                   onClick={(e) => e.stopPropagation()}
-                  className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm"
+                  className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
                 >
                   <Trash2 className="h-5 w-5" />
                 </Button>
@@ -553,10 +585,10 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 </Button>
                 <Button 
                   onClick={handleUpload} 
-                  disabled={!uploadData.photo_type_id || uploadData.photos.length === 0}
+                  disabled={!uploadData.photo_type_id || uploadData.photos.length === 0 || uploading}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
-                  Uploader
+                  {uploading ? <span className='flex items-center gap-2'><Loader2 className="h-4 w-4 animate-spin" /> Veuillez patienter, les images sont en cours d'envoi...</span>  : 'Uploader'}
                 </Button>
               </DialogFooter>
             </DialogContent>

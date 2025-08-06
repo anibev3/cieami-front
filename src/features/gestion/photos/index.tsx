@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Edit, Trash2, Camera, Star, Upload, Image as ImageIcon, X, Grid3X3, List, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag } from 'lucide-react'
+import { Search, Edit, Trash2, Camera, Star, Upload, Image as ImageIcon, X, Grid3X3, List, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag, Loader2 } from 'lucide-react'
 import { CreatePhotoData, UpdatePhotoData, Photo } from '@/types/gestion'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -165,6 +165,7 @@ export default function PhotosPage() {
 
   const handleUpload = async () => {
     try {
+      setUploading(true)
       await createPhotos(uploadData)
       setIsUploadDialogOpen(false)
       setUploadData({
@@ -174,6 +175,9 @@ export default function PhotosPage() {
       })
     } catch (_error) {
       // Error handled by store
+    }
+    finally {
+      setUploading(false)
     }
   }
 
@@ -231,6 +235,8 @@ export default function PhotosPage() {
     cover: photos.filter(p => p.is_cover).length,
     byType: photoTypes.length
   }
+
+  const [uploading, setUploading] = useState(false)
 
     return (
         <>
@@ -356,7 +362,7 @@ export default function PhotosPage() {
                 disabled={!uploadData.assignment_id || !uploadData.photo_type_id || uploadData.photos.length === 0}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
-                Uploader
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Uploader'}
               </Button>
             </DialogFooter>
           </DialogContent>

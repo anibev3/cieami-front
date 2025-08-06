@@ -203,7 +203,7 @@ export default function RealizeAssignmentPage() {
     <div className="container mx-auto py-6 space-y-6">
       {/* En-tête */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between w-full">
           <Button variant="outline" size="icon" onClick={handleCancel}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -221,6 +221,9 @@ export default function RealizeAssignmentPage() {
               )}
             </p>
           </div>
+          <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/edit/${assignment.id}` })}>
+            Modifier le dossier
+          </Button>
         </div>
       </div>
 
