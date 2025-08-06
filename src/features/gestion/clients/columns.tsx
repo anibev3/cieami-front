@@ -47,6 +47,10 @@ export function createColumns({ onView, onEdit, onDelete }: CreateColumnsProps):
       },
     },
     {
+      accessorKey: 'created_by.name',
+      header: 'Créé par',
+    },
+    {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => (
