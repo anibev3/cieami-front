@@ -79,7 +79,7 @@ export function DataTable({ data, loading }: DataTableProps) {
         </TableBody>
       </Table>
       <SupplyViewDialog id={viewId} onOpenChange={() => setViewId(null)} />
-      <SupplyMutateDialog id={editId} onOpenChange={() => setEditId(null)} />
+      <SupplyMutateDialog id={editId} open={!!editId} onOpenChange={() => setEditId(null)} />
       <SupplyDeleteDialog id={deleteId} onOpenChange={() => setDeleteId(null)} />
     </>
   )

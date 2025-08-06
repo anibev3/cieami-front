@@ -1,12 +1,13 @@
 /* eslint-disable no-console */
 import { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { useSuppliesStore } from '@/stores/supplies'
 import { toast } from 'sonner'
 import { SupplyCreate, SupplyUpdate, Supply } from '@/types/supplies'
+import { Package, FileText } from 'lucide-react'
 
 interface SupplyMutateDialogProps {
   id?: number | null
@@ -62,25 +63,50 @@ export function SupplyMutateDialog({ id, open, onOpenChange, onSuccess }: Supply
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Modifier la fourniture' : 'Ajouter une fourniture'}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            {isEdit ? 'Modifier la fourniture' : 'Ajouter une fourniture'}
+          </DialogTitle>
+          <DialogDescription>
+            {isEdit ? 'Modifiez les informations de la fourniture' : 'Créez une nouvelle fourniture'}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            placeholder="Libellé"
-            value={form.label}
-            onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-            required
-            disabled={loading}
-          />
-          <Textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            required
-            disabled={loading}
-          />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="label" className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Libellé
+              </label>
+              <Input
+                id="label"
+                placeholder="Entrez le libellé de la fourniture"
+                value={form.label}
+                onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+                required
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="description" className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Description
+              </label>
+              <Textarea
+                id="description"
+                placeholder="Entrez la description de la fourniture"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                required
+                disabled={loading}
+                rows={4}
+              />
+            </div>
+          </div>
+          
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={loading}>
               Annuler
