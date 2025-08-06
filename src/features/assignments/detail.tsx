@@ -2137,13 +2137,13 @@ export default function AssignmentDetailPage() {
             onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
             variant: 'outline' as const
           },
-          {
-            key: 'receipts',
-            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-            icon: Receipt,
-            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
-            variant: 'outline' as const
-          },
+          // {
+          //   key: 'receipts',
+          //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+          //   icon: Receipt,
+          //   onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+          //   variant: 'outline' as const
+          // },
           {
             key: 'delete',
             label: 'Supprimer',
@@ -2156,13 +2156,13 @@ export default function AssignmentDetailPage() {
 
       case 'opened':
         actions.push(
-          {
-            key: 'edit',
-            label: 'Modifier',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
-            variant: 'outline' as const
-          },
+          // {
+          //   key: 'edit',
+          //   label: 'Modifier',
+          //   icon: Edit,
+          //   onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+          //   variant: 'outline' as const
+          // },
           {
             key: 'realize',
             label: 'Réaliser le dossier',
@@ -2202,12 +2202,19 @@ export default function AssignmentDetailPage() {
             variant: 'outline' as const
           },
           {
-            key: 'receipts',
-            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-            icon: Receipt,
-            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+            key: 'edit-realization',
+            label: 'Modifier la réalisation',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
             variant: 'outline' as const
           },
+          // {
+          //   key: 'receipts',
+          //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+          //   icon: Receipt,
+          //   onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+          //   variant: 'outline' as const
+          // },
         )
         
         // Action de validation - seulement pour CEO et Validator
@@ -2234,12 +2241,19 @@ export default function AssignmentDetailPage() {
             variant: 'outline' as const
           },
           {
-            key: 'receipts',
-            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-            icon: Receipt,
-            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+            key: 'edit-realization',
+            label: 'Modifier la réalisation',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
             variant: 'outline' as const
           },
+          // {
+          //   key: 'receipts',
+          //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+          //   icon: Receipt,
+          //   onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+          //   variant: 'outline' as const
+          // },
           {
             key: 'generate-report',
             label: 'Générer le rapport',
@@ -2265,14 +2279,23 @@ export default function AssignmentDetailPage() {
 
       case 'closed':
       case 'paid':
+        // actions.push(
+        //   {
+        //     key: 'receipts',
+        //     label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
+        //     icon: Receipt,
+        //     onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+        //     variant: 'outline' as const
+        //   }
+        // )
         actions.push(
           {
-            key: 'receipts',
-            label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-            icon: Receipt,
-            onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+            key: 'edit-realization',
+            label: 'Modifier la réalisation',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
             variant: 'outline' as const
-          }
+          },
         )
         actions.push(
           {
@@ -2299,6 +2322,13 @@ export default function AssignmentDetailPage() {
       //   onClick: () => window.print(),
       //   variant: 'outline' as const
       // }
+        {
+            key: 'edit',
+            label: 'Modifier le dossier',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+            variant: 'outline' as const
+          },
       {
             key: 'generate-report',
             label: 'Générer le rapport',
@@ -2308,6 +2338,15 @@ export default function AssignmentDetailPage() {
             loading: loadingGenerate
           }
     )
+    // if (isCEO() || isValidator() || isExpertManager()) {
+    //       actions.push({
+    //         key: 'edit-report',
+    //         label: 'Modifier la rédaction',
+    //         icon: Edit,
+    //         onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+    //         variant: 'outline' as const
+    //       },)
+    //     }
 
     return actions
   }
