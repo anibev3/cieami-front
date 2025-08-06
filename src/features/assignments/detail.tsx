@@ -2278,6 +2278,26 @@ export default function AssignmentDetailPage() {
         break
 
       case 'closed':
+      case 'validated':
+        actions.push(
+          {
+            key: 'edit-realization',
+            label: 'Modifier la réalisation',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+            variant: 'outline' as const
+          },
+          {
+            key: 'edit-report',
+            label: 'Modifier la rédaction',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+            variant: 'outline' as const
+          },
+          
+        )
+        break
+
       case 'paid':
         // actions.push(
         //   {
