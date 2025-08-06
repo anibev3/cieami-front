@@ -1,6 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { Client } from './types'
 import { Button } from '@/components/ui/button'
+import { formatDate } from '@/utils/format-date'
 
 interface CreateColumnsProps {
   onView: (client: Client) => void
@@ -33,6 +34,17 @@ export function createColumns({ onView, onEdit, onDelete }: CreateColumnsProps):
     {
       accessorKey: 'address',
       header: 'Adresse',
+    },
+    {
+      accessorKey: 'created_at',
+      header: 'Créé le',
+      cell: ({ row }) => {
+        return (
+          <div className="text-sm text-muted-foreground">
+            {formatDate(row.getValue('created_at'))}
+          </div>
+        )
+      },
     },
     {
       id: 'actions',
