@@ -32,7 +32,7 @@ export function DeleteVehicleDialog({
           <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
           <AlertDialogDescription>
             Cette action ne peut pas être annulée. Cela supprimera définitivement le véhicule{' '}
-            <strong>{vehicle.license_plate}</strong> ({vehicle.brand.label} {vehicle.vehicle_model.label}).
+            <strong>{vehicle?.license_plate}</strong> ({vehicle?.brand?.label} {vehicle?.vehicle_model?.label}).
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

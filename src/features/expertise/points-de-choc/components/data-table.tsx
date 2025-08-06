@@ -83,7 +83,7 @@ export function DataTable({ data, loading }: DataTableProps) {
         </TableBody>
       </Table>
       <ShockPointViewDialog id={viewId} onOpenChange={() => setViewId(null)} />
-      <ShockPointMutateDialog id={editId} onOpenChange={() => setEditId(null)} />
+      <ShockPointMutateDialog id={editId} open={!!editId} onOpenChange={() => setEditId(null)} />
       <ShockPointDeleteDialog id={deleteId} onOpenChange={() => setDeleteId(null)} />
     </>
   )

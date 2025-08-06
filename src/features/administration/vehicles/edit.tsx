@@ -22,7 +22,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Save, Loader2 } from 'lucide-react'
-
 import { VehicleUpdate } from '@/types/vehicles'
 import { useVehiclesStore } from '@/stores/vehicles'
 import { useBrandsStore } from '@/stores/brands'
@@ -52,10 +51,10 @@ const vehicleEditSchema = z.object({
   nb_seats: z.coerce.number().int('Le nombre de places doit être un nombre entier').optional(),
   new_market_value: z.coerce.number().int('La valeur neuve doit être un nombre entier').optional(),
   payload: z.coerce.number().int('La charge utile doit être un nombre entier').optional(),
-  vehicle_model_id: z.string().min(1, 'Le modèle de véhicule est requis'),
-  color_id: z.string().min(1, 'La couleur est requise'),
-  vehicle_genre_id: z.string().min(1, 'Le genre de véhicule est requis'),
-  vehicle_energy_id: z.string().min(1, 'L\'énergie est requise'),
+  vehicle_model_id: z.string().optional(),
+  color_id: z.string().optional(),
+  vehicle_genre_id: z.string().optional(),
+  vehicle_energy_id: z.string().optional(),
 })
 
 type VehicleEditFormData = z.infer<typeof vehicleEditSchema>
@@ -172,7 +171,7 @@ export default function EditVehiclePage() {
     
     try {
       const updateData: VehicleUpdate = {
-        license_plate: data.license_plate,
+        license_plate: data.license_plate || undefined,
         usage: data.usage || undefined,
         type: data.type || undefined,
         option: data.option || undefined,
@@ -185,8 +184,8 @@ export default function EditVehiclePage() {
         nb_seats: data.nb_seats ? Number(data.nb_seats) : undefined,
         new_market_value: data.new_market_value ? Number(data.new_market_value) : undefined,
         payload: data.payload ? Number(data.payload) : undefined,
-        vehicle_model_id: data.vehicle_model_id,
-        color_id: data.color_id,
+        vehicle_model_id: data.vehicle_model_id || undefined,
+        color_id: data.color_id || undefined,
         vehicle_genre_id: data.vehicle_genre_id || undefined,
         vehicle_energy_id: data.vehicle_energy_id || undefined,
       }
@@ -304,7 +303,7 @@ export default function EditVehiclePage() {
                     name="vehicle_genre_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Genre de véhicule *</FormLabel>
+                        <FormLabel>Genre de véhicule</FormLabel>
                         <FormControl>
                           <VehicleGenreSelect
                             value={field.value}
@@ -319,7 +318,7 @@ export default function EditVehiclePage() {
                   />
 
                   <div className="space-y-2">
-                    <FormLabel>Marque *</FormLabel>
+                    <FormLabel>Marque</FormLabel>
                     <BrandSelect
                       value={selectedBrandId}
                       onValueChange={setSelectedBrandId}
@@ -332,7 +331,7 @@ export default function EditVehiclePage() {
                     name="vehicle_model_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Modèle de véhicule *</FormLabel>
+                        <FormLabel>Modèle de véhicule</FormLabel>
                         <VehicleModelSelect
                           value={field.value}
                           onValueChange={field.onChange}
@@ -349,7 +348,7 @@ export default function EditVehiclePage() {
                     name="color_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Couleur *</FormLabel>
+                        <FormLabel>Couleur</FormLabel>
                         <ColorSelect
                           value={field.value}
                           onValueChange={field.onChange}
@@ -381,7 +380,7 @@ export default function EditVehiclePage() {
                     name="vehicle_energy_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Énergie *</FormLabel>
+                        <FormLabel>Énergie</FormLabel>
                         <FormControl>
                           <VehicleEnergySelect
                             value={field.value}
