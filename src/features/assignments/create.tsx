@@ -143,7 +143,7 @@ interface AssignmentCreatePayload {
   claim_ends_at: string | null
   expertise_date: string | null
   expertise_place: string | null
-  received_at: string
+  received_at: string | null
   administrator: string | null
   circumstance: string | null
   damage_declared: string | null
@@ -325,7 +325,7 @@ export default function CreateAssignmentPage() {
       claim_ends_at: '',
       expertise_date: '',
       expertise_place: '',
-      received_at: new Date().toISOString().split('T')[0],
+      received_at: '',
       administrator: '',
       circumstance: '',
       damage_declared: '',
@@ -361,7 +361,7 @@ export default function CreateAssignmentPage() {
             claim_ends_at: assignment.claim_ends_at || '',
             expertise_date: assignment.expertise_date || '',
             expertise_place: assignment.expertise_place || '',
-            received_at: assignment.received_at || new Date().toISOString().split('T')[0],
+            received_at: assignment.received_at,
             administrator: assignment.administrator || '',
             circumstance: assignment.circumstance || '',
             damage_declared: assignment.damage_declared || '',
@@ -1479,7 +1479,7 @@ export default function CreateAssignmentPage() {
                               <FormItem>
                                 <FormLabel>Date de réception</FormLabel>
                                 <FormControl>
-                            <Input type="date" {...field} />
+                              <Input type="date" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

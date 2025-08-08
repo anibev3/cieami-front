@@ -41,8 +41,8 @@ import { useAssignmentRealizationStore } from '@/stores/assignmentRealizationSto
 
 // Schéma de validation pour la réalisation
 const realizeSchema = z.object({
-  expertise_date: z.date().nullable().refine((date) => date !== null, {
-    message: "La date d'expertise est requise",
+  expertise_date: z.date({
+    required_error: "La date d'expertise est requise",
   }),
   expertise_time: z.string().optional(),
   expertise_place: z.string().optional(),
@@ -90,9 +90,9 @@ export default function RealizeAssignmentPage() {
 
   // Pré-remplir le formulaire quand les données sont chargées
   useEffect(() => {
-    if (assignment && assignment.realized_at) {
+    if (assignment) {
       // Gérer la date d'expertise
-      let expertiseDate = null
+      let expertiseDate = new Date()
       let timeString = '09:00'
       
       if (assignment.expertise_date) {
