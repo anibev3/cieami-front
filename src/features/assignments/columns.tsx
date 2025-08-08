@@ -528,6 +528,18 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       )
     },
   },
+  {
+    accessorKey: 'repairer',
+    header: 'Reparateur',
+    cell: ({ row }) => {
+      const repairman = row.getValue('repairer') as Assignment['repairer']
+      return (
+        <div className="text-sm text-muted-foreground">
+          {repairman?.name}
+        </div>
+      )
+    },
+  },
   // {
   //   accessorKey: 'assignment_type',
   //   header: 'Type',
