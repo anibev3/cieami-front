@@ -111,6 +111,7 @@ interface Assignment {
   new_market_value: string
   depreciation_rate: string
   market_value: string
+  vehicle_new_market_value_option: string | null
   work_duration: string | null
   expert_remark: string | null
   expert_report_remark: string | null
@@ -552,6 +553,7 @@ export default function EditReportPage() {
   const [circumstance, setCircumstance] = useState('')
   const [damageDeclared, setDamageDeclared] = useState('')
   const [observation, setObservation] = useState('')
+  const [pointNoted, setPointNoted] = useState('')
   // Remplacer newOtherCost par un tableau newOtherCosts
   const [newOtherCosts, setNewOtherCosts] = useState([
     { other_cost_type_id: 0, amount: 0 }
@@ -716,66 +718,14 @@ export default function EditReportPage() {
         
         if (response && typeof response === 'object' && 'data' in response) {
           setAssignment(response.data as unknown as Assignment)
-          // Initialiser les champs d'édition
+          // Initialiser tous les champs avec les données de l'assignation
           const assignmentData = response.data as unknown as Assignment
-          setCircumstance(assignmentData.circumstance || '')
-          setDamageDeclared(assignmentData.damage_declared || '')
-          setObservation(assignmentData.observation || '')
-          
-          // Pré-remplir les informations additionnelles
-          setGeneralStateId(assignmentData.general_state?.id || null)
-          setTechnicalConclusionId(assignmentData.technical_conclusion?.id || null)
-          setClaimNatureId(assignmentData.claim_nature?.id || null)
-          setExpertRemark(assignmentData.expert_report_remark || '')
-          setExpertisePlace(assignmentData.expertise_place || '')
-          setAssuredValue(parseFloat(assignmentData.assured_value || '0'))
-          setSalvageValue(parseFloat(assignmentData.salvage_value || '0'))
-          setWorkDuration(assignmentData.work_duration || '')
-          
-          // Pré-remplir les dates
-          if (assignmentData.seen_before_work_date) {
-            setSeenBeforeWorkDate(assignmentData.seen_before_work_date)
-          }
-          if (assignmentData.seen_during_work_date) {
-            setSeenDuringWorkDate(assignmentData.seen_during_work_date)
-          }
-          if (assignmentData.seen_after_work_date) {
-            setSeenAfterWorkDate(assignmentData.seen_after_work_date)
-          }
-          if (assignmentData.contact_date) {
-            setContactDate(assignmentData.contact_date)
-          }
+          initializeFields(assignmentData)
         } else {
           setAssignment(response as unknown as Assignment)
-          // Initialiser les champs d'édition
+          // Initialiser tous les champs avec les données de l'assignation
           const assignmentData = response as unknown as Assignment
-          setCircumstance(assignmentData.circumstance || '')
-          setDamageDeclared(assignmentData.damage_declared || '')
-          setObservation(assignmentData.observation || '')
-          
-          // Pré-remplir les informations additionnelles
-          setGeneralStateId(assignmentData.general_state?.id || null)
-          setTechnicalConclusionId(assignmentData.technical_conclusion?.id || null)
-          setClaimNatureId(assignmentData.claim_nature?.id || null)
-          setExpertRemark(assignmentData.expert_report_remark || '')
-          setExpertisePlace(assignmentData.expertise_place || '')
-          setAssuredValue(parseFloat(assignmentData.assured_value || '0'))
-          setSalvageValue(parseFloat(assignmentData.salvage_value || '0'))
-          setWorkDuration(assignmentData.work_duration || '')
-          
-          // Pré-remplir les dates
-          if (assignmentData.seen_before_work_date) {
-            setSeenBeforeWorkDate(assignmentData.seen_before_work_date)
-          }
-          if (assignmentData.seen_during_work_date) {
-            setSeenDuringWorkDate(assignmentData.seen_during_work_date)
-          }
-          if (assignmentData.seen_after_work_date) {
-            setSeenAfterWorkDate(assignmentData.seen_after_work_date)
-          }
-          if (assignmentData.contact_date) {
-            setContactDate(assignmentData.contact_date)
-          }
+          initializeFields(assignmentData)
         }
       } catch (err) {
         console.log(err)
@@ -1022,23 +972,7 @@ export default function EditReportPage() {
   }
 
   // Initialiser les valeurs de marché quand l'assignation est chargée
-  useEffect(() => {
-    if (assignment) {
-      // Initialiser les nouveaux champs de valeur de marché
-      if ((assignment as any).new_market_value) {
-        setNewMarketValue((assignment as any).new_market_value)
-      }
-      if ((assignment as any).depreciation_rate) {
-        setDepreciationRate((assignment as any).depreciation_rate)
-      }
-      if ((assignment as any).market_value) {
-        setMarketValue((assignment as any).market_value)
-      }
-      if ((assignment as any).vehicle_new_market_value_option) {
-        setVehicleNewMarketValueOption((assignment as any).vehicle_new_market_value_option)
-      }
-    }
-  }, [assignment])
+
 
   // Fonction pour obtenir la couleur du statut
   const getStatusColor = (statusCode: string) => {
@@ -1057,6 +991,48 @@ export default function EditReportPage() {
   // Fonction pour déterminer si c'est une évaluation
   const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
   
+  // Fonction pour initialiser tous les champs avec les données de l'assignation
+  const initializeFields = (assignmentData: Assignment) => {
+    // Champs de base
+    setCircumstance(assignmentData.circumstance || '')
+    setDamageDeclared(assignmentData.damage_declared || '')
+    setObservation(assignmentData.observation || '')
+    setPointNoted(assignmentData.point_noted || '')
+    
+    // Informations additionnelles
+    setGeneralStateId(assignmentData.general_state?.id || null)
+    setTechnicalConclusionId(assignmentData.technical_conclusion?.id || null)
+    setClaimNatureId(assignmentData.claim_nature?.id || null)
+    setSelectedRemarkId(assignmentData.report_remark_id || null)
+    setExpertRemark(assignmentData.expert_report_remark || '')
+    setInstructions(assignmentData.instructions || '')
+    setMarketIncidenceRate(parseFloat(assignmentData.market_incidence_rate || '0'))
+    setExpertisePlace(assignmentData.expertise_place || '')
+    setAssuredValue(parseFloat(assignmentData.assured_value || '0'))
+    setSalvageValue(parseFloat(assignmentData.salvage_value || '0'))
+    setWorkDuration(assignmentData.work_duration || '')
+    
+    // Valeurs de marché
+    setNewMarketValue(parseFloat(assignmentData.new_market_value || '0'))
+    setDepreciationRate(parseFloat(assignmentData.depreciation_rate || '0'))
+    setMarketValue(parseFloat(assignmentData.market_value || '0'))
+    setVehicleNewMarketValueOption(assignmentData.vehicle_new_market_value_option || null)
+    
+    // Dates
+    if (assignmentData.seen_before_work_date) {
+      setSeenBeforeWorkDate(assignmentData.seen_before_work_date)
+    }
+    if (assignmentData.seen_during_work_date) {
+      setSeenDuringWorkDate(assignmentData.seen_during_work_date)
+    }
+    if (assignmentData.seen_after_work_date) {
+      setSeenAfterWorkDate(assignmentData.seen_after_work_date)
+    }
+    if (assignmentData.contact_date) {
+      setContactDate(assignmentData.contact_date)
+    }
+  }
+
   // Fonction de sauvegarde
   const handleSave = async () => {
     setSaving(true)
@@ -1064,40 +1040,46 @@ export default function EditReportPage() {
       // Sauvegarder les modifications des champs d'édition
       if (assignment) {
         const payload: any = {
+          // Champs de base (toujours envoyés)
           circumstance,
           damage_declared: damageDeclared,
-          observation
+          observation,
+          point_noted: pointNoted,
+          
+          // Champs pour tous les types de dossiers (évaluation et non-évaluation)
+          general_state_id: generalStateId?.toString(),
+          technical_conclusion_id: technicalConclusionId?.toString(),
+          claim_nature_id: claimNatureId?.toString(),
+          report_remark_id: selectedRemarkId?.toString(),
+          expert_report_remark: expertRemark,
+          instructions: instructions,
+          market_incidence_rate: marketIncidenceRate ? Number(marketIncidenceRate) : undefined,
+          
+          // Dates (toujours envoyées)
+          seen_before_work_date: seenBeforeWorkDate,
+          seen_during_work_date: seenDuringWorkDate,
+          seen_after_work_date: seenAfterWorkDate,
+          contact_date: contactDate,
+          expertise_place: expertisePlace,
+          
+          // Valeurs (toujours envoyées)
+          assured_value: assuredValue ? Number(assuredValue) : undefined,
+          salvage_value: salvageValue ? Number(salvageValue) : undefined,
+          work_duration: workDuration,
+          
+          // Valeurs de marché (toujours envoyées)
+          new_market_value: newMarketValue ? Number(newMarketValue) : undefined,
+          depreciation_rate: depreciationRate ? Number(depreciationRate) : undefined,
+          market_value: marketValue ? Number(marketValue) : undefined,
+          vehicle_new_market_value_option: vehicleNewMarketValueOption
         }
 
-        // Ajouter les champs conditionnels selon le type d'expertise
-        if (!isEvaluation) {
-          // Champs pour les dossiers NON-évaluation
-          if (generalStateId) payload.general_state_id = generalStateId.toString()
-          if (technicalConclusionId) payload.technical_conclusion_id = technicalConclusionId.toString()
-          if (claimNatureId) payload.claim_nature_id = claimNatureId.toString()
-          if (selectedRemarkId) payload.report_remark_id = selectedRemarkId.toString()
-          if (expertRemark) payload.expert_report_remark = expertRemark
-                  if (seenBeforeWorkDate) payload.seen_before_work_date = seenBeforeWorkDate
-        if (seenDuringWorkDate) payload.seen_during_work_date = seenDuringWorkDate
-        if (seenAfterWorkDate) payload.seen_after_work_date = seenAfterWorkDate
-        if (contactDate) payload.contact_date = contactDate
-          if (expertisePlace) payload.expertise_place = expertisePlace
-          if (assuredValue) payload.assured_value = Number(assuredValue)
-          if (salvageValue) payload.salvage_value = Number(salvageValue)
-          if (workDuration) payload.work_duration = workDuration
-        } else {
-          // Champs pour les dossiers évaluation
-          if (instructions) payload.instructions = instructions
-          if (marketIncidenceRate) payload.market_incidence_rate = Number(marketIncidenceRate)
-        }
+        // Nettoyer le payload en supprimant les valeurs undefined
+        const cleanPayload = Object.fromEntries(
+          Object.entries(payload).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        )
 
-        // Champs de valeur de marché (pour tous les types d'expertise)
-        if (newMarketValue) payload.new_market_value = Number(newMarketValue)
-        if (depreciationRate) payload.depreciation_rate = Number(depreciationRate)
-        if (marketValue) payload.market_value = Number(marketValue)
-        if (vehicleNewMarketValueOption) payload.vehicle_new_market_value_option = vehicleNewMarketValueOption
-
-        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITE_ELEMENTS}/${assignment.id}`, payload)
+        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITE_ELEMENTS}/${assignment.id}`, cleanPayload)
       }
       toast.success('Modifications sauvegardées avec succès')
       refreshAssignment()
@@ -2670,10 +2652,8 @@ export default function EditReportPage() {
                           <div>
                             <RichTextEditor
                               label="Points notés"
-                              value={assignment.point_noted || ''}
-                              onChange={(value) => {
-                                console.log('Points notés modifiés:', value)
-                              }}
+                              value={pointNoted}
+                              onChange={setPointNoted}
                               placeholder="Ajoutez des points notés..."
                               className="mb-4"
                             />
@@ -3680,4 +3660,5 @@ function OtherCostItem({
     </div>
   )
 }
+
 
