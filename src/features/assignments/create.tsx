@@ -31,7 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
 import { ClientSelect } from '@/features/widgets/client-select'
 import { VehicleSelect } from '@/features/widgets/vehicle-select'
 import { InsurerSelect } from '@/features/widgets/insurer-select'
@@ -78,6 +78,17 @@ import { ColorSelect } from '@/features/widgets/color-select'
 import { BodyworkSelect } from '@/features/widgets/bodywork-select'
 import { CreateRepairer } from '@/features/assignments/components/create-repairer'
 import { VehicleMutateDialog } from '@/features/administration/vehicles/components/vehicle-mutate-dialog'
+
+// Types pour les erreurs
+interface ApiError {
+  status: number
+  title: string
+  detail: string
+}
+
+interface ApiErrorResponse {
+  errors: ApiError[]
+}
 
 // Types pour les experts
 interface Expert {
@@ -275,6 +286,10 @@ export default function CreateAssignmentPage() {
   const [selectedAssignmentType, setSelectedAssignmentType] = useState<AssignmentType | null>(null)
   const [selectedExpertiseType, setSelectedExpertiseType] = useState<ExpertiseType | null>(null)
   const [selectedDocuments, setSelectedDocuments] = useState<DocumentTransmitted[]>([])
+
+  // États pour la gestion des erreurs
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorDetails, setErrorDetails] = useState<ApiError[]>([])
   
   // Mode édition
   const isEditMode = !!id
@@ -684,9 +699,23 @@ export default function CreateAssignmentPage() {
         toast.success('Dossier créé avec succès')
         navigate({ to: `/assignments/${response.data.data.id}` })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error)
-      toast.error('Erreur lors de la sauvegarde du dossier')
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        setErrorDetails(apiErrors.errors)
+        setShowErrorModal(true)
+        
+        // Afficher le premier message d'erreur dans un toast
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Une erreur est survenue')
+        }
+      } else {
+        // Erreur générique
+        toast.error('Erreur lors de la sauvegarde du dossier')
+      }
     } finally {
       setLoading(false)
     }
@@ -709,8 +738,18 @@ export default function CreateAssignmentPage() {
       setShowCreateClientModal(false)
       setCreateClientForm({ name: '', email: '', phone_1: '', phone_2: '', address: '' })
       fetchClients() // Recharger la liste
-    } catch (error) {
-      toast.error('Erreur lors de la création du client')
+    } catch (error: any) {
+      console.error('Erreur lors de la création du client:', error)
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création du client')
+        }
+      } else {
+        toast.error('Erreur lors de la création du client')
+      }
     }
   }
   
@@ -731,8 +770,18 @@ export default function CreateAssignmentPage() {
       setShowCreateInsurerModal(false)
       setCreateInsurerForm({ name: '', code: '', email: '', telephone: '', address: '' })
       fetchEntities() // Recharger la liste
-    } catch (error) {
-      toast.error('Erreur lors de la création de l\'assureur')
+    } catch (error: any) {
+      console.error('Erreur lors de la création de l\'assureur:', error)
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de l\'assureur')
+        }
+      } else {
+        toast.error('Erreur lors de la création de l\'assureur')
+      }
     }
   }
 
@@ -750,8 +799,18 @@ export default function CreateAssignmentPage() {
       setShowCreateDocumentModal(false)
       setCreateDocumentForm({ code: '', label: '', description: '' })
       fetchDocuments() // Recharger la liste
-    } catch (error) {
-      toast.error('Erreur lors de la création du document')
+    } catch (error: any) {
+      console.error('Erreur lors de la création du document:', error)
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création du document')
+        }
+      } else {
+        toast.error('Erreur lors de la création du document')
+      }
     }
   }
 
@@ -772,8 +831,18 @@ export default function CreateAssignmentPage() {
       toast.success('Marque créée avec succès')
       setShowCreateBrandModal(false)
       setCreateBrandForm({ code: '', label: '', description: '' })
-    } catch (error) {
-      toast.error('Erreur lors de la création de la marque')
+    } catch (error: any) {
+      console.error('Erreur lors de la création de la marque:', error)
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de la marque')
+        }
+      } else {
+        toast.error('Erreur lors de la création de la marque')
+      }
     }
   }
 
@@ -791,8 +860,18 @@ export default function CreateAssignmentPage() {
       toast.success('Modèle créé avec succès')
       setShowCreateVehicleModelModal(false)
       setCreateVehicleModelForm({ code: '', label: '', description: '', brand_id: '' })
-    } catch (error) {
-      toast.error('Erreur lors de la création du modèle')
+    } catch (error: any) {
+      console.error('Erreur lors de la création du modèle:', error)
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création du modèle')
+        }
+      } else {
+        toast.error('Erreur lors de la création du modèle')
+      }
     }
   }
 
@@ -809,8 +888,18 @@ export default function CreateAssignmentPage() {
       toast.success('Couleur créée avec succès')
       setShowCreateColorModal(false)
       setCreateColorForm({ code: '', label: '', description: '' })
-    } catch (error) {
-      toast.error('Erreur lors de la création de la couleur')
+    } catch (error: any) {
+      console.error('Erreur lors de la création de la couleur:', error)
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de la couleur')
+        }
+      } else {
+        toast.error('Erreur lors de la création de la couleur')
+      }
     }
   }
 
@@ -827,8 +916,18 @@ export default function CreateAssignmentPage() {
       toast.success('Carrosserie créée avec succès')
       setShowCreateBodyworkModal(false)
       setCreateBodyworkForm({ code: '', label: '', description: '' })
-    } catch (error) {
-      toast.error('Erreur lors de la création de la carrosserie')
+    } catch (error: any) {
+      console.error('Erreur lors de la création de la carrosserie:', error)
+      
+      // Gestion des erreurs de l'API
+      if (error.response?.data?.errors) {
+        const apiErrors = error.response.data as ApiErrorResponse
+        if (apiErrors.errors.length > 0) {
+          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de la carrosserie')
+        }
+      } else {
+        toast.error('Erreur lors de la création de la carrosserie')
+      }
     }
   }
 
@@ -3430,6 +3529,51 @@ export default function CreateAssignmentPage() {
               <Button type="submit" disabled={loadingBodyworks}>Créer la carrosserie</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'erreur */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Erreur lors de la sauvegarde
+            </DialogTitle>
+            <DialogDescription>
+              Des erreurs ont été détectées lors de la sauvegarde du dossier. Veuillez corriger les problèmes suivants :
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {errorDetails.map((error, index) => (
+              <div key={index} className="p-3 border border-destructive/20 rounded-lg bg-destructive/5">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-destructive">
+                      {error.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {error.detail}
+                    </p>
+                    {error.status && (
+                      <p className="text-xs text-muted-foreground">
+                        Code d'erreur: {error.status}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowErrorModal(false)}
+            >
+              Fermer
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
