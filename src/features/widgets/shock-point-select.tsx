@@ -143,7 +143,7 @@ export function ShockPointSelect({
           </Command>
         </PopoverContent>
       </Popover>
-      {hasValue && !disabled && (
+      {/* {hasValue && !disabled && (
         <Button
           type="button"
           variant="ghost"
@@ -154,7 +154,7 @@ export function ShockPointSelect({
         >
           <X className="h-3 w-3" />
         </Button>
-      )}
+      )} */}
       </div>
       
       {/* {showSelectedInfo && selectedShockPoint && (

@@ -177,7 +177,7 @@ export function RemarkSelect({
         </Command>
         </PopoverContent>
       </Popover>
-      {selectedRemark && !disabled && (
+      {/* {selectedRemark && !disabled && (
         <Button
           type="button"
           variant="ghost"
@@ -188,7 +188,7 @@ export function RemarkSelect({
         >
           <X className="h-3 w-3" />
         </Button>
-      )}
+      )} */}
     </div>
   )
 } 

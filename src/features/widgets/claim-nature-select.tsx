@@ -175,7 +175,7 @@ export function ClaimNatureSelect({
         </Command>
         </PopoverContent>
       </Popover>
-      {selectedClaimNature && !disabled && (
+      {/* {selectedClaimNature && !disabled && (
         <Button
           type="button"
           variant="ghost"
@@ -186,7 +186,7 @@ export function ClaimNatureSelect({
         >
           <X className="h-3 w-3" />
         </Button>
-      )}
+      )} */}
     </div>
   )
 } 

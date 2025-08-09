@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Package, ChevronsUpDown, Plus, Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSuppliesStore } from '@/stores/supplies'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface Supply {
   id: number
@@ -35,8 +37,28 @@ export function SupplySelect({
   onCreateNew
 }: SupplySelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearch = useDebounce(searchQuery, 300)
+
+  const { supplies: apiSupplies, loading, fetchSupplies } = useSuppliesStore()
+
+  useEffect(() => {
+    if (debouncedSearch !== undefined) {
+      // Appel API en temps réel avec le paramètre search
+      void fetchSupplies({ search: debouncedSearch, per_page: 50 })
+    }
+  }, [debouncedSearch, fetchSupplies])
+
+  // Réinitialiser la recherche à la fermeture
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery('')
+    }
+  }, [open])
+
   const selectedSupply = supplies.find(supply => supply.id === value)
   const hasValue = value > 0
+  const displaySupplies = searchQuery ? apiSupplies : supplies
 
   return (
     <div className="space-y-3">
@@ -73,29 +95,19 @@ export function SupplySelect({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Rechercher une fourniture..." />
+            <CommandInput 
+              placeholder="Rechercher une fourniture..." 
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
             <CommandList>
               <CommandEmpty className="py-6 text-center text-sm">
                 <div className="space-y-2">
-                  <p>Aucune fourniture trouvée</p>
-                  {onCreateNew && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setOpen(false)
-                        onCreateNew()
-                      }}
-                      className="mx-auto"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Créer une nouvelle fourniture
-                    </Button>
-                  )}
+                  <p>{loading ? 'Chargement...' : 'Aucune fourniture trouvée'}</p>
                 </div>
               </CommandEmpty>
               <CommandGroup>
-                {supplies.map((supply) => (
+                {displaySupplies.map((supply) => (
                   <CommandItem
                     key={supply.id}
                     value={`${supply.label} ${supply.code || ''} ${supply.description || ''}`}
@@ -147,7 +159,7 @@ export function SupplySelect({
           </Command>
         </PopoverContent>
       </Popover>
-      {hasValue && !disabled && (
+      {/* {hasValue && !disabled && (
         <Button
           type="button"
           variant="ghost"
@@ -158,7 +170,7 @@ export function SupplySelect({
         >
           <X className="h-3 w-3" />
         </Button>
-      )}
+      )} */}
       </div>
       
       {showSelectedInfo && selectedSupply && (
