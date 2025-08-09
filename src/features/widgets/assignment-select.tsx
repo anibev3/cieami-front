@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react'
-import { Check, ChevronsUpDown, Loader2, Receipt, Wrench, Car, Eye, DollarSign} from 'lucide-react'
+import { Check, ChevronsUpDown, Loader2, Receipt, Wrench, Car, Eye, DollarSign, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -147,6 +147,7 @@ export function AssignmentSelect({
 
   return (
     <>
+      <div className="flex items-center gap-1 w-full">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -228,6 +229,19 @@ export function AssignmentSelect({
           </Command>
         </PopoverContent>
       </Popover>
+      {!!value && !disabled && !loading && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange('') }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+      </div>
 
       {/* Modal de détails */}
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>

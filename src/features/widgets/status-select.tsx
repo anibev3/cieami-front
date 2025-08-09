@@ -3,7 +3,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Circle, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
+import { Circle, ChevronsUpDown, Check, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStatusesStore } from '@/stores/statusesStore'
 
@@ -53,35 +53,35 @@ export function StatusSelect({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between",
-            !selectedStatus && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled || loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Chargement...
-            </>
-          ) : selectedStatus ? (
-            <div className="flex items-center gap-2 truncate">
-              <Circle className={cn("h-4 w-4", getStatusColor(selectedStatus.code))} />
-              <span className="truncate">{selectedStatus.label}</span>
-            </div>
-          ) : (
-            placeholder
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+    <div className={cn("flex items-center gap-1", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between",
+              !selectedStatus && "text-muted-foreground"
+            )}
+            disabled={disabled || loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Chargement...
+              </>
+            ) : selectedStatus ? (
+              <div className="flex items-center gap-2 truncate">
+                <Circle className={cn("h-4 w-4", getStatusColor(selectedStatus.code))} />
+                <span className="truncate">{selectedStatus.label}</span>
+              </div>
+            ) : (
+              placeholder
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput placeholder="Rechercher un statut..." />
@@ -133,7 +133,20 @@ export function StatusSelect({
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {selectedStatus && !disabled && !loading && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(null) }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   )
 } 

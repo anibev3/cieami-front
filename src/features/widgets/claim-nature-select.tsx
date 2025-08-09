@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Check, ChevronsUpDown, Search } from 'lucide-react'
+import { Check, ChevronsUpDown, Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -60,42 +60,42 @@ export function ClaimNatureSelect({
   )
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between",
-            !selectedClaimNature && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled}
-        >
-          {selectedClaimNature ? (
-            <div className="flex items-center gap-2 truncate">
-              <span className="truncate">{selectedClaimNature.label}</span>
-              {showStatus && (
-                <Badge 
-                  variant={selectedClaimNature.status.code === 'active' ? 'default' : 'secondary'}
-                  className={cn(
-                    "text-xs",
-                    selectedClaimNature.status.code === 'active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  )}
-                >
-                  {selectedClaimNature.status.label}
-                </Badge>
-              )}
-            </div>
-          ) : (
-            placeholder
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+    <div className={cn("flex items-center gap-1", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between",
+              !selectedClaimNature && "text-muted-foreground"
+            )}
+            disabled={disabled}
+          >
+            {selectedClaimNature ? (
+              <div className="flex items-center gap-2 truncate">
+                <span className="truncate">{selectedClaimNature.label}</span>
+                {showStatus && (
+                  <Badge 
+                    variant={selectedClaimNature.status.code === 'active' ? 'default' : 'secondary'}
+                    className={cn(
+                      "text-xs",
+                      selectedClaimNature.status.code === 'active' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    )}
+                  >
+                    {selectedClaimNature.status.label}
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              placeholder
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <div className="flex items-center border-b px-3">
@@ -173,7 +173,20 @@ export function ClaimNatureSelect({
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {selectedClaimNature && !disabled && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(null) }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   )
 } 

@@ -3,7 +3,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { FileText, ChevronsUpDown, Plus, Check } from 'lucide-react'
+import { FileText, ChevronsUpDown, Plus, Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TechnicalConclusion {
@@ -40,6 +40,7 @@ export function TechnicalConclusionSelect({
 
   return (
     <div className="space-y-3">
+      <div className="flex items-center gap-1">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -140,6 +141,19 @@ export function TechnicalConclusionSelect({
           </Command>
         </PopoverContent>
       </Popover>
+      {hasValue && !disabled && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+      </div>
       
       {showSelectedInfo && selectedTechnicalConclusion && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">

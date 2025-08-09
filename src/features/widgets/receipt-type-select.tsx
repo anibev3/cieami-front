@@ -28,7 +28,8 @@ import {
   ChevronsUpDown, 
   Plus, 
   Loader2,
-  FileText
+  FileText,
+  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -136,6 +137,7 @@ export function ReceiptTypeSelect({
 
                   
                 
+        <div className="flex items-center gap-1">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -240,6 +242,19 @@ export function ReceiptTypeSelect({
             </Command>
           </PopoverContent>
         </Popover>
+        {value && !disabled && !loading && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            aria-label="Effacer"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(null) }}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+        </div>
         <div className='flex justify-end mt-2'>
                   <Button
                     onClick={() => {

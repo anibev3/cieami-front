@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
+import { Check, ChevronsUpDown, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AscertainmentTypeSelectProps {
@@ -58,35 +58,36 @@ export function AscertainmentTypeSelect({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn("w-full justify-between", className)}
-          disabled={disabled || loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Chargement...
-            </>
-          ) : selectedType ? (
-            <div className="flex items-center space-x-2">
-              <span>{selectedType.label}</span>
-              {showStatus && (
-                <Badge variant={getStatusBadgeVariant(selectedType.status.code)}>
-                  {selectedType.status.label}
-                </Badge>
-              )}
-            </div>
-          ) : (
-            placeholder
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+    <div className={cn("flex items-center gap-1", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn("w-full justify-between")}
+            disabled={disabled || loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Chargement...
+              </>
+            ) : selectedType ? (
+              <div className="flex items-center space-x-2">
+                <span>{selectedType.label}</span>
+                {showStatus && (
+                  <Badge variant={getStatusBadgeVariant(selectedType.status.code)}>
+                    {selectedType.status.label}
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              placeholder
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput placeholder="Rechercher un type de constat..." />
@@ -126,8 +127,21 @@ export function AscertainmentTypeSelect({
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {selectedType && !disabled && !loading && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(null) }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   )
 }
 

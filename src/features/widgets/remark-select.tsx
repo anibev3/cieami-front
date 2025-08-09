@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Check, ChevronsUpDown, Search, FileText } from 'lucide-react'
+import { Check, ChevronsUpDown, Search, FileText, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -58,43 +58,43 @@ export function RemarkSelect({
   )
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between",
-            !selectedRemark && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled}
-        >
-          {selectedRemark ? (
-            <div className="flex items-center gap-2 truncate">
-              <FileText className="h-4 w-4 text-blue-600" />
-              <span className="truncate">{selectedRemark.label}</span>
-              {showStatus && (
-                <Badge 
-                  variant={selectedRemark.status.label === 'Actif(ve)' ? 'default' : 'secondary'}
-                  className={cn(
-                    "text-xs",
-                    selectedRemark.status.label === 'Actif(ve)' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  )}
-                >
-                  {selectedRemark.status.label}
-                </Badge>
-              )}
-            </div>
-          ) : (
-            placeholder
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+    <div className={cn("flex items-center gap-1", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between",
+              !selectedRemark && "text-muted-foreground"
+            )}
+            disabled={disabled}
+          >
+            {selectedRemark ? (
+              <div className="flex items-center gap-2 truncate">
+                <FileText className="h-4 w-4 text-blue-600" />
+                <span className="truncate">{selectedRemark.label}</span>
+                {showStatus && (
+                  <Badge 
+                    variant={selectedRemark.status.label === 'Actif(ve)' ? 'default' : 'secondary'}
+                    className={cn(
+                      "text-xs",
+                      selectedRemark.status.label === 'Actif(ve)' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    )}
+                  >
+                    {selectedRemark.status.label}
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              placeholder
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <div className="flex items-center border-b px-3">
@@ -175,7 +175,20 @@ export function RemarkSelect({
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {selectedRemark && !disabled && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(null) }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   )
 } 

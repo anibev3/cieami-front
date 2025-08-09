@@ -3,7 +3,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { User, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
+import { User, ChevronsUpDown, Check, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUsersStore } from '@/stores/usersStore'
 import { UserRole, Status, UserFilters } from '@/types/administration'
@@ -106,43 +106,43 @@ export function UserSelect({
   }
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between",
-            !selectedUser && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled || loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Chargement...
-            </>
-          ) : selectedUser ? (
-            <div className="flex items-center gap-2 truncate">
-              <User className="h-4 w-4 text-purple-600" />
-              <span className="truncate">{selectedUser.name}</span>
-              {showStatus && (
-                <Badge 
-                  variant="secondary"
-                  className={cn("text-xs", getStatusColor(selectedUser.status))}
-                >
-                  {selectedUser.status.label}
-                </Badge>
-              )}
-            </div>
-          ) : (
-            placeholder
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+    <div className={cn("flex items-center gap-1", className)}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between",
+              !selectedUser && "text-muted-foreground"
+            )}
+            disabled={disabled || loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Chargement...
+              </>
+            ) : selectedUser ? (
+              <div className="flex items-center gap-2 truncate">
+                <User className="h-4 w-4 text-purple-600" />
+                <span className="truncate">{selectedUser.name}</span>
+                {showStatus && (
+                  <Badge 
+                    variant="secondary"
+                    className={cn("text-xs", getStatusColor(selectedUser.status))}
+                  >
+                    {selectedUser.status.label}
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              placeholder
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput 
@@ -198,7 +198,20 @@ export function UserSelect({
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {selectedUser && !disabled && !loading && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(null) }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   )
 } 

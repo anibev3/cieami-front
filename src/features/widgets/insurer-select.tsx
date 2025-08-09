@@ -3,7 +3,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Building, ChevronsUpDown, Check, Loader2 } from 'lucide-react'
+import { Building, ChevronsUpDown, Check, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useInsurersStore } from '@/stores/insurersStore'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -64,48 +64,48 @@ export function InsurerSelect({
   }
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between",
-            !selectedInsurer && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled || loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Chargement...
-            </>
-          ) : selectedInsurer ? (
-            <div className="w-full flex items-center gap-2 truncate">
-              <Building className="h-4 w-4 text-blue-600" />
-              <span className="truncate">{selectedInsurer.name}</span>
-              {showStatus && selectedInsurer.status && (
-                <Badge 
-                  variant={selectedInsurer.status.code === 'active' ? 'default' : 'secondary'}
-                  className={cn(
-                    "text-xs",
-                    selectedInsurer.status.code === 'active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  )}
-                >
-                  {selectedInsurer.status.label}
-                </Badge>
-              )}
-            </div>
-          ) : (
-            placeholder
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+    <div className={cn("flex items-center gap-1", className)}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between",
+              !selectedInsurer && "text-muted-foreground"
+            )}
+            disabled={disabled || loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Chargement...
+              </>
+            ) : selectedInsurer ? (
+              <div className="w-full flex items-center gap-2 truncate">
+                <Building className="h-4 w-4 text-blue-600" />
+                <span className="truncate">{selectedInsurer.name}</span>
+                {showStatus && selectedInsurer.status && (
+                  <Badge 
+                    variant={selectedInsurer.status.code === 'active' ? 'default' : 'secondary'}
+                    className={cn(
+                      "text-xs",
+                      selectedInsurer.status.code === 'active' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    )}
+                  >
+                    {selectedInsurer.status.label}
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              placeholder
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput 
@@ -168,7 +168,20 @@ export function InsurerSelect({
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {selectedInsurer && !disabled && !loading && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(null) }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   )
 } 
