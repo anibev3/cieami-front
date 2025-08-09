@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEditData } from '@/features/assignments/hooks/use-edit-data'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { X } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Calculator, Users, Palette, Clock } from 'lucide-react'
 
@@ -52,26 +54,40 @@ export function OtherCostTypeSelect({
           {label} {required && <span className="text-red-500">*</span>}
         </Label>
       )}
-      <Select
-        value={value?.toString() || ''}
-        onValueChange={val => onValueChange(Number(val))}
-        disabled={disabled}
-      >
-        <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
-          <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {data.map(type => (
-            <SelectItem key={type.id} value={type.id.toString()}>
-              <div className="flex items-center gap-2">
-                <Calculator className="h-4 w-4 text-purple-600" />
-                <span>{type.label}</span>
-                <span className="text-xs text-gray-500 ml-auto">#{type.code}</span>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-1">
+        <Select
+          value={value?.toString() || ''}
+          onValueChange={val => onValueChange(Number(val))}
+          disabled={disabled}
+        >
+          <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
+            <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {data.map(type => (
+              <SelectItem key={type.id} value={type.id.toString()}>
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4 text-purple-600" />
+                  <span>{type.label}</span>
+                  <span className="text-xs text-gray-500 ml-auto">#{type.code}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {!!value && !disabled && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            aria-label="Effacer"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
       {showError && (
         <p className="text-xs text-red-600">{errorMessage}</p>
       )}
@@ -105,26 +121,40 @@ export function WorkforceTypeSelect({
           {label} {required && <span className="text-red-500">*</span>}
         </Label>
       )}
-      <Select
-        value={value?.toString() || ''}
-        onValueChange={val => onValueChange(Number(val))}
-        disabled={disabled}
-      >
-        <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
-          <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {data.map(type => (
-            <SelectItem key={type.id} value={type.id.toString()}>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span>{type.label}</span>
-                <span className="text-xs text-gray-500 ml-auto">#{type.code}</span>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-1">
+        <Select
+          value={value?.toString() || ''}
+          onValueChange={val => onValueChange(Number(val))}
+          disabled={disabled}
+        >
+          <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
+            <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {data.map(type => (
+              <SelectItem key={type.id} value={type.id.toString()}>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  <span>{type.label}</span>
+                  <span className="text-xs text-gray-500 ml-auto">#{type.code}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {!!value && !disabled && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            aria-label="Effacer"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
       {showError && (
         <p className="text-xs text-red-600">{errorMessage}</p>
       )}
@@ -158,26 +188,40 @@ export function PaintTypeSelect({
           {label} {required && <span className="text-red-500">*</span>}
         </Label>
       )}
-      <Select
-        value={value?.toString() || ''}
-        onValueChange={val => onValueChange(Number(val))}
-        disabled={disabled}
-      >
-        <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
-          <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {data.map(type => (
-            <SelectItem key={type.id} value={type.id.toString()}>
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-green-600" />
-                <span>{type.label}</span>
-                <span className="text-xs text-gray-500 ml-auto">#{type.code}</span>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-1">
+        <Select
+          value={value?.toString() || ''}
+          onValueChange={val => onValueChange(Number(val))}
+          disabled={disabled}
+        >
+          <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
+            <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {data.map(type => (
+              <SelectItem key={type.id} value={type.id.toString()}>
+                <div className="flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-green-600" />
+                  <span>{type.label}</span>
+                  <span className="text-xs text-gray-500 ml-auto">#{type.code}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {!!value && !disabled && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            aria-label="Effacer"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
       {showError && (
         <p className="text-xs text-red-600">{errorMessage}</p>
       )}
@@ -211,30 +255,44 @@ export function HourlyRateSelect({
           {label} {required && <span className="text-red-500">*</span>}
         </Label>
       )}
-      <Select
-        value={value?.toString() || ''}
-        onValueChange={val => onValueChange(Number(val))}
-        disabled={disabled}
-      >
-        <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
-          <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {data.map(rate => (
-            <SelectItem key={rate.id} value={rate.id.toString()}>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-orange-600" />
-                <span>{rate.label}</span>
-                {rate.rate && (
-                  <span className="text-xs text-gray-500 ml-auto">
-                    {rate.rate.toLocaleString('fr-FR')} FCFA/h
-                  </span>
-                )}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-1">
+        <Select
+          value={value?.toString() || ''}
+          onValueChange={val => onValueChange(Number(val))}
+          disabled={disabled}
+        >
+          <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
+            <SelectValue placeholder={!value ? `⚠️ ${placeholder}` : placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {data.map(rate => (
+              <SelectItem key={rate.id} value={rate.id.toString()}>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-orange-600" />
+                  <span>{rate.label}</span>
+                  {rate.rate && (
+                    <span className="text-xs text-gray-500 ml-auto">
+                      {rate.rate.toLocaleString('fr-FR')} FCFA/h
+                    </span>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {!!value && !disabled && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            aria-label="Effacer"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
       {showError && (
         <p className="text-xs text-red-600">{errorMessage}</p>
       )}

@@ -25,12 +25,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
 import { ClientSelect } from '@/features/widgets/client-select'
 import { VehicleSelect } from '@/features/widgets/vehicle-select'

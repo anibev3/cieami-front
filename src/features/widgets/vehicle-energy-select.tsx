@@ -8,7 +8,8 @@ import {
 } from '@/components/ui/select'
 import { useVehicleEnergiesStore } from '@/stores/vehicleEnergiesStore'
 import { VehicleEnergy } from '@/services/vehicleEnergyService'
-import { Loader2 } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface VehicleEnergySelectProps {
@@ -49,50 +50,59 @@ export function VehicleEnergySelect({
   console.log('VehicleEnergySelect - selectedEnergy:', selectedEnergy)
 
   return (
-    <Select
-      value={value}
-      onValueChange={onValueChange}
-      disabled={disabled || loading}
-    >
-      <SelectTrigger className={cn(className, "w-full")}>
-        <SelectValue placeholder={placeholder}>
-          {loading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Chargement...</span>
-            </div>
-          ) : selectedEnergy ? (
-            <div className="flex flex-col items-start">
-              <span className="font-medium">{selectedEnergy.label}</span>
-              {/* {showDescription && selectedEnergy.description && (
-                <span className="text-xs text-muted-foreground">
-                  {selectedEnergy.description}
+    <div className={cn(className, "w-full flex items-center gap-1")}>
+      <Select
+        value={value}
+        onValueChange={onValueChange}
+        disabled={disabled || loading}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={placeholder}>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Chargement...</span>
+              </div>
+            ) : selectedEnergy ? (
+              <div className="flex flex-col items-start">
+                <span className="font-medium">{selectedEnergy.label}</span>
+              </div>
+            ) : (
+              placeholder
+            )}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {vehicleEnergies.map((energy: VehicleEnergy) => (
+            <SelectItem key={energy.id} value={energy.id.toString()}>
+              <div className="flex flex-col items-start">
+                <span className="font-medium">{energy.label}</span>
+                {showDescription && energy.description && (
+                  <span className="text-xs text-muted-foreground">
+                    {energy.description}
+                  </span>
+                )}
+                <span className="text-xs text-blue-600 font-mono">
+                  {energy.code}
                 </span>
-              )} */}
-            </div>
-          ) : (
-            placeholder
-          )}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {vehicleEnergies.map((energy: VehicleEnergy) => (
-          <SelectItem key={energy.id} value={energy.id.toString()}>
-            <div className="flex flex-col items-start">
-              <span className="font-medium">{energy.label}</span>
-              {showDescription && energy.description && (
-                <span className="text-xs text-muted-foreground">
-                  {energy.description}
-                </span>
-              )}
-              <span className="text-xs text-blue-600 font-mono">
-                {energy.code}
-              </span>
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {!!value && !disabled && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          aria-label="Effacer"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange('') }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   )
 }
 
