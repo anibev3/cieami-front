@@ -56,7 +56,7 @@ export function ShockPointCreateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="w-1/3">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <MapPin className="h-6 w-6 text-blue-600" />

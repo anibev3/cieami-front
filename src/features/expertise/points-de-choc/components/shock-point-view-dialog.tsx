@@ -25,7 +25,7 @@ export function ShockPointViewDialog({ id, onOpenChange }: ShockPointViewDialogP
 
   return (
     <Dialog open={!!id} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[300px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />

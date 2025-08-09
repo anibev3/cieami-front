@@ -528,6 +528,18 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       )
     },
   },
+  {
+    accessorKey: 'repairer',
+    header: 'Reparateur',
+    cell: ({ row }) => {
+      const repairman = row.getValue('repairer') as Assignment['repairer']
+      return (
+        <div className="text-sm text-muted-foreground">
+          {repairman?.name}
+        </div>
+      )
+    },
+  },
   // {
   //   accessorKey: 'assignment_type',
   //   header: 'Type',
@@ -666,17 +678,21 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
   //     )
   //   },
   // },
-  // {
-  //   accessorKey: 'created_at',
-  //   header: 'Créé le',
-  //   cell: ({ row }) => {
-  //     return (
-  //       <div className="text-sm text-muted-foreground">
-  //         {formatDate(row.getValue('created_at'))}
-  //       </div>
-  //     )
-  //   },
-  // },
+  {
+    accessorKey: 'created_at',
+    header: 'Créé le',
+    cell: ({ row }) => {
+      return (
+        <div className="text-sm text-muted-foreground">
+          {formatDate(row.getValue('created_at'))}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: 'created_by.name',
+    header: 'Créé par',
+  },
   {
     accessorKey: 'edition_countdown',
     header: 'Délai d\'édition',

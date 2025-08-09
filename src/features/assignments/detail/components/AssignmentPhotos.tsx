@@ -9,10 +9,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs } from '@/components/ui/tabs'
-import { Upload, Camera, Star, Edit, Trash2, X, Plus, Grid3X3, Eye, Loader2, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag } from 'lucide-react'
+import { Upload, Camera, Star, Edit, Trash2, X, Plus, Grid3X3, Eye, Loader2, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag, CheckCircle } from 'lucide-react'
 import { CreatePhotoData, UpdatePhotoData, Photo, PhotoType } from '@/types/gestion'
 import { photoService } from '@/services/photoService'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { toast } from 'sonner'
 
 interface AssignmentPhotosProps {
   assignmentId: string
@@ -52,6 +53,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     photo_type_id: '',
     photos: []
   })
+  const [selectedFiles, setSelectedFiles] = useState<Set<number>>(new Set())
   const [editData, setEditData] = useState<UpdatePhotoData>({
     photo_type_id: '',
     photo: new File([], '')
@@ -194,6 +196,43 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isViewerOpen])
 
+  // Raccourcis clavier pour la sélection multiple
+  useEffect(() => {
+    const handleUploadDialogKeyDown = (e: KeyboardEvent) => {
+      if (!isUploadDialogOpen) return
+      
+      switch (e.key) {
+        case 'Escape':
+          setIsUploadDialogOpen(false)
+          break
+        case 'a':
+        case 'A':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            if (selectedFiles.size === uploadData.photos.length) {
+              setSelectedFiles(new Set())
+            } else {
+              setSelectedFiles(new Set(uploadData.photos.map((_, index) => index)))
+            }
+          }
+          break
+        case 'Delete':
+        case 'Backspace':
+          if (selectedFiles.size > 0) {
+            e.preventDefault()
+            const remainingPhotos = uploadData.photos.filter((_, index) => !selectedFiles.has(index))
+            setUploadData(prev => ({ ...prev, photos: remainingPhotos }))
+            setSelectedFiles(new Set())
+            toast.success(`${selectedFiles.size} photo(s) supprimée(s)`)
+          }
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleUploadDialogKeyDown)
+    return () => document.removeEventListener('keydown', handleUploadDialogKeyDown)
+  }, [isUploadDialogOpen, selectedFiles, uploadData.photos])
+
   const getCurrentTabData = () => {
     return tabsData.find(tab => tab.id === activeTab) || tabsData[0]
   }
@@ -214,9 +253,34 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   const handleFileSelect = (files: FileList | null) => {
     if (files) {
       const fileArray = Array.from(files)
+      
+      // Validation des fichiers
+      const validFiles = fileArray.filter(file => {
+        // Vérifier le type MIME
+        if (!file.type.startsWith('image/')) {
+          toast.error(`Fichier ignoré: ${file.name} - Type non supporté`)
+          return false
+        }
+        
+        // Vérifier la taille (max 10MB)
+        const maxSize = 10 * 1024 * 1024 // 10MB
+        if (file.size > maxSize) {
+          toast.error(`Fichier ignoré: ${file.name} - Taille trop importante (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+          return false
+        }
+        
+        return true
+      })
+      
+      if (validFiles.length !== fileArray.length) {
+        // Afficher un message d'alerte si certains fichiers ont été ignorés
+        const ignoredCount = fileArray.length - validFiles.length
+        toast.warning(`${ignoredCount} fichier(s) ignoré(s) - Vérifiez le type et la taille`)
+      }
+      
       setUploadData(prev => ({
         ...prev,
-        photos: [...prev.photos, ...fileArray]
+        photos: [...prev.photos, ...validFiles]
       }))
     }
   }
@@ -414,7 +478,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Modifier la photo</p>
+                <p>Mettre en couverture</p>
               </TooltipContent>
             </Tooltip>
             
@@ -492,7 +556,12 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             {viewMode === 'grid' ? <Grid3X3 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {viewMode === 'grid' ? 'Grille' : 'Galerie'}
           </Button>
-          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+          <Dialog open={isUploadDialogOpen} onOpenChange={(open) => {
+            setIsUploadDialogOpen(open)
+            if (!open) {
+              setSelectedFiles(new Set())
+            }
+          }}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 <Plus className="mr-2 h-4 w-4" />
@@ -504,6 +573,9 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 <DialogTitle>Ajouter des photos à {assignmentReference}</DialogTitle>
                 <DialogDescription>
                   Sélectionnez un type de photo et ajoutez vos images.
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <p>Raccourcis: Ctrl+A (Tout sélectionner), Delete (Supprimer sélection), Escape (Fermer)</p>
+                  </div>
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -558,23 +630,200 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                   />
                 </div>
 
-                {/* Selected Files */}
+                {/* Selected Files with Preview */}
                 {uploadData.photos.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Fichiers sélectionnés ({uploadData.photos.length})</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {uploadData.photos.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 border rounded">
-                          <span className="text-sm truncate">{file.name}</span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Fichiers sélectionnés ({uploadData.photos.length})</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setUploadData(prev => ({ ...prev, photos: [] }))
+                          }}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="mr-1 h-3 w-3" />
+                          Tout supprimer
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const sortedPhotos = [...uploadData.photos].sort((a, b) => 
+                              a.name.localeCompare(b.name)
+                            )
+                            setUploadData(prev => ({ ...prev, photos: sortedPhotos }))
+                          }}
+                        >
+                          <Hash className="mr-1 h-3 w-3" />
+                          Trier par nom
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const sortedPhotos = [...uploadData.photos].sort((a, b) => 
+                              a.size - b.size
+                            )
+                            setUploadData(prev => ({ ...prev, photos: sortedPhotos }))
+                          }}
+                        >
+                          <Hash className="mr-1 h-3 w-3" />
+                          Trier par taille
+                        </Button>
+                        {selectedFiles.size > 0 && (
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            onClick={() => removeFile(index)}
+                            onClick={() => {
+                              const remainingPhotos = uploadData.photos.filter((_, index) => !selectedFiles.has(index))
+                              setUploadData(prev => ({ ...prev, photos: remainingPhotos }))
+                              setSelectedFiles(new Set())
+                            }}
+                            className="text-destructive hover:text-destructive"
                           >
-                            <X className="h-4 w-4" />
+                            <Trash2 className="mr-1 h-3 w-3" />
+                            Supprimer sélection ({selectedFiles.size})
                           </Button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                      {uploadData.photos.map((file, index) => (
+                        <div 
+                          key={index} 
+                          className={`group relative border rounded-lg overflow-hidden bg-gray-50 cursor-pointer transition-all duration-200 ${
+                            selectedFiles.has(index) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                          }`}
+                          onClick={() => {
+                            const newSelected = new Set(selectedFiles)
+                            if (newSelected.has(index)) {
+                              newSelected.delete(index)
+                            } else {
+                              newSelected.add(index)
+                            }
+                            setSelectedFiles(newSelected)
+                          }}
+                        >
+                          {/* Selection indicator */}
+                          {selectedFiles.has(index) && (
+                            <div className="absolute top-2 left-2 z-10">
+                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                <CheckCircle className="h-4 w-4 text-white" />
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Preview Image */}
+                          <div className="aspect-square relative">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={file.name}
+                              className="w-full h-full object-cover"
+                              onLoad={(e) => {
+                                // Cleanup object URL after load
+                                setTimeout(() => URL.revokeObjectURL(e.currentTarget.src), 1000)
+                              }}
+                            />
+                            
+                            {/* Overlay with actions */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <div className="flex gap-1">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        // Open preview modal
+                                        const modal = document.createElement('div')
+                                        modal.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center'
+                                        modal.innerHTML = `
+                                          <div class="relative max-w-4xl max-h-[80vh] mx-auto">
+                                            <button class="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white p-2 rounded" onclick="this.parentElement.parentElement.remove()">
+                                              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            </button>
+                                            <img src="${URL.createObjectURL(file)}" alt="${file.name}" class="max-w-full max-h-full object-contain" />
+                                            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+                                              ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                                            </div>
+                                          </div>
+                                        `
+                                        document.body.appendChild(modal)
+                                        modal.addEventListener('click', (e) => {
+                                          if (e.target === modal) modal.remove()
+                                        })
+                                      }}
+                                      className="h-8 w-8 p-0 rounded-full bg-white/90 hover:bg-white shadow-lg"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Voir en plein écran</p>
+                                  </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        removeFile(index)
+                                      }}
+                                      className="h-8 w-8 p-0 rounded-full bg-red-500/90 hover:bg-red-600 text-white shadow-lg"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Supprimer</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* File info */}
+                          <div className="p-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate" title={file.name}>
+                                  {file.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                              
+                              {/* Drag handle for reordering */}
+                              <div className="flex-shrink-0 ml-1">
+                                <div className="w-1 h-4 bg-gray-300 rounded cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="w-1 h-1 bg-gray-500 rounded mb-0.5"></div>
+                                  <div className="w-1 h-1 bg-gray-500 rounded mb-0.5"></div>
+                                  <div className="w-1 h-1 bg-gray-500 rounded"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       ))}
+                    </div>
+                    
+                    {/* Summary */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground bg-gray-50 p-2 rounded">
+                      <span>
+                        Total: {uploadData.photos.length} photo(s)
+                      </span>
+                      <span>
+                        Taille totale: {(uploadData.photos.reduce((acc, file) => acc + file.size, 0) / 1024 / 1024).toFixed(2)} MB
+                      </span>
                     </div>
                   </div>
                 )}
@@ -653,7 +902,12 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                   <p className="text-xs text-muted-foreground text-center mb-6 max-w-md">
                     Aucune photo de type "{currentTabData?.label}" n'a encore été ajoutée à cette assignation.
                   </p>
-                  <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                  <Dialog open={isUploadDialogOpen} onOpenChange={(open) => {
+                    setIsUploadDialogOpen(open)
+                    if (!open) {
+                      setSelectedFiles(new Set())
+                    }
+                  }}>
                     <DialogTrigger asChild>
                       <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                         <Plus className="mr-2 h-4 w-4" />
