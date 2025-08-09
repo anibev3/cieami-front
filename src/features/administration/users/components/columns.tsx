@@ -110,7 +110,7 @@ export const createColumns = ({ onView, onEdit, onDelete, onEnable, onDisable, o
           </Avatar>
           <div className="flex flex-col">
             <span className="font-medium">{user.name}</span>
-            <span className="text-sm text-muted-foreground">{user.username}</span>
+            <span className="text-sm text-muted-foreground">{user.code || ''}</span>
           </div>
         </div>
       )

@@ -21,24 +21,26 @@ class ClaimNatureService {
    * Récupérer une nature de sinistre par ID
    */
   async getById(id: number): Promise<ClaimNature> {
-    const response = await axiosInstance.get<ClaimNature>(`${this.baseUrl}/${id}`)
-    return response.data
+    const response = await axiosInstance.get(`${this.baseUrl}/${id}`)
+    // Certaines API renvoient { status, message, data }
+    return (response.data?.data ?? response.data) as ClaimNature
   }
 
   /**
    * Créer une nouvelle nature de sinistre
    */
   async create(data: CreateClaimNatureData): Promise<ClaimNature> {
-    const response = await axiosInstance.post<ClaimNature>(this.baseUrl, data)
-    return response.data
+    const response = await axiosInstance.post(this.baseUrl, data)
+    // Gérer les réponses enveloppées: { status, message, data }
+    return (response.data?.data ?? response.data) as ClaimNature
   }
 
   /**
    * Mettre à jour une nature de sinistre
    */
   async update(id: number, data: UpdateClaimNatureData): Promise<ClaimNature> {
-    const response = await axiosInstance.put<ClaimNature>(`${this.baseUrl}/${id}`, data)
-    return response.data
+    const response = await axiosInstance.put(`${this.baseUrl}/${id}`, data)
+    return (response.data?.data ?? response.data) as ClaimNature
   }
 
   /**
