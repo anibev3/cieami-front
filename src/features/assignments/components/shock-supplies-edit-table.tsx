@@ -211,7 +211,7 @@ function SortableSupplyRow({
       {/* Remise Calculé */}
       <td className="border px-2 py-2 text-center text-[10px] w-40">
         <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-          {_formatCurrency(row.amount - (row.discount_amount || 0))}
+          {_formatCurrency(row.amount - (row.discount_amount_excluding_tax || 0))}
         </div>
       </td>
       {/* Vétuste (%) */}
