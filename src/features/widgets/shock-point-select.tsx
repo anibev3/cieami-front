@@ -95,7 +95,7 @@ export function ShockPointSelect({
               <CommandGroup>
                 {shockPoints?.map((point) => (
                   <CommandItem
-                    key={point.id}
+                    key={point?.id}
                     value={`${point?.label} ${point?.code} ${point?.description || ''}`}
                     onSelect={() => {
                       onValueChange(point?.id)
