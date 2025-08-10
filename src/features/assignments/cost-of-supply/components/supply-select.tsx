@@ -70,32 +70,32 @@ export function SupplySelect({
     })
   }
 
-  const getStatusBadge = (supplyPrice: SupplyPrice) => {
-    const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
-    const hasObsolescence = parseFloat(supplyPrice.obsolescence_rate) > 0
-    const hasRecovery = parseFloat(supplyPrice.recovery_amoun) > 0
+  // const getStatusBadge = (supplyPrice: SupplyPrice) => {
+  //   const hasNewPrice = parseFloat(supplyPrice.new_amount) > 0
+  //   const hasObsolescence = parseFloat(supplyPrice.obsolescence_rate || '0') > 0
+  //   const hasRecovery = parseFloat(supplyPrice.recovery_amount || '0') > 0
 
-    if (hasNewPrice) return 'Nouveau'
-    if (hasObsolescence) return 'Obsolète'
-    if (hasRecovery) return 'Récupération'
-    return 'Standard'
-  }
+  //   if (hasNewPrice) return 'Nouveau'
+  //   if (hasObsolescence) return 'Obsolète'
+  //   if (hasRecovery) return 'Récupération'
+  //   return 'Standard'
+  // }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Nouveau':
-        return 'text-green-600'
-      case 'Obsolète':
-        return 'text-red-600'
-      case 'Récupération':
-        return 'text-blue-600'
-      default:
-        return 'text-gray-600'
-    }
-  }
+  // const getStatusColor = (status: string) => {
+  //   switch (status) {
+  //     case 'Nouveau':
+  //       return 'text-green-600'
+  //     case 'Obsolète':
+  //       return 'text-red-600'
+  //     case 'Récupération':
+  //       return 'text-blue-600'
+  //     default:
+  //       return 'text-gray-600'
+  //   }
+  // }
 
   const renderSupplyInfo = (supplyPrice: SupplyPrice) => {
-    const status = getStatusBadge(supplyPrice)
+    // const status = getStatusBadge(supplyPrice)
     return (
       <div className="flex flex-col items-start text-left">
         <div className="flex items-center justify-between w-full">
@@ -194,7 +194,7 @@ export function SupplySelect({
                     <div className="flex flex-col">
                       <span className="font-medium">{supplyPrice.supply.label}</span>
                       <span className="text-xs text-muted-foreground">
-                        {supplyPrice.supply.label} - {formatCurrency(supplyPrice.new_amount)}
+                        {supplyPrice.supply.label} - {formatCurrency(supplyPrice.new_amount_excluding_tax || '0')}
                       </span>
                     </div>
                   </CommandItem>

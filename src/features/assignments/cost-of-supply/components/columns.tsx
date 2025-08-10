@@ -64,7 +64,7 @@ export const createColumns = (onViewDetails: (supplyPrice: SupplyPrice) => void)
       const supplyPrice = row.original
       return (
         <div className="font-semibold text-green-600">
-          {formatCurrency(supplyPrice.new_amount)}
+          {formatCurrency(supplyPrice?.new_amount_excluding_tax || '0')}
         </div>
       )
     },
@@ -90,7 +90,7 @@ export const createColumns = (onViewDetails: (supplyPrice: SupplyPrice) => void)
       const supplyPrice = row.original
       return (
         <div className="flex flex-col">
-          {supplyPrice?.shock?.assignment?.repairer?.name}
+          {supplyPrice?.shock?.assignment?.repairer?.name || ''}
           {/* <span className="font-semibold text-blue-600">{rate}%</span>
           <span className="text-xs text-muted-foreground">
             {formatCurrency(supplyPrice.recovery_amount)}
