@@ -84,6 +84,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useIsMobile } from '@/hooks/use-mobile'
 import { ShockPointCreateModal } from '@/components/modals'
 import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/components/shock-point-mutate-dialog'
+import { cn } from '@/lib/utils'
 
 interface Assignment {
   id: number
@@ -1906,17 +1907,20 @@ export default function EditReportPage() {
                     </div>
 
                     {assignment.shocks && assignment.shocks.length > 0 ? (
-                      assignment.shocks.map((shock) => (
+                      assignment.shocks.map((shock, index) => (
                         <div 
-                          key={shock.id} 
-                          data-shock-id={shock.id}
-                          className={`border rounded-lg overflow-hidden transition-all duration-200 ${
-                            highlightedShockId === shock.id
-                              ? 'border-orange-400 shadow-lg bg-gradient-to-r from-orange-50/50 to-yellow-50/50 animate-pulse'
-                              : collapsedShocks.has(shock.id) 
-                                ? 'border-gray-200 shadow-sm' 
-                                : 'border-blue-200 shadow-md bg-gradient-to-r from-blue-50/30 to-transparent'
-                          }`}>
+                          key={shock?.id || `shock-${index}`}
+                          data-shock-id={shock?.id || ''}
+                          className={cn(
+                            "border rounded-lg transition-all duration-200",
+                            highlightedShockId === shock?.id
+                              ? "ring-2 ring-blue-500 bg-blue-50"
+                              : "bg-white hover:bg-gray-50",
+                            collapsedShocks.has(shock?.id || 0)
+                              ? "border-gray-200"
+                              : "border-blue-200"
+                          )}
+                        >
                           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3 flex-1">
@@ -1924,18 +1928,16 @@ export default function EditReportPage() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => toggleShockCollapse(shock.id)}
-                                  className="p-1 h-8 w-8 hover:bg-gray-200/80 hover:shadow-sm transition-all duration-200 rounded-md"
+                                  onClick={() => shock?.id && toggleShockCollapse(shock.id)}
+                                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                                  title={collapsedShocks.has(shock?.id || 0) ? "Développer" : "Réduire"}
                                 >
-                                  <div className={`transform transition-transform duration-200 ${
-                                    collapsedShocks.has(shock.id) ? 'rotate-0' : 'rotate-0'
-                                  }`}>
-                                    {collapsedShocks.has(shock.id) ? (
-                                      <ChevronRight className="h-4 w-4 text-gray-600" />
-                                    ) : (
-                                      <ChevronDown className="h-4 w-4 text-gray-600" />
-                                    )}
-                                  </div>
+                                  <ChevronDown 
+                                    className={cn(
+                                      "h-4 w-4 transition-transform duration-200",
+                                      collapsedShocks.has(shock?.id || 0) ? 'rotate-0' : 'rotate-0'
+                                    )} 
+                                  />
                                 </Button>
                                 
                                 {/* Sélecteur de point de choc modifiable */}
@@ -1978,9 +1980,10 @@ export default function EditReportPage() {
                                   <Button
                                     variant="ghost"
                                     size="xs"
-                                    onClick={() => handleDeleteShock(shock.id)}
+                                    onClick={() => shock?.id && handleDeleteShock(shock.id)}
                                     className="p-1 hover:bg-red-50 text-xs bg-red-100 hover:text-red-600 transition-all duration-200 rounded-md"
                                     title="Supprimer ce choc"
+                                    disabled={!shock?.id}
                                   >
                                     <Trash2 className="h-1 w-1" /> Supprimer
                                   </Button>
@@ -1992,13 +1995,13 @@ export default function EditReportPage() {
                           {/* Body collapsible avec animation */}
                           <div 
                             className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                              collapsedShocks.has(shock.id) 
+                              shock?.id && collapsedShocks.has(shock.id)
                                 ? 'max-h-0 opacity-0 border-t-0' 
                                 : 'max-h-[5000px] opacity-100 border-t border-gray-100'
                             }`}
                           >
                             <div className={`space-y-4 ${
-                              collapsedShocks.has(shock.id) ? 'p-0' : 'p-4'
+                              shock?.id && collapsedShocks.has(shock.id) ? 'p-0' : 'p-4'
                             } transition-all duration-300`}>
                             {/* Tableau des fournitures */}
                             <div>
@@ -2009,39 +2012,44 @@ export default function EditReportPage() {
                                   code: supply?.code || '**ND**',
                                   price: supply?.price || 0
                                 }))}
-                                shockWorks={(shock.shock_works || []).map((work: any) => ({
-                                  id: work.id, // ID réel de l'API pour la réorganisation
-                                  uid: work.id?.toString() || crypto.randomUUID(),
-                                  supply_id: work.supply?.id || 0,
-                                  supply_label: work.supply?.label || '',
-                                  disassembly: work?.disassembly || false,
-                                  replacement: work?.replacement || false,
-                                  repair: work?.repair || false,
-                                  paint: work?.paint || false,
-                                  control: work?.control || false,
-                                  obsolescence: work?.obsolescence || false,
-                                  comment: work?.comment || '',
-                                  obsolescence_rate: Number(work?.obsolescence_rate) || 0,
-                                  recovery_amount: Number(work?.recovery_amount) || 0,
-                                  discount: Number(work?.discount) || 0,
-                                  amount: Number(work?.amount) || 0,
-                                  obsolescence_amount_excluding_tax: Number(work?.obsolescence_amount_excluding_tax) || 0,
-                                  obsolescence_amount_tax: Number(work?.obsolescence_amount_tax) || 0,
-                                  obsolescence_amount: Number(work?.obsolescence_amount) || 0,
-                                  recovery_amount_excluding_tax: Number(work?.recovery_amount_excluding_tax) || 0,
-                                  recovery_amount_tax: Number(work?.recovery_amount_tax) || 0,
-                                  new_amount_excluding_tax: Number(work?.new_amount_excluding_tax) || 0,
-                                  new_amount_tax: Number(work?.new_amount_tax) || 0,
-                                  new_amount: Number(work?.new_amount) || 0,
-                                  discount_amount: Number(work?.discount_amount) || 0,
-                                  discount_amount_excluding_tax: Number(work?.discount_amount_excluding_tax) || 0,
-                                  discount_amount_tax: Number(work?.discount_amount_tax) || 0,
-                                  amount_excluding_tax: Number(work?.amount_excluding_tax) || 0,
-                                  amount_tax: Number(work?.amount_tax) || 0
-                                }))}
+                                shockWorks={(shock.shock_works || []).map((work: any) => {
+                                  // Vérification de sécurité pour work.id
+                                  if (!work?.id) return null
+                                  
+                                  return {
+                                    id: work.id, // ID réel de l'API pour la réorganisation
+                                    uid: work.id?.toString() || crypto.randomUUID(),
+                                    supply_id: work.supply?.id || 0,
+                                    supply_label: work.supply?.label || '',
+                                    disassembly: work?.disassembly || false,
+                                    replacement: work?.replacement || false,
+                                    repair: work?.repair || false,
+                                    paint: work?.paint || false,
+                                    control: work?.control || false,
+                                    obsolescence: work?.obsolescence || false,
+                                    comment: work?.comment || '',
+                                    obsolescence_rate: Number(work?.obsolescence_rate) || 0,
+                                    recovery_amount: Number(work?.recovery_amount) || 0,
+                                    discount: Number(work?.discount) || 0,
+                                    amount: Number(work?.amount) || 0,
+                                    obsolescence_amount_excluding_tax: Number(work?.obsolescence_amount_excluding_tax) || 0,
+                                    obsolescence_amount_tax: Number(work?.obsolescence_amount_tax) || 0,
+                                    obsolescence_amount: Number(work?.obsolescence_amount) || 0,
+                                    recovery_amount_excluding_tax: Number(work?.recovery_amount_excluding_tax) || 0,
+                                    recovery_amount_tax: Number(work?.recovery_amount_tax) || 0,
+                                    new_amount_excluding_tax: Number(work?.new_amount_excluding_tax) || 0,
+                                    new_amount_tax: Number(work?.new_amount_tax) || 0,
+                                    new_amount: Number(work?.new_amount) || 0,
+                                    discount_amount: Number(work?.discount_amount) || 0,
+                                    discount_amount_excluding_tax: Number(work?.discount_amount_excluding_tax) || 0,
+                                    discount_amount_tax: Number(work?.discount_amount_tax) || 0,
+                                    amount_excluding_tax: Number(work?.amount_excluding_tax) || 0,
+                                    amount_tax: Number(work?.amount_tax) || 0
+                                  }
+                                }).filter((work): work is NonNullable<typeof work> => work !== null)}
                                 onUpdate={async (index, updatedWork) => {
                                   try {
-                                    const work = shock?.shock_works[index]
+                                    const work = shock?.shock_works?.[index]
                                     if (work && work?.id) {
                                       // On envoie tout l'objet d'un coup
                                       await axiosInstance.put(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work?.id}`, {
@@ -2071,7 +2079,7 @@ export default function EditReportPage() {
                                     // Préparer le payload selon l'API
                                     const payload = {
                                       paint_type_id: "1", // Valeur par défaut - à adapter selon tes besoins
-                                      shock_id: String(shock.id),
+                                      shock_id: String(shock.id || 0),
                                       shock_works: [{
                                         supply_id: String(shockWorkData?.supply_id || 0),
                                         disassembly: Boolean(shockWorkData?.disassembly || false),
@@ -2115,7 +2123,7 @@ export default function EditReportPage() {
                                 }}
                                 shockId={shock?.id}
                                 paintTypeId={shock?.paint_type?.id || 1}
-                                onReorderSave={(shockWorkIds) => handleReorderShockWorks(shock?.id, shockWorkIds)}
+                                onReorderSave={async (shockWorkIds) => handleReorderShockWorks(shock?.id, shockWorkIds)}
                                 onAssignmentRefresh={refreshAssignment}
                               />
                             </div>
@@ -2154,7 +2162,7 @@ export default function EditReportPage() {
                                   try {
                                     // Préparer le payload selon l'API
                                     const payload = {
-                                      shock_id: String(shock?.id),
+                                      shock_id: String(shock?.id || 0),
                                       hourly_rate_id: "1", // Valeur par défaut
                                       paint_type_id: "1", // Valeur par défaut
                                       workforces: [{
@@ -2181,7 +2189,7 @@ export default function EditReportPage() {
                                     // Mettre à jour le type de peinture pour ce shock
                                     // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
                                     // qui gère déjà la mise à jour via l'API workforce
-                                    console.log('Type de peinture changé:', value, 'pour shock:', shock?.id)
+                                    console.log('Type de peinture changé:', value, 'pour shock:', shock?.id || 'unknown')
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du type de peinture')
                                   }
@@ -2191,12 +2199,16 @@ export default function EditReportPage() {
                                     // Mettre à jour le taux horaire pour ce shock
                                     // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
                                     // qui gère déjà la mise à jour via l'API workforce
-                                    console.log('Taux horaire changé:', value, 'pour shock:', shock.id)
+                                    console.log('Taux horaire changé:', value, 'pour shock:', shock?.id || 'unknown')
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du taux horaire')
                                   }
                                 }}
-                                onReorderSave={(workforceIds) => handleReorderWorkforces(shock.id, workforceIds)}
+                                onReorderSave={async (workforceIds) => {
+                                  if (shock?.id) {
+                                    await handleReorderWorkforces(shock.id, workforceIds)
+                                  }
+                                }}
                               />
                             </div>
                           </div>
@@ -3125,8 +3137,8 @@ export default function EditReportPage() {
         onSelectedShockPointIdChange={setSelectedShockPointId}
         shockPoints={shockPoints}
         shocks={assignment?.shocks?.map(shock => ({
-          id: shock.id,
-          shock_point_id: shock.shock_point.id
+          id: shock?.id || 0,
+          shock_point_id: shock?.shock_point?.id || 0
         })) || []}
         onCreateShockPoint={handleCreateShockPoint}
         onAddShock={handleAddShock}

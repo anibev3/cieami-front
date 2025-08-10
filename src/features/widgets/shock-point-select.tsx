@@ -36,9 +36,14 @@ export function ShockPointSelect({
   onCreateNew
 }: ShockPointSelectProps) {
   const [open, setOpen] = useState(false)
-  const selectedShockPoint = Array.isArray(shockPoints) ? shockPoints.find(point => point?.id === value) : null
-  const hasValue = value > 0
-  const validShockPoints = Array.isArray(shockPoints) ? shockPoints.filter(point => point != null) : []
+  
+  // Vérifications de sécurité renforcées
+  const validShockPoints = Array.isArray(shockPoints) 
+    ? shockPoints.filter(point => point != null && typeof point === 'object' && 'id' in point && 'label' in point && 'code' in point)
+    : []
+  
+  const selectedShockPoint = validShockPoints.find(point => point.id === value) || null
+  const hasValue = value > 0 && selectedShockPoint != null
 
   return (
     <div className="space-y-3">
@@ -56,12 +61,12 @@ export function ShockPointSelect({
             )}
             disabled={disabled}
           >
-            {hasValue ? (
+            {hasValue && selectedShockPoint ? (
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-blue-500" />
-                <span className="font-medium">{selectedShockPoint?.label}</span>
+                <span className="font-medium">{selectedShockPoint.label || 'Point de choc'}</span>
                 <Badge variant="secondary" className="text-xs">
-                  #{selectedShockPoint?.code}
+                  #{selectedShockPoint.code || 'N/A'}
                 </Badge>
               </div>
             ) : (
@@ -94,35 +99,45 @@ export function ShockPointSelect({
                 </div>
               </CommandEmpty>
               <CommandGroup>
-                {validShockPoints.map((point) => (
-                  <CommandItem
-                    key={point.id}
-                    value={`${point.label} ${point.code} ${point.description || ''}`}
-                    onSelect={() => {
-                      onValueChange(point.id)
-                      setOpen(false)
-                    }}
-                    className="py-3"
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <MapPin className="h-4 w-4 text-blue-500" />
-                      <div className="flex-1">
-                        <span className="text-sm font-medium">{point.label}</span>
-                        {/* {point.description && (
-                          <p className="text-xs text-gray-500 truncate">{point.description}</p>
-                        )} */}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
-                          #{point.code}
-                        </Badge>
-                        {value === point.id && (
-                          <Check className="h-4 w-4 text-blue-600" />
-                        )}
-                      </div>
-                    </div>
-                  </CommandItem>
-                ))}
+                {validShockPoints
+                  .map((point) => {
+                    // Vérification de sécurité supplémentaire
+                    if (!point || typeof point !== 'object' || !('id' in point) || !('label' in point) || !('code' in point)) {
+                      return null
+                    }
+                    
+                    return (
+                      <CommandItem
+                        key={point.id}
+                        value={`${point.label || ''} ${point.code || ''} ${point.description || ''}`}
+                        onSelect={() => {
+                          onValueChange(point.id)
+                          setOpen(false)
+                        }}
+                        className="py-3"
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <MapPin className="h-4 w-4 text-blue-500" />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium">{point.label || 'Sans nom'}</span>
+                            {/* {point.description && (
+                              <p className="text-xs text-gray-500 truncate">{point.description}</p>
+                            )} */}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              #{point.code || 'N/A'}
+                            </Badge>
+                            {value === point.id && (
+                              <Check className="h-4 w-4 text-blue-600" />
+                            )}
+                          </div>
+                        </div>
+                      </CommandItem>
+                    )
+                  })
+                  .filter(Boolean) // Filtrer les éléments null
+                }
               </CommandGroup>
               {onCreateNew && validShockPoints.length === 0 && (
                 <div className="border-t p-2">
