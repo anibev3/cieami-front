@@ -301,15 +301,15 @@ function ShockContent({
       <div className="flex justify-between items-center">
         <h4 className="font-semibold text-[15px] flex items-center gap-2">
           <Wrench className="h-4 w-4 text-blue-600" />
-          {shock.shock_point.label}
+          {shock?.shock_point?.label || '**ND**'}
           <Badge variant="outline" className="text-[10px]">
-            {shock.shock_point.code}
+            {shock?.shock_point?.code || '**ND**'}
           </Badge>
         </h4>
         {assignment_status === 'edited' && (
           <Badge variant="outline" className="text-[10px] bg-primary text-white cursor-pointer" onClick={() => {
             router.navigate({
-              to: `/assignments/edit-report/${assignment_id}?tab=shocks&info=edit-shocks&shock_id=${shock.id}`,
+              to: `/assignments/edit-report/${assignment_id}?tab=shocks&info=edit-shocks&shock_id=${shock?.id}`,
             })
           }}>
             <Pencil className="h-2 w-2" />
@@ -361,24 +361,24 @@ function ShockContent({
             </tr>
           </thead>
           <tbody>
-            {shock.shock_works.length === 0 && (
+            {shock?.shock_works?.length === 0 && (
               <tr>
                 <td colSpan={12} className="text-center text-muted-foreground py-8 text-[10px]">
                   Aucune fourniture enregistrée
                 </td>
               </tr>
             )}
-            {shock.shock_works.map((work) => (
+            {shock?.shock_works?.map((work) => (
               <tr key={work.id} className="hover:bg-gray-50 transition-colors">
                 {/* Fournitures */}
                 <td className="border px-3 py-2 text-[10px]">
                   <div>
-                    <div className="font-medium text-[10px]">{work.supply.label}</div>
+                    <div className="font-medium text-[10px]">{work?.supply?.label || '**ND**'}</div>
                   </div>
                 </td>
                 {/* D/p */}
                 <td className="border px-2 py-2 text-center text-[10px]">
-                  {work.disassembly ? (
+                  {work?.disassembly ? (
                     <Badge variant="secondary" className="text-[10px]">
                       <Settings className="h-2 w-2" />
                     </Badge>
@@ -386,7 +386,7 @@ function ShockContent({
                 </td>
                 {/* Remp */}
                 <td className="border px-2 py-2 text-center text-[10px]">
-                  {work.replacement ? (
+                  {work?.replacement ? (
                     <Badge variant="default" className="text-[10px]">
                       <Package className="h-2 w-2" />
                     </Badge>
@@ -394,7 +394,7 @@ function ShockContent({
                 </td>
                 {/* Rep */}
                 <td className="border px-2 py-2 text-center text-[10px]">
-                  {work.repair ? (
+                  {work?.repair ? (
                     <Badge variant="outline" className="text-[10px]">
                       <Wrench className="h-2 w-2" />
                     </Badge>
@@ -402,7 +402,7 @@ function ShockContent({
                 </td>
                 {/* Peint */}
                 <td className="border px-2 py-2 text-center text-[10px]">
-                  {work.paint ? (
+                  {work?.paint ? (
                     <Badge variant="secondary" className="text-[10px]">
                       <Paintbrush className="h-2 w-2" />
                     </Badge>
@@ -410,7 +410,7 @@ function ShockContent({
                 </td>
                 {/* Vétusté */}
                 <td className="border px-2 py-2 text-center text-[10px]">
-                  {work.obsolescence ? (
+                  {work?.obsolescence ? (
                     <Badge variant="destructive" className="text-[10px]">
                       <RotateCcw className="h-2 w-2" />
                     </Badge>
@@ -418,30 +418,30 @@ function ShockContent({
                 </td>
                 {/* Montant HT */}
                 <td className="border px-2 text-[10px]">
-                  {formatCurrencyWithoutCurrencySymbol(parseFloat(work.new_amount_excluding_tax))}
+                  {formatCurrencyWithoutCurrencySymbol(parseFloat(work?.new_amount_excluding_tax))}
                 </td>
                 {/* Remise */}
                 <td className="border px-2 py-2 text-[10px]">
-                  {formatCurrencyWithoutCurrencySymbol(parseFloat(work.discount_amount_excluding_tax || '0'))}
+                  {formatCurrencyWithoutCurrencySymbol(parseFloat(work?.discount_amount_excluding_tax || '0'))}
                 </td>
                 {/* Remise Calculé */}
                 <td className="border px-2 py-2 text-[10px]">
-                  <div className={`font-bold ${(parseFloat(work.new_amount_excluding_tax) - parseFloat(work.discount_amount_excluding_tax || '0')) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrencyWithoutCurrencySymbol(parseFloat(work.new_amount_excluding_tax) - parseFloat(work.discount_amount_excluding_tax || '0'))}
+                  <div className={`font-bold ${(parseFloat(work?.new_amount_excluding_tax) - parseFloat(work?.discount_amount_excluding_tax || '0')) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                    {formatCurrencyWithoutCurrencySymbol(parseFloat(work?.new_amount_excluding_tax) - parseFloat(work?.discount_amount_excluding_tax || '0'))}
                   </div>
                 </td>
                 {/* Vétuste (%) */}
                 <td className="border px-2 text-[10px]">
-                  {work.obsolescence_rate}%
+                  {work?.obsolescence_rate}%
                 </td>
                 {/* Vétuste calculée */}
                 <td className="border px-2 text-[10px]">
-                  {formatCurrencyWithoutCurrencySymbol(parseFloat(work.obsolescence_amount_excluding_tax))}
+                  {formatCurrencyWithoutCurrencySymbol(parseFloat(work?.obsolescence_amount_excluding_tax))}
                 </td>
                 {/* Montant TTC */}
                 <td className="border px-2 py-2 text-[10px] w-35">
-                  <div className={`font-bold ${parseFloat(work.new_amount) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                    {formatCurrencyWithoutCurrencySymbol(parseFloat(work.new_amount))}
+                  <div className={`font-bold ${parseFloat(work?.new_amount) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                    {formatCurrencyWithoutCurrencySymbol(parseFloat(work?.new_amount))}
                   </div>
                 </td>
               </tr>
@@ -455,43 +455,43 @@ function ShockContent({
         <div className="text-[10px] text-center items-center flex justify-around">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
-            <div className="text-lg font-bold text-gray-800">{shock.shock_works.length}</div>
+            <div className="text-lg font-bold text-gray-800">{shock?.shock_works?.length}</div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Vetusté TTC</div>
             <div className="text-base font-bold text-blue-700">
-              {formatCurrency(shock.shock_works.reduce((sum, work) => sum + parseFloat(work.obsolescence_amount), 0))}
+              {formatCurrency(shock?.shock_works?.reduce((sum, work) => sum + parseFloat(work?.obsolescence_amount), 0))}
             </div>
           </div>
           <div className="text-center">
             <div className="text-blue-600 font-medium">Remise TTC</div>
             <div className="text-base font-bold text-blue-700">
-              {formatCurrency(shock.shock_works.reduce((sum, work) => sum + parseFloat(work.discount_amount || '0'), 0))}
+              {formatCurrency(shock?.shock_works?.reduce((sum, work) => sum + parseFloat(work?.discount_amount || '0'), 0))}
             </div>
           </div>
           <div className="text-center">
             <div className="text-green-600 font-medium">Récupération TTC</div>
             <div className="text-base font-bold text-green-700">
-              {formatCurrency(shock.shock_works.reduce((sum, work) => sum + parseFloat(work.recovery_amount), 0))}
+              {formatCurrency(shock?.shock_works?.reduce((sum, work) => sum + parseFloat(work?.recovery_amount), 0))}
             </div>
           </div>
           <div className="text-center">
             <div className="text-purple-600 font-medium">Montant Final HT</div>
-            <div className={`text-base font-bold ${parseFloat(shock.amount_excluding_tax) >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
-              {formatCurrency(parseFloat(shock.amount_excluding_tax))}
+            <div className={`text-base font-bold ${parseFloat(shock?.amount_excluding_tax) >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+              {formatCurrency(parseFloat(shock?.amount_excluding_tax))}
             </div>
           </div>
           <div className="text-center">
             <div className="text-purple-600 font-medium">Montant Final TTC</div>
-            <div className={`text-base font-bold ${parseFloat(shock.amount) >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
-              {formatCurrency(parseFloat(shock.amount))}
+            <div className={`text-base font-bold ${parseFloat(shock?.amount) >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+              {formatCurrency(parseFloat(shock?.amount))}
             </div>
           </div>
         </div>
       </div>
 
       {/* Main d'œuvre */}
-      {shock.workforces && shock.workforces.length > 0 && (
+      {shock?.workforces && shock?.workforces?.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-orange-600" />
@@ -530,30 +530,30 @@ function ShockContent({
                   <tr key={workforce.id} className="hover:bg-orange-50 transition-colors">
                     <td className="border px-3 py-2 text-[10px]">
                       <div>
-                        <div className="font-medium text-[10px]">{workforce.workforce_type.label}</div>
+                        <div className="font-medium text-[10px]">{workforce?.workforce_type?.label}</div>
                         <div className="text-[10px] text-muted-foreground">
-                          {workforce.workforce_type.description}
+                          {workforce?.workforce_type?.description}
                         </div>
                       </div>
                     </td>
                     <td className="border px-2 py-2 text-center text-[10px]">
-                      {workforce.nb_hours} h
+                        {workforce?.nb_hours} h
                     </td>
                     <td className="border px-2 py-2 text-center text-[10px]">
-                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce.work_fee))}
+                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce?.work_fee))}
                     </td>
                     <td className="border px-2 py-2 text-center text-[10px]">
-                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce.discount))}
+                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce?.discount))}
                     </td>
                     <td className="border px-2 py-2 text-center text-[10px]">
-                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce.amount_excluding_tax))}
+                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce?.amount_excluding_tax))}
                     </td>
                     <td className="border px-2 py-2 text-center text-[10px]">
-                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce.amount_tax))}
+                      {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce?.amount_tax))}
                     </td>
                     <td className="border px-2 py-2 text-center text-[10px] w-35">
                       <div className="font-bold text-orange-600">
-                        {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce.amount))}
+                        {formatCurrencyWithoutCurrencySymbol(parseFloat(workforce?.amount))}
                       </div>
                     </td>
                   </tr>
@@ -567,24 +567,24 @@ function ShockContent({
             <div className="text-[10px] text-center items-center flex justify-around">
               <div className="text-center">
                 <div className="text-gray-600 font-medium">Total main d'œuvre</div>
-                <div className="text-lg font-bold text-gray-800">{shock.workforces.length}</div>
+                <div className="text-lg font-bold text-gray-800">{shock?.workforces?.length}</div>
               </div>
               <div className="text-center">
                 <div className="text-orange-600 font-medium">Total heures</div>
                 <div className="text-base font-bold text-orange-700">
-                  {shock.workforces.reduce((sum, workforce) => sum + parseFloat(workforce.nb_hours), 0).toFixed(2)} h
+                  {shock?.workforces?.reduce((sum, workforce) => sum + parseFloat(workforce?.nb_hours), 0).toFixed(2)} h
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-orange-600 font-medium">Main d'œuvre HT</div>
                 <div className="text-base font-bold text-orange-700">
-                  {formatCurrency(shock.workforces.reduce((sum, workforce) => sum + parseFloat(workforce.amount_excluding_tax), 0))}
+                  {formatCurrency(shock?.workforces?.reduce((sum, workforce) => sum + parseFloat(workforce?.amount_excluding_tax), 0))}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-orange-600 font-medium">Main d'œuvre TTC</div>
                 <div className="text-base font-bold text-orange-700">
-                  {formatCurrency(shock.workforces.reduce((sum, workforce) => sum + parseFloat(workforce.amount), 0))}
+                  {formatCurrency(shock?.workforces?.reduce((sum, workforce) => sum + parseFloat(workforce?.amount), 0))}
                 </div>
               </div>
             </div>

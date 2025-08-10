@@ -29,7 +29,6 @@ import {
   Plus, 
   Loader2,
   FileText,
-  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -242,7 +241,7 @@ export function ReceiptTypeSelect({
             </Command>
           </PopoverContent>
         </Popover>
-        {value && !disabled && !loading && (
+        {/* {value && !disabled && !loading && (
           <Button
             type="button"
             variant="ghost"
@@ -253,7 +252,7 @@ export function ReceiptTypeSelect({
           >
             <X className="h-3 w-3" />
           </Button>
-        )}
+        )} */}
         </div>
         <div className='flex justify-end mt-2'>
                   <Button

@@ -2004,59 +2004,59 @@ export default function EditReportPage() {
                             <div>
                               <ShockSuppliesEditTable
                                 supplies={supplies.map((supply: any) => ({
-                                  id: supply.id,
-                                  label: supply.label,
-                                  code: supply.code || '',
-                                  price: supply.price || 0
+                                  id: supply?.id,
+                                  label: supply?.label || '**ND**',
+                                  code: supply?.code || '**ND**',
+                                  price: supply?.price || 0
                                 }))}
                                 shockWorks={(shock.shock_works || []).map((work: any) => ({
                                   id: work.id, // ID réel de l'API pour la réorganisation
                                   uid: work.id?.toString() || crypto.randomUUID(),
                                   supply_id: work.supply?.id || 0,
                                   supply_label: work.supply?.label || '',
-                                  disassembly: work.disassembly || false,
-                                  replacement: work.replacement || false,
-                                  repair: work.repair || false,
-                                  paint: work.paint || false,
-                                  control: work.control || false,
-                                  obsolescence: work.obsolescence || false,
-                                  comment: work.comment || '',
-                                  obsolescence_rate: Number(work.obsolescence_rate) || 0,
-                                  recovery_amount: Number(work.recovery_amount) || 0,
-                                  discount: Number(work.discount) || 0,
-                                  amount: Number(work.amount) || 0,
-                                  obsolescence_amount_excluding_tax: Number(work.obsolescence_amount_excluding_tax) || 0,
-                                  obsolescence_amount_tax: Number(work.obsolescence_amount_tax) || 0,
-                                  obsolescence_amount: Number(work.obsolescence_amount) || 0,
-                                  recovery_amount_excluding_tax: Number(work.recovery_amount_excluding_tax) || 0,
-                                  recovery_amount_tax: Number(work.recovery_amount_tax) || 0,
-                                  new_amount_excluding_tax: Number(work.new_amount_excluding_tax) || 0,
-                                  new_amount_tax: Number(work.new_amount_tax) || 0,
-                                  new_amount: Number(work.new_amount) || 0,
-                                  discount_amount: Number(work.discount_amount) || 0,
-                                  discount_amount_excluding_tax: Number(work.discount_amount_excluding_tax) || 0,
-                                  discount_amount_tax: Number(work.discount_amount_tax) || 0,
-                                  amount_excluding_tax: Number(work.amount_excluding_tax) || 0,
-                                  amount_tax: Number(work.amount_tax) || 0
+                                  disassembly: work?.disassembly || false,
+                                  replacement: work?.replacement || false,
+                                  repair: work?.repair || false,
+                                  paint: work?.paint || false,
+                                  control: work?.control || false,
+                                  obsolescence: work?.obsolescence || false,
+                                  comment: work?.comment || '',
+                                  obsolescence_rate: Number(work?.obsolescence_rate) || 0,
+                                  recovery_amount: Number(work?.recovery_amount) || 0,
+                                  discount: Number(work?.discount) || 0,
+                                  amount: Number(work?.amount) || 0,
+                                  obsolescence_amount_excluding_tax: Number(work?.obsolescence_amount_excluding_tax) || 0,
+                                  obsolescence_amount_tax: Number(work?.obsolescence_amount_tax) || 0,
+                                  obsolescence_amount: Number(work?.obsolescence_amount) || 0,
+                                  recovery_amount_excluding_tax: Number(work?.recovery_amount_excluding_tax) || 0,
+                                  recovery_amount_tax: Number(work?.recovery_amount_tax) || 0,
+                                  new_amount_excluding_tax: Number(work?.new_amount_excluding_tax) || 0,
+                                  new_amount_tax: Number(work?.new_amount_tax) || 0,
+                                  new_amount: Number(work?.new_amount) || 0,
+                                  discount_amount: Number(work?.discount_amount) || 0,
+                                  discount_amount_excluding_tax: Number(work?.discount_amount_excluding_tax) || 0,
+                                  discount_amount_tax: Number(work?.discount_amount_tax) || 0,
+                                  amount_excluding_tax: Number(work?.amount_excluding_tax) || 0,
+                                  amount_tax: Number(work?.amount_tax) || 0
                                 }))}
                                 onUpdate={async (index, updatedWork) => {
                                   try {
-                                    const work = shock.shock_works[index]
-                                    if (work && work.id) {
+                                    const work = shock?.shock_works[index]
+                                    if (work && work?.id) {
                                       // On envoie tout l'objet d'un coup
-                                      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work.id}`, {
-                                        supply_id: updatedWork.supply_id,
-                                        disassembly: updatedWork.disassembly,
-                                        replacement: updatedWork.replacement,
-                                        repair: updatedWork.repair,
-                                        paint: updatedWork.paint,
-                                        control: updatedWork.control,
-                                        obsolescence: updatedWork.obsolescence,
-                                        comment: updatedWork.comment,
-                                        obsolescence_rate: updatedWork.obsolescence_rate,
-                                        recovery_amount: updatedWork.recovery_amount,
-                                        discount: updatedWork.discount,
-                                        amount: updatedWork.amount
+                                      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work?.id}`, {
+                                        supply_id: updatedWork?.supply_id,
+                                        disassembly: updatedWork?.disassembly,
+                                        replacement: updatedWork?.replacement,
+                                        repair: updatedWork?.repair,
+                                        paint: updatedWork?.paint,
+                                        control: updatedWork?.control,
+                                        obsolescence: updatedWork?.obsolescence,
+                                        comment: updatedWork?.comment,
+                                        obsolescence_rate: updatedWork?.obsolescence_rate,
+                                        recovery_amount: updatedWork?.recovery_amount,
+                                        discount: updatedWork?.discount,
+                                        amount: updatedWork?.amount
                                       })
                                       toast.success('Fourniture mise à jour')
                                       refreshAssignment()
@@ -2098,9 +2098,9 @@ export default function EditReportPage() {
                                 }}
                                 onRemove={async (index: number) => {
                                   try {
-                                    const work = shock.shock_works[index]
-                                    if (work && work.id) {
-                                      await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work.id}`)
+                                    const work = shock?.shock_works[index]
+                                    if (work && work?.id) {
+                                      await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work?.id}`)
                                       toast.success('Fourniture supprimée')
                                       refreshAssignment()
                                     }
@@ -2113,9 +2113,9 @@ export default function EditReportPage() {
                                   // Validation automatique après modification
                                   toast.success('Fourniture validée')
                                 }}
-                                shockId={shock.id}
-                                paintTypeId={shock.paint_type?.id || 1}
-                                onReorderSave={(shockWorkIds) => handleReorderShockWorks(shock.id, shockWorkIds)}
+                                shockId={shock?.id}
+                                paintTypeId={shock?.paint_type?.id || 1}
+                                onReorderSave={(shockWorkIds) => handleReorderShockWorks(shock?.id, shockWorkIds)}
                                 onAssignmentRefresh={refreshAssignment}
                               />
                             </div>
@@ -2125,26 +2125,26 @@ export default function EditReportPage() {
                             {/* Section Main d'œuvre */}
                             <div>
                               <ShockWorkforceTableV2
-                                shockId={shock.id}
+                                shockId={shock?.id}
                                 workforces={(shock.workforces || []).filter(w => w.id !== undefined).map(w => ({
                                   id: w.id!, // ID réel de l'API pour la réorganisation
                                   uid: w.id?.toString() || crypto.randomUUID(), // UID pour le drag & drop
-                                  workforce_type: w.workforce_type,
-                                  workforce_type_id: w.workforce_type?.id || 0,
-                                  nb_hours: w.nb_hours,
-                                  work_fee: w.work_fee,
-                                  discount: w.discount,
-                                  with_tax: w.with_tax,
-                                  amount_excluding_tax: w.amount_excluding_tax,
-                                  amount_tax: w.amount_tax,
-                                  amount: w.amount
+                                  workforce_type: w?.workforce_type,
+                                  workforce_type_id: w?.workforce_type?.id || 0,
+                                  nb_hours: w?.nb_hours,
+                                  work_fee: w?.work_fee,
+                                  discount: w?.discount,
+                                  with_tax: w?.with_tax,
+                                  amount_excluding_tax: w?.amount_excluding_tax,
+                                  amount_tax: w?.amount_tax,
+                                  amount: w?.amount
                                 })) as any}
                                 paintTypes={paintTypes}
                                 hourlyRates={hourlyRates}
                                 onUpdate={(updatedWorkforces) => {
                                   // Mettre à jour les données locales
                                   const updatedAssignment = { ...assignment }
-                                  const shockIndex = updatedAssignment.shocks.findIndex(s => s.id === shock.id)
+                                  const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
                                   if (shockIndex !== -1) {
                                     updatedAssignment.shocks[shockIndex].workforces = updatedWorkforces as any
                                     setAssignment(updatedAssignment)
@@ -2154,7 +2154,7 @@ export default function EditReportPage() {
                                   try {
                                     // Préparer le payload selon l'API
                                     const payload = {
-                                      shock_id: String(shock.id),
+                                      shock_id: String(shock?.id),
                                       hourly_rate_id: "1", // Valeur par défaut
                                       paint_type_id: "1", // Valeur par défaut
                                       workforces: [{
@@ -2174,14 +2174,14 @@ export default function EditReportPage() {
                                 }}
                                 onAssignmentRefresh={refreshAssignment}
                                 // Nouvelles props pour type de peinture et taux horaire
-                                paintTypeId={shock.paint_type?.id}
-                                hourlyRateId={shock.hourly_rate?.id}
+                                paintTypeId={shock?.paint_type?.id}
+                                hourlyRateId={shock?.hourly_rate?.id}
                                 onPaintTypeChange={async (value: number) => {
                                   try {
                                     // Mettre à jour le type de peinture pour ce shock
                                     // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
                                     // qui gère déjà la mise à jour via l'API workforce
-                                    console.log('Type de peinture changé:', value, 'pour shock:', shock.id)
+                                    console.log('Type de peinture changé:', value, 'pour shock:', shock?.id)
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du type de peinture')
                                   }
