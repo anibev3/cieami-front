@@ -36,8 +36,9 @@ export function ShockPointSelect({
   onCreateNew
 }: ShockPointSelectProps) {
   const [open, setOpen] = useState(false)
-  const selectedShockPoint = shockPoints?.find(point => point?.id === value)
+  const selectedShockPoint = Array.isArray(shockPoints) ? shockPoints.find(point => point?.id === value) : null
   const hasValue = value > 0
+  const validShockPoints = Array.isArray(shockPoints) ? shockPoints.filter(point => point != null) : []
 
   return (
     <div className="space-y-3">
@@ -75,8 +76,8 @@ export function ShockPointSelect({
             <CommandList>
               <CommandEmpty className="py-6 text-center text-sm">
                 <div className="space-y-2">
-                  <p>Aucun point de choc trouvé</p>
-                  {onCreateNew && (
+                  <p>{validShockPoints.length === 0 ? 'Aucun point de choc trouvé' : 'Aucun résultat pour cette recherche'}</p>
+                  {onCreateNew && validShockPoints.length === 0 && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -93,12 +94,12 @@ export function ShockPointSelect({
                 </div>
               </CommandEmpty>
               <CommandGroup>
-                {shockPoints?.map((point) => (
+                {validShockPoints.map((point) => (
                   <CommandItem
-                    key={point?.id}
-                    value={`${point?.label} ${point?.code} ${point?.description || ''}`}
+                    key={point.id}
+                    value={`${point.label} ${point.code} ${point.description || ''}`}
                     onSelect={() => {
-                      onValueChange(point?.id)
+                      onValueChange(point.id)
                       setOpen(false)
                     }}
                     className="py-3"
@@ -106,16 +107,16 @@ export function ShockPointSelect({
                     <div className="flex items-center gap-2 w-full">
                       <MapPin className="h-4 w-4 text-blue-500" />
                       <div className="flex-1">
-                        <span className="text-sm font-medium">{point?.label}</span>
+                        <span className="text-sm font-medium">{point.label}</span>
                         {/* {point.description && (
-                          <p className="text-xs text-gray-500 truncate">{point?.description}</p>
+                          <p className="text-xs text-gray-500 truncate">{point.description}</p>
                         )} */}
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
-                          #{point?.code}
+                          #{point.code}
                         </Badge>
-                        {value === point?.id && (
+                        {value === point.id && (
                           <Check className="h-4 w-4 text-blue-600" />
                         )}
                       </div>
@@ -123,7 +124,7 @@ export function ShockPointSelect({
                   </CommandItem>
                 ))}
               </CommandGroup>
-              {onCreateNew && (
+              {onCreateNew && validShockPoints.length === 0 && (
                 <div className="border-t p-2">
                   <Button
                     variant="outline"

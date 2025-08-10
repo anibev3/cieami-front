@@ -1942,7 +1942,7 @@ export default function EditReportPage() {
                                 <div className="flex-1">
                                   <ShockPointSelect
                                     className='w-1/2'
-                                    value={shock?.shock_point?.id}  
+                                    value={shock?.shock_point?.id || 0}  
                                     onValueChange={async (newShockPointId) => {
                                       try {
                                         await axiosInstance.put(`/shocks/${shock?.id}`, {
