@@ -192,7 +192,7 @@ export default function CreateInvoicePage() {
   const isAssignmentEligible = (assignment: any) => {
     // Le dossier doit avoir des quittances ET être dans un statut éligible
     const hasReceipts = assignment.receipts && assignment.receipts.length > 0
-    const isEligibleStatus = assignment.status?.code === 'edited' || assignment.status?.code === 'paid'
+    const isEligibleStatus = assignment.status?.code === 'edited' || assignment.status?.code === 'validated'
     
     return hasReceipts && isEligibleStatus
   }
@@ -286,7 +286,7 @@ export default function CreateInvoicePage() {
                   </Badge>
                 </div>
                 <p className="text-xs text-blue-700">
-                  Seuls les dossiers avec le statut "Édité" ou "Payé" et possédant au moins une quittance peuvent faire l'objet d'une facturation.
+                  Seuls les dossiers avec le statut "Édité" ou "Validé" et possédant au moins une quittance peuvent faire l'objet d'une facturation.
                 </p>
               </div>
 
@@ -311,7 +311,7 @@ export default function CreateInvoicePage() {
                     <SelectContent>
                       <SelectItem value="all">Tous les statuts</SelectItem>
                       <SelectItem value="edited">Éditées</SelectItem>
-                      <SelectItem value="paid">Payées</SelectItem>
+                      <SelectItem value="validated">Validées</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -335,7 +335,7 @@ export default function CreateInvoicePage() {
                     <p className="text-gray-500">
                       {searchTerm || statusFilter !== 'all'
                         ? 'Aucun dossier ne correspond à vos critères de recherche'
-                        : 'Aucun dossier avec le statut "Édité" ou "Payé" et des quittances n\'est disponible'
+                        : 'Aucun dossier avec le statut "Édité" ou "Validé" et des quittances n\'est disponible'
                       }
                     </p>
                   </div>
