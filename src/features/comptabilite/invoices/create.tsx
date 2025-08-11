@@ -80,6 +80,12 @@ export default function CreateInvoicePage() {
   }, [fetchAssignments, assignments.length])
 
   useEffect(() => {
+    if (searchTerm) {
+      fetchAssignments(1, { search: searchTerm, status_code: statusFilter })
+    }
+  }, [searchTerm, fetchAssignments, statusFilter])
+
+  useEffect(() => {
     // Filtrer les dossiers basés sur la recherche et le statut
     const filtered = assignments.filter(assignment => {
       // Filtre par recherche textuelle avec vérifications de sécurité
@@ -101,6 +107,7 @@ export default function CreateInvoicePage() {
 
   const handleCreateInvoice = async () => {
     if (!selectedAssignment) {
+      
       toast.error('Veuillez sélectionner un dossier')
       return
     }
@@ -243,7 +250,7 @@ export default function CreateInvoicePage() {
             <div>
               {/* Information sur les critères d'éligibilité */}
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
+                {/* <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-blue-600" />
                     <span className="text-sm font-medium text-blue-900">Critères d'éligibilité</span>
@@ -251,7 +258,7 @@ export default function CreateInvoicePage() {
                   <Badge variant="secondary" className="text-xs">
                     {filteredAssignments.filter(a => isAssignmentEligible(a)).length} éligible{filteredAssignments.filter(a => isAssignmentEligible(a)).length > 1 ? 's' : ''}
                   </Badge>
-                </div>
+                </div> */}
                 <p className="text-xs text-blue-700">
                   Seuls les dossiers possédant au moins une quittance peuvent faire l'objet d'une facturation.
                 </p>
