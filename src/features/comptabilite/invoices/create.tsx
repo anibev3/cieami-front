@@ -64,7 +64,6 @@ export default function CreateInvoicePage() {
   const [creating, setCreating] = useState(false)
   const [filteredAssignments, setFilteredAssignments] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     reference: true,
     client: false,
@@ -77,36 +76,37 @@ export default function CreateInvoicePage() {
     actions: false
   })
 
-  // Debounce search term for dynamic search (aligned with assignments page)
-  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+  // Debounce search term for dynamic search
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
-  // Initialize on mount
   useEffect(() => {
-    if (!isInitialized) {
-      fetchAssignments(1)
-      setIsInitialized(true)
+    if (assignments.length === 0) {
+      fetchAssignments()
     }
-  }, [fetchAssignments, isInitialized])
+  }, [fetchAssignments, assignments.length])
 
-  // Dynamic search with debouncing (aligned with assignments page)
+  // Dynamic search with debouncing
   useEffect(() => {
-    if (isInitialized) {
-      if (debouncedSearchTerm || statusFilter !== 'all') {
-        setSearchLoading(true)
-        fetchAssignments(1, { 
-          search: debouncedSearchTerm, 
-          status_code: statusFilter === 'all' ? undefined : statusFilter 
-        }).finally(() => {
-          setSearchLoading(false)
-        })
-      }
+    if (debouncedSearchTerm || statusFilter !== 'all') {
+      console.log('debouncedSearchTerm', debouncedSearchTerm)
+      console.log('statusFilter', statusFilter)
+      setSearchLoading(true)
+      fetchAssignments(1, { 
+        search: debouncedSearchTerm, 
+        status_code: statusFilter === 'all' ? undefined : statusFilter 
+      }).finally(() => {
+        setSearchLoading(false)
+      })
+    } else if (assignments.length > 0) {
+      // If no search term and no status filter, show all assignments
+      setFilteredAssignments(assignments)
     }
-  }, [debouncedSearchTerm, statusFilter, isInitialized, fetchAssignments])
+  }, [debouncedSearchTerm, statusFilter, fetchAssignments, assignments.length])
 
   // Update filtered assignments when assignments change
   useEffect(() => {
     if (assignments.length > 0) {
-      // Apply local filtering for better UX (aligned with assignments page)
+      // Apply local filtering for better UX
       const filtered = assignments.filter(assignment => {
         // Filtre par recherche textuelle avec vérifications de sécurité
         const searchLower = searchTerm.toLowerCase()
