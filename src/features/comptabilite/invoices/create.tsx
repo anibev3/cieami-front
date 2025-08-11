@@ -48,11 +48,12 @@ import { formatDate } from '@/utils/format-date'
 import { formatCurrency } from '@/utils/format-currency'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { useDebounce } from '@/hooks/use-debounce'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export default function CreateInvoicePage() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const { assignments, loading: assignmentsLoading, fetchAssignments } = useAssignmentsStore()
   const { createInvoice } = useInvoiceStore()
   
@@ -204,7 +205,7 @@ export default function CreateInvoicePage() {
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full overflow-y-auto">
       {/* Header */}
       {/* <div className="flex items-center justify-between">
         <div>
@@ -227,7 +228,7 @@ export default function CreateInvoicePage() {
         <div className="lg:col-span-2">
           <div className="shadow-none">
             <div>
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <CardTitle className="flex items-center gap-2">
                   <Button
                     variant="ghost"
@@ -240,15 +241,15 @@ export default function CreateInvoicePage() {
                   </Button>
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                  <DropdownMenu modal={true}>
+                    <DropdownMenuTrigger asChild className="w-full">
                       <Button variant="outline" size="sm">
                         <Settings2 className="mr-2 h-4 w-4" />
-                        Colonnes
+                        {!isMobile && "Colonnes"}
                         <ChevronDown className="ml-2 h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-full">
                       {Object.entries(columnVisibility).map(([key, visible]) => (
                         <DropdownMenuCheckboxItem
                           key={key}
@@ -276,12 +277,12 @@ export default function CreateInvoicePage() {
             <div>
               {/* Information sur les critères d'éligibilité */}
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-blue-600" />
                     <span className="text-sm font-medium text-blue-900">Critères d'éligibilité</span>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs self-start sm:self-auto">
                     {filteredAssignments.filter(a => isAssignmentEligible(a)).length} éligible{filteredAssignments.filter(a => isAssignmentEligible(a)).length > 1 ? 's' : ''}
                   </Badge>
                 </div>
@@ -290,7 +291,7 @@ export default function CreateInvoicePage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
                 <div className="relative w-full">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
@@ -340,207 +341,207 @@ export default function CreateInvoicePage() {
                     </p>
                   </div>
                 ) : (
-                  <ScrollArea className="h-[500px]">
-                                      <Table>
-                    <TableHeader>
-                      <TableRow>
-                        {columnVisibility.reference && (
-                          <TableHead className="font-semibold">Référence</TableHead>
-                        )}
-                        {columnVisibility.client && (
-                          <TableHead className="font-semibold">Client</TableHead>
-                        )}
-                        {columnVisibility.vehicle && (
-                          <TableHead className="font-semibold">Véhicule</TableHead>
-                        )}
-                        {columnVisibility.policy && (
-                          <TableHead className="font-semibold">Police</TableHead>
-                        )}
-                        {columnVisibility.date && (
-                          <TableHead className="font-semibold">Date expertise</TableHead>
-                        )}
-                        {columnVisibility.status && (
-                          <TableHead className="font-semibold">Statut</TableHead>
-                        )}
-                        {columnVisibility.amount && (
-                          <TableHead className="font-semibold">Montant</TableHead>
-                        )}
-                        {columnVisibility.details && (
-                          <TableHead className="font-semibold">Détails</TableHead>
-                        )}
-                        {columnVisibility.actions && (
-                          <TableHead className="font-semibold">Actions</TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredAssignments.map((assignment) => {
-                        const isSelected = selectedAssignment?.id === assignment.id
-                        const isEligible = isAssignmentEligible(assignment)
-                        // const isEligible = true
-                        
-                        return (
-                          <TableRow 
-                            key={assignment.id}
-                            className={cn(
-                              "transition-all duration-200",
-                              isEligible 
-                                ? "cursor-pointer hover:bg-gray-50" 
-                                : "cursor-not-allowed opacity-60",
-                              isSelected && "bg-blue-50 border-l-4 border-l-blue-500"
-                            )}
-                            onClick={() => handleRowClick(assignment)}
-                          >
-                            {columnVisibility.reference && (
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  {assignment.reference}
-                                  {isSelected && (
-                                    <CheckCircle className="h-4 w-4 text-blue-600" />
-                                  )}
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.client && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4 text-gray-500" />
-                                  <span className="truncate max-w-[150px]">
-                                    {assignment.client?.name || 'Client inconnu'}
-                                  </span>
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.vehicle && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Car className="h-4 w-4 text-gray-500" />
-                                  <span className="font-mono">
-                                    {assignment.vehicle?.license_plate || 'N/A'}
-                                  </span>
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.policy && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <FileText className="h-4 w-4 text-gray-500" />
-                                  <span className="text-sm">
-                                    {assignment.policy_number || 'N/A'}
-                                  </span>
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.date && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-gray-500" />
-                                  <span className="text-sm">
-                                    {formatDate(assignment.expertise_date)}
-                                  </span>
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.status && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Badge className={cn(getStatusColor(assignment.status?.code || ''), "text-xs")}>
-                                    {assignment.status?.label || 'Statut inconnu'}
-                                  </Badge>
-                                  {!isAssignmentEligible(assignment) && (
-                                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
-                                      {!assignment.receipts || assignment.receipts.length === 0 
-                                        ? 'Pas de quittance' 
-                                        : 'Statut non éligible'
-                                      }
+                  <div className={isMobile ? "overflow-x-auto" : ""}>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          {columnVisibility.reference && (
+                            <TableHead className="font-semibold">Référence</TableHead>
+                          )}
+                          {columnVisibility.client && (
+                            <TableHead className="font-semibold">Client</TableHead>
+                          )}
+                          {columnVisibility.vehicle && (
+                            <TableHead className="font-semibold">Véhicule</TableHead>
+                          )}
+                          {columnVisibility.policy && (
+                            <TableHead className="font-semibold">Police</TableHead>
+                          )}
+                          {columnVisibility.date && (
+                            <TableHead className="font-semibold">Date expertise</TableHead>
+                          )}
+                          {columnVisibility.status && (
+                            <TableHead className="font-semibold">Statut</TableHead>
+                          )}
+                          {columnVisibility.amount && (
+                            <TableHead className="font-semibold">Montant</TableHead>
+                          )}
+                          {columnVisibility.details && (
+                            <TableHead className="font-semibold">Détails</TableHead>
+                          )}
+                          {columnVisibility.actions && (
+                            <TableHead className="font-semibold">Actions</TableHead>
+                          )}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredAssignments.map((assignment) => {
+                          const isSelected = selectedAssignment?.id === assignment.id
+                          const isEligible = isAssignmentEligible(assignment)
+                          // const isEligible = true
+                          
+                          return (
+                            <TableRow 
+                              key={assignment.id}
+                              className={cn(
+                                "transition-all duration-200",
+                                isEligible 
+                                  ? "cursor-pointer hover:bg-gray-50" 
+                                  : "cursor-not-allowed opacity-60",
+                                isSelected && "bg-blue-50 border-l-4 border-l-blue-500"
+                              )}
+                              onClick={() => handleRowClick(assignment)}
+                            >
+                              {columnVisibility.reference && (
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-2">
+                                    {assignment.reference}
+                                    {isSelected && (
+                                      <CheckCircle className="h-4 w-4 text-blue-600" />
+                                    )}
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.client && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-gray-500" />
+                                    <span className="truncate max-w-[150px]">
+                                      {assignment.client?.name || 'Client inconnu'}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.vehicle && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    {/* <Car className="h-4 w-4 text-gray-500" /> */}
+                                    <span className="font-mono">
+                                      {assignment.vehicle?.license_plate || 'N/A'}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.policy && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm">
+                                      {assignment.policy_number || 'N/A'}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.date && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm">
+                                      {formatDate(assignment.expertise_date)}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.status && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className={cn(getStatusColor(assignment.status?.code || ''), "text-xs")}>
+                                      {assignment.status?.label || 'Statut inconnu'}
                                     </Badge>
-                                  )}
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.amount && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  {/* <DollarSign className="h-4 w-4 text-gray-500" /> */}
-                                  <span className="font-semibold text-green-600">
-                                    {formatCurrency(Number(assignment.receipt_amount || 0))}
-                                  </span>
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.details && (
-                              <TableCell>
-                                <div className="flex items-center gap-3 text-xs">
-                                  {assignment.receipts && assignment.receipts.length > 0 && (
-                                    <div className="flex items-center gap-1">
-                                      <Receipt className="h-3 w-3 text-green-600" />
-                                      <span className="text-green-600 font-medium">
-                                        {assignment.receipts.length}
-                                      </span>
-                                    </div>
-                                  )}
-                                  
-                                  {assignment.shocks && assignment.shocks.length > 0 && (
-                                    <div className="flex items-center gap-1">
-                                      <Car className="h-3 w-3 text-orange-600" />
-                                      <span className="text-orange-600 font-medium">
-                                        {assignment.shocks.length}
-                                      </span>
-                                    </div>
-                                  )}
-                                  
-                                  {assignment.shocks && assignment.shocks.some((shock: any) => shock.workforces && shock.workforces.length > 0) && (
-                                    <div className="flex items-center gap-1">
-                                      <Wrench className="h-3 w-3 text-blue-600" />
-                                      <span className="text-blue-600 font-medium">MO</span>
-                                    </div>
-                                  )}
-                                  
-                                  {assignment.other_costs && assignment.other_costs.length > 0 && (
-                                    <div className="flex items-center gap-1">
-                                      <DollarSign className="h-3 w-3 text-red-600" />
-                                      <span className="text-red-600 font-medium">
-                                        {assignment.other_costs.length}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </TableCell>
-                            )}
-                            
-                            {columnVisibility.actions && (
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      if (isEligible) {
-                                        setSelectedAssignment(assignment)
-                                      }
-                                    }}
-                                    disabled={!isEligible}
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            )}
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                  </ScrollArea>
+                                    {!isAssignmentEligible(assignment) && (
+                                      <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                                        {!assignment.receipts || assignment.receipts.length === 0 
+                                          ? 'Pas de quittance' 
+                                          : 'Statut non éligible'
+                                        }
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.amount && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    {/* <DollarSign className="h-4 w-4 text-gray-500" /> */}
+                                    <span className="font-semibold text-green-600">
+                                      {formatCurrency(Number(assignment.receipt_amount || 0))}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.details && (
+                                <TableCell>
+                                  <div className="flex items-center gap-3 text-xs">
+                                    {assignment.receipts && assignment.receipts.length > 0 && (
+                                      <div className="flex items-center gap-1">
+                                        <Receipt className="h-3 w-3 text-green-600" />
+                                        <span className="text-green-600 font-medium">
+                                          {assignment.receipts.length}
+                                        </span>
+                                      </div>
+                                    )}
+                                    
+                                    {assignment.shocks && assignment.shocks.length > 0 && (
+                                      <div className="flex items-center gap-1">
+                                        <Car className="h-3 w-3 text-orange-600" />
+                                        <span className="text-orange-600 font-medium">
+                                          {assignment.shocks.length}
+                                        </span>
+                                      </div>
+                                    )}
+                                    
+                                    {assignment.shocks && assignment.shocks.some((shock: any) => shock.workforces && shock.workforces.length > 0) && (
+                                      <div className="flex items-center gap-1">
+                                        <Wrench className="h-3 w-3 text-blue-600" />
+                                        <span className="text-blue-600 font-medium">MO</span>
+                                      </div>
+                                    )}
+                                    
+                                    {assignment.other_costs && assignment.other_costs.length > 0 && (
+                                      <div className="flex items-center gap-1">
+                                        <DollarSign className="h-3 w-3 text-red-600" />
+                                        <span className="text-red-600 font-medium">
+                                          {assignment.other_costs.length}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnVisibility.actions && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (isEligible) {
+                                          setSelectedAssignment(assignment)
+                                        }
+                                      }}
+                                      disabled={!isEligible}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </div>
             </div>
@@ -549,7 +550,7 @@ export default function CreateInvoicePage() {
 
         {/* Panneau de création */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-6 shadow-none">
+          <Card className={isMobile ? "shadow-none" : "sticky top-6 shadow-none"}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
@@ -647,50 +648,6 @@ export default function CreateInvoicePage() {
                   </div>
 
                   <Separator />
-
-                  {/* Résumé des éléments */}
-                  {/* <div>
-                    <Label className="text-sm font-medium text-gray-700">Résumé des éléments</Label>
-                    <div className="mt-2 space-y-2 text-sm">
-                      {selectedAssignment.receipts && selectedAssignment.receipts.length > 0 && (
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-2">
-                            <Receipt className="h-4 w-4 text-green-600" />
-                            Quittances
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(Number(selectedAssignment.receipt_amount || 0))}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {selectedAssignment.shocks && selectedAssignment.shocks.length > 0 && (
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-2">
-                            <Car className="h-4 w-4 text-orange-600" />
-                            Chocs
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(Number(selectedAssignment.shock_amount || 0))}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {selectedAssignment.other_costs && selectedAssignment.other_costs.length > 0 && (
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-red-600" />
-                            Autres coûts
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(Number(selectedAssignment.other_cost_amount || 0))}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div> */}
-
-                  {/* <Separator /> */}
 
                   {/* Bouton de création */}
                   <Button 

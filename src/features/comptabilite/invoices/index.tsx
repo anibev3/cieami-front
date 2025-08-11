@@ -47,9 +47,11 @@ import { formatCurrency } from '@/utils/format-currency'
 import { useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export default function InvoicesPage() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const { 
     invoices, 
     loading, 
@@ -70,8 +72,8 @@ export default function InvoicesPage() {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     reference: true,
-    assignment: true,
-    date: true,
+    assignment: !isMobile,
+    date: !isMobile,
     amount: true,
     status: true,
     created_by: false,
@@ -86,6 +88,25 @@ export default function InvoicesPage() {
   useEffect(() => {
     fetchInvoices()
   }, [fetchInvoices])
+
+  // Ajuster la visibilité des colonnes selon l'état mobile
+  useEffect(() => {
+    if (isMobile) {
+      setColumnVisibility(prev => ({
+        ...prev,
+        assignment: false,
+        date: false,
+        created_by: false,
+        expertise_date: false
+      }))
+    } else {
+      setColumnVisibility(prev => ({
+        ...prev,
+        assignment: true,
+        date: true
+      }))
+    }
+  }, [isMobile])
 
   const handleSearch = () => {
     const searchFilters = {
@@ -193,34 +214,34 @@ export default function InvoicesPage() {
   }
 
   return (
-    <div className="space-y-6 relative w-full">
+    <div className="h-full space-y-6 relative w-full overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Factures</h1>
           <p className="text-muted-foreground">
             Gérez les factures de vos <span className="font-bold">{invoices.length} dossier{invoices.length > 1 ? 's' : ''}</span>
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="text-xs" size="xs" onClick={() => setFilterModalOpen(true)}>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button variant="outline" className="text-xs" size={isMobile ? "sm" : "xs"} onClick={() => setFilterModalOpen(true)}>
             <Filter className="mr-2 h-2 w-2 text-xs" />
-            Filtres
+            {!isMobile && "Filtres"}
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
                 {[searchTerm, filters.date_from, filters.date_to, filters.status !== 'all' ? filters.status : '', filters.amount_min, filters.amount_max].filter(Boolean).length}
               </Badge>
             )}
           </Button>
-          <Button className="text-xs" size="xs" onClick={handleCreate}>
+          <Button className="text-xs" size={isMobile ? "sm" : "xs"} onClick={handleCreate}>
             <Plus className="mr-2 h-2 w-2 text-xs" />
-            Nouvelle facture
+            {isMobile ? "Nouvelle facture" : "Nouvelle facture"}
           </Button>
         </div>
       </div>
 
       {/* Barre de recherche et contrôles */}
-      <div className="flex gap-3 items-center">
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -231,17 +252,19 @@ export default function InvoicesPage() {
             className="pl-10"
           />
         </div>
-        <Button onClick={handleSearch} variant="outline">
-          Rechercher
-        </Button>
-        <Button onClick={() => fetchInvoices()} variant="outline" size="icon">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-        {hasActiveFilters && (
-          <Button variant="outline" onClick={handleClearFilters}>
-            <X className="h-4 w-4" />
+        <div className="flex gap-2 sm:gap-3">
+          <Button onClick={handleSearch} variant="outline" className="flex-1 sm:flex-none">
+            {isMobile ? "Rechercher" : "Rechercher"}
           </Button>
-        )}
+          <Button onClick={() => fetchInvoices()} variant="outline" size="icon">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          {hasActiveFilters && (
+            <Button variant="outline" onClick={handleClearFilters} size={isMobile ? "sm" : "icon"}>
+              {isMobile ? "Effacer" : <X className="h-4 w-4" />}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* DataTable */}
@@ -253,7 +276,7 @@ export default function InvoicesPage() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Settings2 className="mr-2 h-4 w-4" />
-                  Colonnes
+                  {!isMobile && "Colonnes"}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -304,231 +327,226 @@ export default function InvoicesPage() {
             )}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {columnVisibility.reference && (
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('reference')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Référence
-                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
-                    </Button>
-                  </TableHead>
-                )}
-                {columnVisibility.assignment && (
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('assignment')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Dossier
-                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
-                    </Button>
-                  </TableHead>
-                )}
-                {columnVisibility.date && (
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('date')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Date facture
-                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
-                    </Button>
-                  </TableHead>
-                )}
-                {columnVisibility.amount && (
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('amount')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Montant
-                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
-                    </Button>
-                  </TableHead>
-                )}
-                {columnVisibility.status && (
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('status')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Statut
-                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
-                    </Button>
-                  </TableHead>
-                )}
-                {columnVisibility.created_by && (
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('created_by')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Créé par
-                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
-                    </Button>
-                  </TableHead>
-                )}
-                {columnVisibility.expertise_date && (
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort('expertise_date')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Date expertise
-                      {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
-                    </Button>
-                  </TableHead>
-                )}
-                {columnVisibility.actions && (
-                  <TableHead className="text-right">Actions</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedInvoices.map((invoice) => {
-                const isCancelled = invoice.status?.code === 'cancelled'
-                const isDeleted = invoice.deleted_at !== null
-                const canCancel = !isCancelled && !isDeleted
-                const canGenerate = invoice.status?.code !== 'generated' && !isDeleted && !isCancelled
-                // const canEdit = !isCancelled && !isDeleted
-                const canDelete = !isCancelled && !isDeleted
-                return (
-                  <TableRow key={invoice.id} className="hover:bg-muted/50">
-                    {columnVisibility.reference && (
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {/* <FileText className="h-4 w-4 text-muted-foreground" /> */}
-                          {invoice.reference}
-                        </div>
-                      </TableCell>
-                    )}
-                    
-                    {columnVisibility.assignment && (
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">{invoice.assignment?.reference}</div>
-                          {/* <div className="text-xs text-muted-foreground">
-                            Police: {invoice.assignment.policy_number}
-                          </div> */}
-                        </div>
-                      </TableCell>
-                    )}
-                    
-                    {columnVisibility.date && (
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {formatDate(invoice.date)}
-                        </div>
-                      </TableCell>
-                    )}
-                    
-                    {columnVisibility.amount && (
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
-                          <span className="font-semibold text-green-600">
-                            {formatCurrency(Number(invoice.assignment?.receipt_amount || 0))}
-                          </span>
-                        </div>
-                      </TableCell>
-                    )}
-                    
-                    {columnVisibility.status && (
-                      <TableCell>
-                        <Badge className={cn(getStatusColor(invoice.status?.code || ''), "text-xs")}> 
-                          {invoice.status?.label || 'Statut inconnu'}
-                        </Badge>
-                      </TableCell>
-                    )}
-                    
-                    {columnVisibility.created_by && (
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="truncate max-w-[120px]">
-                            {invoice.created_by?.name || 'N/A'}
-                          </span>
-                        </div>
-                      </TableCell>
-                    )}
-                    
-                    {columnVisibility.expertise_date && (
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
-                          {formatDate(invoice.assignment?.expertise_date)}
-                        </div>
-                      </TableCell>
-                    )}
-                    
-                    {columnVisibility.actions && (
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(Number(invoice.id))}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Voir les détails
-                            </DropdownMenuItem>
-                            {/* {canEdit && (
-                              <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Modifier
+          <div className={isMobile ? "overflow-x-auto" : ""}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columnVisibility.reference && (
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('reference')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Référence
+                      </Button>
+                    </TableHead>
+                  )}
+                  {columnVisibility.assignment && (
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('assignment')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Dossier
+                      </Button>
+                    </TableHead>
+                  )}
+                  {columnVisibility.date && (
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('date')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Date facture
+                      </Button>
+                    </TableHead>
+                  )}
+                  {columnVisibility.amount && (
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('amount')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Montant
+                      </Button>
+                    </TableHead>
+                  )}
+                  {columnVisibility.status && (
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('status')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Statut
+                      </Button>
+                    </TableHead>
+                  )}
+                  {columnVisibility.created_by && (
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('created_by')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Créé par
+                      </Button>
+                    </TableHead>
+                  )}
+                  {columnVisibility.expertise_date && (
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort('expertise_date')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Date expertise
+                      </Button>
+                    </TableHead>
+                  )}
+                  {columnVisibility.actions && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedInvoices.map((invoice) => {
+                  const isCancelled = invoice.status?.code === 'cancelled'
+                  const isDeleted = invoice.deleted_at !== null
+                  const canCancel = !isCancelled && !isDeleted
+                  const canGenerate = invoice.status?.code !== 'generated' && !isDeleted && !isCancelled
+                  // const canEdit = !isCancelled && !isDeleted
+                  const canDelete = !isCancelled && !isDeleted
+                  return (
+                    <TableRow key={invoice.id} className="hover:bg-muted/50">
+                      {columnVisibility.reference && (
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {/* <FileText className="h-4 w-4 text-muted-foreground" /> */}
+                            {invoice.reference}
+                          </div>
+                        </TableCell>
+                      )}
+                      
+                      {columnVisibility.assignment && (
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">{invoice.assignment?.reference}</div>
+                            {/* <div className="text-xs text-muted-foreground">
+                              Police: {invoice.assignment.policy_number}
+                            </div> */}
+                          </div>
+                        </TableCell>
+                      )}
+                      
+                      {columnVisibility.date && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {formatDate(invoice.date)}
+                          </div>
+                        </TableCell>
+                      )}
+                      
+                      {columnVisibility.amount && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(Number(invoice.assignment?.receipt_amount || 0))}
+                            </span>
+                          </div>
+                        </TableCell>
+                      )}
+                      
+                      {columnVisibility.status && (
+                        <TableCell>
+                          <Badge className={cn(getStatusColor(invoice.status?.code || ''), "text-xs")}> 
+                            {invoice.status?.label || 'Statut inconnu'}
+                          </Badge>
+                        </TableCell>
+                      )}
+                      
+                      {columnVisibility.created_by && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="truncate max-w-[120px]">
+                              {invoice.created_by?.name || 'N/A'}
+                            </span>
+                          </div>
+                        </TableCell>
+                      )}
+                      
+                      {columnVisibility.expertise_date && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
+                            {formatDate(invoice.assignment?.expertise_date)}
+                          </div>
+                        </TableCell>
+                      )}
+                      
+                      {columnVisibility.actions && (
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewDetails(Number(invoice.id))}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Voir les détails
                               </DropdownMenuItem>
-                            )} */}
-                            {canCancel && (
-                              <DropdownMenuItem onClick={() => handleCancel(Number(invoice.id))}>
-                                <AlertTriangle className="mr-2 h-4 w-4" />
-                                Annuler
-                              </DropdownMenuItem>
-                            )}
-                            {canGenerate && (
-                              <DropdownMenuItem onClick={() => handleGenerate(Number(invoice.id))}>
-                                <Download className="mr-2 h-4 w-4" />
-                                Générer
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            {canDelete && (
-                              <DropdownMenuItem 
-                                onClick={() => handleDelete(Number(invoice.id))}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Supprimer
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                              {/* {canEdit && (
+                                <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Modifier
+                                </DropdownMenuItem>
+                              )} */}
+                              {canCancel && (
+                                <DropdownMenuItem onClick={() => handleCancel(Number(invoice.id))}>
+                                  <AlertTriangle className="mr-2 h-4 w-4" />
+                                  Annuler
+                                </DropdownMenuItem>
+                              )}
+                              {canGenerate && (
+                                <DropdownMenuItem onClick={() => handleGenerate(Number(invoice.id))}>
+                                  <Download className="mr-2 h-4 w-4" />
+                                  Générer
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              {canDelete && (
+                                <DropdownMenuItem 
+                                  onClick={() => handleDelete(Number(invoice.id))}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Supprimer
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
 
       {/* Modal de filtres avancés */}
       <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className={isMobile ? "w-[95vw] max-w-none mx-4" : "max-w-md"}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
@@ -576,7 +594,7 @@ export default function InvoicesPage() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-2"}>
               <div className="space-y-2">
                 <Label>Montant min</Label>
                 <Input
@@ -597,14 +615,14 @@ export default function InvoicesPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={handleClearFilters}>
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={handleClearFilters} className={isMobile ? "w-full" : ""}>
                 Effacer tout
               </Button>
               <Button onClick={() => {
                 handleSearch()
                 setFilterModalOpen(false)
-              }}>
+              }} className={isMobile ? "w-full" : ""}>
                 Appliquer les filtres
               </Button>
             </div>
