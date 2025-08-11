@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -48,6 +49,7 @@ import { formatCurrency } from '@/utils/format-currency'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useDebounce } from '@/hooks/use-debounce'
 
 export default function CreateInvoicePage() {
   const navigate = useNavigate()
@@ -61,6 +63,8 @@ export default function CreateInvoicePage() {
   const [invoiceObject, setInvoiceObject] = useState('')
   const [creating, setCreating] = useState(false)
   const [filteredAssignments, setFilteredAssignments] = useState<any[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     reference: true,
     client: false,
@@ -73,36 +77,53 @@ export default function CreateInvoicePage() {
     actions: false
   })
 
-  useEffect(() => {
-    if (assignments.length === 0) {
-      fetchAssignments()
-    }
-  }, [fetchAssignments, assignments.length])
+  // Debounce search term for dynamic search (aligned with assignments page)
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
+  // Initialize on mount
   useEffect(() => {
-    if (searchTerm) {
-      fetchAssignments(1, { search: searchTerm, status_code: statusFilter })
+    if (!isInitialized) {
+      fetchAssignments(1)
+      setIsInitialized(true)
     }
-  }, [searchTerm, fetchAssignments, statusFilter])
+  }, [fetchAssignments, isInitialized])
 
+  // Dynamic search with debouncing (aligned with assignments page)
   useEffect(() => {
-    // Filtrer les dossiers basés sur la recherche et le statut
-    const filtered = assignments.filter(assignment => {
-      // Filtre par recherche textuelle avec vérifications de sécurité
-      const searchLower = searchTerm.toLowerCase()
-      const matchesSearch = 
-        (assignment.reference?.toLowerCase() || '').includes(searchLower) ||
-        (assignment.client?.name?.toLowerCase() || '').includes(searchLower) ||
-        (assignment.vehicle?.license_plate?.toLowerCase() || '').includes(searchLower) ||
-        (assignment.policy_number?.toLowerCase() || '').includes(searchLower)
+    if (isInitialized) {
+      if (debouncedSearchTerm || statusFilter !== 'all') {
+        setSearchLoading(true)
+        fetchAssignments(1, { 
+          search: debouncedSearchTerm, 
+          status_code: statusFilter === 'all' ? undefined : statusFilter 
+        }).finally(() => {
+          setSearchLoading(false)
+        })
+      }
+    }
+  }, [debouncedSearchTerm, statusFilter, isInitialized, fetchAssignments])
+
+  // Update filtered assignments when assignments change
+  useEffect(() => {
+    if (assignments.length > 0) {
+      // Apply local filtering for better UX (aligned with assignments page)
+      const filtered = assignments.filter(assignment => {
+        // Filtre par recherche textuelle avec vérifications de sécurité
+        const searchLower = searchTerm.toLowerCase()
+        const matchesSearch = !searchTerm || 
+          (assignment.reference?.toLowerCase() || '').includes(searchLower) ||
+          (assignment.client?.name?.toLowerCase() || '').includes(searchLower) ||
+          (assignment.vehicle?.license_plate?.toLowerCase() || '').includes(searchLower) ||
+          (assignment.policy_number?.toLowerCase() || '').includes(searchLower)
+        
+        // Filtre par statut
+        const matchesStatus = statusFilter === 'all' || assignment.status?.code === statusFilter
+        
+        return matchesSearch && matchesStatus
+      })
       
-      // Filtre par statut
-      const matchesStatus = statusFilter === 'all' || assignment.status?.code === statusFilter
-      
-      return matchesSearch && matchesStatus
-    })
-    
-    setFilteredAssignments(filtered)
+      setFilteredAssignments(filtered)
+    }
   }, [assignments, searchTerm, statusFilter])
 
   const handleCreateInvoice = async () => {
@@ -273,6 +294,9 @@ export default function CreateInvoicePage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
+                  {searchLoading && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -299,10 +323,12 @@ export default function CreateInvoicePage() {
 
               {/* DataTable */}
               <div className="rounded-md border">
-                {assignmentsLoading ? (
+                {assignmentsLoading || searchLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                    <span>Chargement des dossiers...</span>
+                    <span>
+                      {searchLoading ? 'Recherche en cours...' : 'Chargement des dossiers...'}
+                    </span>
                   </div>
                 ) : filteredAssignments.length === 0 ? (
                   <div className="text-center py-8">
