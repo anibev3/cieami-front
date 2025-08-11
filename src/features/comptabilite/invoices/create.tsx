@@ -66,14 +66,14 @@ export default function CreateInvoicePage() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     reference: true,
-    client: true,
+    client: false,
     vehicle: true,
     policy: false,
-    date: true,
+    date: false,
     status: true,
     amount: true,
     details: false,
-    actions: false
+    actions: true
   })
 
   // Debounce search term for dynamic search
