@@ -136,15 +136,19 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
 
   // Actions principales
   fetchAssignments: async (page = 1, filters) => {
+
+    console.log('fetchAssignments =====>', page, filters)
     set({ loading: true, error: null })
     
     try {
-      // Construire les filtres à partir de l'état actuel
+      // Construire les filtres à partir de l'état actuel et des filtres passés
       const currentFilters: AssignmentFilters = {
         ...filters,
-        search: get().searchQuery,
-        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+        search: filters?.search || get().searchQuery,
+        status_code: filters?.status_code || (get().activeTab !== 'all' ? get().activeTab : undefined),
       }
+      
+      console.log('Final filters:', currentFilters)
       
       const response = await assignmentService.getAssignments(page, currentFilters)
       

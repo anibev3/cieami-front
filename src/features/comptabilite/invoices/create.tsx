@@ -66,10 +66,10 @@ export default function CreateInvoicePage() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     reference: true,
-    client: false,
-    vehicle: false,
+    client: true,
+    vehicle: true,
     policy: false,
-    date: false,
+    date: true,
     status: true,
     amount: true,
     details: false,
@@ -116,10 +116,13 @@ export default function CreateInvoicePage() {
           (assignment.vehicle?.license_plate?.toLowerCase() || '').includes(searchLower) ||
           (assignment.policy_number?.toLowerCase() || '').includes(searchLower)
         
-        // Filtre par statut
+        // Filtre par statut - seulement "paid" et "edited"
         const matchesStatus = statusFilter === 'all' || assignment.status?.code === statusFilter
         
-        return matchesSearch && matchesStatus
+        // Vérifier que le dossier a des quittances (éligibilité)
+        const hasReceipts = assignment.receipts && assignment.receipts.length > 0
+        
+        return matchesSearch && matchesStatus && hasReceipts
       })
       
       setFilteredAssignments(filtered)
@@ -187,9 +190,11 @@ export default function CreateInvoicePage() {
   }
 
   const isAssignmentEligible = (assignment: any) => {
-    return assignment.receipts && assignment.receipts.length > 0
-    // assignment.status?.code === 'edited' &&
-      
+    // Le dossier doit avoir des quittances ET être dans un statut éligible
+    const hasReceipts = assignment.receipts && assignment.receipts.length > 0
+    const isEligibleStatus = assignment.status?.code === 'edited' || assignment.status?.code === 'paid'
+    
+    return hasReceipts && isEligibleStatus
   }
 
   const handleRowClick = (assignment: any) => {
@@ -271,7 +276,7 @@ export default function CreateInvoicePage() {
             <div>
               {/* Information sur les critères d'éligibilité */}
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                {/* <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-blue-600" />
                     <span className="text-sm font-medium text-blue-900">Critères d'éligibilité</span>
@@ -279,9 +284,9 @@ export default function CreateInvoicePage() {
                   <Badge variant="secondary" className="text-xs">
                     {filteredAssignments.filter(a => isAssignmentEligible(a)).length} éligible{filteredAssignments.filter(a => isAssignmentEligible(a)).length > 1 ? 's' : ''}
                   </Badge>
-                </div> */}
+                </div>
                 <p className="text-xs text-blue-700">
-                  Seuls les dossiers possédant au moins une quittance peuvent faire l'objet d'une facturation.
+                  Seuls les dossiers avec le statut "Édité" ou "Payé" et possédant au moins une quittance peuvent faire l'objet d'une facturation.
                 </p>
               </div>
 
@@ -305,17 +310,8 @@ export default function CreateInvoicePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tous les statuts</SelectItem>
-                      <SelectItem value="active">Actives</SelectItem>
-                      <SelectItem value="opened">Ouvertes</SelectItem>
-                      <SelectItem value="realized">Réalisées</SelectItem>
                       <SelectItem value="edited">Éditées</SelectItem>
-                      <SelectItem value="corrected">Corrigées</SelectItem>
-                      <SelectItem value="closed">Fermées</SelectItem>
-                      <SelectItem value="in_payment">En paiement</SelectItem>
                       <SelectItem value="paid">Payées</SelectItem>
-                      <SelectItem value="inactive">Inactives</SelectItem>
-                      <SelectItem value="cancelled">Annulées</SelectItem>
-                      <SelectItem value="deleted">Supprimées</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -334,12 +330,12 @@ export default function CreateInvoicePage() {
                   <div className="text-center py-8">
                     <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      {searchTerm ? 'Aucun dossier trouvé' : 'Aucun dossier éligible'}
+                      {searchTerm || statusFilter !== 'all' ? 'Aucun dossier trouvé' : 'Aucun dossier éligible'}
                     </h3>
                     <p className="text-gray-500">
-                      {searchTerm 
-                        ? 'Aucun dossier ne correspond à votre recherche'
-                        : 'Aucun dossier avec le statut "Édité" et des quittances n\'est disponible'
+                      {searchTerm || statusFilter !== 'all'
+                        ? 'Aucun dossier ne correspond à vos critères de recherche'
+                        : 'Aucun dossier avec le statut "Édité" ou "Payé" et des quittances n\'est disponible'
                       }
                     </p>
                   </div>
@@ -456,9 +452,12 @@ export default function CreateInvoicePage() {
                                   <Badge className={cn(getStatusColor(assignment.status?.code || ''), "text-xs")}>
                                     {assignment.status?.label || 'Statut inconnu'}
                                   </Badge>
-                                  {!isEligible && (
+                                  {!isAssignmentEligible(assignment) && (
                                     <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
-                                      {assignment.status?.code !== 'edited' ? 'Non éligible' : 'Pas de quittance'}
+                                      {!assignment.receipts || assignment.receipts.length === 0 
+                                        ? 'Pas de quittance' 
+                                        : 'Statut non éligible'
+                                      }
                                     </Badge>
                                   )}
                                 </div>
