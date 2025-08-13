@@ -1465,7 +1465,7 @@ export default function CreateAssignmentPage() {
                       </div>
                       <FormField control={form.control} name="received_at" render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Date de réception</FormLabel>
+                                <FormLabel>Date de réception <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                               <Input type="date" {...field} />
                                 </FormControl>
