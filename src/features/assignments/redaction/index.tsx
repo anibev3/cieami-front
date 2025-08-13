@@ -2483,7 +2483,7 @@ export default function EditReportPage() {
                                  />
                                </div>
 
-                                                             <div className="space-y-2">
+                                <div className="space-y-2">
                                  <Label htmlFor="remark">Note d'expert *</Label>
                                  <RemarkSelect
                                    value={selectedRemarkId}

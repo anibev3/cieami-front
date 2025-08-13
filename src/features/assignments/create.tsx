@@ -346,6 +346,7 @@ export default function CreateAssignmentPage() {
             vehicle_mileage: assignment.vehicle?.mileage?.toString() || '',
             insurer_id: assignment.insurer?.id?.toString() || '',
             repairer_id: assignment.repairer?.id?.toString() || '',
+            broker_id: assignment.broker?.id?.toString() || '',
             assignment_type_id: assignment.assignment_type?.id?.toString() || '',
             expertise_type_id: assignment.expertise_type?.id?.toString() || '',
             document_transmitted_id: assignment.document_transmitted?.map((doc: any) => doc.id.toString()) || [],
@@ -360,8 +361,8 @@ export default function CreateAssignmentPage() {
             circumstance: assignment.circumstance || '',
             damage_declared: assignment.damage_declared || '',
             observation: assignment.observation || '',
-            experts: assignment.experts?.map((expert: { expert_id: number; date: string; observation: string | null }) => ({
-              expert_id: expert.expert_id?.toString() || '',
+            experts: assignment.experts?.map((expert: { id?: number; expert_id?: number; date: string | null; observation: string | null }) => ({
+              expert_id: (expert.expert_id ?? expert.id)?.toString() || '',
               date: expert.date || '',
               observation: expert.observation || ''
             })) || [{ expert_id: '', date: '', observation: '' }]
@@ -401,8 +402,8 @@ export default function CreateAssignmentPage() {
           }
 
           // Mettre à jour la liste des experts
-          const expertsData = assignment.experts?.map((expert: { expert_id: number; date: string; observation: string | null }) => ({
-            expert_id: expert.expert_id?.toString() || '',
+          const expertsData = assignment.experts?.map((expert: { id?: number; expert_id?: number; date: string | null; observation: string | null }) => ({
+            expert_id: (expert.expert_id ?? expert.id)?.toString() || '',
             date: expert.date || '',
             observation: expert.observation || ''
           })) || [{ expert_id: '', date: '', observation: '' }]
@@ -469,7 +470,20 @@ export default function CreateAssignmentPage() {
     4: () => true,
   }
 
-  const canProceed = stepValidations[step as keyof typeof stepValidations]()
+  // Vérification stricte: toutes les infos doivent être pré-remplies en mode édition
+  const allRequiredFilled = (() => {
+    const v = form.getValues()
+    return (
+      // Entités principales
+      !!v.client_id && !!v.vehicle_id && !!v.assignment_type_id && !!v.expertise_type_id && !!v.received_at &&
+      // Champs complémentaires clés
+      (v.vehicle_mileage !== undefined) && (v.vehicle_mileage !== null) && v.vehicle_mileage.toString().length > 0 &&
+      // Dates et lieux (si présents dans la data, on exige qu'ils soient remplis)
+      true
+    )
+  })()
+
+  const canProceed = stepValidations[step as keyof typeof stepValidations]() && allRequiredFilled
 
   const nextStep = () => {
     if (step < totalSteps && canProceed) {
@@ -637,6 +651,29 @@ export default function CreateAssignmentPage() {
   }
 
   const onSubmit = async (values: z.infer<typeof assignmentSchema>) => {
+    // Garde-fou: toutes les infos critiques doivent être présentes
+    const missing: string[] = []
+    const mustHave = [
+      { key: 'client_id', label: 'Client' },
+      { key: 'vehicle_id', label: 'Véhicule' },
+      { key: 'vehicle_mileage', label: 'Kilométrage du véhicule' },
+      { key: 'assignment_type_id', label: "Type d'assignation" },
+      { key: 'expertise_type_id', label: "Type d'expertise" },
+      { key: 'received_at', label: 'Date de réception' },
+    ] as const
+
+    mustHave.forEach(({ key, label }) => {
+      const val = (values as any)[key]
+      if (val === undefined || val === null || (typeof val === 'string' && val.trim().length === 0)) {
+        missing.push(label)
+      }
+    })
+
+    if (missing.length > 0) {
+      toast.error(`Champs manquants: ${missing.join(', ')}`)
+      return
+    }
+
     setLoading(true)
     
     try {
