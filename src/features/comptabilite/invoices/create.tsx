@@ -193,7 +193,7 @@ export default function CreateInvoicePage() {
   const isAssignmentEligible = (assignment: any) => {
     // Le dossier doit avoir des quittances ET être dans un statut éligible
     const hasReceipts = assignment.receipts && assignment.receipts.length > 0
-    const isEligibleStatus = assignment.status?.code === 'edited' || assignment.status?.code === 'validated'
+    const isEligibleStatus = assignment.status?.code === 'edited' || assignment.status?.code === 'validated' || assignment.status?.code === 'paid'
     
     return hasReceipts && isEligibleStatus
   }
