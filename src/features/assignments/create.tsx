@@ -442,48 +442,27 @@ export default function CreateAssignmentPage() {
 
   // Removed effect for vehicle model reset - now handled by VehicleMutateDialog
 
-  // Validations par étape
+  // Validations par étape (création: champs minimaux requis seulement)
   const stepValidations = {
     1: () => {
-      const values = form.getValues()
-      const mileage = values.vehicle_mileage
-      const isMileageValid = mileage !== null && mileage !== undefined && !isNaN(Number(mileage)) && Number(mileage) >= 0
-      
+      const v = form.getValues()
       return (
-        values.client_id?.toString().length > 0 &&
-        values.vehicle_id?.toString().length > 0 &&
-        isMileageValid
+        v.client_id?.toString().length > 0 &&
+        v.vehicle_id?.toString().length > 0 &&
+        v.received_at?.toString().length > 0
       )
     },
     2: () => {
-      const values = form.getValues()
-      const hasAssignmentType = values.assignment_type_id && values.assignment_type_id.toString().length > 0
-      const hasExpertiseType = values.expertise_type_id && values.expertise_type_id.toString().length > 0
-      // Les documents sont maintenant optionnels
-      
+      const v = form.getValues()
+      const hasAssignmentType = v.assignment_type_id && v.assignment_type_id.toString().length > 0
+      const hasExpertiseType = v.expertise_type_id && v.expertise_type_id.toString().length > 0
       return hasAssignmentType && hasExpertiseType
     },
-    3: () => {
-      const values = form.getValues()
-      return true // Les experts sont maintenant optionnels
-    },
+    3: () => true,
     4: () => true,
   }
 
-  // Vérification stricte: toutes les infos doivent être pré-remplies en mode édition
-  const allRequiredFilled = (() => {
-    const v = form.getValues()
-    return (
-      // Entités principales
-      !!v.client_id && !!v.vehicle_id && !!v.assignment_type_id && !!v.expertise_type_id && !!v.received_at &&
-      // Champs complémentaires clés
-      (v.vehicle_mileage !== undefined) && (v.vehicle_mileage !== null) && v.vehicle_mileage.toString().length > 0 &&
-      // Dates et lieux (si présents dans la data, on exige qu'ils soient remplis)
-      true
-    )
-  })()
-
-  const canProceed = stepValidations[step as keyof typeof stepValidations]() && allRequiredFilled
+  const canProceed = stepValidations[step as keyof typeof stepValidations]()
 
   const nextStep = () => {
     if (step < totalSteps && canProceed) {
@@ -651,29 +630,7 @@ export default function CreateAssignmentPage() {
   }
 
   const onSubmit = async (values: z.infer<typeof assignmentSchema>) => {
-    // Garde-fou: toutes les infos critiques doivent être présentes
-    const missing: string[] = []
-    const mustHave = [
-      { key: 'client_id', label: 'Client' },
-      { key: 'vehicle_id', label: 'Véhicule' },
-      { key: 'vehicle_mileage', label: 'Kilométrage du véhicule' },
-      { key: 'assignment_type_id', label: "Type d'assignation" },
-      { key: 'expertise_type_id', label: "Type d'expertise" },
-      { key: 'received_at', label: 'Date de réception' },
-    ] as const
-
-    mustHave.forEach(({ key, label }) => {
-      const val = (values as any)[key]
-      if (val === undefined || val === null || (typeof val === 'string' && val.trim().length === 0)) {
-        missing.push(label)
-      }
-    })
-
-    if (missing.length > 0) {
-      toast.error(`Champs manquants: ${missing.join(', ')}`)
-      return
-    }
-
+    // En création: seuls client_id, vehicle_id, received_at, assignment_type_id et expertise_type_id sont requis (vérifiés via stepValidations)
     setLoading(true)
     
     try {
