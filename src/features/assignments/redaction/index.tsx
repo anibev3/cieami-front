@@ -55,7 +55,9 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
-  AlertTriangle
+  AlertTriangle,
+  GripVertical,
+  List
 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -85,6 +87,8 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { ShockPointCreateModal } from '@/components/modals'
 import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/components/shock-point-mutate-dialog'
 import { cn } from '@/lib/utils'
+// dnd-kit moved into reusable component
+import { ShockReorderSheet, type ShockItem } from '@/features/assignments/components/shock-reorder-sheet'
 
 interface Assignment {
   id: number
@@ -619,6 +623,12 @@ export default function EditReportPage() {
   const [showEditShockWarning, setShowEditShockWarning] = useState(false)
   const [highlightedShockId, setHighlightedShockId] = useState<number | null>(null)
 
+  // Reorder shocks sheet state
+  const [showReorderSheet, setShowReorderSheet] = useState(false)
+  const [reorderShocksList, setReorderShocksList] = useState<ShockItem[]>([])
+  
+  const [sheetFocusShockId, setSheetFocusShockId] = useState<number | null>(null)
+
   // Fonction pour changer d'onglet et mettre à jour l'URL
   const changeActiveTab = (tab: string) => {
     setActiveTab(tab)
@@ -812,6 +822,38 @@ export default function EditReportPage() {
 
     fetchReferenceData()
   }, [])
+
+  // Prepare reorder list when opening the sheet
+  useEffect(() => {
+    if (showReorderSheet && assignment?.shocks) {
+      setReorderShocksList(
+        assignment.shocks.map((s) => ({
+          id: s.id,
+          label: s.shock_point?.label || `Choc ${s.id}`,
+          amount: s.amount,
+        }))
+      )
+    }
+  }, [showReorderSheet, assignment?.shocks])
+
+  const handleOpenReorderSheet = (focusShockId?: number) => {
+    if (focusShockId) setSheetFocusShockId(focusShockId)
+    setShowReorderSheet(true)
+  }
+
+  const handleConfirmReorderShocks = async (orderedIds?: number[]) => {
+    if (!assignment) return
+    try {
+      await assignmentService.reorderShocks(assignment.id, (orderedIds && orderedIds.length ? orderedIds : reorderShocksList.map((s) => s.id)))
+      toast.success('Ordre des chocs mis à jour')
+      setShowReorderSheet(false)
+      setSheetFocusShockId(null)
+      await refreshAssignment()
+    } catch (error) {
+      console.error('Erreur réorganisation chocs:', error)
+      toast.error('Erreur lors de la réorganisation des chocs')
+    }
+  }
 
   // Fonction pour rafraîchir les données du dossier
   const refreshAssignment = async () => {
@@ -1896,6 +1938,18 @@ export default function EditReportPage() {
                             </Button>
                           </div>
                         )}
+                        {assignment.shocks && assignment.shocks.length > 1 && (
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenReorderSheet()}
+                            title="Réorganiser les chocs"
+                          >
+                            <List className="mr-2 h-4 w-4" />
+                            Réorganiser les points de choc
+                          </Button>
+                        )}
+                        {/* Bouton existant Ajouter un point de choc */}
                         <Button 
                           onClick={() => setShowShockModal(true)}
                           className="bg-blue-600 hover:bg-blue-700"
@@ -1960,6 +2014,17 @@ export default function EditReportPage() {
                                     showSelectedInfo={true}
                                   />
                                 </div>
+
+                                {/* Bouton discret pour ouvrir la réorganisation centré sur ce choc */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="p-1 text-gray-600 hover:text-gray-900"
+                                  title="Réorganiser (centrer sur ce choc)"
+                                  onClick={() => handleOpenReorderSheet(shock?.id)}
+                                >
+                                  <List className="h-4 w-4" />
+                                </Button>
                               </div>
                               
                               {/* Résumé à droite */}
@@ -3221,306 +3286,17 @@ export default function EditReportPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Sheet de réorganisation des chocs */}
+      <ShockReorderSheet
+        open={showReorderSheet}
+        onOpenChange={setShowReorderSheet}
+        shocks={reorderShocksList}
+        focusShockId={sheetFocusShockId}
+        onConfirm={(ids) => handleConfirmReorderShocks(ids)}
+        title="Réorganiser les points de choc"
+      />
     </>
-  )
-}
-
-// Composant pour les fournitures
-function ShockWorkItem({ 
-  work, 
-  supplies, 
-  onUpdate, 
-  onDelete 
-}: {
-  work: any
-  supplies: Supply[]
-  onUpdate: (field: string, value: any) => Promise<void>
-  onDelete: () => Promise<void>
-}) {
-  const [editing, setEditing] = useState(false)
-  const [formData, setFormData] = useState({
-    supply_id: work.supply.id,
-    disassembly: work.disassembly,
-    replacement: work.replacement,
-    repair: work.repair,
-    paint: work.paint,
-    control: work.control,
-    comment: work.comment || '',
-    obsolescence_rate: work.obsolescence_rate,
-    recovery_amoun: work.recovery_amoun
-  })
-
-  const handleSave = async () => {
-    try {
-      await onUpdate('supply_id', formData.supply_id)
-      await onUpdate('disassembly', formData.disassembly)
-      await onUpdate('replacement', formData.replacement)
-      await onUpdate('repair', formData.repair)
-      await onUpdate('paint', formData.paint)
-      await onUpdate('control', formData.control)
-      await onUpdate('comment', formData.comment)
-      await onUpdate('obsolescence_rate', formData.obsolescence_rate)
-      await onUpdate('recovery_amoun', formData.recovery_amoun)
-      setEditing(false)
-    } catch (err) {
-      console.error('Erreur lors de la sauvegarde:', err)
-    }
-  }
-
-  return (
-    <Card className="shadow-none border border-gray-200">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h5 className="font-semibold">{work.supply.label}</h5>
-            <p className="text-xs text-gray-600">{work.supply.description}</p>
-          </div>
-          <div className="flex gap-2">
-            {editing ? (
-              <>
-                <Button size="sm" onClick={handleSave}>
-                  <Save className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
-                  Annuler
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="outline" onClick={onDelete}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {editing ? (
-          <div className="space-y-4">
-            <div>
-              <Label>Fourniture</Label>
-              <SupplySelect
-                value={formData.supply_id}
-                onValueChange={(value) => setFormData({...formData, supply_id: value})}
-                supplies={supplies}
-                placeholder="Sélectionner une fourniture"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="disassembly"
-                  checked={formData.disassembly}
-                  onChange={(e) => setFormData({...formData, disassembly: e.target.checked})}
-                />
-                <Label htmlFor="disassembly">Démontage</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="replacement"
-                  checked={formData.replacement}
-                  onChange={(e) => setFormData({...formData, replacement: e.target.checked})}
-                />
-                <Label htmlFor="replacement">Remplacement</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="repair"
-                  checked={formData.repair}
-                  onChange={(e) => setFormData({...formData, repair: e.target.checked})}
-                />
-                <Label htmlFor="repair">Réparation</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="paint"
-                  checked={formData.paint}
-                  onChange={(e) => setFormData({...formData, paint: e.target.checked})}
-                />
-                <Label htmlFor="paint">Peinture</Label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Taux d'obsolescence (%)</Label>
-                <Input
-                  type="number"
-                  value={formData.obsolescence_rate}
-                  onChange={(e) => setFormData({...formData, obsolescence_rate: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label>Taux de récupération (%)</Label>
-                <Input
-                  type="number"
-                  value={formData.recovery_amoun}
-                  onChange={(e) => setFormData({...formData, recovery_amoun: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label>Commentaire</Label>
-              <Input
-                value={formData.comment}
-                onChange={(e) => setFormData({...formData, comment: e.target.value})}
-                placeholder="Commentaire optionnel"
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Taux d'obsolescence:</span>
-              <p className="font-semibold">{work.obsolescence_rate}%</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Taux de récupération:</span>
-              <p className="font-semibold">{work.recovery_amoun}%</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Montant obsolescence:</span>
-              <p className="font-semibold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(Number(work.obsolescence_amount) || 0)}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Montant récupération:</span>
-              <p className="font-semibold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(Number(work.recovery_amount) || 0)}</p>
-            </div>
-            {work.comment && (
-              <div className="col-span-2">
-                <span className="text-gray-600">Commentaire:</span>
-                <p className="font-semibold">{work.comment}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-// Composant pour les mains d'œuvre
-function WorkforceItem({ 
-  workforce, 
-  workforceTypes, 
-  onUpdate, 
-  onDelete 
-}: {
-  workforce: any
-  workforceTypes: WorkforceType[]
-  onUpdate: (field: string, value: any) => Promise<void>
-  onDelete: () => Promise<void>
-}) {
-  const [editing, setEditing] = useState(false)
-  const [formData, setFormData] = useState({
-    workforce_type_id: workforce.workforce_type.id,
-    nb_hours: workforce.nb_hours,
-    work_fee: workforce.work_fee,
-    discount: workforce.discount,
-  })
-
-  const handleSave = async () => {
-    try {
-      await onUpdate('workforce_type_id', formData.workforce_type_id)
-      await onUpdate('nb_hours', formData.nb_hours)
-      await onUpdate('work_fee', formData.work_fee)
-      await onUpdate('discount', formData.discount)
-      setEditing(false)
-    } catch (err) {
-      console.error('Erreur lors de la sauvegarde:', err)
-      toast.error('Erreur lors de la sauvegarde')
-    }
-  }
-
-  return (
-    <Card className="shadow-none border border-gray-200">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h5 className="font-semibold">{workforce.workforce_type.label}</h5>
-            <p className="text-xs text-gray-600">{workforce.workforce_type.description}</p>
-          </div>
-          <div className="flex gap-2">
-            {editing ? (
-              <>
-                <Button size="sm" onClick={handleSave}><Save className="h-4 w-4" /></Button>
-                <Button size="sm" variant="outline" onClick={() => setEditing(false)}>Annuler</Button>
-              </>
-            ) : (
-              <>
-                <Button size="sm" variant="outline" onClick={() => setEditing(true)}><Edit className="h-4 w-4" /></Button>
-                <Button size="sm" variant="outline" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
-              </>
-            )}
-          </div>
-        </div>
-        {editing ? (
-          <div className="space-y-4">
-            <div>
-              <Label>Type de main d'œuvre</Label>
-              <WorkforceTypeSelect
-                value={formData.workforce_type_id}
-                onValueChange={(value) => setFormData({ ...formData, workforce_type_id: value })}
-                options={workforceTypes}
-                placeholder="Sélectionner un type de main d'œuvre"
-              />
-            </div>
-            <div>
-              <Label>Nombre d'heures</Label>
-              <Input
-                type="number"
-                value={formData.nb_hours}
-                onChange={e => setFormData({ ...formData, nb_hours: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label>Tarif</Label>
-              <Input
-                type="number"
-                value={formData.work_fee}
-                onChange={e => setFormData({ ...formData, work_fee: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label>Remise (%)</Label>
-              <Input
-                type="number"
-                value={formData.discount}
-                onChange={e => setFormData({ ...formData, discount: e.target.value })}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Heures :</span>
-              <p className="font-semibold">{workforce.nb_hours}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Tarif :</span>
-              <p className="font-semibold">{workforce.work_fee}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Remise :</span>
-              <p className="font-semibold">{workforce.discount}%</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Montant :</span>
-              <p className="font-semibold">{workforce.amount} FCFA</p>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
   )
 }
 
@@ -3672,5 +3448,7 @@ function OtherCostItem({
     </div>
   )
 }
+
+// SortableShockRow moved into reusable sheet component
 
 

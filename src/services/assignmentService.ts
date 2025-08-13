@@ -141,6 +141,17 @@ class AssignmentService {
   }
 
   /**
+   * Réorganiser l'ordre des chocs d'une assignation
+   */
+  async reorderShocks(assignmentId: number, shockIds: number[]): Promise<{ message: string }> {
+    const response = await axiosInstance.put<{ message: string }>(
+      `${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}/order-shocks`,
+      { shocks: shockIds }
+    )
+    return response.data
+  }
+
+  /**
    * Réorganiser les travaux de choc (fournitures)
    */
   async reorderShockWorks(shockId: number, shockWorkIds: number[]): Promise<{ message: string }> {
