@@ -36,13 +36,13 @@ function GeneralStateActions({ generalState, onView, onEdit, onDelete }: General
           Modifier
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        {/* <DropdownMenuItem 
           onClick={() => onDelete(generalState)}
           className="text-red-600"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Supprimer
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useBrandsStore } from '@/stores/brands'
 import { DataTable } from './components/data-table'
 import { BrandMutateDialog } from './components/brand-mutate-dialog'
@@ -9,9 +9,12 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { Button } from '@/components/ui/button'
+import { PlusIcon } from 'lucide-react'
 
 export default function BrandsPage() {
   const { brands, loading, error, fetchBrands } = useBrandsStore()
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     fetchBrands()
@@ -39,7 +42,12 @@ export default function BrandsPage() {
               Gérez les marques de véhicules
             </p>
           </div>
-        <BrandMutateDialog />
+          <BrandMutateDialog open={open} onOpenChange={setOpen} />
+          <Button onClick={() => setOpen(true)}>
+            <PlusIcon className='h-4 w-4' />
+            Ajouter une marque
+          </Button>
+          
       </div>
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <DataTable 

@@ -110,36 +110,35 @@ export default function Dashboard() {
 
       <Main>
         {/* Header Section */}
-        <div className='mb-8'>
+        <div className='mb-4 flex flex-col space-y-2'>
+          <div className='flex flex-col items-start'>
+            <h1 className='text-2xl font-bold tracking-tight'>
+              Tableau de bord
+            </h1>
+            <p className='text-sm text-muted-foreground'>
+              Vue d'ensemble de votre système d'expertise automobile
+            </p>
+          </div>
           <div className='flex items-center justify-between'>
-            <div>
-              <h1 className='text-3xl font-bold tracking-tight'>
-                Tableau de bord
-              </h1>
-              <p className='text-muted-foreground mt-2'>
-                Vue d'ensemble de votre système d'expertise automobile
-              </p>
-            </div>
-            <div className='flex items-center space-x-2'>
-              <Button 
-                onClick={handleRefresh} 
-                variant="outline" 
-                size="sm"
-                disabled={loading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Actualiser
-              </Button>
-              <Badge variant="outline">
-                <div className='w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse'></div>
-                Système opérationnel
-              </Badge>
-            </div>
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm"
+              disabled={loading}
+              className='flex items-center space-x-1'
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Actualiser</span>
+            </Button>
+            <Badge variant="outline" className='flex items-center space-x-1'>
+              <div className='w-2 h-2 bg-green-500 rounded-full animate-pulse'></div>
+              <span>Système opérationnel</span>
+            </Badge>
           </div>
         </div>
 
-        {/* Main Statistics Grid */}
-        <div className='grid gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4'>
+        {/* Main Statistics Grid - Responsive */}
+        <div className='grid gap-3 mb-6 grid-cols-2 lg:grid-cols-4'>
           {/* Dossiers */}
           <Card className='group hover:shadow-lg transition-all duration-300 shadow-none'>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -255,8 +254,8 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Detailed Statistics Grid */}
-        <div className='grid gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-3'>
+        {/* Detailed Statistics Grid - Responsive */}
+        <div className='grid gap-3 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
           {/* Dossiers détaillés */}
           <Card className='group hover:shadow-lg transition-all duration-300 shadow-none'>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>

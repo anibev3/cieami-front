@@ -97,10 +97,10 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(vehicleState)} className="text-destructive">
+            {/* <DropdownMenuItem onClick={() => onDelete(vehicleState)} className="text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
               Supprimer
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       )
