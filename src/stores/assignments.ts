@@ -144,8 +144,10 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       // Construire les filtres à partir de l'état actuel et des filtres passés
       const currentFilters: AssignmentFilters = {
         ...filters,
-        search: filters?.search || get().searchQuery,
-        status_code: filters?.status_code || (get().activeTab !== 'all' ? get().activeTab : undefined),
+        // Utiliser les filtres passés en priorité, sinon utiliser l'état actuel
+        search: filters?.search !== undefined ? filters.search : get().searchQuery,
+        per_page: filters?.per_page || get().pagination.perPage,
+        status_code: filters?.status_code !== undefined ? filters.status_code : (get().activeTab !== 'all' ? get().activeTab : undefined),
       }
       
       console.log('Final filters:', currentFilters)

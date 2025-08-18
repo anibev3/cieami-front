@@ -22,17 +22,22 @@ class AssignmentService {
     const params = new URLSearchParams({
       page: page.toString(),
       ...(filters?.search && { search: filters.search }),
-      // ...(filters?.status_code && { status_code: filters.status_code }),
+      ...(filters?.status_code && { status_code: filters.status_code }),
       ...(filters?.client_id && { client_id: filters.client_id }),
       ...(filters?.expert_id && { expert_id: filters.expert_id }),
       ...(filters?.assignment_type_id && { assignment_type_id: filters.assignment_type_id }),
       ...(filters?.date_from && { date_from: filters.date_from }),
       ...(filters?.date_to && { date_to: filters.date_to }),
+      ...(filters?.per_page && { per_page: filters.per_page.toString() }),
     })
 
-    const statusParam = filters?.status_code ? `&status_id=${filters.status_code}` : '';
     const isSelectedParam = filters?.is_selected ? `&per_page=100000` : '';
-    const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}?${params}${statusParam}${isSelectedParam}`)
+    const finalUrl = `${API_CONFIG.ENDPOINTS.ASSIGNMENTS}?${params}${isSelectedParam}`;
+    
+    console.log('AssignmentService - Filters received:', filters);
+    console.log('AssignmentService - Final URL:', finalUrl);
+    
+    const response = await axiosInstance.get<AssignmentApiResponse>(finalUrl)
     return response.data
   }
 
@@ -66,7 +71,7 @@ class AssignmentService {
       ...(filters?.date_to && { date_to: filters.date_to }),
     })
     const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_RECOVERY_EXPIRED}?${params}`)
-    return response.data.data
+    return response.data
   }
 
   /**

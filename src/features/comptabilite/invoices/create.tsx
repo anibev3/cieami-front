@@ -82,7 +82,9 @@ export default function CreateInvoicePage() {
 
   useEffect(() => {
     if (assignments.length === 0) {
-      fetchAssignments()
+      fetchAssignments(1, { 
+        per_page: 1000000,
+      })
     }
   }, [fetchAssignments, assignments.length])
 
@@ -92,10 +94,24 @@ export default function CreateInvoicePage() {
       console.log('debouncedSearchTerm', debouncedSearchTerm)
       console.log('statusFilter', statusFilter)
       setSearchLoading(true)
-      fetchAssignments(1, { 
-        search: debouncedSearchTerm, 
-        status_code: statusFilter === 'all' ? undefined : statusFilter 
-      }).finally(() => {
+      
+      const filters: any = { 
+        per_page: 1000000,
+      }
+      
+      // Ajouter le terme de recherche seulement s'il n'est pas vide
+      if (debouncedSearchTerm.trim()) {
+        filters.search = debouncedSearchTerm.trim()
+      }
+      
+      // Ajouter le filtre de statut seulement s'il n'est pas 'all'
+      if (statusFilter !== 'all') {
+        filters.status_code = statusFilter
+      }
+      
+      console.log('Filters being sent:', filters)
+      
+      fetchAssignments(1, filters).finally(() => {
         setSearchLoading(false)
       })
     } else if (assignments.length > 0) {

@@ -670,6 +670,7 @@ export interface AssignmentFilters {
   date_from?: string
   date_to?: string
   is_selected?: boolean
+  per_page?: number
 }
 
 export interface AssignmentApiResponse {
