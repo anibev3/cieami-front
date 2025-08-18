@@ -638,7 +638,9 @@ export default function AssignmentDetailPage() {
   })
   const [pdfViewer, setPdfViewer] = useState<{ open: boolean, url: string, title?: string }>({ open: false, url: '', title: '' })
   const [validateModalOpen, setValidateModalOpen] = useState(false)
+  const [unvalidateModalOpen, setUnvalidateModalOpen] = useState(false)
   const [validating, setValidating] = useState(false)
+  const [unvalidating, setUnvalidating] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate } = useAssignmentsStore()
   const { isCEO, isValidator, isExpertManager } = useACL()
@@ -2090,21 +2092,46 @@ export default function AssignmentDetailPage() {
       toast.success('Dossier validé avec succès')
       setValidateModalOpen(false)
       
-      // Mettre à jour le statut localement
-      setAssignment(prev => prev ? {
-        ...prev,
-        status: {
-          ...prev.status,
-          code: 'validated',
-          label: 'Validé'
-        },
-        validated_at: new Date().toISOString()
-      } : null)
+      // Mettre à jour tout le dossier avec une requête API de détail
+      try {
+        const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignment.id}`)
+        if (response.status === 200 || response.status === 201) {
+          setAssignment(response.data.data)
+        }
+      } catch (detailError) {
+        console.error('Erreur lors de la récupération des détails:', detailError)
+      }
     } catch (error) {
       console.error('Erreur lors de la validation:', error)
       toast.error('Erreur lors de la validation du dossier')
     } finally {
       setValidating(false)
+    }
+  }
+
+  const handleUnvalidateAssignment = async () => {
+    if (!assignment) return
+    
+    setUnvalidating(true)
+    try {
+      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/unvalidate/${assignment.id}`)
+      toast.success('Validation du dossier annulée avec succès')
+      setUnvalidateModalOpen(false)
+      
+      // Mettre à jour tout le dossier avec une requête API de détail
+      try {
+        const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignment.id}`)
+        if (response.status === 200 || response.status === 201) {
+          setAssignment(response.data.data)
+        }
+      } catch (detailError) {
+        console.error('Erreur lors de la récupération des détails:', detailError)
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation de validation:', error)
+      toast.error('Erreur lors de l\'annulation de validation du dossier')
+    } finally {
+      setUnvalidating(false)
     }
   }
 
@@ -2206,7 +2233,7 @@ export default function AssignmentDetailPage() {
         )
         
         // Action de validation - seulement pour CEO et Validator
-        if (isCEO() || isValidator() || isExpertManager()) {
+        // if (isCEO() || isValidator() || isExpertManager()) {
           actions.push({
             key: 'validate',
             label: 'Valider le dossier',
@@ -2216,7 +2243,7 @@ export default function AssignmentDetailPage() {
             className: 'bg-green-600 hover:bg-green-700'
           })
           
-        }
+        // }
 
         break
       case 'in_payment':
@@ -2284,6 +2311,18 @@ export default function AssignmentDetailPage() {
           },
           
         )
+        
+        // Action d'annulation de validation - seulement pour CEO et Validator
+        if ((isCEO() || isValidator()) && assignment.status.code === 'validated') {
+          actions.push({
+            key: 'unvalidate',
+            label: 'Annuler la validation',
+            icon: AlertTriangle,
+            onClick: () => setUnvalidateModalOpen(true),
+            variant: 'destructive' as const,
+            className: 'bg-red-600 hover:bg-red-700'
+          })
+        }
         break
 
       case 'paid':
@@ -2476,13 +2515,13 @@ export default function AssignmentDetailPage() {
             {/* Contenu principal */}
             <div className="flex-1">
               {/* Suivi & Statuts */}
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none py-2">
+              <Card className={`bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none py-2 ${assignment.status.code === 'validated' ? 'bg-green-50' : ''}`}>
                 <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 items-center px-3 sm:px-6">
                   {/* Si l'un des statuts est "done", afficher seulement "Validé" */}
-                                      {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
-                      <div className="flex flex-col items-center">
-                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg">
-                          <div className="flex items-center gap-2">
+                    {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
+                      <div className="flex items-center">
+                        <div className="bg-gradient-to-r text-white px-4 sm:px-6 border-2 border-green-500 rounded-lg">
+                          <div className="flex items-center gap-2 text-green-500">
                             <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                             <span className="font-bold text-base sm:text-lg">Validé</span>
                           </div>
@@ -2670,6 +2709,48 @@ export default function AssignmentDetailPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+      {/* Modal d'annulation de validation */}
+      <Dialog open={unvalidateModalOpen} onOpenChange={setUnvalidateModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              Annuler la validation
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Êtes-vous sûr de vouloir annuler la validation du dossier <strong>{assignment?.reference}</strong> ?
+              <br />
+              Le dossier repassera au statut "Édité" et pourra être modifié à nouveau.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setUnvalidateModalOpen(false)} className="w-full sm:w-auto">
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleUnvalidateAssignment} 
+              disabled={unvalidating}
+              variant="destructive"
+              className="w-full sm:w-auto"
+            >
+              {unvalidating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <span className="hidden sm:inline">Annulation...</span>
+                  <span className="sm:hidden">Annulation...</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Annuler la validation</span>
+                  <span className="sm:hidden">Annuler</span>
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Bottom Navigation Bar - Mobile */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg">
