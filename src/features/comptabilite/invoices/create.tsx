@@ -588,7 +588,7 @@ export default function CreateInvoicePage() {
                       <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                         <span className="text-sm text-gray-600">Montant total :</span>
                         <span className="font-semibold text-gray-900">
-                          {formatCurrency(Number(selectedAssignment.total_amount))}
+                          {formatCurrency(Number(selectedAssignment.receipt_amount))}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
