@@ -225,7 +225,7 @@ export default function InvoiceDetailPage() {
                       <p className="text-2xl font-bold text-primary">
                         {invoice.amount 
                           ? formatCurrency(Number(invoice.amount))
-                          : formatCurrency(Number(assignment?.total_amount ?? 0))
+                          : formatCurrency(Number(assignment?.receipt_amount ?? 0))
                         }
                       </p>
                     </div>
