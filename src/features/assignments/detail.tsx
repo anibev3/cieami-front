@@ -2312,7 +2312,7 @@ export default function AssignmentDetailPage() {
         // )
         
         // Action d'annulation de validation - seulement pour CEO et Validator
-        if ((isCEO() || isValidator()) && assignment.status.code === 'validated') {
+        if ((isCEO() || isValidator() || isExpertManager()) && assignment.status.code === 'validated') {
           actions.push({
             key: 'unvalidate',
             label: 'Annuler la validation',
