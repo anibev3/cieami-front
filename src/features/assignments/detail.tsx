@@ -2294,23 +2294,22 @@ export default function AssignmentDetailPage() {
 
       case 'closed':
       case 'validated':
-        actions.push(
-          {
-            key: 'edit-realization',
-            label: 'Modifier la réalisation',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          {
-            key: 'edit-report',
-            label: 'Modifier la rédaction',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          
-        )
+        // actions.push(
+        //   {
+        //     key: 'edit-realization',
+        //     label: 'Modifier la réalisation',
+        //     icon: Edit,
+        //     onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+        //     variant: 'outline' as const
+        //   },
+        //   {
+        //     key: 'edit-report',
+        //     label: 'Modifier la rédaction',
+        //     icon: Edit,
+        //     onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+        //     variant: 'outline' as const
+        //   },
+        // )
         
         // Action d'annulation de validation - seulement pour CEO et Validator
         if ((isCEO() || isValidator()) && assignment.status.code === 'validated') {
@@ -2361,7 +2360,7 @@ export default function AssignmentDetailPage() {
     }
 
     // Actions communes (toujours disponibles)
-    actions.push(
+    // actions.push(
       // {
       //   key: 'print',
       //   label: 'Imprimer',
@@ -2369,14 +2368,22 @@ export default function AssignmentDetailPage() {
       //   onClick: () => window.print(),
       //   variant: 'outline' as const
       // }
-        {
+      
+      
+        
+      
+    // )
+
+    if (assignment.status.code != 'validated') {
+      actions.push(
+            {
             key: 'edit',
             label: 'Modifier le dossier',
             icon: Edit,
             onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
             variant: 'outline' as const
           },
-      {
+          {
             key: 'generate-report',
             label: 'Générer le rapport',
             icon: Download,
@@ -2384,7 +2391,8 @@ export default function AssignmentDetailPage() {
             variant: 'default' as const,
             loading: loadingGenerate
           }
-    )
+      )
+    }
     // if (isCEO() || isValidator() || isExpertManager()) {
     //       actions.push({
     //         key: 'edit-report',
