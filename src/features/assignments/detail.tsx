@@ -2233,7 +2233,7 @@ export default function AssignmentDetailPage() {
         )
         
         // Action de validation - seulement pour CEO et Validator
-        // if (isCEO() || isValidator() || isExpertManager()) {
+        if (isCEO() || isValidator() || isExpertManager()) {
           actions.push({
             key: 'validate',
             label: 'Valider le dossier',
@@ -2242,8 +2242,7 @@ export default function AssignmentDetailPage() {
             variant: 'default' as const,
             className: 'bg-green-600 hover:bg-green-700'
           })
-          
-        // }
+        }
 
         break
       case 'in_payment':
