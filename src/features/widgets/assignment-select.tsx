@@ -56,16 +56,46 @@ export function AssignmentSelect({
   const [open, setOpen] = useState(false)
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedAssignmentForDetails, setSelectedAssignmentForDetails] = useState<any>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchLoading, setSearchLoading] = useState(false)
   const { assignments, loading, fetchAssignments } = useAssignmentsStore()
 
-  // Filtrer les dossiers avec le statut "edited"
+  // Utiliser directement les assignments de l'API (pas de filtrage local)
   const editedAssignments = assignments
 
+  // Réinitialiser la recherche quand le popover se ferme
+  useEffect(() => {
+    if (!open) {
+      setSearchTerm('')
+    }
+  }, [open])
+
+  // Recherche via API quand le terme de recherche change
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      setSearchLoading(true)
+      fetchAssignments(1, {
+        search: searchTerm.trim(),
+        per_page: 100,
+        is_selected: true
+      }).finally(() => {
+        setSearchLoading(false)
+      })
+    } else if (assignments.length === 0) {
+      // Charger les dossiers par défaut si aucun n'est chargé
+      fetchAssignments(1, {
+        is_selected: true,
+        per_page: 100
+      })
+    }
+  }, [searchTerm, fetchAssignments])
+
+  // Charger les dossiers initiaux
   useEffect(() => {
     if (assignments.length === 0) {
-      fetchAssignments( 1, {
+      fetchAssignments(1, {
         is_selected: true,
-        // status_code: 'edited'
+        per_page: 100
       })
     }
   }, [fetchAssignments, assignments.length])
@@ -178,17 +208,37 @@ export function AssignmentSelect({
         </PopoverTrigger>
         <PopoverContent className="p-0 w-[400px] max-h-[400px] overflow-hidden" align="start">
           <Command className="max-h-[400px] overflow-hidden">
-            <CommandInput placeholder="Rechercher un dossier..." />
+            <CommandInput 
+              placeholder="Rechercher un dossier..." 
+              value={searchTerm}
+              onValueChange={setSearchTerm}
+            />
+            {searchLoading && (
+              <div className="flex items-center justify-center py-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                Recherche en cours...
+              </div>
+            )}
             <CommandList className="h-[300px] overflow-y-auto" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {loading ? (
+              {loading || searchLoading ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Chargement des dossiers...
+                  {searchLoading ? 'Recherche en cours...' : 'Chargement des dossiers...'}
                 </div>
               ) : editedAssignments.length === 0 ? (
-                <CommandEmpty>Aucun dossier édité trouvé.</CommandEmpty>
+                <CommandEmpty>
+                  {searchTerm.trim() ? 
+                    `Aucun dossier trouvé pour "${searchTerm}"` : 
+                    'Aucun dossier édité trouvé.'
+                  }
+                </CommandEmpty>
               ) : (
                 <CommandGroup>
+                  {searchTerm.trim() && (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground border-b">
+                      {editedAssignments.length} résultat{editedAssignments.length > 1 ? 's' : ''} trouvé{editedAssignments.length > 1 ? 's' : ''}
+                    </div>
+                  )}
                   {editedAssignments.map((assignment) => (
                     <CommandItem
                       key={assignment.id}
