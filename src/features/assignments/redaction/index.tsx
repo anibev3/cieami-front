@@ -2199,7 +2199,7 @@ export default function EditReportPage() {
                             <div>
                               <ShockWorkforceTableV2
                                 shockId={shock?.id}
-                                workforces={(shock.workforces || []).filter(w => w.id !== undefined).map(w => ({
+                                workforces={(shock.workforces || []).filter(w => w.id !== undefined).map((w: any) => ({
                                   id: w.id!, // ID réel de l'API pour la réorganisation
                                   uid: w.id?.toString() || crypto.randomUUID(), // UID pour le drag & drop
                                   workforce_type: w?.workforce_type,
@@ -2210,8 +2210,9 @@ export default function EditReportPage() {
                                   with_tax: w?.with_tax,
                                   amount_excluding_tax: w?.amount_excluding_tax,
                                   amount_tax: w?.amount_tax,
-                                  amount: w?.amount
-                                })) as any}
+                                  amount: w?.amount,
+                                  all_paint: w?.all_paint === 1 || w?.all_paint === true
+                                }))}
                                 paintTypes={paintTypes}
                                 hourlyRates={hourlyRates}
                                 onUpdate={(updatedWorkforces) => {

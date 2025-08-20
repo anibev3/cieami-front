@@ -699,9 +699,11 @@ export interface AssignmentApiResponse {
 
 // Types pour les statuts
 export interface StatusGroup {
+  id?: number
   label: string
   value?: string
   items?: Array<{
+    id?: number
     value: string
     label: string
   }>

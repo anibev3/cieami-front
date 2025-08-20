@@ -479,6 +479,10 @@ export function ShockWorkforceTableV2({
     
     await onReorderSave(workforceIds)
     setHasLocalReorderChanges(false)
+    
+    // Réinitialiser les états de modification après réorganisation réussie
+    setModifiedRows(new Set())
+    setNewRows(new Set())
   }
 
   // Fonction pour ouvrir le modal de création de type de main d'œuvre
@@ -522,7 +526,8 @@ export function ShockWorkforceTableV2({
         hourly_rate_id: hourlyRateId?.toString(),
         // paint_type_id: workforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
         paint_type_id: paintTypeId?.toString(),
-        with_tax: localWithTax
+        with_tax: localWithTax,
+        all_paint: workforce.all_paint || false
       }
 
       // Appel API pour mettre à jour
@@ -543,6 +548,13 @@ export function ShockWorkforceTableV2({
         [workforce.id!]: { ...workforce }
       }))
       
+      // Retirer la ligne des lignes modifiées après sauvegarde réussie
+      setModifiedRows(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
+      
       toast.success('Main d\'œuvre mise à jour avec succès')
       
       // Rafraîchir les données du dossier
@@ -562,6 +574,7 @@ export function ShockWorkforceTableV2({
         updateLocalWorkforce(index, 'paint_type_id', original.paint_type_id)
         updateLocalWorkforce(index, 'paint_type', original.paint_type)
         updateLocalWorkforce(index, 'hourly_rate', original.hourly_rate)
+        updateLocalWorkforce(index, 'all_paint', original.all_paint)
       }
     } finally {
       setUpdatingId(null)
@@ -602,7 +615,8 @@ export function ShockWorkforceTableV2({
         deleted_at: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      } : undefined
+      } : undefined,
+      all_paint: false // Initialiser all_paint à false pour les nouvelles lignes
     }
     
     const updated = [...localWorkforces, newWorkforce]
@@ -733,6 +747,14 @@ export function ShockWorkforceTableV2({
         updateLocalWorkforce(index, 'paint_type_id', original.paint_type?.id)
         updateLocalWorkforce(index, 'paint_type', original.paint_type)
         updateLocalWorkforce(index, 'hourly_rate', original.hourly_rate)
+        updateLocalWorkforce(index, 'all_paint', original.all_paint)
+        
+        // Retirer la ligne des lignes modifiées après restauration
+        setModifiedRows(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(index)
+          return newSet
+        })
       }
     }
   }
@@ -778,11 +800,15 @@ export function ShockWorkforceTableV2({
           // hourly_rate_id: existingWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
           hourly_rate_id: hourlyRateId?.toString(),
           paint_type_id: value.toString(),
-          with_tax: localWithTax
+          with_tax: localWithTax,
+          all_paint: existingWorkforce.all_paint || false
         }
 
         // Appel API pour mettre à jour
         await workforceService.updateWorkforce(existingWorkforce.id!, updateData)
+        
+        // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
+        setModifiedRows(new Set())
         
         toast.success('Type de peinture mis à jour avec succès')
         
@@ -835,11 +861,15 @@ export function ShockWorkforceTableV2({
           hourly_rate_id: value.toString(),
           // paint_type_id: existingWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
           paint_type_id: paintTypeId?.toString(),
-          with_tax: localWithTax
+          with_tax: localWithTax,
+          all_paint: existingWorkforce.all_paint || false
         }
 
         // Appel API pour mettre à jour
         await workforceService.updateWorkforce(existingWorkforce.id!, updateData)
+        
+        // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
+        setModifiedRows(new Set())
         
         toast.success('Taux horaire mis à jour avec succès')
         
@@ -876,11 +906,15 @@ export function ShockWorkforceTableV2({
           hourly_rate_id: hourlyRateId?.toString(),
           // paint_type_id: firstWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
           paint_type_id: paintTypeId?.toString(),
-          with_tax: checked
+          with_tax: checked,
+          all_paint: existingWorkforce.all_paint || false
         }
 
         // Appel API pour mettre à jour
         await workforceService.updateWorkforce(firstWorkforce.id!, updateData)
+        
+        // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
+        setModifiedRows(new Set())
         
         toast.success('Paramètre TVA mis à jour avec succès')
         

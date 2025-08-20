@@ -77,29 +77,21 @@ const statusGroups: StatusGroup[] = [
   {
     label: 'En cours',
     items: [
-      { value: 'active', label: 'Actives' },
-      { value: 'opened', label: 'Ouvertes' },
-      { value: 'realized', label: 'Réalisées' },
-      { value: 'edited', label: 'Éditées' },
-      { value: 'corrected', label: 'Corrigées' },
+      {id: 3, value: 'opened', label: 'Ouvertes' },
+      {id: 4, value: 'realized', label: 'Réalisées' },
+      { id: 5, value: 'edited', label: 'Éditées' },
+      { id: 6, value: 'validated', label: 'Validées' },
     ],
   },
   {
     label: 'Finalisées',
     items: [
-      { value: 'closed', label: 'Fermées' },
-      { value: 'in_payment', label: 'En paiement' },
-      { value: 'paid', label: 'Payées' },
+      { id: 7, value: 'closed', label: 'Fermées' },
+      { id: 12, value: 'paid', label: 'Payées' },
+      { id: 8, value: 'cancelled', label: 'Annulées' },
+      { id: 9, value: 'archived', label: 'Archivées' },
     ],
-  },
-  {
-    label: 'Autres',
-    items: [
-      { value: 'inactive', label: 'Inactives' },
-      { value: 'cancelled', label: 'Annulées' },
-      { value: 'deleted', label: 'Supprimées' },
-    ],
-  },
+  }
 ]
 
 // Créer une liste plate de tous les statuts pour les onglets
