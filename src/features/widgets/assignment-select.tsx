@@ -76,7 +76,7 @@ export function AssignmentSelect({
       setSearchLoading(true)
       fetchAssignments(1, {
         search: searchTerm.trim(),
-        per_page: 5,
+        per_page: 10,
         // is_selected: true
       }).finally(() => {
         setSearchLoading(false)
@@ -85,7 +85,7 @@ export function AssignmentSelect({
       // Charger les dossiers par défaut si aucun n'est chargé
       fetchAssignments(1, {
         // is_selected: true,
-        per_page: 5
+        per_page: 10
       })
     }
   }, [searchTerm, fetchAssignments])
@@ -95,7 +95,7 @@ export function AssignmentSelect({
     if (assignments.length === 0) {
       fetchAssignments(1, {
         // is_selected: true,
-        per_page: 5
+        per_page: 10
       })
     }
   }, [fetchAssignments, assignments.length])
