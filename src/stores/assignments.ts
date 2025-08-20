@@ -83,6 +83,14 @@ const statusGroups: StatusGroup[] = [
       { id: 6, value: 'validated', label: 'Validées' },
     ],
   },
+  // case 3 = 'opened';
+  //   case 4 = 'realized';
+  //   case 5 = 'edited';
+  //   case 6 = 'validated';
+  //   case 7 = 'closed';
+  //   case 8 = 'cancelled';
+  //   case 9 = 'archived';
+  //   case 12 = 'paid';
   {
     label: 'Finalisées',
     items: [

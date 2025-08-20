@@ -27,7 +27,7 @@ class PaymentTypeService {
       // }
 
     const response = await axiosInstance.get<PaymentTypeResponse>(
-      `${this.baseUrl}?${params.toString()}&per_page=100000`
+      `${this.baseUrl}?${params.toString()}&per_page=20`
     )
     return response.data
   }

@@ -671,6 +671,7 @@ export interface AssignmentFilters {
   date_to?: string
   is_selected?: boolean
   per_page?: number
+  herself_per_page?: number
 }
 
 export interface AssignmentApiResponse {

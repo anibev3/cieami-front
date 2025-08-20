@@ -76,16 +76,16 @@ export function AssignmentSelect({
       setSearchLoading(true)
       fetchAssignments(1, {
         search: searchTerm.trim(),
-        per_page: 100,
-        is_selected: true
+        per_page: 5,
+        // is_selected: true
       }).finally(() => {
         setSearchLoading(false)
       })
     } else if (assignments.length === 0) {
       // Charger les dossiers par défaut si aucun n'est chargé
       fetchAssignments(1, {
-        is_selected: true,
-        per_page: 100
+        // is_selected: true,
+        per_page: 5
       })
     }
   }, [searchTerm, fetchAssignments])
@@ -94,8 +94,8 @@ export function AssignmentSelect({
   useEffect(() => {
     if (assignments.length === 0) {
       fetchAssignments(1, {
-        is_selected: true,
-        per_page: 100
+        // is_selected: true,
+        per_page: 5
       })
     }
   }, [fetchAssignments, assignments.length])
