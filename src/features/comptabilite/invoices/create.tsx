@@ -83,7 +83,7 @@ export default function CreateInvoicePage() {
   useEffect(() => {
     if (assignments.length === 0) {
       fetchAssignments(1, { 
-        per_page: 1000000,
+        per_page: 10,
       })
     }
   }, [fetchAssignments, assignments.length])
@@ -116,35 +116,33 @@ export default function CreateInvoicePage() {
       })
     } else if (assignments.length > 0) {
       // If no search term and no status filter, show all assignments
-      setFilteredAssignments(assignments)
+      // Appliquer le filtrage local pour l'éligibilité uniquement
+      const filtered = assignments.filter(assignment => {
+        const hasReceipts = assignment.receipts && assignment.receipts.length > 0
+        return hasReceipts
+      })
+      setFilteredAssignments(filtered)
     }
   }, [debouncedSearchTerm, statusFilter, fetchAssignments, assignments.length])
 
   // Update filtered assignments when assignments change
   useEffect(() => {
     if (assignments.length > 0) {
-      // Apply local filtering for better UX
-      const filtered = assignments.filter(assignment => {
-        // Filtre par recherche textuelle avec vérifications de sécurité
-        const searchLower = searchTerm.toLowerCase()
-        const matchesSearch = !searchTerm || 
-          (assignment.reference?.toLowerCase() || '').includes(searchLower) ||
-          (assignment.client?.name?.toLowerCase() || '').includes(searchLower) ||
-          (assignment.vehicle?.license_plate?.toLowerCase() || '').includes(searchLower) ||
-          (assignment.policy_number?.toLowerCase() || '').includes(searchLower)
+      // Si on a des filtres actifs (recherche ou statut), utiliser directement les résultats de l'API
+      if (debouncedSearchTerm || statusFilter !== 'all') {
+        setFilteredAssignments(assignments)
+      } else {
+        // Sinon, appliquer le filtrage local pour l'éligibilité uniquement
+        const filtered = assignments.filter(assignment => {
+          // Vérifier que le dossier a des quittances (éligibilité)
+          const hasReceipts = assignment.receipts && assignment.receipts.length > 0
+          return hasReceipts
+        })
         
-        // Filtre par statut - seulement "paid" et "edited"
-        const matchesStatus = statusFilter === 'all' || assignment.status?.code === statusFilter
-        
-        // Vérifier que le dossier a des quittances (éligibilité)
-        const hasReceipts = assignment.receipts && assignment.receipts.length > 0
-        
-        return matchesSearch && matchesStatus && hasReceipts
-      })
-      
-      setFilteredAssignments(filtered)
+        setFilteredAssignments(filtered)
+      }
     }
-  }, [assignments, searchTerm, statusFilter])
+  }, [assignments, debouncedSearchTerm, statusFilter])
 
   const handleCreateInvoice = async () => {
     if (!selectedAssignment) {
