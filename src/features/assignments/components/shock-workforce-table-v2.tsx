@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Trash2, Plus, Loader2, Check, X, GripVertical, ArrowUpDown, ChevronUp, ChevronDown, Users } from 'lucide-react'
+import { Trash2, Plus, Calculator, Loader2, Check, X, GripVertical, ArrowUpDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { workforceService } from '@/services/workforce-service'
 import axiosInstance from '@/lib/axios'
@@ -332,14 +332,6 @@ export function ShockWorkforceTableV2({
   const [updatingPaintType, setUpdatingPaintType] = useState<boolean>(false)
   const [updatingHourlyRate, setUpdatingHourlyRate] = useState<boolean>(false)
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
-  
-  // Ajout des nouveaux états
-  const [isWorkforceCollapsed, setIsWorkforceCollapsed] = useState(false)
-  
-  // Fonction pour basculer l'état des main d'œuvres
-  const toggleWorkforceCollapse = () => {
-    setIsWorkforceCollapsed(!isWorkforceCollapsed)
-  }
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -951,35 +943,10 @@ export function ShockWorkforceTableV2({
     <div className="space-y-4">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <h4 className="font-semibold text-sm flex items-center gap-2">
-            <Users className="h-5 w-5 text-green-600" />
-            Main d'œuvre
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-              {localWorkforces.length}
-            </span>
-          </h4>
-          
-          {/* Bouton pour réduire/étendre les main d'œuvres */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleWorkforceCollapse}
-            className="text-gray-600 text-xs border-gray-200 hover:bg-gray-50"
-          >
-            {isWorkforceCollapsed ? (
-              <>
-                <ChevronDown className="mr-1 h-3 w-3" />
-                Étendre
-              </>
-            ) : (
-              <>
-                <ChevronUp className="mr-1 h-3 w-3" />
-                Réduire
-              </>
-            )}
-          </Button>
-        </div>
+        <h4 className="font-semibold text-sm flex items-center gap-2">
+          <Calculator className="h-5 w-5 text-green-600" />
+          Main d'œuvre(s)
+        </h4>
         <div className="flex gap-2 items-center">
           {/* Bouton de réorganisation */}
           {(hasLocalReorderChanges || hasReorderChanges) && (
@@ -1114,114 +1081,98 @@ export function ShockWorkforceTableV2({
         </div>
       )}
 
-      {/* Section des main d'œuvres pliable */}
-      <div className="border rounded-lg overflow-hidden">
-        {isWorkforceCollapsed ? (
-          // Section réduite
-          <div className="p-4 text-center text-muted-foreground bg-gray-50">
-            <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-medium">Main d'œuvre réduite</p>
-            <p className="text-xs">{localWorkforces.length} ligne{localWorkforces.length > 1 ? 's' : ''} disponible{localWorkforces.length > 1 ? 's' : ''}</p>
-          </div>
-        ) : (
-          // Section étendue
-          <div className="transition-all duration-300 ease-in-out">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="overflow-x-auto">
-                <table className="min-w-full border text-[10px]">
-                  <thead>
-                    <tr className="bg-gray-50 border-b">
-                      <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
-                        <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
-                      </th>
-                      <th className="border px-3 py-2 text-left font-medium">
-                        Désignation
-                      </th>
-                    {/* Colonne peinture conditionnelle */}
-                    {hasPaintWorkforce ? (
-                      <th className="border px-2 py-2 text-center font-medium text-blue-600">
-                        Type Peinture
-                      </th>
-                    ): (
-                      <th className="border text-center font-medium text-blue-600">
-                        
-                      </th>
-                    )} 
-                    <th className="border px-2 py-2 text-center font-medium">
-                      Tps(H)
-                    </th>
-                    <th className="border px-2 py-2 text-center font-medium">
-                      Remise (%)
-                    </th>
-                    <th className="border px-2 py-2 text-center font-medium">
-                      Tx horr (FCFA)
-                    </th>
-                    <th className="border px-2 py-2 text-center font-medium text-green-600">
-                      Montant HT
-                    </th>
-                    <th className="border px-2 py-2 text-center font-medium text-blue-600">
-                      Montant TVA
-                    </th>
-                    <th className="border px-2 py-2 text-center font-medium text-purple-600">
-                      Montant TTC
-                    </th>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-[10px]">
+            <thead>
+              <tr className="bg-gray-50 border-b">
+                <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
+                  <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
+                </th>
+                <th className="border px-3 py-2 text-left font-medium">
+                  Désignation
+                </th>
+              {/* Colonne peinture conditionnelle */}
+              {hasPaintWorkforce ? (
+                <th className="border px-2 py-2 text-center font-medium text-blue-600">
+                  Type Peinture
+                </th>
+              ): (
+                <th className="border text-center font-medium text-blue-600">
+                  
+                </th>
+              )} 
+              <th className="border px-2 py-2 text-center font-medium">
+                Tps(H)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium">
+                Remise (%)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium">
+                Tx horr (FCFA)
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-green-600">
+                Montant HT
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-blue-600">
+                Montant TVA
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-purple-600">
+                Montant TTC
+              </th>
 
-                    <th className="border px-2 py-2 text-center font-medium">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <SortableContext
-                  items={localWorkforces.map((workforce, index) => workforce.uid || workforce.id || index)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <tbody>
-                    {localWorkforces.length === 0 && (
-                      <tr>
-                        <td colSpan={hasPaintWorkforce ? 10 : 9} className="text-center text-muted-foreground py-8">
-                          {isLoading ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span>Chargement...</span>
-                            </div>
-                          ) : (
-                            'Aucune ligne de main d\'œuvre'
-                          )}
-                        </td>
-                      </tr>
+              <th className="border px-2 py-2 text-center font-medium">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <SortableContext
+            items={localWorkforces.map((workforce, index) => workforce.uid || workforce.id || index)}
+            strategy={verticalListSortingStrategy}
+          >
+            <tbody>
+              {localWorkforces.length === 0 && (
+                <tr>
+                  <td colSpan={hasPaintWorkforce ? 10 : 9} className="text-center text-muted-foreground py-8">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Chargement...</span>
+                      </div>
+                    ) : (
+                      'Aucune ligne de main d\'œuvre'
                     )}
-                    {localWorkforces.map((row, i) => (
-                      <SortableWorkforceRow
-                        key={row.uid || row.id || i}
-                        row={row}
-                        index={i}
-                        workforceTypes={workforceTypes}
-                        modifiedRows={modifiedRows}
-                        newRows={newRows}
-                        updateLocalWorkforce={updateLocalWorkforce}
-                        handleCreateWorkforceType={handleCreateWorkforceType}
-                        handleValidateRow={handleValidateRow}
-                        handleRemoveRow={handleRemoveRow}
-                        cancelChanges={cancelChanges}
-                        hasChanges={hasChanges}
-                        formatCurrency={formatCurrency}
-                        getWorkforceTypeId={getWorkforceTypeId}
-                        updatingId={updatingId}
-                      />
-                    ))}
-                  </tbody>
-                </SortableContext>
-              </table>
-            </div>
-              </DndContext>
-              </div>
-        )}
-              
+                  </td>
+                </tr>
+              )}
+              {localWorkforces.map((row, i) => (
+                <SortableWorkforceRow
+                  key={row.uid || row.id || i}
+                  row={row}
+                  index={i}
+                  workforceTypes={workforceTypes}
+                  modifiedRows={modifiedRows}
+                  newRows={newRows}
+                  updateLocalWorkforce={updateLocalWorkforce}
+                  handleCreateWorkforceType={handleCreateWorkforceType}
+                  handleValidateRow={handleValidateRow}
+                  handleRemoveRow={handleRemoveRow}
+                  cancelChanges={cancelChanges}
+                  hasChanges={hasChanges}
+                  formatCurrency={formatCurrency}
+                  getWorkforceTypeId={getWorkforceTypeId}
+                  updatingId={updatingId}
+                />
+              ))}
+            </tbody>
+          </SortableContext>
+        </table>
       </div>
+    </DndContext>
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
