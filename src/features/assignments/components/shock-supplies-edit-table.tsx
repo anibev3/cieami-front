@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 // import { Label } from '@/components/ui/label'
-import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown } from 'lucide-react'
+import { Trash2, Plus, Check, GripVertical, ArrowUpDown, ChevronUp, ChevronDown, Package } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
@@ -322,6 +322,7 @@ export function ShockSuppliesEditTable({
   const [showCreateSupplyModal, setShowCreateSupplyModal] = useState(false)
   const [currentSupplyIndex, setCurrentSupplyIndex] = useState<number | null>(null)
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -572,10 +573,35 @@ export function ShockSuppliesEditTable({
     <div className="space-y-3">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-sm flex items-center gap-2">
-          <Calculator className="h-5 w-5 text-blue-600" />
-          Fourniture(s)
-        </h4>
+        <div className="flex items-center gap-3">
+          <h4 className="font-semibold text-sm flex items-center gap-2">
+            <Package className="h-5 w-5 text-blue-600" />
+            Fournitures
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+              {localShockWorks.length}
+            </span>
+          </h4>
+          
+          {/* Bouton pour réduire/étendre les fournitures */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="text-gray-600 text-xs border-gray-200 hover:bg-gray-50"
+          >
+            {isCollapsed ? (
+              <>
+                <ChevronDown className="mr-1 h-3 w-3" />
+                Étendre
+              </>
+            ) : (
+              <>
+                <ChevronUp className="mr-1 h-3 w-3" />
+                Réduire
+              </>
+            )}
+          </Button>
+        </div>
         <div className="flex gap-2 items-center">
           {/* Bouton de réorganisation */}
           {(hasLocalReorderChanges || hasReorderChanges) && shockId && (
@@ -653,94 +679,109 @@ export function ShockSuppliesEditTable({
         </div>
       )} */}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-[10px]">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
-                  <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
-                </th>
-                <th className="border px-3 py-2 text-left font-medium text-[10px]">
-                  Fournitures
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  {isEvaluation ? 'Ctrl' : 'D/p'}
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Remp
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Rep
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Peint
-                </th>
-                {!isEvaluation && (
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                    Vét
-                  </th>
-                )}
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Montant HT
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Remise
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Remise Calculé
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Vétuste (%)
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Vétuste calculée
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
-                  Montant TTC
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <SortableContext
-              items={localShockWorks.map(work => work.uid)}
-              strategy={verticalListSortingStrategy}
+      {/* Section des fournitures pliable */}
+      <div className="border rounded-lg overflow-hidden">
+        {isCollapsed ? (
+          // Section réduite
+          <div className="p-4 text-center text-muted-foreground bg-gray-50">
+            <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm font-medium">Fournitures réduites</p>
+            <p className="text-xs">{localShockWorks.length} ligne{localShockWorks.length > 1 ? 's' : ''} disponible{localShockWorks.length > 1 ? 's' : ''}</p>
+          </div>
+        ) : (
+          // Section étendue
+          <div className="transition-all duration-300 ease-in-out">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              <tbody>
-                {localShockWorks.length === 0 && (
-                  <tr>
-                    <td colSpan={14} className="text-center text-muted-foreground py-8 text-[10px]">
-                      Aucune fourniture ajoutée
-                    </td>
-                  </tr>
-                )}
-                {localShockWorks.map((row, i) => (
-                  <SortableSupplyRow
-                    key={row.uid}
-                    row={row}
-                    index={i}
-                    supplies={supplies}
-                    modifiedRows={modifiedRows}
-                    newRows={newRows}
-                    isEvaluation={isEvaluation}
-                    updateLocalShockWork={updateLocalShockWork}
-                    handleCreateSupply={handleCreateSupply}
-                    handleValidateRow={handleValidateRow}
-                    onRemove={handleRemoveRow}
-                    _formatCurrency={formatCurrency}
-                  />
-                ))}
-              </tbody>
-            </SortableContext>
-          </table>
-        </div>
-      </DndContext>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border text-[10px]">
+                  <thead>
+                    <tr className="bg-gray-50 border-b">
+                      <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
+                        <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
+                      </th>
+                      <th className="border px-3 py-2 text-left font-medium text-[10px]">
+                        Fournitures
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        {isEvaluation ? 'Ctrl' : 'D/p'}
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Remp
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Rep
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Peint
+                      </th>
+                      {!isEvaluation && (
+                        <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                          Vét
+                        </th>
+                      )}
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Montant HT
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Remise
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Remise Calculé
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Vétuste (%)
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Vétuste calculée
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
+                        Montant TTC
+                      </th>
+                      <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <SortableContext
+                    items={localShockWorks.map(work => work.uid)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <tbody>
+                      {localShockWorks.length === 0 && (
+                        <tr>
+                          <td colSpan={14} className="text-center text-muted-foreground py-8 text-[10px]">
+                            Aucune fourniture ajoutée
+                          </td>
+                        </tr>
+                      )}
+                      {localShockWorks.map((row, i) => (
+                        <SortableSupplyRow
+                          key={row.uid}
+                          row={row}
+                          index={i}
+                          supplies={supplies}
+                          modifiedRows={modifiedRows}
+                          newRows={newRows}
+                          isEvaluation={isEvaluation}
+                          updateLocalShockWork={updateLocalShockWork}
+                          handleCreateSupply={handleCreateSupply}
+                          handleValidateRow={handleValidateRow}
+                          onRemove={handleRemoveRow}
+                          _formatCurrency={formatCurrency}
+                        />
+                      ))}
+                    </tbody>
+                  </SortableContext>
+                </table>
+              </div>
+            </DndContext>
+          </div>
+        )}
+      </div>
 
       {/* Récapitulatif moderne */}
       <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
