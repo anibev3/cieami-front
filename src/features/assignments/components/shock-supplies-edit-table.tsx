@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 // import { Label } from '@/components/ui/label'
-import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown } from 'lucide-react'
+import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
@@ -322,6 +322,7 @@ export function ShockSuppliesEditTable({
   const [showCreateSupplyModal, setShowCreateSupplyModal] = useState(false)
   const [currentSupplyIndex, setCurrentSupplyIndex] = useState<number | null>(null)
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
+  const [tableExpanded, setTableExpanded] = useState(true)
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -572,10 +573,24 @@ export function ShockSuppliesEditTable({
     <div className="space-y-3">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-sm flex items-center gap-2">
-          <Calculator className="h-5 w-5 text-blue-600" />
-          Fourniture(s)
-        </h4>
+        <div className="flex items-center gap-2">
+          <h4 className="font-semibold text-sm flex items-center gap-2">
+            <Calculator className="h-5 w-5 text-blue-600" />
+            Fourniture(s)
+          </h4>
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={() => setTableExpanded(!tableExpanded)}
+            className="p-1 h-6 w-6"
+          >
+            {tableExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
         <div className="flex gap-2 items-center">
           {/* Bouton de réorganisation */}
           {(hasLocalReorderChanges || hasReorderChanges) && shockId && (
@@ -653,97 +668,220 @@ export function ShockSuppliesEditTable({
         </div>
       )} */}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-[10px]">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
-                  <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
-                </th>
-                <th className="border px-3 py-2 text-left font-medium text-[10px]">
-                  Fournitures
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  {isEvaluation ? 'Ctrl' : 'D/p'}
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Remp
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Rep
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Peint
-                </th>
-                {!isEvaluation && (
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                    Vét
+      {tableExpanded ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="overflow-x-auto">
+            <table className="min-w-full border text-[10px]">
+              <thead>
+                <tr className="bg-gray-50 border-b">
+                  <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
+                    <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
                   </th>
+                  <th className="border px-3 py-2 text-left font-medium text-[10px]">
+                    Fournitures
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    {isEvaluation ? 'Ctrl' : 'D/p'}
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Remp
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Rep
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Peint
+                  </th>
+                  {!isEvaluation && (
+                    <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                      Vét
+                    </th>
+                  )}
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Montant HT
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Remise
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Remise Calculé
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Vétuste (%)
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Vétuste calculée
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
+                    Montant TTC
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <SortableContext
+                items={localShockWorks.map(work => work.uid)}
+                strategy={verticalListSortingStrategy}
+              >
+                <tbody>
+                  {localShockWorks.length === 0 && (
+                    <tr>
+                      <td colSpan={14} className="text-center text-muted-foreground py-8 text-[10px]">
+                        Aucune fourniture ajoutée
+                      </td>
+                    </tr>
+                  )}
+                  {localShockWorks.map((row, i) => (
+                    <SortableSupplyRow
+                      key={row.uid}
+                      row={row}
+                      index={i}
+                      supplies={supplies}
+                      modifiedRows={modifiedRows}
+                      newRows={newRows}
+                      isEvaluation={isEvaluation}
+                      updateLocalShockWork={updateLocalShockWork}
+                      handleCreateSupply={handleCreateSupply}
+                      handleValidateRow={handleValidateRow}
+                      onRemove={handleRemoveRow}
+                      _formatCurrency={formatCurrency}
+                    />
+                  ))}
+                </tbody>
+              </SortableContext>
+            </table>
+          </div>
+        </DndContext>
+      ) : (
+        // Vue réduite avec informations compactes et design moderne
+        <div className="space-y-4">
+          {/* Statistiques rapides */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-blue-600 font-medium">Total Fournitures</p>
+                  <p className="text-2xl font-bold text-blue-800">{localShockWorks.length}</p>
+                </div>
+                <div className="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
+                  <Calculator className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-green-600 font-medium">Montant Final</p>
+                  <p className="text-lg font-bold text-green-800">{formatCurrency(totals.new)}</p>
+                </div>
+                <div className="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 font-bold text-sm">€</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-purple-600 font-medium">Vétusté</p>
+                  <p className="text-lg font-bold text-purple-800">{formatCurrency(totals.obsolescence)}</p>
+                </div>
+                <div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 font-bold text-sm">%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-orange-600 font-medium">Remise</p>
+                  <p className="text-lg font-bold text-orange-800">{formatCurrency(totals.discount_amount)}</p>
+                </div>
+                <div className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center">
+                  <span className="text-orange-600 font-bold text-sm">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Résumé des actions */}
+          {/* <div className="bg-gradient-to-r from-gray-50 to-slate-100 rounded-xl p-4 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <h5 className="text-sm font-semibold text-gray-700">Actions en cours</h5>
+              <div className="flex gap-2">
+                {modifiedRows.size > 0 && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    {modifiedRows.size} modifié{modifiedRows.size > 1 ? 's' : ''}
+                  </span>
                 )}
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Montant HT
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Remise
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Remise Calculé
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Vétuste (%)
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Vétuste calculée
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
-                  Montant TTC
-                </th>
-                <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <SortableContext
-              items={localShockWorks.map(work => work.uid)}
-              strategy={verticalListSortingStrategy}
-            >
-              <tbody>
-                {localShockWorks.length === 0 && (
-                  <tr>
-                    <td colSpan={14} className="text-center text-muted-foreground py-8 text-[10px]">
-                      Aucune fourniture ajoutée
-                    </td>
-                  </tr>
+                {newRows.size > 0 && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {newRows.size} nouveau{newRows.size > 1 ? 'x' : ''}
+                  </span>
                 )}
-                {localShockWorks.map((row, i) => (
-                  <SortableSupplyRow
-                    key={row.uid}
-                    row={row}
-                    index={i}
-                    supplies={supplies}
-                    modifiedRows={modifiedRows}
-                    newRows={newRows}
-                    isEvaluation={isEvaluation}
-                    updateLocalShockWork={updateLocalShockWork}
-                    handleCreateSupply={handleCreateSupply}
-                    handleValidateRow={handleValidateRow}
-                    onRemove={handleRemoveRow}
-                    _formatCurrency={formatCurrency}
-                  />
+                {hasLocalReorderChanges && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Réorganisation
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            {localShockWorks.length === 0 ? (
+              <div className="text-center py-6">
+                <Calculator className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">Aucune fourniture ajoutée</p>
+                <p className="text-xs text-gray-400">Cliquez sur "Ajouter une ligne" pour commencer</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {localShockWorks.slice(0, 3).map((work, index) => (
+                  <div key={work.uid} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {work.supply?.label || `Fourniture ${index + 1}`}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {work.amount > 0 ? `${formatCurrency(work.amount)} €` : 'Montant non défini'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {work.disassembly && <span className="w-2 h-2 bg-blue-400 rounded-full" title="Démontage"></span>}
+                      {work.replacement && <span className="w-2 h-2 bg-green-400 rounded-full" title="Remplacement"></span>}
+                      {work.repair && <span className="w-2 h-2 bg-yellow-400 rounded-full" title="Réparation"></span>}
+                      {work.paint && <span className="w-2 h-2 bg-purple-400 rounded-full" title="Peinture"></span>}
+                      {work.obsolescence && <span className="w-2 h-2 bg-red-400 rounded-full" title="Vétusté"></span>}
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </SortableContext>
-          </table>
+                {localShockWorks.length > 3 && (
+                  <div className="text-center py-2">
+                    <p className="text-xs text-gray-500">
+                      +{localShockWorks.length - 3} autre{localShockWorks.length - 3 > 1 ? 's' : ''} fourniture{localShockWorks.length - 3 > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div> */}
         </div>
-      </DndContext>
+      )}
 
       {/* Récapitulatif moderne */}
-      <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
+      {tableExpanded && (
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-4">
         <div className="text-xs flex flex-wrap gap-4 justify-around">
           <div className="text-center">
             <div className="text-gray-600 font-medium">Total lignes</div>
@@ -793,6 +931,7 @@ export function ShockSuppliesEditTable({
           </div>
         </div>
       </div>
+      )}
 
       {/* Modal de création de fourniture */}
       <SupplyMutateDialog
