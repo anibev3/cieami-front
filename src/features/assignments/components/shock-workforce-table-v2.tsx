@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Trash2, Plus, Calculator, Loader2, Check, X, GripVertical, ArrowUpDown } from 'lucide-react'
+import { Trash2, Plus, Calculator, Loader2, Check, X, GripVertical, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { workforceService } from '@/services/workforce-service'
 import axiosInstance from '@/lib/axios'
@@ -332,6 +332,7 @@ export function ShockWorkforceTableV2({
   const [updatingPaintType, setUpdatingPaintType] = useState<boolean>(false)
   const [updatingHourlyRate, setUpdatingHourlyRate] = useState<boolean>(false)
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
+  const [tableExpanded, setTableExpanded] = useState(true)
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -943,10 +944,24 @@ export function ShockWorkforceTableV2({
     <div className="space-y-4">
       {/* Header with actions */}
       <div className="flex justify-between items-center">
-        <h4 className="font-semibold text-sm flex items-center gap-2">
-          <Calculator className="h-5 w-5 text-green-600" />
-          Main d'œuvre(s)
-        </h4>
+        <div className="flex items-center gap-2">
+          <h4 className="font-semibold text-sm flex items-center gap-2">
+            <Calculator className="h-5 w-5 text-green-600" />
+            Main d'œuvre(s)
+          </h4>
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={() => setTableExpanded(!tableExpanded)}
+            className="p-1 h-6 w-6"
+          >
+            {tableExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
         <div className="flex gap-2 items-center">
           {/* Bouton de réorganisation */}
           {(hasLocalReorderChanges || hasReorderChanges) && (
@@ -1081,132 +1096,152 @@ export function ShockWorkforceTableV2({
         </div>
       )}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-[10px]">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
-                  <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
-                </th>
-                <th className="border px-3 py-2 text-left font-medium">
-                  Désignation
-                </th>
-              {/* Colonne peinture conditionnelle */}
-              {hasPaintWorkforce ? (
-                <th className="border px-2 py-2 text-center font-medium text-blue-600">
-                  Type Peinture
-                </th>
-              ): (
-                <th className="border text-center font-medium text-blue-600">
-                  
-                </th>
-              )} 
-              <th className="border px-2 py-2 text-center font-medium">
-                Tps(H)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium">
-                Remise (%)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium">
-                Tx horr (FCFA)
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-green-600">
-                Montant HT
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-blue-600">
-                Montant TVA
-              </th>
-              <th className="border px-2 py-2 text-center font-medium text-purple-600">
-                Montant TTC
-              </th>
-
-              <th className="border px-2 py-2 text-center font-medium">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <SortableContext
-            items={localWorkforces.map((workforce, index) => workforce.uid || workforce.id || index)}
-            strategy={verticalListSortingStrategy}
+      {tableExpanded ? (
+        <>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            <tbody>
-              {localWorkforces.length === 0 && (
-                <tr>
-                  <td colSpan={hasPaintWorkforce ? 10 : 9} className="text-center text-muted-foreground py-8">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Chargement...</span>
-                      </div>
-                    ) : (
-                      'Aucune ligne de main d\'œuvre'
-                    )}
-                  </td>
-                </tr>
-              )}
-              {localWorkforces.map((row, i) => (
-                <SortableWorkforceRow
-                  key={row.uid || row.id || i}
-                  row={row}
-                  index={i}
-                  workforceTypes={workforceTypes}
-                  modifiedRows={modifiedRows}
-                  newRows={newRows}
-                  updateLocalWorkforce={updateLocalWorkforce}
-                  handleCreateWorkforceType={handleCreateWorkforceType}
-                  handleValidateRow={handleValidateRow}
-                  handleRemoveRow={handleRemoveRow}
-                  cancelChanges={cancelChanges}
-                  hasChanges={hasChanges}
-                  formatCurrency={formatCurrency}
-                  getWorkforceTypeId={getWorkforceTypeId}
-                  updatingId={updatingId}
-                />
-              ))}
-            </tbody>
-          </SortableContext>
-        </table>
-      </div>
-    </DndContext>
+            <div className="overflow-x-auto">
+              <table className="min-w-full border text-[10px]">
+                <thead>
+                  <tr className="bg-gray-50 border-b">
+                    <th className="border px-2 py-2 text-center font-medium text-[10px] w-8">
+                      <GripVertical className="h-3 w-3 mx-auto text-gray-400" />
+                    </th>
+                    <th className="border px-3 py-2 text-left font-medium">
+                      Désignation
+                    </th>
+                  {/* Colonne peinture conditionnelle */}
+                  {hasPaintWorkforce ? (
+                    <th className="border px-2 py-2 text-center font-medium text-blue-600">
+                      Type Peinture
+                    </th>
+                  ): (
+                    <th className="border text-center font-medium text-blue-600">
+                      
+                    </th>
+                  )} 
+                  <th className="border px-2 py-2 text-center font-medium">
+                    Tps(H)
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium">
+                    Remise (%)
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium">
+                    Tx horr (FCFA)
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-green-600">
+                    Montant HT
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-blue-600">
+                    Montant TVA
+                  </th>
+                  <th className="border px-2 py-2 text-center font-medium text-purple-600">
+                    Montant TTC
+                  </th>
 
-      {/* Récapitulatif moderne */}
-      <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
-        <div className="flex justify-around text-xs">
-          <div className="text-center">
-            <div className="text-gray-600 font-medium">Récap</div>
-            <div className="text-base font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
+                  <th className="border px-2 py-2 text-center font-medium">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <SortableContext
+                items={localWorkforces.map((workforce, index) => workforce.uid || workforce.id || index)}
+                strategy={verticalListSortingStrategy}
+              >
+                <tbody>
+                  {localWorkforces.length === 0 && (
+                    <tr>
+                      <td colSpan={hasPaintWorkforce ? 10 : 9} className="text-center text-muted-foreground py-8">
+                        {isLoading ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Chargement...</span>
+                          </div>
+                        ) : (
+                          'Aucune ligne de main d\'œuvre'
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                  {localWorkforces.map((row, i) => (
+                    <SortableWorkforceRow
+                      key={row.uid || row.id || i}
+                      row={row}
+                      index={i}
+                      workforceTypes={workforceTypes}
+                      modifiedRows={modifiedRows}
+                      newRows={newRows}
+                      updateLocalWorkforce={updateLocalWorkforce}
+                      handleCreateWorkforceType={handleCreateWorkforceType}
+                      handleValidateRow={handleValidateRow}
+                      handleRemoveRow={handleRemoveRow}
+                      cancelChanges={cancelChanges}
+                      hasChanges={hasChanges}
+                      formatCurrency={formatCurrency}
+                      getWorkforceTypeId={getWorkforceTypeId}
+                      updatingId={updatingId}
+                    />
+                  ))}
+                </tbody>
+              </SortableContext>
+            </table>
           </div>
-          <div className="text-center">
-            <div className="text-gray-600 font-medium">Total Heures</div>
-            <div className="text-lg font-bold text-gray-800">{totals.hours}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-gray-600 font-medium">Taux horaire moy.</div>
-            <div className="text-base font-bold text-gray-700">
-              {localWorkforces.length > 0 ? formatCurrency(totals.work_fee_total / localWorkforces.length) : '0.000'}
+        </DndContext>
+
+        {/* Récapitulatif moderne */}
+        <div className="bg-gradient-to-r from-gray-50 to-green-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex justify-around text-xs">
+            <div className="text-center">
+              <div className="text-gray-600 font-medium">Récap</div>
+              <div className="text-base font-bold text-gray-800">{localWorkforces.length} ligne(s)</div>
             </div>
-          </div>
-          <div className="text-center">
-            <div className="text-gray-600 font-medium">Remise moy. (%)</div>
-            <div className="text-base font-bold text-gray-700">
-              {localWorkforces.length > 0 ? (totals.discount_total / localWorkforces.length).toFixed(1) : '0'}%
+            <div className="text-center">
+              <div className="text-gray-600 font-medium">Total Heures</div>
+              <div className="text-lg font-bold text-gray-800">{totals.hours}</div>
             </div>
-          </div>
-          <div className="text-center">
-            <div className="text-green-600 font-medium">Total HT</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.ht)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-purple-600 font-medium">Total TTC</div>
-            <div className="text-base font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
+            <div className="text-center">
+              <div className="text-gray-600 font-medium">Taux horaire moy.</div>
+              <div className="text-base font-bold text-gray-700">
+                {localWorkforces.length > 0 ? formatCurrency(totals.work_fee_total / localWorkforces.length) : '0.000'}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-gray-600 font-medium">Remise moy. (%)</div>
+              <div className="text-base font-bold text-gray-700">
+                {localWorkforces.length > 0 ? (totals.discount_total / localWorkforces.length).toFixed(1) : '0'}%
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-green-600 font-medium">Total HT</div>
+              <div className="text-base font-bold text-green-700">{formatCurrency(totals.ht)}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-purple-600 font-medium">Total TTC</div>
+              <div className="text-base font-bold text-purple-700">{formatCurrency(totals.ttc)}</div>
+            </div>
           </div>
         </div>
-      </div>
+        </>
+      ) : (
+        // Vue réduite avec informations compactes
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+            <p className="text-xs text-green-700">Lignes</p>
+            <p className="text-2xl font-bold text-green-900">{localWorkforces.length}</p>
+          </div>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+            <p className="text-xs text-blue-700">Total Heures</p>
+            <p className="text-2xl font-bold text-blue-900">{totals.hours}</p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+            <p className="text-xs text-purple-700">Total TTC</p>
+            <p className="text-2xl font-bold text-purple-900">{formatCurrency(totals.ttc)}</p>
+          </div>
+        </div>
+      )}
 
       {/* Modal de création de type de main d'œuvre */}
       <WorkforceTypeMutateDialog
