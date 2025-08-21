@@ -538,7 +538,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   return (
     <div className="space-y-6">
       {/* Header avec statistiques */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sticky top-0 bg-white z-10">
         <div>
           <h3 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Galerie Photos
@@ -568,8 +568,8 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 Ajouter des photos
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
+            <DialogContent className="max-w-2xl max-h-[90vh] min-h-[90vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle>Ajouter des photos à {assignmentReference}</DialogTitle>
                 <DialogDescription>
                   Sélectionnez un type de photo et ajoutez vos images.
@@ -578,71 +578,83 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                   </div>
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="photo-type" className='text-sm font-medium mb-2'>Type de photo</Label>
-                  <Select
-                    value={uploadData.photo_type_id}
-                    onValueChange={(value) => setUploadData({ ...uploadData, photo_type_id: value })}
-                  >
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder="Sélectionnez un type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {photoTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id.toString()}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-3 flex-1 overflow-y-auto">
+                <div className="flex gap-4">
+                  <div className="w-1/3">
+                    <Label htmlFor="photo-type" className='text-sm font-medium mb-2'>Type de photo</Label>
+                    <Select
+                      value={uploadData.photo_type_id}
+                      onValueChange={(value) => setUploadData({ ...uploadData, photo_type_id: value })}
+                    >
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder="Sélectionnez un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {photoTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.id.toString()}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* Upload Zone - Optimisée pour économiser l'espace */}
+                  <div className="w-2/3">
+                    <div
+                      className={` border-2 border-dashed rounded-lg p-4 text-center transition-all duration-200 ${
+                        dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        <Upload className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex-1 text-left">
+                          <p className="text-sm text-muted-foreground">
+                            Glissez-déposez vos photos ici ou
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          type="button"
+                          size="sm"
+                          className="whitespace-nowrap"
+                        >
+                          Sélectionner des fichiers
+                        </Button>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => handleFileSelect(e.target.files)}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
                 </div>
+                <hr />
+
                 
-                {/* Upload Zone */}
-                <div
-                  className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                    dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Glissez-déposez vos photos ici ou cliquez pour sélectionner
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    type="button"
-                    size="sm"
-                  >
-                    Sélectionner des fichiers
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => handleFileSelect(e.target.files)}
-                    className="hidden"
-                  />
-                </div>
+
 
                 {/* Selected Files with Preview */}
                 {uploadData.photos.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label>Fichiers sélectionnés ({uploadData.photos.length})</Label>
-                      <div className="flex gap-2">
+                      <Label className="text-sm">Fichiers sélectionnés ({uploadData.photos.length})</Label>
+                      <div className="flex gap-1 flex-wrap">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
                             setUploadData(prev => ({ ...prev, photos: [] }))
                           }}
-                          className="text-destructive hover:text-destructive"
+                          className="text-destructive hover:text-destructive text-xs px-2 py-1 h-7"
                         >
                           <Trash2 className="mr-1 h-3 w-3" />
                           Tout supprimer
@@ -656,9 +668,10 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                             )
                             setUploadData(prev => ({ ...prev, photos: sortedPhotos }))
                           }}
+                          className="text-xs px-2 py-1 h-7"
                         >
                           <Hash className="mr-1 h-3 w-3" />
-                          Trier par nom
+                          Par nom
                         </Button>
                         <Button
                           variant="outline"
@@ -669,9 +682,10 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                             )
                             setUploadData(prev => ({ ...prev, photos: sortedPhotos }))
                           }}
+                          className="text-xs px-2 py-1 h-7"
                         >
                           <Hash className="mr-1 h-3 w-3" />
-                          Trier par taille
+                          Par taille
                         </Button>
                         {selectedFiles.size > 0 && (
                           <Button
@@ -682,16 +696,16 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                               setUploadData(prev => ({ ...prev, photos: remainingPhotos }))
                               setSelectedFiles(new Set())
                             }}
-                            className="text-destructive hover:text-destructive"
+                            className="text-destructive hover:text-destructive text-xs px-2 py-1 h-7"
                           >
                             <Trash2 className="mr-1 h-3 w-3" />
-                            Supprimer sélection ({selectedFiles.size})
+                            Supprimer ({selectedFiles.size})
                           </Button>
                         )}
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 overflow-y-auto">
                       {uploadData.photos.map((file, index) => (
                         <div 
                           key={index} 
@@ -710,14 +724,14 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                         >
                           {/* Selection indicator */}
                           {selectedFiles.has(index) && (
-                            <div className="absolute top-2 left-2 z-10">
-                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                <CheckCircle className="h-4 w-4 text-white" />
+                            <div className="absolute top-1 left-1 z-10">
+                              <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                <CheckCircle className="h-3 w-3 text-white" />
                               </div>
                             </div>
                           )}
                           
-                          {/* Preview Image */}
+                          {/* Preview Image - Plus compacte */}
                           <div className="aspect-square relative">
                             <img
                               src={URL.createObjectURL(file)}
@@ -729,7 +743,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                               }}
                             />
                             
-                            {/* Overlay with actions */}
+                            {/* Overlay with actions - Plus compact */}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
                               <div className="flex gap-1">
                                 <Tooltip>
@@ -758,9 +772,9 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                                           if (e.target === modal) modal.remove()
                                         })
                                       }}
-                                      className="h-8 w-8 p-0 rounded-full bg-white/90 hover:bg-white shadow-lg"
+                                      className="h-6 w-6 p-0 rounded-full bg-white/90 hover:bg-white shadow-lg"
                                     >
-                                      <Eye className="h-4 w-4" />
+                                      <Eye className="h-3 w-3" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
@@ -777,9 +791,9 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                                         e.stopPropagation()
                                         removeFile(index)
                                       }}
-                                      className="h-8 w-8 p-0 rounded-full bg-red-500/90 hover:bg-red-600 text-white shadow-lg"
+                                      className="h-6 w-6 p-0 rounded-full bg-red-500/90 hover:bg-red-600 text-white shadow-lg"
                                     >
-                                      <X className="h-4 w-4" />
+                                      <X className="h-3 w-3" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
@@ -790,8 +804,8 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                             </div>
                           </div>
                           
-                          {/* File info */}
-                          <div className="p-2">
+                          {/* File info - Plus compacte */}
+                          <div className="p-1">
                             <div className="flex items-center justify-between">
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium truncate" title={file.name}>
@@ -801,34 +815,25 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                                   {(file.size / 1024 / 1024).toFixed(2)} MB
                                 </p>
                               </div>
-                              
-                              {/* Drag handle for reordering */}
-                              <div className="flex-shrink-0 ml-1">
-                                <div className="w-1 h-4 bg-gray-300 rounded cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <div className="w-1 h-1 bg-gray-500 rounded mb-0.5"></div>
-                                  <div className="w-1 h-1 bg-gray-500 rounded mb-0.5"></div>
-                                  <div className="w-1 h-1 bg-gray-500 rounded"></div>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
                     
-                    {/* Summary */}
+                    {/* Summary - Plus compact */}
                     <div className="flex items-center justify-between text-xs text-muted-foreground bg-gray-50 p-2 rounded">
-                      <span>
-                        Total: {uploadData.photos.length} photo(s)
+                      <span className="font-medium">
+                        {uploadData.photos.length} photo(s)
                       </span>
                       <span>
-                        Taille totale: {(uploadData.photos.reduce((acc, file) => acc + file.size, 0) / 1024 / 1024).toFixed(2)} MB
+                        {(uploadData.photos.reduce((acc, file) => acc + file.size, 0) / 1024 / 1024).toFixed(2)} MB
                       </span>
                     </div>
                   </div>
                 )}
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-shrink-0 pt-4 border-t">
                 <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
                   Annuler
                 </Button>
@@ -837,7 +842,14 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                   disabled={!uploadData.photo_type_id || uploadData.photos.length === 0 || uploading}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
-                  {uploading ? <span className='flex items-center gap-2'><Loader2 className="h-4 w-4 animate-spin" /> Veuillez patienter, les images sont en cours d'envoi...</span>  : 'Uploader'}
+                  {uploading ? (
+                    <span className='flex items-center gap-2'>
+                      <Loader2 className="h-4 w-4 animate-spin" /> 
+                      Envoi en cours...
+                    </span>
+                  ) : (
+                    'Uploader'
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
