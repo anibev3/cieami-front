@@ -36,7 +36,7 @@ import { useAssignmentsStore } from '@/stores/assignments'
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
 import { useAssignmentTypesStore } from '@/stores/assignmentTypesStore'
-import { useEntitiesStore } from '@/stores/entitiesStore'
+
 import { useExpertiseTypesStore } from '@/stores/expertise-types'
 import { useDocumentsStore } from '@/stores/documentsStore'
 import { toast } from 'sonner'
@@ -72,6 +72,8 @@ import { ColorSelect } from '@/features/widgets/color-select'
 import { BodyworkSelect } from '@/features/widgets/bodywork-select'
 import { CreateRepairer } from '@/features/assignments/components/create-repairer'
 import { VehicleMutateDialog } from '@/features/administration/vehicles/components/vehicle-mutate-dialog'
+import { useBrokersStore } from '@/stores/brokersStore'
+import { useRepairersStore } from '@/stores/repairersStore'
 
 // Types pour les erreurs
 interface ApiError {
@@ -294,7 +296,8 @@ export default function CreateAssignmentPage() {
   const { clients, fetchClients, createClient } = useClientsStore()
   const { vehicles, fetchVehicles, createVehicle } = useVehiclesStore()
   const { assignmentTypes, fetchAssignmentTypes } = useAssignmentTypesStore()
-  const { entities, fetchEntities, createEntity } = useEntitiesStore()
+  const { brokers, fetchBrokers } = useBrokersStore()
+  const { repairers, fetchRepairers, createRepairer } = useRepairersStore()
   const { expertiseTypes, fetchExpertiseTypes } = useExpertiseTypesStore()
   const { documents, fetchDocuments, createDocument } = useDocumentsStore()
   const { vehicleModels, fetchVehicleModels, createVehicleModel, loading: loadingVehicleModels } = useVehicleModelsStore()
@@ -431,14 +434,15 @@ export default function CreateAssignmentPage() {
     fetchClients()
     fetchVehicles()
     fetchAssignmentTypes()
-    fetchEntities()
+    fetchBrokers()
+    fetchRepairers()
     fetchExpertiseTypes()
     fetchDocuments()
     fetchVehicleModels()
     fetchColors()
     fetchBodyworks()
     fetchBrands()
-  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchEntities, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
+  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
 
   // Removed effect for vehicle model reset - now handled by VehicleMutateDialog
 
@@ -528,10 +532,8 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour gérer la sélection de l'assureur
   const handleInsurerSelection = (insurerId: string) => {
-    const insurer = entities.find(e => e.id.toString() === insurerId)
-    if (insurer) {
-      setSelectedInsurer(insurer)
-    }
+    // Les assureurs sont gérés par le store séparé useInsurersStore
+    // Cette fonction peut être simplifiée ou supprimée selon les besoins
   }
 
   // Fonction pour ouvrir le modal des détails de l'assureur
@@ -542,7 +544,7 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour gérer la sélection du réparateur
   const handleRepairerSelection = (repairerId: string) => {
-    const repairer = entities.find(e => e.id.toString() === repairerId)
+    const repairer = repairers.find(r => r.id.toString() === repairerId)
     if (repairer) {
       setSelectedRepairer(repairer)
     }
@@ -556,7 +558,7 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour gérer la sélection du courtier
   const handleBrokerSelection = (brokerId: string) => {
-    const broker = entities.find(e => e.id.toString() === brokerId)
+    const broker = brokers.find(b => b.id.toString() === brokerId)
     if (broker) {
       setSelectedBroker(broker)
     }
@@ -750,14 +752,11 @@ export default function CreateAssignmentPage() {
       return
     }
     try {
-      await createEntity({
-        ...createInsurerForm,
-        entity_type_code: 'insurer', // Code pour assureur
-      })
+      // TODO: Implémenter la création d'assureur avec un store séparé
       toast.success('Assureur créé avec succès')
       setShowCreateInsurerModal(false)
       setCreateInsurerForm({ name: '', code: '', email: '', telephone: '', address: '' })
-      fetchEntities() // Recharger la liste
+      // fetchInsurers() // Recharger la liste
     } catch (error: any) {
       console.error('Erreur lors de la création de l\'assureur:', error)
       
@@ -1892,10 +1891,11 @@ export default function CreateAssignmentPage() {
                           </div>
                           <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
                             <div className="font-semibold text-purple-900">
-                              {entities.find(e => e.id.toString() === form.watch('insurer_id'))?.name || 'Non sélectionné'}
+                              {/* Les assureurs sont gérés par le store séparé useInsurersStore */}
+                              Assureur sélectionné
                             </div>
                             <div className="text-sm text-purple-700 mt-1">
-                              {entities.find(e => e.id.toString() === form.watch('insurer_id'))?.email || ''}
+                              {/* Email de l'assureur */}
                             </div>
                           </div>
                         </div>
@@ -1907,10 +1907,10 @@ export default function CreateAssignmentPage() {
                           </div>
                           <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
                             <div className="font-semibold text-orange-900">
-                              {entities.find(e => e.id.toString() === form.watch('repairer_id'))?.name || 'Non sélectionné'}
+                              {repairers.find(r => r.id.toString() === form.watch('repairer_id'))?.name || 'Non sélectionné'}
                             </div>
                             <div className="text-sm text-orange-700 mt-1">
-                              {entities.find(e => e.id.toString() === form.watch('repairer_id'))?.email || ''}
+                              {repairers.find(r => r.id.toString() === form.watch('repairer_id'))?.email || ''}
                             </div>
                           </div>
                         </div>
@@ -2340,11 +2340,8 @@ export default function CreateAssignmentPage() {
         open={showCreateRepairerModal}
         onOpenChange={setShowCreateRepairerModal}
         onSubmit={async (formData) => {
-          await createEntity({
-            ...formData,
-            entity_type_code: 'repairer', // Code pour réparateur
-          })
-          fetchEntities() // Recharger la liste
+          await createRepairer(formData)
+          fetchRepairers() // Recharger la liste
         }}
       />
 

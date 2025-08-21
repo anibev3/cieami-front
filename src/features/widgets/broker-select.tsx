@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
-import { useEntitiesStore } from '@/stores/entitiesStore'
+import { useBrokersStore } from '@/stores/brokersStore'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Entity } from '@/types/administration'
 
@@ -39,32 +39,29 @@ export function BrokerSelect({
 }: BrokerSelectProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const { entities, loading, fetchEntities } = useEntitiesStore()
+  const { brokers, loading, fetchBrokers } = useBrokersStore()
   
   // Debounce la recherche pour éviter trop d'appels API
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
-  // Fonction pour rechercher les entités (courtiers)
-  const searchEntities = useCallback(async (query: string) => {
-    await fetchEntities({ search: query, entity_type: 'broker' })
-  }, [fetchEntities])
+  // Fonction pour rechercher les courtiers
+  const searchBrokers = useCallback(async (query: string) => {
+    await fetchBrokers({ search: query })
+  }, [fetchBrokers])
 
   // Effect pour déclencher la recherche quand la requête debounced change
   useEffect(() => {
     if (debouncedSearchQuery !== undefined) {
-      searchEntities(debouncedSearchQuery)
+      searchBrokers(debouncedSearchQuery)
     }
-  }, [debouncedSearchQuery, searchEntities])
+  }, [debouncedSearchQuery, searchBrokers])
 
-  // Charger les entités au montage si aucune entité n'est chargée
+  // Charger les courtiers au montage
   useEffect(() => {
-    if (entities.length === 0) {
-      fetchEntities()
+    if (brokers.length === 0) {
+      fetchBrokers()
     }
-  }, [entities.length, fetchEntities])
-
-  // Filtrer seulement les courtiers
-  const brokers = entities.filter((entity: Entity) => entity.entity_type?.code === 'broker')
+  }, [brokers.length, fetchBrokers])
 
   const selectedBroker = brokers.find((broker: Entity) => broker.id === value)
 
@@ -72,6 +69,8 @@ export function BrokerSelect({
     setOpen(newOpen)
     if (!newOpen) {
       setSearchQuery('')
+      // Recharger tous les courtiers quand on ferme
+      fetchBrokers()
     }
   }
 

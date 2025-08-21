@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Wrench, ChevronsUpDown, Check, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useEntitiesStore } from '@/stores/entitiesStore'
+import { useRepairersStore } from '@/stores/repairersStore'
 import { useDebounce } from '@/hooks/use-debounce'
-
 interface RepairerSelectProps {
   value?: number | null
   onValueChange: (value: number | null) => void
@@ -27,32 +26,29 @@ export function RepairerSelect({
 }: RepairerSelectProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const { entities, loading, fetchEntities } = useEntitiesStore()
+  const { repairers, loading, fetchRepairers } = useRepairersStore()
   
   // Debounce la recherche pour éviter trop d'appels API
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
-  // Fonction pour rechercher les entités (réparateurs)
-  const searchEntities = useCallback(async (query: string) => {
-    await fetchEntities({ search: query, entity_type: 'repairer' })
-  }, [fetchEntities])
+  // Fonction pour rechercher les réparateurs
+  const searchRepairers = useCallback(async (query: string) => {
+    await fetchRepairers({ search: query })
+  }, [fetchRepairers])
 
   // Effect pour déclencher la recherche quand la requête debounced change
   useEffect(() => {
     if (debouncedSearchQuery !== undefined) {
-      searchEntities(debouncedSearchQuery)
+      searchRepairers(debouncedSearchQuery)
     }
-  }, [debouncedSearchQuery, searchEntities])
+  }, [debouncedSearchQuery, searchRepairers])
 
-  // Charger les entités au montage si aucune entité n'est chargée
+  // Charger les réparateurs au montage
   useEffect(() => {
-    if (entities.length === 0) {
-      fetchEntities()
+    if (repairers.length === 0) {
+      fetchRepairers()
     }
-  }, [entities.length, fetchEntities])
-
-  // Filtrer seulement les réparateurs
-  const repairers = entities.filter(entity => entity.entity_type?.code === 'repairer')
+  }, [repairers.length, fetchRepairers])
 
   const selectedRepairer = repairers.find(repairer => repairer.id === value)
 
@@ -61,8 +57,8 @@ export function RepairerSelect({
     setOpen(newOpen)
     if (!newOpen) {
       setSearchQuery('')
-      // Recharger toutes les entités quand on ferme
-      fetchEntities()
+      // Recharger tous les réparateurs quand on ferme
+      fetchRepairers()
     }
   }
 

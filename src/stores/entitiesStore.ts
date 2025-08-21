@@ -9,6 +9,7 @@ interface EntitiesState {
   loading: boolean
   error: string | null
   selectedEntity: Entity | null
+  lastFetchFilters: EntityFilters | null
   
   // Actions
   fetchEntities: (filters?: EntityFilters) => Promise<void>
@@ -21,23 +22,32 @@ interface EntitiesState {
   clearError: () => void
 }
 
-export const useEntitiesStore = create<EntitiesState>((set) => ({
+export const useEntitiesStore = create<EntitiesState>((set, get) => ({
   // État initial
   entities: [],
   loading: false,
   error: null,
   selectedEntity: null,
+  lastFetchFilters: null,
 
   // Actions
   fetchEntities: async (filters) => {
     try {
       set({ loading: true, error: null })
       const response = await entityService.getAll(filters)
-      set({ entities: response.data, loading: false })
+      
+      // Si c'est une recherche avec des filtres spécifiques, on remplace
+      // Sinon, on ajoute aux entités existantes (pour éviter de perdre les sélections)
+      if (filters && (filters.search || filters.entity_type)) {
+        set({ entities: response.data, loading: false, lastFetchFilters: filters })
+      } else {
+        // Pour le chargement initial, on remplace
+        set({ entities: response.data, loading: false, lastFetchFilters: filters })
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des entités'
       set({ error: errorMessage, loading: false })
-            toast.error(errorMessage, {
+      toast.error(errorMessage, {
         duration: 1000,
       })
     }

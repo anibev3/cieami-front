@@ -711,6 +711,7 @@ export interface StatusGroup {
 }
 
 export interface StatusTab {
+  id?: number
   value: string
   label: string
 }

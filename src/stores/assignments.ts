@@ -77,9 +77,9 @@ const statusGroups: StatusGroup[] = [
   {
     label: 'En cours',
     items: [
-      {id: 3, value: 'opened', label: 'Ouvertes' },
-      {id: 4, value: 'realized', label: 'Réalisées' },
-      { id: 5, value: 'edited', label: 'Éditées' },
+      {id: 3, value: 'opened', label: 'Ouvertes' },    
+      {id: 4, value: 'realized', label: 'Réalisées' }, 
+      { id: 5, value: 'edited', label: 'Éditées' },    
       { id: 6, value: 'validated', label: 'Validées' },
     ],
   },
@@ -104,12 +104,12 @@ const statusGroups: StatusGroup[] = [
 
 // Créer une liste plate de tous les statuts pour les onglets
 const getAllStatusTabs = (): StatusTab[] => {
-  const tabs: StatusTab[] = [{ value: 'all', label: 'Toutes' }]
+  const tabs: StatusTab[] = [{ id: 0, value: 'all', label: 'Toutes' }]
   
   statusGroups.forEach((group) => {
     if (group.items) {
       group.items.forEach((item) => {
-        tabs.push({ value: item.value, label: item.label })
+        tabs.push({ id: item.id, value: item.value, label: item.label })
       })
     }
   })
