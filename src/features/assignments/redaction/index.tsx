@@ -22,8 +22,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogTitle
 } from '@/components/ui/dialog'
 import { 
   ArrowLeft, 
@@ -2207,11 +2206,14 @@ export default function EditReportPage() {
                                   nb_hours: w?.nb_hours,
                                   work_fee: w?.work_fee,
                                   discount: w?.discount,
-                                  with_tax: w?.with_tax,
+                                  with_tax: w?.with_tax === 1 || w?.with_tax === true, // Convertir 1/0 en boolean
                                   amount_excluding_tax: w?.amount_excluding_tax,
                                   amount_tax: w?.amount_tax,
                                   amount: w?.amount,
-                                  all_paint: w?.all_paint === 1 || w?.all_paint === true
+                                  all_paint: w?.all_paint === 1 || w?.all_paint === true,
+                                  // Ajouter les IDs pour la synchronisation
+                                  paint_type_id: shock?.paint_type?.id,
+                                  hourly_rate_id: shock?.hourly_rate?.id
                                 }))}
                                 paintTypes={paintTypes}
                                 hourlyRates={hourlyRates}
@@ -2229,13 +2231,14 @@ export default function EditReportPage() {
                                     // Préparer le payload selon l'API
                                     const payload = {
                                       shock_id: String(shock?.id || 0),
-                                      hourly_rate_id: "1", // Valeur par défaut
-                                      paint_type_id: "1", // Valeur par défaut
+                                      hourly_rate_id: String(shock?.hourly_rate?.id || 1), // Utiliser le taux du shock
+                                      paint_type_id: String(shock?.paint_type?.id || 1), // Utiliser le type du shock
                                       workforces: [{
                                         workforce_type_id: String(workforceData?.workforce_type_id || 0),
                                         nb_hours: Number(workforceData?.nb_hours || 0),
                                         discount: Number(workforceData?.discount || 0),
-                                        with_tax: workforceData?.with_tax !== undefined ? workforceData.with_tax : true
+                                        with_tax: workforceData?.with_tax !== undefined ? workforceData.with_tax : true,
+                                        all_paint: workforceData?.all_paint || false
                                       }]
                                     }
                                     
@@ -2247,9 +2250,11 @@ export default function EditReportPage() {
                                   }
                                 }}
                                 onAssignmentRefresh={refreshAssignment}
-                                // Nouvelles props pour type de peinture et taux horaire
+                                // Props pour type de peinture et taux horaire - utiliser les valeurs du shock
                                 paintTypeId={shock?.paint_type?.id}
                                 hourlyRateId={shock?.hourly_rate?.id}
+                                // Prop withTax basée sur la première workforce du shock
+                                withTax={Boolean(shock?.workforces?.[0]?.with_tax)}
                                 onPaintTypeChange={async (value: number) => {
                                   try {
                                     // Mettre à jour le type de peinture pour ce shock

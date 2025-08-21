@@ -357,9 +357,35 @@ export function ShockWorkforceTableV2({
     setLocalWorkforces(workforces)
   }, [workforces])
 
+  // Synchroniser les données locales avec les props externes (paintTypeId, hourlyRateId)
+  useEffect(() => {
+    if (paintTypeId && hourlyRateId) {
+      setLocalWorkforces(prev => prev.map(workforce => ({
+        ...workforce,
+        paint_type_id: paintTypeId,
+        hourly_rate_id: hourlyRateId
+      })))
+    }
+  }, [paintTypeId, hourlyRateId])
+
+  // Debug: Afficher les valeurs reçues (commenté pour éviter l'erreur de linter)
+  // useEffect(() => {
+  //   console.log('🔍 ShockWorkforceTableV2 Debug:', {
+  //     paintTypeId,
+  //     hourlyRateId,
+  //     withTax,
+  //     workforcesCount: workforces.length,
+  //     firstWorkforce: workforces[0],
+  //     paintTypesCount: paintTypes.length,
+  //     hourlyRatesCount: hourlyRates.length
+  //   })
+  // }, [paintTypeId, hourlyRateId, withTax, workforces, paintTypes, hourlyRates])
+
   // Mettre à jour localWithTax quand la prop withTax change
   useEffect(() => {
-    setLocalWithTax(withTax)
+    if (withTax !== undefined) {
+      setLocalWithTax(withTax)
+    }
   }, [withTax])
 
   // Charger les données nécessaires seulement si pas fournies en props
@@ -788,25 +814,25 @@ export function ShockWorkforceTableV2({
       setLocalWorkforces(updatedWorkforces)
     }
     
-    // Si il y a des workforces avec un ID, mettre à jour via l'API
-    const existingWorkforce = localWorkforces.find(w => w.id)
-    if (existingWorkforce) {
+    // Mettre à jour toutes les workforces existantes via l'API
+    const existingWorkforces = localWorkforces.filter(w => w.id)
+    if (existingWorkforces.length > 0) {
       setUpdatingPaintType(true)
       try {
-        // Préparer les données pour l'API
-        const updateData = {
-          workforce_type_id: getWorkforceTypeId(existingWorkforce).toString(),
-          nb_hours: Number(existingWorkforce.nb_hours),
-          discount: Number(existingWorkforce.discount),
-          // hourly_rate_id: existingWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
-          hourly_rate_id: hourlyRateId?.toString(),
-          paint_type_id: value.toString(),
-          with_tax: localWithTax,
-          all_paint: existingWorkforce.all_paint || false
-        }
+        // Mettre à jour chaque workforce individuellement
+        await Promise.all(existingWorkforces.map(async (workforce) => {
+          const updateData = {
+            workforce_type_id: getWorkforceTypeId(workforce).toString(),
+            nb_hours: Number(workforce.nb_hours),
+            discount: Number(workforce.discount),
+            hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
+            paint_type_id: value.toString(),
+            with_tax: localWithTax,
+            all_paint: workforce.all_paint || false
+          }
 
-        // Appel API pour mettre à jour
-        await workforceService.updateWorkforce(existingWorkforce.id!, updateData)
+          await workforceService.updateWorkforce(workforce.id!, updateData)
+        }))
         
         // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
         setModifiedRows(new Set())
@@ -849,25 +875,25 @@ export function ShockWorkforceTableV2({
       setLocalWorkforces(updatedWorkforces)
     }
     
-    // Si il y a des workforces avec un ID, mettre à jour via l'API
-    const existingWorkforce = localWorkforces.find(w => w.id)
-    if (existingWorkforce) {
+    // Mettre à jour toutes les workforces existantes via l'API
+    const existingWorkforces = localWorkforces.filter(w => w.id)
+    if (existingWorkforces.length > 0) {
       setUpdatingHourlyRate(true)
       try {
-        // Préparer les données pour l'API
-        const updateData = {
-          workforce_type_id: getWorkforceTypeId(existingWorkforce).toString(),
-          nb_hours: Number(existingWorkforce.nb_hours),
-          discount: Number(existingWorkforce.discount),
-          hourly_rate_id: value.toString(),
-          // paint_type_id: existingWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
-          paint_type_id: paintTypeId?.toString(),
-          with_tax: localWithTax,
-          all_paint: existingWorkforce.all_paint || false
-        }
+        // Mettre à jour chaque workforce individuellement
+        await Promise.all(existingWorkforces.map(async (workforce) => {
+          const updateData = {
+            workforce_type_id: getWorkforceTypeId(workforce).toString(),
+            nb_hours: Number(workforce.nb_hours),
+            discount: Number(workforce.discount),
+            hourly_rate_id: value.toString(),
+            paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
+            with_tax: localWithTax,
+            all_paint: workforce.all_paint || false
+          }
 
-        // Appel API pour mettre à jour
-        await workforceService.updateWorkforce(existingWorkforce.id!, updateData)
+          await workforceService.updateWorkforce(workforce.id!, updateData)
+        }))
         
         // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
         setModifiedRows(new Set())
@@ -891,28 +917,25 @@ export function ShockWorkforceTableV2({
     setLocalWithTax(checked)
     onWithTaxChange?.(checked)
     
-    // Si il y a des workforces avec un ID, mettre à jour via l'API
-    const existingWorkforce = localWorkforces.find(w => w.id)
-    if (existingWorkforce) {
+    // Mettre à jour toutes les workforces existantes via l'API
+    const existingWorkforces = localWorkforces.filter(w => w.id)
+    if (existingWorkforces.length > 0) {
       setUpdatingWithTax(true)
       try {
-        // Utiliser la première workforce existante pour déclencher la mise à jour
-        const firstWorkforce = existingWorkforce
-        // Préparer les données pour l'API
-        const updateData = {
-          workforce_type_id: getWorkforceTypeId(firstWorkforce).toString(),
-          nb_hours: Number(firstWorkforce.nb_hours),
-          discount: Number(firstWorkforce.discount),
-          // hourly_rate_id: firstWorkforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
-          hourly_rate_id: hourlyRateId?.toString(),
-          // paint_type_id: firstWorkforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
-          paint_type_id: paintTypeId?.toString(),
-          with_tax: checked,
-          all_paint: existingWorkforce.all_paint || false
-        }
+        // Mettre à jour chaque workforce individuellement
+        await Promise.all(existingWorkforces.map(async (workforce) => {
+          const updateData = {
+            workforce_type_id: getWorkforceTypeId(workforce).toString(),
+            nb_hours: Number(workforce.nb_hours),
+            discount: Number(workforce.discount),
+            hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
+            paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
+            with_tax: checked,
+            all_paint: workforce.all_paint || false
+          }
 
-        // Appel API pour mettre à jour
-        await workforceService.updateWorkforce(firstWorkforce.id!, updateData)
+          await workforceService.updateWorkforce(workforce.id!, updateData)
+        }))
         
         // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
         setModifiedRows(new Set())
@@ -924,7 +947,7 @@ export function ShockWorkforceTableV2({
           onAssignmentRefresh()
         }
       } catch (_error) {
-          toast.error('Erreur lors de la mise à jour du paramètre TVA')
+        toast.error('Erreur lors de la mise à jour du paramètre TVA')
         // Restaurer l'ancienne valeur en cas d'erreur
         setLocalWithTax(!checked)
         onWithTaxChange?.(!checked)
@@ -1000,7 +1023,7 @@ export function ShockWorkforceTableV2({
         <div className="border rounded bg-gray-50 p-4 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {paintTypeId !== undefined && (
-              <div className="relative">
+              <div className="relative bg-white p-2 rounded-lg border border-grey-200">
                 <Label className="text-xs font-medium mb-2">Type de peinture</Label>
                 <Select 
                   value={paintTypeId ? paintTypeId.toString() : ''} 
@@ -1026,10 +1049,14 @@ export function ShockWorkforceTableV2({
                     </div>
                   </div>
                 )}
+                {/* Debug info */}
+                <div className="text-[10px] text-gray-500 mt-1">
+                  ID actuel: {paintTypeId} | Types disponibles: {paintTypes.length}
+                </div>
               </div>
             )}
             {hourlyRateId !== undefined && (
-              <div className="relative">
+              <div className="relative bg-white p-2 rounded-lg border border-grey-200">
                 <Label className="text-xs font-medium mb-2">Taux horaire</Label>
                 <Select 
                   value={hourlyRateId ? hourlyRateId.toString() : ''} 
@@ -1055,11 +1082,14 @@ export function ShockWorkforceTableV2({
                     </div>
                   </div>
                 )}
+                <div className="text-[10px] text-gray-500 mt-1">
+                  ID actuel: {hourlyRateId} | Taux horaires disponibles: {hourlyRates.length}
+                </div>
               </div>
             )}
             {withTax !== undefined && (
               <div className="h-full">
-                <div className="h-full flex justify-between items-center space-y-2 p-3 bg-white rounded-lg border border-gray-200 w-full relative">
+                <div className={`h-full flex justify-between items-center space-y-2 p-3  rounded-lg border w-full relative ${localWithTax ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
                   {updatingWithTax && (
                     <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg z-10">
                       <div className="flex items-center gap-2">
@@ -1068,27 +1098,28 @@ export function ShockWorkforceTableV2({
                       </div>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 py-1 mt-2">
-                    <Checkbox
-                      checked={localWithTax}
-                      onCheckedChange={(checked) => handleWithTaxChange(checked as boolean)}
-                      disabled={updatingWithTax}
-                      className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                    />
-                    <span className="text-xs text-gray-600">
-                      {localWithTax ? 'Avec TVA (18%)' : 'Sans TVA'}
-                    </span>
+                  <div>
+                    <div className="flex items-center gap-2 py-1 mt-2">
+                      <Checkbox
+                        checked={localWithTax}
+                        onCheckedChange={(checked) => handleWithTaxChange(checked as boolean)}
+                        disabled={updatingWithTax}
+                        className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                      />
+                      <span className="text-xs text-gray-600">
+                        {localWithTax ? 'Avec TVA (18%)' : 'Sans TVA'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 py-1 mt-2">
+                      <div className={`w-3 h-3 rounded-full ${localWithTax ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <Label className="text-xs font-medium text-gray-700">Calcul TVA</Label>
+                    </div>                    
                   </div>
-                  <div className="flex items-center gap-2 py-1 mt-2">
-                    <div className={`w-3 h-3 rounded-full ${localWithTax ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <Label className="text-xs font-medium text-gray-700">Calcul TVA</Label>
-                  </div>
-
                   {localWithTax && (
                     <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
                       ✓ TVA incluse
                     </div>
-                  )}
+                  )}                  
                 </div>
               </div>
             )}
