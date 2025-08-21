@@ -584,10 +584,10 @@ export default function EditReportPage() {
   const [workDuration, setWorkDuration] = useState('')
   
   // États pour les données de référence
-  const [generalStates, setGeneralStates] = useState([])
-  const [claimNatures, setClaimNatures] = useState([])
-  const [technicalConclusions, setTechnicalConclusions] = useState([])
-  const [remarks, setRemarks] = useState([])
+  const [generalStates, setGeneralStates] = useState<any[]>([])
+  const [claimNatures, setClaimNatures] = useState<any[]>([])
+  const [technicalConclusions, setTechnicalConclusions] = useState<any[]>([])
+  const [remarks, setRemarks] = useState<Array<{id: number, label: string, description: string}>>([])
   
   // États pour les données de référence
   const [supplies, setSupplies] = useState<Supply[]>([])
@@ -1037,6 +1037,23 @@ export default function EditReportPage() {
   // Fonction pour déterminer si c'est une évaluation
   const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
   
+  // Fonction pour gérer le changement de la note d'expert
+  const handleRemarkChange = (value: number | null) => {
+    setSelectedRemarkId(value)
+    
+    // Quand une remarque est sélectionnée, pré-remplir le champ expert_remark
+    if (value) {
+      const selectedRemark = remarks.find(remark => remark.id === value)
+      if (selectedRemark) {
+        setExpertRemark(selectedRemark.description)
+        toast.success(`Remarque "${selectedRemark.label}" chargée`)
+      }
+    } else {
+      // Si aucune remarque n'est sélectionnée, vider le champ
+      setExpertRemark('')
+    }
+  }
+
   // Fonction pour initialiser tous les champs avec les données de l'assignation
   const initializeFields = (assignmentData: Assignment) => {
     // Champs de base
@@ -2470,11 +2487,9 @@ export default function EditReportPage() {
                         <CardTitle>Informations complémentaires</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        {/* {!isEvaluation ? (
-                          // Champs pour les dossiers NON-évaluation
-                          <> */}
+                        
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                           <div className="space-y-2">
+                              <div className="space-y-2">
                                <Label htmlFor="general-state">État général *</Label>
                                <GeneralStateSelect
                                  value={generalStateId || 0}
@@ -2484,7 +2499,7 @@ export default function EditReportPage() {
                                />
                              </div>
 
-                                                             <div className="space-y-2">
+                                <div className="space-y-2">
                                  <Label htmlFor="technical-conclusion">Conclusion technique *</Label>
                                  <TechnicalConclusionSelect
                                    value={technicalConclusionId || 0}
@@ -2494,7 +2509,7 @@ export default function EditReportPage() {
                                  />
                                </div>
 
-                                                             <div className="space-y-2">
+                                <div className="space-y-2">
                                  <Label htmlFor="claim-nature">Nature du sinistre *</Label>
                                  <ClaimNatureSelect
                                    value={claimNatureId}
@@ -2507,7 +2522,7 @@ export default function EditReportPage() {
                                  <Label htmlFor="remark">Note d'expert *</Label>
                                  <RemarkSelect
                                    value={selectedRemarkId}
-                                   onValueChange={setSelectedRemarkId}
+                                   onValueChange={handleRemarkChange}
                                    placeholder="Sélectionner une note d'expert"
                                  />
                                </div>
