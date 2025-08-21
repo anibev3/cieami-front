@@ -256,26 +256,20 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
       
       // Validation des fichiers
       const validFiles = fileArray.filter(file => {
-        // Vérifier le type MIME
+        // Vérifier seulement le type MIME
         if (!file.type.startsWith('image/')) {
           toast.error(`Fichier ignoré: ${file.name} - Type non supporté`)
           return false
         }
         
-        // Vérifier la taille (max 10MB)
-        const maxSize = 10 * 1024 * 1024 // 10MB
-        if (file.size > maxSize) {
-          toast.error(`Fichier ignoré: ${file.name} - Taille trop importante (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
-          return false
-        }
-        
+        // Accepter n'importe quelle taille
         return true
       })
       
       if (validFiles.length !== fileArray.length) {
         // Afficher un message d'alerte si certains fichiers ont été ignorés
         const ignoredCount = fileArray.length - validFiles.length
-        toast.warning(`${ignoredCount} fichier(s) ignoré(s) - Vérifiez le type et la taille`)
+        toast.warning(`${ignoredCount} fichier(s) ignoré(s) - Vérifiez le type de fichier`)
       }
       
       setUploadData(prev => ({
