@@ -333,6 +333,7 @@ export function ShockWorkforceTableV2({
   const [updatingHourlyRate, setUpdatingHourlyRate] = useState<boolean>(false)
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
   const [tableExpanded, setTableExpanded] = useState(true)
+  const [refreshTimeout, setRefreshTimeout] = useState<NodeJS.Timeout | null>(null)
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -360,11 +361,22 @@ export function ShockWorkforceTableV2({
   // Synchroniser les données locales avec les props externes (paintTypeId, hourlyRateId)
   useEffect(() => {
     if (paintTypeId && hourlyRateId) {
-      setLocalWorkforces(prev => prev.map(workforce => ({
-        ...workforce,
-        paint_type_id: paintTypeId,
-        hourly_rate_id: hourlyRateId
-      })))
+      setLocalWorkforces(prev => {
+        // Éviter la boucle infinie en vérifiant si les données ont vraiment changé
+        const needsUpdate = prev.some(workforce => 
+          workforce.paint_type_id !== paintTypeId || workforce.hourly_rate_id !== hourlyRateId
+        )
+        
+        if (needsUpdate) {
+          return prev.map(workforce => ({
+            ...workforce,
+            paint_type_id: paintTypeId,
+            hourly_rate_id: hourlyRateId
+          }))
+        }
+        
+        return prev // Retourner la référence existante si pas de changement
+      })
     }
   }, [paintTypeId, hourlyRateId])
 
@@ -393,19 +405,36 @@ export function ShockWorkforceTableV2({
     const loadData = async () => {
       if (!externalWorkforceTypes || !externalHourlyRates || !externalPaintTypes) {
         try {
-          await Promise.all([
-            !externalWorkforceTypes && fetchWorkforceTypes(),
-            !externalHourlyRates && fetchHourlyRates(),
-            !externalPaintTypes && fetchPaintTypes()
-          ].filter(Boolean))
+          // Ajouter un timeout pour éviter le blocage
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          )
+          
+          await Promise.race([
+            Promise.all([
+              !externalWorkforceTypes && fetchWorkforceTypes(),
+              !externalHourlyRates && fetchHourlyRates(),
+              !externalPaintTypes && fetchPaintTypes()
+            ].filter(Boolean)),
+            timeoutPromise
+          ])
         } catch (_error) {
-          toast.error('Erreur lors du chargement des données')
+          toast.error('Erreur lors du chargement des données (timeout)')
         }
       }
     }
 
     loadData()
   }, [fetchWorkforceTypes, fetchHourlyRates, fetchPaintTypes, externalWorkforceTypes, externalHourlyRates, externalPaintTypes])
+
+  // Nettoyer le timeout à la destruction du composant
+  useEffect(() => {
+    return () => {
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout)
+      }
+    }
+  }, [refreshTimeout])
 
   // Fonction pour obtenir l'ID du type de main d'œuvre
   const getWorkforceTypeId = (workforce: Workforce): number => {
@@ -435,6 +464,22 @@ export function ShockWorkforceTableV2({
         discount_total: acc.discount_total + (Number(workforce.discount) || 0),
       }
     }, { hours: 0, ht: 0, tva: 0, ttc: 0, work_fee_total: 0, discount_total: 0 })
+  }
+
+  // Fonction pour rafraîchir les données avec délai pour éviter les appels trop fréquents
+  const delayedRefresh = () => {
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout)
+    }
+    
+    const timeout = setTimeout(() => {
+      if (onAssignmentRefresh) {
+        onAssignmentRefresh()
+      }
+      setRefreshTimeout(null)
+    }, 2000) // Délai de 2 secondes pour éviter les appels trop fréquents
+    
+    setRefreshTimeout(timeout)
   }
 
   // Fonction pour mettre à jour une ligne localement
@@ -695,10 +740,8 @@ export function ShockWorkforceTableV2({
         
         toast.success('Main d\'œuvre créée avec succès')
         
-        // Rafraîchir les données du dossier
-        if (onAssignmentRefresh) {
-          onAssignmentRefresh()
-        }
+        // Rafraîchir les données du dossier avec délai
+        delayedRefresh()
       } catch (error: any) {
         void error // Ignore l'erreur pour le linting
         toast.error('Erreur lors de la création de la main d\'œuvre')
@@ -812,6 +855,13 @@ export function ShockWorkforceTableV2({
         }
       }))
       setLocalWorkforces(updatedWorkforces)
+    } else {
+      // Si le type de peinture n'est pas trouvé, mettre à jour quand même l'ID
+      const updatedWorkforces = localWorkforces.map(workforce => ({
+        ...workforce,
+        paint_type_id: value
+      }))
+      setLocalWorkforces(updatedWorkforces)
     }
     
     // Mettre à jour toutes les workforces existantes via l'API
@@ -819,31 +869,39 @@ export function ShockWorkforceTableV2({
     if (existingWorkforces.length > 0) {
       setUpdatingPaintType(true)
       try {
-        // Mettre à jour chaque workforce individuellement
-        await Promise.all(existingWorkforces.map(async (workforce) => {
-          const updateData = {
-            workforce_type_id: getWorkforceTypeId(workforce).toString(),
-            nb_hours: Number(workforce.nb_hours),
-            discount: Number(workforce.discount),
-            hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
-            paint_type_id: value.toString(),
-            with_tax: localWithTax,
-            all_paint: workforce.all_paint || false
-          }
+        // Limiter le nombre de mises à jour simultanées pour éviter la surcharge
+        const batchSize = 5
+        for (let i = 0; i < existingWorkforces.length; i += batchSize) {
+          const batch = existingWorkforces.slice(i, i + batchSize)
+          await Promise.all(batch.map(async (workforce) => {
+            const updateData = {
+              workforce_type_id: getWorkforceTypeId(workforce).toString(),
+              nb_hours: Number(workforce.nb_hours),
+              discount: Number(workforce.discount),
+              hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
+              paint_type_id: value.toString(),
+              with_tax: localWithTax,
+              all_paint: workforce.all_paint || false
+            }
 
-          await workforceService.updateWorkforce(workforce.id!, updateData)
-        }))
+            await workforceService.updateWorkforce(workforce.id!, updateData)
+          }))
+          
+          // Petite pause entre les lots pour éviter la surcharge
+          if (i + batchSize < existingWorkforces.length) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
+        }
         
         // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
         setModifiedRows(new Set())
         
         toast.success('Type de peinture mis à jour avec succès')
         
-        // Rafraîchir les données du dossier
-        if (onAssignmentRefresh) {
-          onAssignmentRefresh()
-        }
+        // Rafraîchir les données du dossier avec délai
+        delayedRefresh()
       } catch (_error) {
+        // console.error('Erreur lors de la mise à jour du type de peinture:', _error)
         toast.error('Erreur lors de la mise à jour du type de peinture')
       } finally {
         setUpdatingPaintType(false)
@@ -873,6 +931,13 @@ export function ShockWorkforceTableV2({
         }
       }))
       setLocalWorkforces(updatedWorkforces)
+    } else {
+      // Si le taux horaire n'est pas trouvé, mettre à jour quand même l'ID
+      const updatedWorkforces = localWorkforces.map(workforce => ({
+        ...workforce,
+        hourly_rate_id: value
+      }))
+      setLocalWorkforces(updatedWorkforces)
     }
     
     // Mettre à jour toutes les workforces existantes via l'API
@@ -880,30 +945,37 @@ export function ShockWorkforceTableV2({
     if (existingWorkforces.length > 0) {
       setUpdatingHourlyRate(true)
       try {
-        // Mettre à jour chaque workforce individuellement
-        await Promise.all(existingWorkforces.map(async (workforce) => {
-          const updateData = {
-            workforce_type_id: getWorkforceTypeId(workforce).toString(),
-            nb_hours: Number(workforce.nb_hours),
-            discount: Number(workforce.discount),
-            hourly_rate_id: value.toString(),
-            paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
-            with_tax: localWithTax,
-            all_paint: workforce.all_paint || false
-          }
+        // Limiter le nombre de mises à jour simultanées pour éviter la surcharge
+        const batchSize = 5
+        for (let i = 0; i < existingWorkforces.length; i += batchSize) {
+          const batch = existingWorkforces.slice(i, i + batchSize)
+          await Promise.all(batch.map(async (workforce) => {
+            const updateData = {
+              workforce_type_id: getWorkforceTypeId(workforce).toString(),
+              nb_hours: Number(workforce.nb_hours),
+              discount: Number(workforce.discount),
+              hourly_rate_id: value.toString(),
+              paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
+              with_tax: localWithTax,
+              all_paint: workforce.all_paint || false
+            }
 
-          await workforceService.updateWorkforce(workforce.id!, updateData)
-        }))
+            await workforceService.updateWorkforce(workforce.id!, updateData)
+          }))
+          
+          // Petite pause entre les lots pour éviter la surcharge
+          if (i + batchSize < existingWorkforces.length) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
+        }
         
         // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
         setModifiedRows(new Set())
         
         toast.success('Taux horaire mis à jour avec succès')
         
-        // Rafraîchir les données du dossier
-        if (onAssignmentRefresh) {
-          onAssignmentRefresh()
-        }
+        // Rafraîchir les données du dossier avec délai
+        delayedRefresh()
       } catch (_error) {
         toast.error('Erreur lors de la mise à jour du taux horaire')
       } finally {
@@ -922,30 +994,37 @@ export function ShockWorkforceTableV2({
     if (existingWorkforces.length > 0) {
       setUpdatingWithTax(true)
       try {
-        // Mettre à jour chaque workforce individuellement
-        await Promise.all(existingWorkforces.map(async (workforce) => {
-          const updateData = {
-            workforce_type_id: getWorkforceTypeId(workforce).toString(),
-            nb_hours: Number(workforce.nb_hours),
-            discount: Number(workforce.discount),
-            hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
-            paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
-            with_tax: checked,
-            all_paint: workforce.all_paint || false
-          }
+        // Limiter le nombre de mises à jour simultanées pour éviter la surcharge
+        const batchSize = 5
+        for (let i = 0; i < existingWorkforces.length; i += batchSize) {
+          const batch = existingWorkforces.slice(i, i + batchSize)
+          await Promise.all(batch.map(async (workforce) => {
+            const updateData = {
+              workforce_type_id: getWorkforceTypeId(workforce).toString(),
+              nb_hours: Number(workforce.nb_hours),
+              discount: Number(workforce.discount),
+              hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
+              paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
+              with_tax: checked,
+              all_paint: workforce.all_paint || false
+            }
 
-          await workforceService.updateWorkforce(workforce.id!, updateData)
-        }))
+            await workforceService.updateWorkforce(workforce.id!, updateData)
+          }))
+          
+          // Petite pause entre les lots pour éviter la surcharge
+          if (i + batchSize < existingWorkforces.length) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
+        }
         
         // Retirer toutes les lignes des lignes modifiées après mise à jour réussie
         setModifiedRows(new Set())
         
         toast.success('Paramètre TVA mis à jour avec succès')
         
-        // Rafraîchir les données du dossier
-        if (onAssignmentRefresh) {
-          onAssignmentRefresh()
-        }
+        // Rafraîchir les données du dossier avec délai
+        delayedRefresh()
       } catch (_error) {
         toast.error('Erreur lors de la mise à jour du paramètre TVA')
         // Restaurer l'ancienne valeur en cas d'erreur
@@ -958,13 +1037,24 @@ export function ShockWorkforceTableV2({
   }
 
   const totals = calculateTotals(localWorkforces)
-  const isLoading = workforceTypesLoading || hourlyRatesLoading || paintTypesLoading
+  const isLoading = workforceTypesLoading || hourlyRatesLoading || paintTypesLoading || 
+                   paintTypes.length === 0 || hourlyRates.length === 0
 
   // Vérifier si on a des lignes avec workforce_type_id = 1 pour afficher la colonne peinture
   const hasPaintWorkforce = localWorkforces.some(workforce => workforce.workforce_type_id === 1)
 
   return (
     <div className="space-y-4">
+      {/* Indicateur de chargement */}
+      {isLoading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <span className="text-sm text-blue-800">Chargement des données de référence...</span>
+          </div>
+        </div>
+      )}
+      
       {/* Header with actions */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -1018,8 +1108,9 @@ export function ShockWorkforceTableV2({
         </div>
       </div>
 
-      {/* Autres informations - seulement si les props sont fournies */}
-      {(paintTypeId !== undefined || hourlyRateId !== undefined || withTax !== undefined) && (
+      {/* Autres informations - seulement si les props sont fournies et au moins une donnée chargée */}
+      {(paintTypeId !== undefined || hourlyRateId !== undefined || withTax !== undefined) && 
+       (paintTypes.length > 0 || hourlyRates.length > 0) && (
         <div className="border rounded bg-gray-50 p-4 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {paintTypeId !== undefined && (
@@ -1028,17 +1119,24 @@ export function ShockWorkforceTableV2({
                 <Select 
                   value={paintTypeId ? paintTypeId.toString() : ''} 
                   onValueChange={(value) => handlePaintTypeChange(Number(value))}
-                  disabled={updatingPaintType}
+                  disabled={updatingPaintType || paintTypes.length === 0}
                 >
                   <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''} ${updatingPaintType ? 'opacity-50' : ''}`}>
                     <SelectValue placeholder={!paintTypeId ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
                   </SelectTrigger>
                   <SelectContent>
-                    {paintTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
+                    {paintTypes.length > 0 ? (
+                      paintTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.label}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-gray-500">
+                        <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+                        <span className="text-xs">Chargement des types de peinture...</span>
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 {updatingPaintType && (
@@ -1061,17 +1159,24 @@ export function ShockWorkforceTableV2({
                 <Select 
                   value={hourlyRateId ? hourlyRateId.toString() : ''} 
                   onValueChange={(value) => handleHourlyRateChange(Number(value))}
-                  disabled={updatingHourlyRate}
+                  disabled={updatingHourlyRate || hourlyRates.length === 0}
                 >
                   <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''} ${updatingHourlyRate ? 'opacity-50' : ''}`}>
                     <SelectValue placeholder={!hourlyRateId ? "⚠️ Sélectionner un taux" : "Sélectionner..."} />
                   </SelectTrigger>
                   <SelectContent>
-                    {hourlyRates.map((rate) => (
-                      <SelectItem key={rate.id} value={rate.id.toString()}>
-                        {rate.label}
-                      </SelectItem>
-                    ))}
+                    {hourlyRates.length > 0 ? (
+                      hourlyRates.map((rate) => (
+                        <SelectItem key={rate.id} value={rate.id.toString()}>
+                          {rate.label}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-gray-500">
+                        <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+                        <span className="text-xs">Chargement des taux horaires...</span>
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 {updatingHourlyRate && (

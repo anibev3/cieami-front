@@ -3,7 +3,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Package, ChevronsUpDown, Plus, Check, X } from 'lucide-react'
+import { Package, ChevronsUpDown, Plus, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSuppliesStore } from '@/stores/supplies'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -41,24 +41,31 @@ export function SupplySelect({
   const debouncedSearch = useDebounce(searchQuery, 300)
 
   const { supplies: apiSupplies, loading, fetchSupplies } = useSuppliesStore()
+  const [lastSearchQuery, setLastSearchQuery] = useState<string>('')
 
   useEffect(() => {
-    if (debouncedSearch !== undefined) {
-      // Appel API en temps réel avec le paramètre search
-      void fetchSupplies({ search: debouncedSearch, per_page: 50 })
+    if (debouncedSearch !== undefined && debouncedSearch.trim() !== '') {
+      // Éviter les appels API en double pour la même recherche
+      if (lastSearchQuery !== debouncedSearch.trim()) {
+        setLastSearchQuery(debouncedSearch.trim())
+        // Appel API en temps réel avec le paramètre search
+        // Limiter le nombre de résultats pour éviter la surcharge
+        void fetchSupplies({ search: debouncedSearch.trim(), per_page: 25 })
+      }
     }
-  }, [debouncedSearch, fetchSupplies])
+  }, [debouncedSearch, fetchSupplies, lastSearchQuery])
 
   // Réinitialiser la recherche à la fermeture
   useEffect(() => {
     if (!open) {
       setSearchQuery('')
+      setLastSearchQuery('')
     }
   }, [open])
 
   const selectedSupply = supplies.find(supply => supply.id === value)
   const hasValue = value > 0
-  const displaySupplies = searchQuery ? apiSupplies : supplies
+  const displaySupplies = searchQuery && searchQuery.trim() !== '' ? apiSupplies : supplies
 
   return (
     <div className="space-y-3">

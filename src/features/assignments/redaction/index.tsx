@@ -782,15 +782,19 @@ export default function EditReportPage() {
         }
 
         // Charger les types de peinture
-        const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}?per_page=100000`)
+        const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}?per_page=100`)
         if (paintTypesResponse.status === 200) {
           setPaintTypes(paintTypesResponse.data.data)
+        } else {
+          console.error('Erreur lors du chargement des types de peinture:', paintTypesResponse.status)
         }
 
         // Charger les taux horaires
-        const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}?per_page=100000`)
+        const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}?per_page=100`)
         if (hourlyRatesResponse.status === 200) {
           setHourlyRates(hourlyRatesResponse.data.data)
+        } else {
+          console.error('Erreur lors du chargement des taux horaires:', hourlyRatesResponse.status)
         }
         
         // Charger les données pour les informations additionnelles
@@ -2196,6 +2200,16 @@ export default function EditReportPage() {
                             
                             {/* Section Main d'œuvre */}
                             <div>
+                              {/* Vérifier que les données de référence sont chargées */}
+                              {/* Debug: Afficher l'état des données */}
+                              {/* <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+                                <div>Debug - paintTypes: {paintTypes.length} | hourlyRates: {hourlyRates.length}</div>
+                                <div>shock.paint_type.id: {shock?.paint_type?.id || 'undefined'}</div>
+                                <div>shock.hourly_rate.id: {shock?.hourly_rate?.id || 'undefined'}</div>
+                              </div> */}
+                              
+                              {/* Permettre l'affichage même si les données ne sont pas complètement chargées */}
+                              {/* Le composant peut s'afficher avec des données partielles */}
                               <ShockWorkforceTableV2
                                 shockId={shock?.id}
                                 workforces={(shock.workforces || []).filter(w => w.id !== undefined).map((w: any) => ({
@@ -2215,8 +2229,8 @@ export default function EditReportPage() {
                                   paint_type_id: shock?.paint_type?.id,
                                   hourly_rate_id: shock?.hourly_rate?.id
                                 }))}
-                                paintTypes={paintTypes}
-                                hourlyRates={hourlyRates}
+                                paintTypes={paintTypes || []}
+                                hourlyRates={hourlyRates || []}
                                 onUpdate={(updatedWorkforces) => {
                                   // Mettre à jour les données locales
                                   const updatedAssignment = { ...assignment }

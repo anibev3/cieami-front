@@ -489,8 +489,15 @@ export function ShockSuppliesEditTable({
           ]
         }
         
-        // Appel API direct
-        await axiosInstance.post(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}`, payload)
+        // Appel API direct avec timeout
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 15000)
+        )
+        
+        await Promise.race([
+          axiosInstance.post(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}`, payload),
+          timeoutPromise
+        ])
         
         toast.success('Fourniture créée avec succès')
         
@@ -516,8 +523,11 @@ export function ShockSuppliesEditTable({
         return newSet
       })
     } catch (error: any) {
-      void error // Ignore l'erreur pour le linting
-      toast.error(newRows.has(index) ? 'Erreur lors de la création de la fourniture' : 'Erreur lors de la mise à jour')
+      if (error.message === 'Timeout') {
+        toast.error('Délai d\'attente dépassé. Le dossier contient beaucoup de données.')
+      } else {
+        toast.error(newRows.has(index) ? 'Erreur lors de la création de la fourniture' : 'Erreur lors de la mise à jour')
+      }
     } finally {
       setValidatingRows(prev => {
         const newSet = new Set(prev)
