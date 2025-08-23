@@ -23,7 +23,7 @@ class EntityService {
       params.append('status', filters.status)
     }
     if (filters?.entity_type) {
-      params.append('entity_type', filters.entity_type)
+      params.append('entity_type_id', filters.entity_type)
     }
     if (filters?.page) {
       params.append('page', filters.page.toString())

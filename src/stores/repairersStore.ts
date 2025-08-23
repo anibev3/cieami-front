@@ -19,7 +19,7 @@ export const useRepairersStore = create<RepairersState>((set) => ({
   fetchRepairers: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await entityService.getAll({ ...filters, entity_type: 'repairer' })
+      const response = await entityService.getAll({ ...filters, entity_type: '4' })
       set({ repairers: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des réparateurs'

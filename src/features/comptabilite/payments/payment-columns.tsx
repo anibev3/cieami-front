@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Edit, Trash2, MoreHorizontal, Eye, EyeOff, Calendar } from 'lucide-react'
+import { Trash2, MoreHorizontal, Eye, EyeOff, Calendar } from 'lucide-react'
 import { formatCurrency } from '@/utils/format-currency'
 import { formatDate } from '@/utils/format-date'
 
 interface PaymentColumnsProps {
-  onEdit: (payment: Payment) => void
   onDelete: (id: number) => void
+  onView: (payment: Payment) => void
 }
 
-export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps): ColumnDef<Payment>[] => [
+export const createPaymentColumns = ({ onDelete, onView }: PaymentColumnsProps): ColumnDef<Payment>[] => [
   {
     accessorKey: 'reference',
     header: ({ column }) => {
@@ -195,6 +195,10 @@ export const createPaymentColumns = ({ onEdit, onDelete }: PaymentColumnsProps):
             </Button>
           </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onView(payment)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Voir
+              </DropdownMenuItem>
               {/* <DropdownMenuItem onClick={() => onEdit(payment)}>
               <Edit className="mr-2 h-4 w-4" />
               Modifier

@@ -39,7 +39,11 @@ import {
   ChevronDown,
   MoreHorizontal,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react'
 import { useInvoiceStore } from '@/stores/invoiceStore'
 import { formatDate } from '@/utils/format-date'
@@ -55,6 +59,7 @@ export default function InvoicesPage() {
   const { 
     invoices, 
     loading, 
+    pagination,
     fetchInvoices, 
     deleteInvoice,
     cancelInvoice,
@@ -85,9 +90,17 @@ export default function InvoicesPage() {
     direction: 'desc'
   })
 
+  // Pagination state - using store data directly
+  // Remove local pagination state to prevent infinite loops
+  // const [currentPage, setCurrentPage] = useState(1)
+  // const [perPage, setPerPage] = useState(20)
+
   useEffect(() => {
-    fetchInvoices()
-  }, [fetchInvoices])
+    // Only fetch on component mount, not on pagination changes
+    fetchInvoicesWithPagination()
+  }, []) // Empty dependency array
+
+  // Remove the problematic sync useEffect that causes infinite loop
 
   // Ajuster la visibilité des colonnes selon l'état mobile
   useEffect(() => {
@@ -108,16 +121,32 @@ export default function InvoicesPage() {
     }
   }, [isMobile])
 
-  const handleSearch = () => {
-    const searchFilters = {
-      search: searchTerm,
-      date_from: filters.date_from,
-      date_to: filters.date_to,
-      status: filters.status === 'all' ? '' : filters.status,
-      amount_min: filters.amount_min,
-      amount_max: filters.amount_max
+  const fetchInvoicesWithPagination = async (searchFilters?: Record<string, unknown>) => {
+    try {
+      // Base filters
+      const baseFilters = {
+        search: searchTerm,
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+        status: filters.status === 'all' ? '' : filters.status,
+        amount_min: filters.amount_min,
+        amount_max: filters.amount_max,
+        page: pagination.current_page,
+        per_page: pagination.per_page
+      }
+      
+      // Merge with any additional filters (like pagination changes)
+      const apiFilters = { ...baseFilters, ...searchFilters }
+      
+      await fetchInvoices(apiFilters)
+    } catch (_error) {
+      // Error handled by store
     }
-    fetchInvoices(searchFilters)
+  }
+
+  const handleSearch = () => {
+    // Reset to first page on search
+    fetchInvoicesWithPagination({ page: 1 })
   }
 
   const handleClearFilters = () => {
@@ -129,7 +158,8 @@ export default function InvoicesPage() {
       amount_min: '',
       amount_max: ''
     })
-    fetchInvoices()
+    // Reset to first page
+    fetchInvoicesWithPagination({ page: 1 })
   }
 
   const hasActiveFilters = searchTerm || filters.date_from || filters.date_to || (filters.status && filters.status !== 'all') || filters.amount_min || filters.amount_max
@@ -138,6 +168,8 @@ export default function InvoicesPage() {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
       try {
         await deleteInvoice(id)
+        // Refresh current page after deletion
+        fetchInvoicesWithPagination()
       } catch (_error) {
         // L'erreur est déjà gérée dans le store
       }
@@ -159,6 +191,18 @@ export default function InvoicesPage() {
     }))
   }
 
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    fetchInvoicesWithPagination({ page })
+  }
+
+  const handlePerPageChange = (newPerPage: number) => {
+    fetchInvoicesWithPagination({ per_page: newPerPage, page: 1 })
+  }
+
+  const handleRefresh = () => {
+    fetchInvoicesWithPagination()
+  }
 
   const getStatusColor = (statusCode: string) => {
     switch (statusCode) {
@@ -197,7 +241,7 @@ export default function InvoicesPage() {
     const message = await cancelInvoice(id)
     if (message.toLowerCase().includes('succès') || message.toLowerCase().includes('success')) {
       toast.success(message)
-      fetchInvoices()
+      fetchInvoicesWithPagination()
     } else {
       toast.error(message)
     }
@@ -207,10 +251,28 @@ export default function InvoicesPage() {
     const message = await generateInvoice(id)
     if (message.toLowerCase().includes('succès') || message.toLowerCase().includes('success')) {
       toast.success(message)
-      fetchInvoices()
+      fetchInvoicesWithPagination()
     } else {
       toast.error(message)
     }
+  }
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = []
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, pagination.current_page - Math.floor(maxVisiblePages / 2))
+    const endPage = Math.min(pagination.last_page, startPage + maxVisiblePages - 1)
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+    
+    return pages
   }
 
   return (
@@ -220,7 +282,7 @@ export default function InvoicesPage() {
         <div>
           <h1 className="text-xl font-bold tracking-tight">Factures</h1>
           <p className="text-muted-foreground">
-            Gérez les factures de vos <span className="font-bold">{invoices.length} dossier{invoices.length > 1 ? 's' : ''}</span>
+            Gérez les factures de vos <span className="font-bold">{pagination.total} dossier{pagination.total > 1 ? 's' : ''}</span>
           </p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -256,7 +318,7 @@ export default function InvoicesPage() {
           <Button onClick={handleSearch} variant="outline" className="flex-1 sm:flex-none">
             {isMobile ? "Rechercher" : "Rechercher"}
           </Button>
-          <Button onClick={() => fetchInvoices()} variant="outline" size="icon">
+          <Button onClick={handleRefresh} variant="outline" size="icon">
             <RefreshCw className="h-4 w-4" />
           </Button>
           {hasActiveFilters && (
@@ -504,10 +566,11 @@ export default function InvoicesPage() {
                                 Voir les détails
                               </DropdownMenuItem>
                               {/* {canEdit && (
-                                <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Modifier
-                                </DropdownMenuItem>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => navigate({ to: `/comptabilite/invoices/${Number(invoice.id)}/edit` })}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Modifier
+                                  </DropdownMenuItem>
                               )} */}
                               {canCancel && (
                                 <DropdownMenuItem onClick={() => handleCancel(Number(invoice.id))}>
@@ -543,6 +606,87 @@ export default function InvoicesPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && pagination.last_page > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>
+              Affichage de {((pagination.current_page - 1) * pagination.per_page) + 1} à {Math.min(pagination.current_page * pagination.per_page, pagination.total)} sur {pagination.total} factures
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* Items per page selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Par page:</span>
+              <Select value={pagination.per_page.toString()} onValueChange={(value) => handlePerPageChange(Number(value))}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Pagination buttons */}
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(1)}
+                disabled={pagination.current_page === 1}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.current_page - 1)}
+                disabled={pagination.current_page === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              {/* Page numbers */}
+              {getPageNumbers().map((page) => (
+                <Button
+                  key={page}
+                  variant={pagination.current_page === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(page)}
+                  className="w-8 h-8 p-0"
+                >
+                  {page}
+                </Button>
+              ))}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.current_page + 1)}
+                disabled={pagination.current_page === pagination.last_page}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.last_page)}
+                disabled={pagination.current_page === pagination.last_page}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de filtres avancés */}
       <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
@@ -609,7 +753,7 @@ export default function InvoicesPage() {
                 <Input
                   type="number"
                   placeholder="∞"
-                  value={filters.amount_max}
+                  value={filters.amount_min}
                   onChange={(e) => setFilters(prev => ({ ...prev, amount_max: e.target.value }))}
                 />
               </div>

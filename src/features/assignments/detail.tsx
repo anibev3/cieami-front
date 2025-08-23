@@ -2333,24 +2333,24 @@ export default function AssignmentDetailPage() {
         //     variant: 'outline' as const
         //   }
         // )
-        actions.push(
-          {
-            key: 'edit-realization',
-            label: 'Modifier la réalisation',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-        )
-        actions.push(
-          {
-            key: 'edit-report',
-            label: 'Modifier la rédaction',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-        )
+        // actions.push(
+        //   {
+        //     key: 'edit-realization',
+        //     label: 'Modifier la réalisation',
+        //     icon: Edit,
+        //     onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+        //     variant: 'outline' as const
+        //   },
+        // )
+        // actions.push(
+        //   {
+        //     key: 'edit-report',
+        //     label: 'Modifier la rédaction',
+        //     icon: Edit,
+        //     onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+        //     variant: 'outline' as const
+        //   },
+        // )
         break
 
       case 'cancelled':
@@ -2373,7 +2373,7 @@ export default function AssignmentDetailPage() {
       
     // )
 
-    if (assignment.status.code != 'validated') {
+    if (assignment.status.code != 'validated' && assignment.status.code != 'cancelled' && assignment.status.code != 'closed' && assignment.status.code != 'paid') {
       actions.push(
             {
             key: 'edit',
@@ -2525,14 +2525,17 @@ export default function AssignmentDetailPage() {
               <Card className={`bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none py-2 ${assignment.status.code === 'validated' ? 'bg-green-50' : ''}`}>
                 <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 items-center px-3 sm:px-6">
                   {/* Si l'un des statuts est "done", afficher seulement "Validé" */}
-                    {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
-                      <div className="flex items-center">
+                  {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
+                    <div className="flex items-center">
                         <div className="bg-gradient-to-r text-white px-4 sm:px-6 border-2 border-green-500 rounded-lg">
                           <div className="flex items-center gap-2 text-green-500">
                             <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                             <span className="font-bold text-base sm:text-lg">Validé</span>
                           </div>
-                        </div>
+                      </div>
+                      <Badge className={getStatusColor(assignment.status.code) + ' bg-green-50 text-green-500 border-green-500'}>
+                        {assignment.status.label}
+                      </Badge>
                       {/* {assignment.validated_at && (
                         <span className="text-xs text-green-700 font-medium mt-2">
                           {formatDate(assignment.validated_at)}

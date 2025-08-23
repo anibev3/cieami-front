@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -7,7 +7,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
@@ -28,8 +27,9 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
+import { Card, CardContent } from '@/components/ui/card'
 import { Settings2, ChevronDown, Search, RefreshCw } from 'lucide-react'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface PaymentDataTableProps {
   data: Payment[]
@@ -37,6 +37,8 @@ interface PaymentDataTableProps {
   onEdit: (payment: Payment) => void
   onDelete: (id: number) => void
   onRefresh?: () => void
+  loading?: boolean
+  onSearch?: (searchQuery: string) => void
 }
 
 export function PaymentDataTable({
@@ -44,13 +46,25 @@ export function PaymentDataTable({
   columns,
   onEdit: _onEdit,
   onDelete: _onDelete,
-  onRefresh
+  onRefresh,
+  loading,
+  onSearch
 }: PaymentDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  // Debounce la recherche pour éviter trop d'appels API
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
+
+  // Effect pour déclencher la recherche quand la requête debounced change
+  useEffect(() => {
+    if (onSearch && debouncedSearchQuery !== undefined) {
+      onSearch(debouncedSearchQuery)
+    }
+  }, [debouncedSearchQuery, onSearch])
 
   const table = useReactTable({
     data,
@@ -58,19 +72,15 @@ export function PaymentDataTable({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: 'includesString',
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
     },
   })
 
@@ -83,6 +93,18 @@ export function PaymentDataTable({
 
     return { total, totalAmount, active, pending }
   }, [data])
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setSearchQuery(value)
+  }
+
+  const handleClearSearch = () => {
+    setSearchQuery('')
+    if (onSearch) {
+      onSearch('')
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -113,30 +135,6 @@ export function PaymentDataTable({
             </div>
           </div>
         </div>
-        
-        <div className="rounded-lg border bg-card p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Validés</p>
-              <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-            </div>
-            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-green-600 text-sm font-bold">✓</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="rounded-lg border bg-card p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">En attente</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.pending}</p>
-            </div>
-            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <span className="text-orange-600 text-sm font-bold">⏳</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Barre d'outils */}
@@ -146,10 +144,21 @@ export function PaymentDataTable({
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Rechercher un paiement..."
-              value={globalFilter ?? ''}
-              onChange={(event) => setGlobalFilter(event.target.value)}
+              value={searchQuery}
+              onChange={handleSearchChange}
               className="pl-8 w-[300px]"
             />
+            {searchQuery && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1 h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                onClick={handleClearSearch}
+              >
+                ×
+              </Button>
+            )}
           </div>
           {onRefresh && (
             <Button
@@ -202,6 +211,18 @@ export function PaymentDataTable({
         </DropdownMenu>
       </div>
 
+      {/* État de chargement */}
+      {loading && (
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              Chargement des paiements...
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Table */}
       <div className="rounded-md border">
         <Table>
@@ -249,10 +270,10 @@ export function PaymentDataTable({
                 >
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <div className="text-muted-foreground">
-                      Aucun paiement trouvé
+                      {searchQuery ? 'Aucun paiement trouvé pour cette recherche' : 'Aucun paiement trouvé'}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {globalFilter ? 'Essayez de modifier vos critères de recherche' : 'Commencez par créer un nouveau paiement'}
+                      {searchQuery ? 'Essayez de modifier vos critères de recherche' : 'Commencez par créer un nouveau paiement'}
                     </div>
                   </div>
                 </TableCell>
@@ -260,58 +281,6 @@ export function PaymentDataTable({
             )}
           </TableBody>
         </Table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} sur{' '}
-          {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s).
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Précédent
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Suivant
-          </Button>
-        </div>
-      </div>
-
-      {/* Informations de pagination */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Lignes par page</p>
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value))
-              }}
-              className="h-8 w-[70px] rounded border border-input bg-background px-3 py-1 text-sm"
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1} sur{' '}
-          {table.getPageCount()}
-        </div>
       </div>
     </div>
   )

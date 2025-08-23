@@ -108,6 +108,7 @@ import { Route as AuthenticatedComptabiliteReportsTreasuryImport } from './route
 import { Route as AuthenticatedComptabiliteReportsPaymentsImport } from './routes/_authenticated/comptabilite/reports/payments'
 import { Route as AuthenticatedComptabiliteReportsChecksImport } from './routes/_authenticated/comptabilite/reports/checks'
 import { Route as AuthenticatedComptabilitePaymentCreateImport } from './routes/_authenticated/comptabilite/payment/create'
+import { Route as AuthenticatedComptabilitePaymentDetailIdImport } from './routes/_authenticated/comptabilite/payment-detail.$id'
 import { Route as AuthenticatedComptabiliteInvoicesCreateImport } from './routes/_authenticated/comptabilite/invoices/create'
 import { Route as AuthenticatedComptabiliteCheckCreateImport } from './routes/_authenticated/comptabilite/check/create'
 import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
@@ -786,6 +787,13 @@ const AuthenticatedComptabilitePaymentCreateRoute =
   AuthenticatedComptabilitePaymentCreateImport.update({
     id: '/payment/create',
     path: '/payment/create',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabilitePaymentDetailIdRoute =
+  AuthenticatedComptabilitePaymentDetailIdImport.update({
+    id: '/payment-detail/$id',
+    path: '/payment-detail/$id',
     getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
   } as any)
 
@@ -1584,6 +1592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedComptabiliteInvoicesCreateImport
       parentRoute: typeof AuthenticatedComptabiliteRouteImport
     }
+    '/_authenticated/comptabilite/payment-detail/$id': {
+      id: '/_authenticated/comptabilite/payment-detail/$id'
+      path: '/payment-detail/$id'
+      fullPath: '/comptabilite/payment-detail/$id'
+      preLoaderRoute: typeof AuthenticatedComptabilitePaymentDetailIdImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
     '/_authenticated/comptabilite/payment/create': {
       id: '/_authenticated/comptabilite/payment/create'
       path: '/payment/create'
@@ -1752,6 +1767,7 @@ interface AuthenticatedComptabiliteRouteRouteChildren {
   AuthenticatedComptabiliteIndexRoute: typeof AuthenticatedComptabiliteIndexRoute
   AuthenticatedComptabiliteCheckCreateRoute: typeof AuthenticatedComptabiliteCheckCreateRoute
   AuthenticatedComptabiliteInvoicesCreateRoute: typeof AuthenticatedComptabiliteInvoicesCreateRoute
+  AuthenticatedComptabilitePaymentDetailIdRoute: typeof AuthenticatedComptabilitePaymentDetailIdRoute
   AuthenticatedComptabilitePaymentCreateRoute: typeof AuthenticatedComptabilitePaymentCreateRoute
   AuthenticatedComptabiliteReportsChecksRoute: typeof AuthenticatedComptabiliteReportsChecksRoute
   AuthenticatedComptabiliteReportsPaymentsRoute: typeof AuthenticatedComptabiliteReportsPaymentsRoute
@@ -1778,6 +1794,8 @@ const AuthenticatedComptabiliteRouteRouteChildren: AuthenticatedComptabiliteRout
       AuthenticatedComptabiliteCheckCreateRoute,
     AuthenticatedComptabiliteInvoicesCreateRoute:
       AuthenticatedComptabiliteInvoicesCreateRoute,
+    AuthenticatedComptabilitePaymentDetailIdRoute:
+      AuthenticatedComptabilitePaymentDetailIdRoute,
     AuthenticatedComptabilitePaymentCreateRoute:
       AuthenticatedComptabilitePaymentCreateRoute,
     AuthenticatedComptabiliteReportsChecksRoute:
@@ -2175,6 +2193,7 @@ export interface FileRoutesByFullPath {
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
   '/comptabilite/invoices/create': typeof AuthenticatedComptabiliteInvoicesCreateRoute
+  '/comptabilite/payment-detail/$id': typeof AuthenticatedComptabilitePaymentDetailIdRoute
   '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
   '/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
   '/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
@@ -2289,6 +2308,7 @@ export interface FileRoutesByTo {
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
   '/comptabilite/invoices/create': typeof AuthenticatedComptabiliteInvoicesCreateRoute
+  '/comptabilite/payment-detail/$id': typeof AuthenticatedComptabilitePaymentDetailIdRoute
   '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
   '/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
   '/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
@@ -2409,6 +2429,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/_authenticated/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
   '/_authenticated/comptabilite/invoices/create': typeof AuthenticatedComptabiliteInvoicesCreateRoute
+  '/_authenticated/comptabilite/payment-detail/$id': typeof AuthenticatedComptabilitePaymentDetailIdRoute
   '/_authenticated/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
   '/_authenticated/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
   '/_authenticated/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
@@ -2529,6 +2550,7 @@ export interface FileRouteTypes {
     | '/assignments/realize/$id'
     | '/comptabilite/check/create'
     | '/comptabilite/invoices/create'
+    | '/comptabilite/payment-detail/$id'
     | '/comptabilite/payment/create'
     | '/comptabilite/reports/checks'
     | '/comptabilite/reports/payments'
@@ -2642,6 +2664,7 @@ export interface FileRouteTypes {
     | '/assignments/realize/$id'
     | '/comptabilite/check/create'
     | '/comptabilite/invoices/create'
+    | '/comptabilite/payment-detail/$id'
     | '/comptabilite/payment/create'
     | '/comptabilite/reports/checks'
     | '/comptabilite/reports/payments'
@@ -2760,6 +2783,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments/realize/$id'
     | '/_authenticated/comptabilite/check/create'
     | '/_authenticated/comptabilite/invoices/create'
+    | '/_authenticated/comptabilite/payment-detail/$id'
     | '/_authenticated/comptabilite/payment/create'
     | '/_authenticated/comptabilite/reports/checks'
     | '/_authenticated/comptabilite/reports/payments'
@@ -2938,6 +2962,7 @@ export const routeTree = rootRoute
         "/_authenticated/comptabilite/",
         "/_authenticated/comptabilite/check/create",
         "/_authenticated/comptabilite/invoices/create",
+        "/_authenticated/comptabilite/payment-detail/$id",
         "/_authenticated/comptabilite/payment/create",
         "/_authenticated/comptabilite/reports/checks",
         "/_authenticated/comptabilite/reports/payments",
@@ -3317,6 +3342,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/comptabilite/invoices/create": {
       "filePath": "_authenticated/comptabilite/invoices/create.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/payment-detail/$id": {
+      "filePath": "_authenticated/comptabilite/payment-detail.$id.tsx",
       "parent": "/_authenticated/comptabilite"
     },
     "/_authenticated/comptabilite/payment/create": {

@@ -19,13 +19,15 @@ import {
   RepairerSelect,
   UserSelect,
   StatusSelect,
-  ClaimNatureSelect
+  ClaimNatureSelect,
+  BrokerSelect
 } from '@/features/widgets'
 
 interface AdvancedFilters {
   // Entités
   repairerId?: number | null
   insurerId?: number | null
+  brokerId?: number | null
   
   // Types
   claimNatureId?: number | null
@@ -130,6 +132,15 @@ export function AdvancedFiltersDialog({
                   value={filters.repairerId}
                   onValueChange={(value) => handleFilterChange('repairerId', value)}
                   placeholder="Tous les réparateurs"
+                />
+              </div>
+
+              <div className="space-y-2 w-full">
+                <label className="text-sm font-medium">Courtier</label>
+                <BrokerSelect
+                  value={filters.brokerId}
+                  onValueChange={(value) => handleFilterChange('brokerId', value)}
+                  placeholder="Tous les courtiers"
                 />
               </div>
             </CardContent>

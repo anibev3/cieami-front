@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Search as SearchIcon, FileText, TrendingUp, BarChart3 } from 'lucide-react'
 // import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/utils/format-currency'
-import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
+// import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
 import { StatisticsDataTable } from './components/statistics-data-table'
 import { AdvancedFiltersDialog } from './components/advanced-filters-sheet'
 import { useAssignmentStatisticsStore } from '@/stores/assignmentStatisticsStore'
@@ -20,6 +20,7 @@ import { Search } from '@/components/search'
 interface AdvancedFilters {
   repairerId?: number | null
   insurerId?: number | null
+  brokerId?: number | null
   claimNatureId?: number | null
   statusId?: number | null
   createdById?: number | null
@@ -38,6 +39,7 @@ export default function AssignmentStatisticsPage() {
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
     repairerId: null,
     insurerId: null,
+    brokerId: null,
     claimNatureId: null,
     statusId: null,
     createdById: null,
@@ -75,6 +77,9 @@ export default function AssignmentStatisticsPage() {
     }
     if (advancedFilters.insurerId) {
       allFilters.insurer_id = advancedFilters.insurerId
+    }
+    if (advancedFilters.brokerId) {
+      allFilters.broker_id = advancedFilters.brokerId
     }
     if (advancedFilters.claimNatureId) {
       allFilters.claim_nature_id = advancedFilters.claimNatureId
@@ -127,6 +132,7 @@ export default function AssignmentStatisticsPage() {
     setAdvancedFilters({
       repairerId: null,
       insurerId: null,
+      brokerId: null,
       claimNatureId: null,
       statusId: null,
       createdById: null,
@@ -226,14 +232,14 @@ export default function AssignmentStatisticsPage() {
                 </div>
 
                 {/* Dossier spécifique */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-sm font-medium">Dossier spécifique</label>
                   <AssignmentSelect
                     value={selectedAssignmentId}
                     onValueChange={setSelectedAssignmentId}
                     placeholder="Tous les dossiers"
                   />
-                </div>
+                </div> */}
 
                 {/* Bouton de recherche */}
                 <div className="space-y-2">
