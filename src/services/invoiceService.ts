@@ -33,6 +33,12 @@ class InvoiceService {
     if (filters?.assignment_reference) {
       params.append('assignment_reference', filters.assignment_reference)
     }
+    if (filters?.amount_min) {
+      params.append('amount_min', filters.amount_min)
+    }
+    if (filters?.amount_max) {
+      params.append('amount_max', filters.amount_max)
+    }
     if (filters?.page) {
       params.append('page', filters.page.toString())
     }

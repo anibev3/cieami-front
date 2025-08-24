@@ -664,14 +664,15 @@ export interface AssignmentUpdate {
 export interface AssignmentFilters {
   search?: string
   status_code?: string
-  client_id?: string
-  expert_id?: string
-  assignment_type_id?: string
+  client_id?: number
+  expert_id?: number
+  assignment_type_id?: number
   date_from?: string
   date_to?: string
-  is_selected?: boolean
+  start_date?: string
+  end_date?: string
   per_page?: number
-  herself_per_page?: number
+  is_selected?: boolean
 }
 
 export interface AssignmentApiResponse {

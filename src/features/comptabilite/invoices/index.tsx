@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
-
+import { Separator } from '@/components/ui/separator'
+import { DateRangePicker } from '@/components/ui/range-calendar/date-range-picker'
+import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Table,
@@ -30,7 +32,6 @@ import {
   Eye, 
   Trash2, 
   Download,
-
   FileText,
   User,
   Loader2,
@@ -75,6 +76,11 @@ export default function InvoicesPage() {
     amount_max: ''
   })
   const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [selectedAssignment, setSelectedAssignment] = useState<string>('')
+  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>({
+    from: null,
+    to: null
+  })
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     reference: true,
     assignment: !isMobile,
@@ -126,8 +132,9 @@ export default function InvoicesPage() {
       // Base filters
       const baseFilters = {
         search: searchTerm,
-        date_from: filters.date_from,
-        date_to: filters.date_to,
+        assignment_reference: selectedAssignment,
+        date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+        date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined,
         status: filters.status === 'all' ? '' : filters.status,
         amount_min: filters.amount_min,
         amount_max: filters.amount_max,
@@ -158,11 +165,48 @@ export default function InvoicesPage() {
       amount_min: '',
       amount_max: ''
     })
+    setSelectedAssignment('')
+    setDateRange({ from: null, to: null })
     // Reset to first page
     fetchInvoicesWithPagination({ page: 1 })
   }
 
-  const hasActiveFilters = searchTerm || filters.date_from || filters.date_to || (filters.status && filters.status !== 'all') || filters.amount_min || filters.amount_max
+  const handleAssignmentChange = (assignmentId: string) => {
+    setSelectedAssignment(assignmentId)
+    // Recharger les données avec le nouveau filtre
+    const filterParams = {
+      search: searchTerm,
+      assignment_reference: assignmentId || undefined,
+      date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined,
+      status: filters.status === 'all' ? '' : filters.status,
+      amount_min: filters.amount_min,
+      amount_max: filters.amount_max,
+      page: 1
+    }
+    fetchInvoicesWithPagination(filterParams)
+  }
+
+  const handleDateRangeChange = (values: { range: { from: Date; to: Date | undefined }; rangeCompare?: { from: Date; to: Date | undefined } }) => {
+    setDateRange({
+      from: values.range.from,
+      to: values.range.to || null
+    })
+    // Recharger les données avec le nouveau filtre de dates
+    const filterParams = {
+      search: searchTerm,
+      assignment_reference: selectedAssignment || undefined,
+      date_from: values.range.from.toISOString().split('T')[0],
+      date_to: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined,
+      status: filters.status === 'all' ? '' : filters.status,
+      amount_min: filters.amount_min,
+      amount_max: filters.amount_max,
+      page: 1
+    }
+    fetchInvoicesWithPagination(filterParams)
+  }
+
+  const hasActiveFilters = searchTerm || selectedAssignment || dateRange.from || dateRange.to || (filters.status && filters.status !== 'all') || filters.amount_min || filters.amount_max
 
   const handleDelete = async (id: number) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
@@ -291,7 +335,7 @@ export default function InvoicesPage() {
             {!isMobile && "Filtres"}
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
-                {[searchTerm, filters.date_from, filters.date_to, filters.status !== 'all' ? filters.status : '', filters.amount_min, filters.amount_max].filter(Boolean).length}
+                {[searchTerm, selectedAssignment, dateRange.from, dateRange.to, filters.status !== 'all' ? filters.status : '', filters.amount_min, filters.amount_max].filter(Boolean).length}
               </Badge>
             )}
           </Button>
@@ -315,6 +359,7 @@ export default function InvoicesPage() {
           />
         </div>
         <div className="flex gap-2 sm:gap-3">
+
           <Button onClick={handleSearch} variant="outline" className="flex-1 sm:flex-none">
             {isMobile ? "Rechercher" : "Rechercher"}
           </Button>
@@ -326,8 +371,78 @@ export default function InvoicesPage() {
               {isMobile ? "Effacer" : <X className="h-4 w-4" />}
             </Button>
           )}
+                    <DateRangePicker
+            initialDateFrom={dateRange.from || undefined}
+            initialDateTo={dateRange.to || undefined}
+            onUpdate={handleDateRangeChange}
+            showCompare={false}
+            className="w-full"
+          />
         </div>
       </div>
+
+      {/* Affichage des filtres actifs */}
+      {(selectedAssignment || dateRange.from || dateRange.to || (filters.status && filters.status !== 'all') || filters.amount_min || filters.amount_max) && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          <span className="text-sm text-gray-600 dark:text-gray-400">Filtres actifs:</span>
+          {selectedAssignment && (
+            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+              📁 Dossier sélectionné
+              <button
+                onClick={() => setSelectedAssignment('')}
+                className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {dateRange.from && (
+            <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+              📅 {dateRange.from.toLocaleDateString('fr-FR')}
+              {dateRange.to && ` - ${dateRange.to.toLocaleDateString('fr-FR')}`}
+              <button
+                onClick={() => setDateRange({ from: null, to: null })}
+                className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {filters.status && filters.status !== 'all' && (
+            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+              🏷️ Statut: {filters.status}
+              <button
+                onClick={() => setFilters(prev => ({ ...prev, status: 'all' }))}
+                className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {filters.amount_min && (
+            <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
+              💰 Min: {filters.amount_min}
+              <button
+                onClick={() => setFilters(prev => ({ ...prev, amount_min: '' }))}
+                className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {filters.amount_max && (
+            <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
+              💰 Max: {filters.amount_max}
+              <button
+                onClick={() => setFilters(prev => ({ ...prev, amount_max: '' }))}
+                className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+        </div>
+      )}
 
       {/* DataTable */}
       <div className="rounded-md border bg-card">
@@ -689,76 +804,134 @@ export default function InvoicesPage() {
       )}
 
       {/* Modal de filtres avancés */}
-      <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
-        <DialogContent className={isMobile ? "w-[95vw] max-w-none mx-4" : "max-w-md"}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtres avancés
-            </DialogTitle>
-            <DialogDescription>
-              Affinez votre recherche de factures avec des critères précis
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Date de début</Label>
-              <Input
-                type="date"
-                value={filters.date_from || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, date_from: e.target.value }))}
-                className="w-full"
-              />
+      <Sheet open={filterModalOpen} onOpenChange={setFilterModalOpen}>
+        {/* <SheetTrigger asChild>
+          <Button variant="outline" className="text-xs" size={isMobile ? "sm" : "xs"}>
+            <Filter className="mr-2 h-2 w-2 text-xs" />
+            {!isMobile && "Filtres"}
+            {hasActiveFilters && (
+              <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
+                {[searchTerm, selectedAssignment, dateRange.from, dateRange.to, filters.status !== 'all' ? filters.status : '', filters.amount_min, filters.amount_max].filter(Boolean).length}
+              </Badge>
+            )}
+          </Button>
+        </SheetTrigger> */}
+        <SheetContent className="w-full sm:max-w-lg md:max-w-xl">
+          <SheetHeader className="pb-3">
+            <SheetTitle className="text-lg font-bold text-gray-900">Filtres avancés</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-4 py-2 px-6 overflow-y-auto max-h-[calc(100vh-120px)]">
+            {/* Header avec bouton de réinitialisation */}
+            <div className="flex items-center justify-between pb-2 border-b">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Personnalisez vos filtres</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Réinitialiser
+              </Button>
             </div>
-
-            <div className="space-y-2">
-              <Label>Date de fin</Label>
-              <Input
-                type="date"
-                value={filters.date_to || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, date_to: e.target.value }))}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Statut</Label>
-              <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Tous les statuts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="active">Actif</SelectItem>
-                  <SelectItem value="inactive">Inactif</SelectItem>
-                  <SelectItem value="paid">Payé</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-2"}>
-              <div className="space-y-2">
-                <Label>Montant min</Label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={filters.amount_min}
-                  onChange={(e) => setFilters(prev => ({ ...prev, amount_min: e.target.value }))}
-                />
+            
+            {/* Section Dossier */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <Label className="text-sm font-semibold text-gray-900">Dossier</Label>
               </div>
               <div className="space-y-2">
-                <Label>Montant max</Label>
-                <Input
-                  type="number"
-                  placeholder="∞"
-                  value={filters.amount_min}
-                  onChange={(e) => setFilters(prev => ({ ...prev, amount_max: e.target.value }))}
+                <Label className="text-xs font-medium text-gray-700">Sélectionner un dossier</Label>
+                <AssignmentSelect
+                  value={selectedAssignment}
+                  onValueChange={handleAssignmentChange}
+                  placeholder="Sélectionner un dossier..."
                 />
               </div>
             </div>
 
+            <Separator className="my-3" />
+
+            {/* Section Statut */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <Label className="text-sm font-semibold text-gray-900">Statut</Label>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700">Choisir le statut</Label>
+                <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="active">Actif</SelectItem>
+                    <SelectItem value="inactive">Inactif</SelectItem>
+                    <SelectItem value="paid">Payé</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Separator className="my-3" />
+
+            {/* Section Montants */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <Label className="text-sm font-semibold text-gray-900">Montants</Label>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-gray-700">Montant min</Label>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={filters.amount_min}
+                    onChange={(e) => setFilters(prev => ({ ...prev, amount_min: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-gray-700">Montant max</Label>
+                  <Input
+                    type="number"
+                    placeholder="∞"
+                    value={filters.amount_max}
+                    onChange={(e) => setFilters(prev => ({ ...prev, amount_max: e.target.value }))}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator className="my-3" />
+
+            {/* Section Période */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <Label className="text-sm font-semibold text-gray-900">Période</Label>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-gray-600">
+                  Sélectionnez une plage de dates
+                </p>
+                <DateRangePicker
+                  initialDateFrom={dateRange.from || undefined}
+                  initialDateTo={dateRange.to || undefined}
+                  onUpdate={handleDateRangeChange}
+                  showCompare={false}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            {/* Boutons d'action */}
             <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
               <Button variant="outline" onClick={handleClearFilters} className={isMobile ? "w-full" : ""}>
                 Effacer tout
@@ -771,8 +944,8 @@ export default function InvoicesPage() {
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

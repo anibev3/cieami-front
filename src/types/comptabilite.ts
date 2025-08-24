@@ -577,6 +577,8 @@ export interface InvoiceFilters {
   date_to?: string
   status?: string
   assignment_reference?: string
+  amount_min?: string
+  amount_max?: string
   page?: number
   per_page?: number
 } 

@@ -19,17 +19,19 @@ class AssignmentService {
    * Récupérer la liste des assignations avec pagination et filtres
    */
   async getAssignments(page: number = 1, filters?: AssignmentFilters): Promise<AssignmentApiResponse> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      ...(filters?.search && { search: filters.search }),
-      ...(filters?.status_code && { status_code: filters.status_code }),
-      ...(filters?.client_id && { client_id: filters.client_id }),
-      ...(filters?.expert_id && { expert_id: filters.expert_id }),
-      ...(filters?.assignment_type_id && { assignment_type_id: filters.assignment_type_id }),
-      ...(filters?.date_from && { date_from: filters.date_from }),
-      ...(filters?.date_to && { date_to: filters.date_to }),
-      ...(filters?.per_page && { per_page: filters.per_page.toString() }),
-    })
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    
+    if (filters?.search) params.append('search', filters.search)
+    if (filters?.status_code) params.append('status_code', filters.status_code)
+    if (filters?.client_id) params.append('client_id', filters.client_id.toString())
+    if (filters?.expert_id) params.append('expert_id', filters.expert_id.toString())
+    if (filters?.assignment_type_id) params.append('assignment_type_id', filters.assignment_type_id.toString())
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    if (filters?.start_date) params.append('start_date', filters.start_date)
+    if (filters?.end_date) params.append('end_date', filters.end_date)
+    if (filters?.per_page) params.append('per_page', filters.per_page.toString())
 
     const isSelectedParam = filters?.is_selected ? `&per_page=100000` : '';
     const finalUrl = `${API_CONFIG.ENDPOINTS.ASSIGNMENTS}?${params}${isSelectedParam}`;
@@ -42,34 +44,36 @@ class AssignmentService {
   }
 
   async getAssignmentsEditionExpired(page: number = 1, filters?: AssignmentFilters): Promise<AssignmentApiResponse> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      ...(filters?.search && { search: filters.search }),
-      ...(filters?.status_code && { status_code: filters.status_code }),
-      ...(filters?.client_id && { client_id: filters.client_id }),
-      ...(filters?.expert_id && { expert_id: filters.expert_id }),
-      ...(filters?.assignment_type_id && { assignment_type_id: filters.assignment_type_id }),
-      ...(filters?.date_from && { date_from: filters.date_from }),
-      ...(filters?.date_to && { date_to: filters.date_to }),
-    })
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    
+    if (filters?.search) params.append('search', filters.search)
+    if (filters?.status_code) params.append('status_code', filters.status_code)
+    if (filters?.client_id) params.append('client_id', filters.client_id.toString())
+    if (filters?.expert_id) params.append('expert_id', filters.expert_id.toString())
+    if (filters?.assignment_type_id) params.append('assignment_type_id', filters.assignment_type_id.toString())
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    
     const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITION_EXPIRED}?${params}`)
     console.log("================================================");
     console.log(response.data.data)
     console.log("================================================");
-    return response.data.data
+    return response.data
   }
 
   async getAssignmentsRecoveryExpired(page: number = 1, filters?: AssignmentFilters): Promise<AssignmentApiResponse> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      ...(filters?.search && { search: filters.search }),
-      ...(filters?.status_code && { status_code: filters.status_code }),
-      ...(filters?.client_id && { client_id: filters.client_id }),
-      ...(filters?.expert_id && { expert_id: filters.expert_id }),
-      ...(filters?.assignment_type_id && { assignment_type_id: filters.assignment_type_id }),
-      ...(filters?.date_from && { date_from: filters.date_from }),
-      ...(filters?.date_to && { date_to: filters.date_to }),
-    })
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    
+    if (filters?.search) params.append('search', filters.search)
+    if (filters?.status_code) params.append('status_code', filters.status_code)
+    if (filters?.client_id) params.append('client_id', filters.client_id.toString())
+    if (filters?.expert_id) params.append('expert_id', filters.expert_id.toString())
+    if (filters?.assignment_type_id) params.append('assignment_type_id', filters.assignment_type_id.toString())
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    
     const response = await axiosInstance.get<AssignmentApiResponse>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_RECOVERY_EXPIRED}?${params}`)
     return response.data
   }

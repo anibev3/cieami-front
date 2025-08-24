@@ -5,15 +5,20 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
 import { formatCurrency } from '@/utils/format-currency'
 import { Separator } from '@/components/ui/separator'
+import { DateRangePicker } from '@/components/ui/range-calendar/date-range-picker'
+import { ClientSelect } from '@/features/widgets/client-select'
+import { UserSelect } from '@/features/widgets/user-select'
+import { AssignmentTypeSelect } from '@/features/widgets/assignment-type-select'
 import { 
   Search, 
   Filter, 
   X, 
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react'
 import { AssignmentsDataTable } from './components/assignments-data-table'
 import { Pagination } from './components/pagination'
@@ -32,10 +37,13 @@ export default function AssignmentsPage() {
     error,
     searchQuery,
     activeTab,
+    dateRange,
     pagination,
     fetchAssignments,
     setSearchQuery,
     setActiveTab,
+    setDateRange,
+    clearDateRange,
     getFilteredAssignments,
     getStatusCounts,
     clearError,
@@ -47,6 +55,9 @@ export default function AssignmentsPage() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['all'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<number | null>(null)
+  const [selectedExpert, setSelectedExpert] = useState<number | null>(null)
+  const [selectedAssignmentType, setSelectedAssignmentType] = useState<number | null>(null)
 
   // Debounce pour la recherche
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
@@ -137,11 +148,90 @@ export default function AssignmentsPage() {
     setSelectedStatuses(['all'])
     setActiveTab('all')
     setSearchQuery('')
+    clearDateRange()
+    setSelectedClient(null)
+    setSelectedExpert(null)
+    setSelectedAssignmentType(null)
   }
+
+  const handleClientChange = useCallback((clientId: number | null) => {
+    setSelectedClient(clientId)
+    // Recharger les données avec le nouveau filtre
+    const filters = {
+      search: searchQuery,
+      status_code: activeTab !== 'all' ? activeTab : undefined,
+      client_id: clientId || undefined,
+      expert_id: selectedExpert || undefined,
+      assignment_type_id: selectedAssignmentType || undefined,
+      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+    }
+    fetchAssignments(1, filters)
+  }, [searchQuery, activeTab, selectedExpert, selectedAssignmentType, dateRange, fetchAssignments])
+
+  const handleExpertChange = useCallback((expertId: number | null) => {
+    setSelectedExpert(expertId)
+    // Recharger les données avec le nouveau filtre
+    const filters = {
+      search: searchQuery,
+      status_code: activeTab !== 'all' ? activeTab : undefined,
+      client_id: selectedClient || undefined,
+      expert_id: expertId || undefined,
+      assignment_type_id: selectedAssignmentType || undefined,
+      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+    }
+    fetchAssignments(1, filters)
+  }, [searchQuery, activeTab, selectedClient, selectedAssignmentType, dateRange, fetchAssignments])
+
+  const handleAssignmentTypeChange = useCallback((typeId: string) => {
+    setSelectedAssignmentType(typeId ? Number(typeId) : null)
+    // Recharger les données avec le nouveau filtre
+    const filters = {
+      search: searchQuery,
+      status_code: activeTab !== 'all' ? activeTab : undefined,
+      client_id: selectedClient || undefined,
+      expert_id: selectedExpert || undefined,
+      assignment_type_id: typeId ? Number(typeId) : undefined,
+      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+    }
+    fetchAssignments(1, filters)
+  }, [searchQuery, activeTab, selectedClient, selectedExpert, dateRange, fetchAssignments])
+
+  const handleDateRangeChange = useCallback((values: { range: { from: Date; to: Date | undefined }; rangeCompare?: { from: Date; to: Date | undefined } }) => {
+    setDateRange({
+      from: values.range.from,
+      to: values.range.to || null
+    })
+    // Recharger les données avec le nouveau filtre de dates
+    const filters = {
+      search: searchQuery,
+      status_code: activeTab !== 'all' ? activeTab : undefined,
+      start_date: values.range.from.toISOString().split('T')[0],
+      end_date: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined
+    }
+    fetchAssignments(1, filters)
+  }, [setDateRange, searchQuery, activeTab, fetchAssignments])
 
   const handleCreateAssignment = () => {
     navigate({ to: '/assignments/create' })
   }
+
+  const handleRefresh = useCallback(() => {
+    // Recharger les données avec les filtres actuels
+    const filters = {
+      search: searchQuery,
+      status_code: activeTab !== 'all' ? activeTab : undefined,
+      client_id: selectedClient || undefined,
+      expert_id: selectedExpert || undefined,
+      assignment_type_id: selectedAssignmentType || undefined,
+      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+    }
+    fetchAssignments(1, filters)
+    toast.success('Données rafraîchies')
+  }, [searchQuery, activeTab, selectedClient, selectedExpert, selectedAssignmentType, dateRange, fetchAssignments])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -210,77 +300,213 @@ export default function AssignmentsPage() {
                       className="pl-10 h-11 bg-white/50 backdrop-blur-sm border-gray-200/60 focus:border-blue-500/60 focus:ring-blue-500/20"
                     />
                   </div>
+                  <div className="relative flex-1">
+                    <DateRangePicker
+                      initialDateFrom={dateRange.from || undefined}
+                      initialDateTo={dateRange.to || undefined}
+                      onUpdate={handleDateRangeChange}
+                      showCompare={false}
+                      className="w-full"
+                    />
+                  </div>
                   
-                  <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                    <PopoverTrigger asChild>
+                  {/* Bouton de rafraîchissement */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    className="h-11 bg-white/50 backdrop-blur-sm border-gray-200/60 hover:bg-gray-50/80"
+                    title="Rafraîchir les données"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  </Button>
+                  
+                  <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                    <SheetTrigger asChild>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-11 px-4 bg-white/50 backdrop-blur-sm border-gray-200/60 hover:bg-gray-50/80"
+                        className="h-11 bg-white/50 backdrop-blur-sm border-gray-200/60 hover:bg-gray-50/80"
                       >
                         <Filter className="h-4 w-4 mr-2" />
-                        Filtres
                         {selectedStatuses.length > 1 && (
                           <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs bg-blue-100 text-blue-700">
                             {selectedStatuses.length}
                           </Badge>
                         )}
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-4" align="end">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-900">Filtres avancés</h4>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-lg md:max-w-xl">
+                      <SheetHeader className="pb-3">
+                        <SheetTitle className="text-lg font-bold text-gray-900">Filtres avancés</SheetTitle>
+                      </SheetHeader>
+                      <div className="space-y-4 py-2 px-6 overflow-y-auto max-h-[calc(100vh-120px)]">
+                        {/* Header avec bouton de réinitialisation */}
+                        <div className="flex items-center justify-between pb-2 border-b">
+                          <div className="flex items-center gap-2">
+                            <Filter className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">Personnalisez vos filtres</span>
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={clearFilters}
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+                            className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3 mr-1" />
+                            Réinitialiser
                           </Button>
                         </div>
                         
+                        {/* Section Statuts */}
                         <div className="space-y-3">
-                          <Label className="text-sm font-medium text-gray-700">Statuts</Label>
-                          {allStatusTabs.map((tab) => (
-                            <div key={tab.value} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={tab.value}
-                                checked={selectedStatuses.includes(tab.value)}
-                                onCheckedChange={(checked) => 
-                                  handleMultiStatusChange(tab.value, checked as boolean)
-                                }
-                              />
-                              <Label
-                                htmlFor={tab.value}
-                                className="flex items-center gap-2 text-sm cursor-pointer"
-                              >
-                                <span>{getStatusIcon(tab.value)}</span>
-                                <span>{tab.label}</span>
-                              </Label>
-                            </div>
-                          ))}
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Statuts</Label>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {allStatusTabs.map((tab) => (
+                              <div key={tab.value} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={tab.value}
+                                  checked={selectedStatuses.includes(tab.value)}
+                                  onCheckedChange={(checked) => 
+                                    handleMultiStatusChange(tab.value, checked as boolean)
+                                  }
+                                  className="h-4 w-4"
+                                />
+                                <Label
+                                  htmlFor={tab.value}
+                                  className="flex items-center gap-2 text-xs cursor-pointer flex-1"
+                                >
+                                  <span className="text-sm">{getStatusIcon(tab.value)}</span>
+                                  <span className="font-medium truncate">{tab.label}</span>
+                                  <Badge variant="secondary" className="ml-auto text-xs px-1.5 py-0.5">
+                                    {statusCounts[tab.value] || 0}
+                                  </Badge>
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
 
-                        <Separator />
+                        <Separator className="my-3" />
 
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-gray-700">Résumé</Label>
-                          <div className="grid grid-cols-2 gap-3 text-xs">
+                        {/* Section Période */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Période</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Sélectionnez une plage de dates
+                            </p>
+                            <DateRangePicker
+                              initialDateFrom={dateRange.from || undefined}
+                              initialDateTo={dateRange.to || undefined}
+                              onUpdate={handleDateRangeChange}
+                              showCompare={false}
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Participants - Layout en colonnes */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Participants</Label>
+                          </div>
+                          <div className="grid grid-cols-1 gap-3">
                             <div className="space-y-1">
-                              <div className="text-gray-500">Total: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.total_amount || '0') || 0), 0))}</span></div>
-                              <div className="text-gray-500">Choc: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.shock_amount || '0') || 0), 0))}</span></div>
+                              <Label className="text-xs font-medium text-gray-700">Client</Label>
+                              <ClientSelect
+                                value={selectedClient}
+                                onValueChange={handleClientChange}
+                                placeholder="Sélectionner un client..."
+                              />
                             </div>
                             <div className="space-y-1">
-                              <div className="text-gray-500">Autres: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.other_cost_amount || '0') || 0), 0))}</span></div>
-                              <div className="text-gray-500">Quittances: <span className="font-medium text-gray-900">{formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.receipt_amount || '0') || 0), 0))}</span></div>
+                              <Label className="text-xs font-medium text-gray-700">Expert</Label>
+                              <UserSelect
+                                value={selectedExpert}
+                                onValueChange={handleExpertChange}
+                                placeholder="Sélectionner un expert"
+                                filterRole="expert,expert_manager"
+                                showStatus={true}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Type d'assignation */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Type d'assignation</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Choisissez le type d'assignation
+                            </p>
+                            <AssignmentTypeSelect
+                              value={selectedAssignmentType?.toString() || ''}
+                              onValueChange={handleAssignmentTypeChange}
+                              placeholder="Sélectionner un type..."
+                            />
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Résumé - Plus compacte */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Résumé</Label>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div className="space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Total:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.total_amount || '0') || 0), 0))}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Choc:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.shock_amount || '0') || 0), 0))}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Autres:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.other_cost_amount || '0') || 0), 0))}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Quittances:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.receipt_amount || '0') || 0), 0))}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </PopoverContent>
-                  </Popover>
+                    </SheetContent>
+                  </Sheet>
                 </div>
               </div>
 
@@ -317,10 +543,10 @@ export default function AssignmentsPage() {
           </div>
 
           {/* Active Filters Display */}
-          {selectedStatuses.length > 1 && (
+          {(selectedStatuses.length > 1 || dateRange.from || dateRange.to) && (
             <div className="mb-6 flex flex-wrap gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400">Filtres actifs:</span>
-              {selectedStatuses.map((status) => {
+              {selectedStatuses.length > 1 && selectedStatuses.map((status) => {
                 const tab = allStatusTabs.find(t => t.value === status)
                 return (
                   <Badge
@@ -341,6 +567,51 @@ export default function AssignmentsPage() {
                   </Badge>
                 )
               })}
+              {dateRange.from && (
+                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                  📅 {dateRange.from.toLocaleDateString('fr-FR')}
+                  {dateRange.to && ` - ${dateRange.to.toLocaleDateString('fr-FR')}`}
+                  <button
+                    onClick={() => clearDateRange()}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedClient && (
+                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
+                  👤 Client sélectionné
+                  <button
+                    onClick={() => setSelectedClient(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedExpert && (
+                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+                  🔍 Expert sélectionné
+                  <button
+                    onClick={() => setSelectedExpert(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedAssignmentType && (
+                <Badge variant="outline" className="bg-indigo-100 text-indigo-700 border-indigo-300">
+                  📋 Type sélectionné
+                  <button
+                    onClick={() => setSelectedAssignmentType(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
             </div>
           )}
 

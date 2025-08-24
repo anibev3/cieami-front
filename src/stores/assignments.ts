@@ -23,6 +23,10 @@ interface AssignmentsState {
   error: string | null
   searchQuery: string
   activeTab: string
+  dateRange: {
+    from: Date | null
+    to: Date | null
+  }
   pagination: {
     currentPage: number
     totalPages: number
@@ -51,6 +55,8 @@ interface AssignmentsActions {
   // Actions de filtrage
   setSearchQuery: (query: string) => void
   setActiveTab: (tab: string) => void
+  setDateRange: (range: { from: Date | null; to: Date | null }) => void
+  clearDateRange: () => void
   getFilteredAssignments: () => Assignment[]
   getStatusCounts: () => Record<string, number>
   
@@ -127,6 +133,10 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   error: null,
   searchQuery: '',
   activeTab: 'all',
+  dateRange: {
+    from: null,
+    to: null,
+  },
   pagination: {
     currentPage: 1,
     totalPages: 1,
@@ -142,12 +152,18 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     
     try {
       // Construire les filtres à partir de l'état actuel et des filtres passés
+      const currentState = get()
+      const startDate = currentState.dateRange.from ? currentState.dateRange.from.toISOString().split('T')[0] : undefined
+      const endDate = currentState.dateRange.to ? currentState.dateRange.to.toISOString().split('T')[0] : undefined
+      
       const currentFilters: AssignmentFilters = {
         ...filters,
         // Utiliser les filtres passés en priorité, sinon utiliser l'état actuel
-        search: filters?.search !== undefined ? filters.search : get().searchQuery,
-        per_page: filters?.per_page || get().pagination.perPage,
-        status_code: filters?.status_code !== undefined ? filters.status_code : (get().activeTab !== 'all' ? get().activeTab : undefined),
+        search: filters?.search !== undefined ? filters.search : currentState.searchQuery,
+        per_page: filters?.per_page || currentState.pagination.perPage,
+        status_code: filters?.status_code !== undefined ? filters.status_code : (currentState.activeTab !== 'all' ? currentState.activeTab : undefined),
+        start_date: filters?.start_date !== undefined ? filters.start_date : startDate,
+        end_date: filters?.end_date !== undefined ? filters.end_date : endDate,
       }
       
       console.log('Final filters:', currentFilters)
@@ -332,13 +348,36 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   // Actions de filtrage
   setSearchQuery: (query) => {
     set({ searchQuery: query, pagination: { ...get().pagination, currentPage: 1 } })
-    get().fetchAssignments(1, { search: query })
+    const currentState = get()
+    const startDate = currentState.dateRange.from ? currentState.dateRange.from.toISOString().split('T')[0] : undefined
+    const endDate = currentState.dateRange.to ? currentState.dateRange.to.toISOString().split('T')[0] : undefined
+    
+    const filters: AssignmentFilters = { search: query }
+    if (startDate) filters.start_date = startDate
+    if (endDate) filters.end_date = endDate
+    
+    get().fetchAssignments(1, filters)
   },
 
   setActiveTab: (tab) => {
     set({ activeTab: tab, pagination: { ...get().pagination, currentPage: 1 } })
-    const filters = tab !== 'all' ? { status_code: tab } : {}
+    const currentState = get()
+    const startDate = currentState.dateRange.from ? currentState.dateRange.from.toISOString().split('T')[0] : undefined
+    const endDate = currentState.dateRange.to ? currentState.dateRange.to.toISOString().split('T')[0] : undefined
+    
+    const filters: AssignmentFilters = tab !== 'all' ? { status_code: tab } : {}
+    if (startDate) filters.start_date = startDate
+    if (endDate) filters.end_date = endDate
+    
     get().fetchAssignments(1, filters)
+  },
+
+  setDateRange: (range) => {
+    set({ dateRange: range })
+  },
+
+  clearDateRange: () => {
+    set({ dateRange: { from: null, to: null } })
   },
 
   getFilteredAssignments: () => {

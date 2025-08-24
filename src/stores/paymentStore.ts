@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Payment, CreatePaymentData, UpdatePaymentData } from '@/types/comptabilite'
+import { Payment, CreatePaymentData, UpdatePaymentData, PaymentFilters } from '@/types/comptabilite'
 import { paymentService } from '@/services/paymentService'
 import { toast } from 'sonner'
 
@@ -19,7 +19,7 @@ interface PaymentState {
   hasPrevPage: boolean
   
   // Actions
-  fetchPayments: (page?: number, perPage?: number, search?: string) => Promise<void>
+  fetchPayments: (page?: number, perPage?: number, search?: string, filters?: PaymentFilters) => Promise<void>
   fetchPaymentById: (id: number) => Promise<Payment | null>
   createPayment: (data: CreatePaymentData) => Promise<Payment>
   updatePayment: (id: number, data: UpdatePaymentData) => Promise<void>
@@ -46,10 +46,10 @@ export const usePaymentStore = create<PaymentState>((set) => ({
   hasPrevPage: false,
 
   // Actions
-  fetchPayments: async (page = 1, perPage = 20, search = '') => {
+  fetchPayments: async (page = 1, perPage = 20, search = '', filters = {}) => {
     try {
       set({ loading: true, error: null })
-      const response = await paymentService.getAll({ page, per_page: perPage, search })
+      const response = await paymentService.getAll({ page, per_page: perPage, search, ...filters })
       
       // Extraire les données de pagination de la réponse API
       const { data, meta, links } = response
