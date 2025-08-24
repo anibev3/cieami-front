@@ -2082,7 +2082,7 @@ export default function EditReportPage() {
                             className={`transition-all duration-300 ease-in-out overflow-hidden ${
                               shock?.id && collapsedShocks.has(shock.id)
                                 ? 'max-h-0 opacity-0 border-t-0' 
-                                : 'max-h-[5000px] opacity-100 border-t border-gray-100'
+                                : 'opacity-100 border-t border-gray-100'
                             }`}
                           >
                             <div className={`space-y-4 ${

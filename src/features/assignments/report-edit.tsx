@@ -2045,7 +2045,7 @@ export default function ReportEditPage() {
                     className={`transition-all duration-300 ease-in-out overflow-hidden ${
                       collapsedShocks.has(shockId) 
                         ? 'max-h-0 opacity-0 border-t-0' 
-                        : 'max-h-[5000px] opacity-100 border-t border-gray-100'
+                        : 'opacity-100 border-t border-gray-100'
                     }`}
                   >
                     <CardContent className={`space-y-6 ${

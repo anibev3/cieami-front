@@ -292,7 +292,7 @@ export default function AssignmentsPage() {
                     className={`group relative flex-1 min-w-0 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-200/60 p-4 hover:bg-white/80 hover:border-gray-300/60 transition-all duration-200 cursor-pointer ${
                       activeTab === tab.value ? 'ring-2 ring-blue-500/20 border-blue-300/60' : ''
                     }`}
-                    onClick={() => handleStatusChange(tab.id?.toString() || '')}
+                    onClick={() => handleStatusChange(tab.value)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
