@@ -132,12 +132,12 @@ export function AssignmentSelect({
       <div className="flex flex-col items-start text-left">
         <div className="flex items-center justify-between w-full">
           <span className="font-medium mr-30">{assignment.reference}</span>
-          <Badge className={cn(getStatusColor(assignment.status.code), "text-xs")}>
-            {assignment.status.label}
+          <Badge className={cn(getStatusColor(assignment.status?.code || ''), "text-xs")}>
+            {assignment.status?.label || 'Statut inconnu'}
           </Badge>
         </div>
         <span className="text-xs text-muted-foreground mt-1">
-          {assignment.client.name} - {assignment.vehicle.license_plate}
+          {assignment.client?.name || 'Client inconnu'} - {assignment.vehicle?.license_plate || 'Plaque inconnue'}
         </span>
         {showReceipts && assignment.receipts && assignment.receipts.length > 0 && (
           <div className="flex items-center gap-1 mt-1 p-1 w-full bg-grey-500 border-2 border-white-500 rounded-md justify-center">
@@ -242,7 +242,7 @@ export function AssignmentSelect({
                   {editedAssignments.map((assignment) => (
                     <CommandItem
                       key={assignment.id}
-                      value={`${assignment.reference} ${assignment.client.name} ${assignment.vehicle.license_plate}`}
+                      value={`${assignment.reference} ${assignment.client?.name || 'Client inconnu'} ${assignment.vehicle?.license_plate || 'Plaque inconnue'}`}
                       onSelect={() => {
                         onValueChange(assignment.id.toString())
                         setOpen(false)
@@ -321,38 +321,38 @@ export function AssignmentSelect({
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Statut</p>
-                      <Badge className={getStatusColor(selectedAssignmentForDetails.status.code)}>
-                        {selectedAssignmentForDetails.status.label}
+                      <Badge className={getStatusColor(selectedAssignmentForDetails.status?.code || '')}>
+                        {selectedAssignmentForDetails.status?.label || 'Statut inconnu'}
                       </Badge>
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Client</p>
-                      <p className="font-semibold">{selectedAssignmentForDetails.client.name}</p>
+                      <p className="font-semibold">{selectedAssignmentForDetails.client?.name || 'Client inconnu'}</p>
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Véhicule</p>
-                      <p className="font-semibold">{selectedAssignmentForDetails.vehicle.license_plate}</p>
+                      <p className="font-semibold">{selectedAssignmentForDetails.vehicle?.license_plate || 'Plaque inconnue'}</p>
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Date d'expertise</p>
-                      <p className="font-semibold">{formatDate(selectedAssignmentForDetails.expertise_date)}</p>
+                      <p className="font-semibold">{selectedAssignmentForDetails.expertise_date ? formatDate(selectedAssignmentForDetails.expertise_date) : 'Non renseigné'}</p>
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Montant total</p>
                       <p className="font-semibold text-primary">
-                        {formatCurrency(Number(selectedAssignmentForDetails.total_amount))}
+                        {formatCurrency(Number(selectedAssignmentForDetails.total_amount || 0))}
                       </p>
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Montant payé</p>
                       <p className="font-semibold text-green-600">
-                        {formatCurrency(selectedAssignmentForDetails.payment_received)}
+                        {formatCurrency(Number(selectedAssignmentForDetails.payment_received || 0))}
                       </p>
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Reste à payer</p>
                       <p className="font-semibold text-orange-600">
-                        {formatCurrency(selectedAssignmentForDetails.payment_remains)}
+                        {formatCurrency(Number(selectedAssignmentForDetails.payment_remains || 0))}
                       </p>
                     </div>
                   </div>
@@ -373,13 +373,13 @@ export function AssignmentSelect({
                       {selectedAssignmentForDetails.receipts.map((receipt: any, index: number) => (
                         <div key={receipt.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
-                            <p className="font-medium">{receipt.receipt_type.label}</p>
+                            <p className="font-medium">{receipt.receipt_type?.label || 'Type inconnu'}</p>
                             <p className="text-sm text-muted-foreground">
-                              {formatCurrency(Number(receipt.amount))}
+                              {formatCurrency(Number(receipt.amount || 0))}
                             </p>
                           </div>
                           <Badge variant="outline">
-                            {formatDate(receipt.created_at)}
+                            {receipt.created_at ? formatDate(receipt.created_at) : 'Date inconnue'}
                           </Badge>
                         </div>
                       ))}
@@ -408,7 +408,7 @@ export function AssignmentSelect({
                       {selectedAssignmentForDetails.shocks.map((shock: any, index: number) => (
                         <div key={shock.id} className="p-3 border rounded-lg">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="font-medium">{shock.shock_point.label}</p>
+                            <p className="font-medium">{shock.shock_point?.label || 'Point de choc inconnu'}</p>
                             <Badge variant="outline">
                               {formatCurrency(Number(shock.amount || 0))}
                             </Badge>
@@ -442,13 +442,13 @@ export function AssignmentSelect({
                           shock.workforces.map((workforce: any) => (
                             <div key={workforce.id} className="flex items-center justify-between p-3 border rounded-lg">
                               <div>
-                                <p className="font-medium">{workforce.workforce_type.label}</p>
+                                <p className="font-medium">{workforce.workforce_type?.label || 'Type inconnu'}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {workforce.nb_hours}h - {formatCurrency(Number(workforce.work_fee))}/h
+                                  {workforce.nb_hours || 0}h - {formatCurrency(Number(workforce.work_fee || 0))}/h
                                 </p>
                               </div>
                               <Badge variant="outline">
-                                {formatCurrency(Number(workforce.amount))}
+                                {formatCurrency(Number(workforce.amount || 0))}
                               </Badge>
                             </div>
                           ))
@@ -472,13 +472,13 @@ export function AssignmentSelect({
                       {selectedAssignmentForDetails.other_costs.map((cost: any) => (
                         <div key={cost.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
-                            <p className="font-medium">{cost.other_cost_type.label}</p>
+                            <p className="font-medium">{cost.other_cost_type?.label || 'Type inconnu'}</p>
                             <p className="text-sm text-muted-foreground">
-                              {formatDate(cost.created_at)}
+                              {cost.created_at ? formatDate(cost.created_at) : 'Date inconnue'}
                             </p>
                           </div>
                           <Badge variant="outline">
-                            {formatCurrency(Number(cost.amount))}
+                            {formatCurrency(Number(cost.amount || 0))}
                           </Badge>
                         </div>
                       ))}
