@@ -1594,7 +1594,7 @@ export default function EditReportPage() {
                       </Card>
 
                       {/* Véhicule */}
-                      {assignment.vehicle && (
+                      {assignment.vehicle ? (
                         <Card className="shadow-none">
                           <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -1652,20 +1652,29 @@ export default function EditReportPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Marque</label>
-                                <p className="text-base font-semibold">{assignment?.vehicle?.brand?.label}</p>
+                                <p className="text-base font-semibold">{assignment.vehicle.brand?.label || 'Non renseigné'}</p>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Modèle</label>
-                                <p className="text-base font-semibold">{assignment?.vehicle?.vehicle_model?.label}</p>
+                                <p className="text-base font-semibold">{assignment.vehicle.vehicle_model?.label || 'Non renseigné'}</p>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Couleur</label>
-                                <p className="text-base font-semibold">{assignment?.vehicle?.color?.label}</p>
+                                <p className="text-base font-semibold">{assignment.vehicle.color?.label || 'Non renseigné'}</p>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-gray-600">Carrosserie</label>
-                                <p className="text-base font-semibold">{assignment?.vehicle?.bodywork?.label}</p>
+                                <p className="text-base font-semibold">{assignment.vehicle.bodywork?.label || 'Non renseigné'}</p>
                               </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <Card className="shadow-none">
+                          <CardContent className="p-6">
+                            <div className="text-center py-8 text-gray-500">
+                              <Car className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                              <p className="text-sm font-medium text-gray-500">Aucune information véhicule disponible</p>
                             </div>
                           </CardContent>
                         </Card>
@@ -1674,7 +1683,7 @@ export default function EditReportPage() {
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
                       {/* Client */}
-                      {assignment.client && (
+                      {assignment.client ? (
                         <Card className="shadow-none">
                           <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -1713,10 +1722,19 @@ export default function EditReportPage() {
                             </div>
                           </CardContent>
                         </Card>
+                      ) : (
+                        <Card className="shadow-none">
+                          <CardContent className="p-6">
+                            <div className="text-center py-8 text-gray-500">
+                              <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                              <p className="text-sm font-medium text-gray-500">Aucune information client disponible</p>
+                            </div>
+                          </CardContent>
+                        </Card>
                       )}
 
                       {/* Assureur et Réparateur */}
-                      {(assignment.insurer || assignment.repairer) && (
+                      {assignment.insurer || assignment.repairer ? (
                         <Card className="shadow-none">
                           <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -1760,6 +1778,15 @@ export default function EditReportPage() {
                             )}
                           </CardContent>
                         </Card>
+                      ) : (
+                        <Card className="shadow-none">
+                          <CardContent className="p-6">
+                            <div className="text-center py-8 text-gray-500">
+                              <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                              <p className="text-sm font-medium text-gray-500">Aucune information assureur ou réparateur disponible</p>
+                            </div>
+                          </CardContent>
+                        </Card>
                       )}
                     </div>
 
@@ -1776,11 +1803,11 @@ export default function EditReportPage() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="text-xs font-medium text-gray-600">Type de dossier</label>
-                              <p className="text-base font-semibold">{assignment.assignment_type.label}</p>
+                              <p className="text-base font-semibold">{assignment.assignment_type?.label || 'Non renseigné'}</p>
                             </div>
                             <div>
                               <label className="text-xs font-medium text-gray-600">Type d'expertise</label>
-                              <p className="text-base font-semibold">{assignment.expertise_type.label}</p>
+                              <p className="text-base font-semibold">{assignment.expertise_type?.label || 'Non renseigné'}</p>
                             </div>
                             <div>
                               <label className="text-xs font-medium text-gray-600">Conclusion technique</label>
@@ -1891,27 +1918,34 @@ export default function EditReportPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div>
-                            <label className="text-xs font-medium text-gray-600">Créé par</label>
-                            <p className="text-base font-semibold">{assignment.created_by.name}</p>
-                            <p className="text-xs text-gray-600">{assignment.created_by.email}</p>
-                          </div>
+                          {assignment.created_by ? (
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Créé par</label>
+                              <p className="text-base font-semibold">{assignment.created_by.name}</p>
+                              <p className="text-xs text-gray-600">{assignment.created_by.email}</p>
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="text-xs font-medium text-gray-600">Créé par</label>
+                              <p className="text-sm text-gray-500">Non renseigné</p>
+                            </div>
+                          )}
                           
-                          {assignment.realized_by && (
+                          {assignment.realized_by ? (
                             <div>
                               <label className="text-xs font-medium text-gray-600">Réalisé par</label>
                               <p className="text-base font-semibold">{assignment.realized_by.name}</p>
                               <p className="text-xs text-gray-600">{assignment.realized_by.email}</p>
                             </div>
-                          )}
+                          ) : null}
 
-                          {assignment.edited_by && (
+                          {assignment.edited_by ? (
                             <div>
                               <label className="text-xs font-medium text-gray-600">Modifié par</label>
                               <p className="text-base font-semibold">{assignment.edited_by.name}</p>
                               <p className="text-xs text-gray-600">{assignment.edited_by.email}</p>
                             </div>
-                          )}
+                          ) : null}
                         </CardContent>
                       </Card>
                     </div>
@@ -2052,14 +2086,14 @@ export default function EditReportPage() {
                                 <div className="flex items-center gap-4">
                                   <span className="inline-flex items-center gap-1">
                                     <Package className="h-3 w-3" />
-                                    {shock.shock_works?.length || 0}
+                                    {shock?.shock_works?.length || 0}
                                   </span>
                                   <span className="inline-flex items-center gap-1">
                                     <Users className="h-3 w-3" />
-                                    {shock.workforces?.length || 0}
+                                    {shock?.workforces?.length || 0}
                                   </span>
                                   <span className="font-medium text-gray-900">
-                                    {formatCurrency(shock.amount)}
+                                    {formatCurrency(shock?.amount || '0')}
                                   </span>
                                   {/* Bouton de suppression */}
                                   <Button
@@ -2899,7 +2933,7 @@ export default function EditReportPage() {
                 </Button>
                 <div>
                   <p className="text-xs font-medium">#{assignment.reference}</p>
-                  <p className="text-xs text-gray-500">{assignment.status.label}</p>
+                  <p className="text-xs text-gray-500">{assignment.status?.label || 'Statut inconnu'}</p>
                 </div>
               </div>
               
