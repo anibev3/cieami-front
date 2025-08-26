@@ -951,77 +951,85 @@ export default function AssignmentDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {/* Informations principales */}
-                    <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-sm text-primary">Informations personnelles</h4>
-                        <Badge variant="outline" className="text-xs">ID: {assignment.client.id}</Badge>
-                      </div>
-                      <div className="space-y-2">
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
-                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.client.name}</p>
+                  {assignment.client ? (
+                    <div className="space-y-4">
+                      {/* Informations principales */}
+                      <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-sm text-primary">Informations personnelles</h4>
+                          <Badge variant="outline" className="text-xs">ID: {assignment.client.id}</Badge>
                         </div>
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-3 w-3 text-muted-foreground" />
-                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.client.email}</p>
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                            <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.client.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-3 w-3 text-muted-foreground" />
+                              <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.client.email}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Coordonnées */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
-                      <div className="space-y-2">
-                        {assignment.client.phone_1 && (
-                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                            <Phone className="h-3 w-3 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground">Téléphone principal</p>
-                              <p className="text-sm font-semibold">{assignment.client.phone_1}</p>
+                      {/* Coordonnées */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
+                        <div className="space-y-2">
+                          {assignment.client.phone_1 && (
+                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                              <Phone className="h-3 w-3 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground">Téléphone principal</p>
+                                <p className="text-sm font-semibold">{assignment.client.phone_1}</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        {assignment.client.phone_2 && (
-                          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                            <Phone className="h-3 w-3 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground">Téléphone secondaire</p>
-                              <p className="text-sm font-semibold">{assignment.client.phone_2}</p>
+                          )}
+                          {assignment.client.phone_2 && (
+                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                              <Phone className="h-3 w-3 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground">Téléphone secondaire</p>
+                                <p className="text-sm font-semibold">{assignment.client.phone_2}</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        {assignment.client.address && (
-                          <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
-                            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground">Adresse</p>
-                              <p className="text-xs whitespace-pre-line">{assignment.client.address}</p>
+                          )}
+                          {assignment.client.address && (
+                            <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                              <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground">Adresse</p>
+                                <p className="text-xs whitespace-pre-line">{assignment.client.address}</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Informations système */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations système</h4>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <p className="font-medium text-muted-foreground">Créé le</p>
-                          <p className="font-semibold">{formatDate(assignment.client.created_at)}</p>
-                        </div>
-                        <div>
-                          <p className="font-medium text-muted-foreground">Modifié le</p>
-                          <p className="font-semibold">{formatDate(assignment.client.updated_at)}</p>
+                      {/* Informations système */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations système</h4>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <p className="font-medium text-muted-foreground">Créé le</p>
+                            <p className="font-semibold">{formatDate(assignment.client.created_at)}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Modifié le</p>
+                            <p className="font-semibold">{formatDate(assignment.client.updated_at)}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <User className="h-12 w-12 text-muted-foreground mb-2" />
+                      <p className="text-sm font-medium text-muted-foreground">Aucun client assigné</p>
+                      <p className="text-xs text-muted-foreground">Le client n'a pas été sélectionné pour ce dossier</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1199,11 +1207,11 @@ export default function AssignmentDetailPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <p className="text-xs font-medium text-muted-foreground">Type d'expertise</p>
-                            <Badge variant="secondary" className="text-xs">{assignment.expertise_type.label}</Badge>
+                            <Badge variant="secondary" className="text-xs">{assignment.expertise_type?.label || 'Non renseigné'}</Badge>
                           </div>
                           <div>
                             <p className="text-xs font-medium text-muted-foreground">Type d'assignation</p>
-                            <Badge variant="secondary" className="text-xs">{assignment.assignment_type.label}</Badge>
+                            <Badge variant="secondary" className="text-xs">{assignment.assignment_type?.label || 'Non renseigné'}</Badge>
                           </div>
                         </div>
                         {assignment.administrator && (
@@ -1340,71 +1348,79 @@ export default function AssignmentDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Identité du véhicule */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Identité</h4>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Plaque d'immatriculation</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.license_plate}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Numéro de série</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded font-mono">{assignment.vehicle.serial_number}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Kilométrage</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.mileage} km</p>
+                {assignment.vehicle ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Identité du véhicule */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Identité</h4>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Plaque d'immatriculation</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.license_plate}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Numéro de série</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded font-mono">{assignment.vehicle.serial_number}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Kilométrage</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.mileage} km</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Caractéristiques techniques */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Caractéristiques</h4>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Puissance fiscale</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.fiscal_power} CV</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Valeur neuve</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">
-                          {assignment.vehicle.new_market_value ? formatCurrency(assignment.vehicle.new_market_value) : 'Non renseigné'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Nombre de places</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.nb_seats} places</p>
+                    {/* Caractéristiques techniques */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Caractéristiques</h4>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Puissance fiscale</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.fiscal_power} CV</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Valeur neuve</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">
+                            {assignment.vehicle.new_market_value ? formatCurrency(assignment.vehicle.new_market_value) : 'Non renseigné'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nombre de places</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.nb_seats} places</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Classification */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-sm text-primary border-b pb-1">Classification</h4>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Type</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.type}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Date de première mise en circulation</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">
-                          {assignment.vehicle.first_entry_into_circulation_date 
-                            ? formatDate(assignment.vehicle.first_entry_into_circulation_date)
-                            : 'Non renseigné'
-                          }
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Options</p>
-                        <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.option}</p>
+                    {/* Classification */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary border-b pb-1">Classification</h4>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Type</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.type}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Date de première mise en circulation</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">
+                            {assignment.vehicle.first_entry_into_circulation_date 
+                              ? formatDate(assignment.vehicle.first_entry_into_circulation_date)
+                              : 'Non renseigné'
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Options</p>
+                          <p className="text-sm font-semibold bg-muted/50 px-2 py-1 rounded">{assignment.vehicle.option}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Car className="h-12 w-12 text-muted-foreground mb-2" />
+                    <p className="text-sm font-medium text-muted-foreground">Aucune information véhicule</p>
+                    <p className="text-xs text-muted-foreground">Le véhicule n'a pas été assigné à ce dossier</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -1781,56 +1797,70 @@ export default function AssignmentDetailPage() {
               <CardContent>
                 <div className="space-y-4">
                   {/* Créé par */}
-                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-sm text-primary">Créé par</h4>
-                      <Badge variant="outline" className="text-xs">{assignment.created_by.username}</Badge>
+                  {assignment.created_by ? (
+                    <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Créé par</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.created_by.username}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Email</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.telephone}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Date de création</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.created_at)}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
-                        <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.name}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Email</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.email}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.created_by.telephone}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Date de création</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.created_at)}</p>
-                      </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-4 text-center">
+                      <User className="h-8 w-8 text-muted-foreground mb-1" />
+                      <p className="text-xs font-medium text-muted-foreground">Non créé</p>
                     </div>
-                  </div>
+                  )}
 
                   {/* Modifié par */}
-                  <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-sm text-primary">Modifié par</h4>
-                      <Badge variant="outline" className="text-xs">{assignment.updated_by.username}</Badge>
+                  {assignment.updated_by ? (
+                    <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-sm text-primary">Modifié par</h4>
+                        <Badge variant="outline" className="text-xs">{assignment.updated_by.username}</Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Email</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.telephone}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Date de modification</p>
+                          <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.updated_at)}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Nom complet</p>
-                        <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.name}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Email</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.email}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.updated_by.telephone}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">Date de modification</p>
-                        <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{formatDate(assignment.updated_at)}</p>
-                      </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-4 text-center">
+                      <Edit className="h-8 w-8 text-muted-foreground mb-1" />
+                      <p className="text-xs font-medium text-muted-foreground">Non modifié</p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

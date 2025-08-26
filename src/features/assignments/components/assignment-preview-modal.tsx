@@ -172,11 +172,13 @@ export function AssignmentPreviewModal({
                       </div>
                       <div className="space-y-2">
                         <Label>Type</Label>
-                        <p className="font-semibold">{assignment.assignment_type.label}</p>
+                        <p className="font-semibold">{assignment.assignment_type?.label || 'Non renseigné'}</p>
                       </div>
                       <div className="space-y-2">
                         <Label>Montant</Label>
-                        <p className="font-semibold text-green-600">{formatCurrency(parseFloat(assignment.total_amount) || 0)}</p>
+                        <p className="font-semibold text-green-600">
+                          {assignment.total_amount ? formatCurrency(parseFloat(assignment.total_amount)) : 'Non renseigné'}
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <Label>Créé le</Label>
@@ -202,7 +204,10 @@ export function AssignmentPreviewModal({
                         <div className="flex justify-between">
                           <Label>Total reçu</Label>
                           <span className="font-semibold">
-                            {formatCurrency(assignment.receipts?.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0) || 0)}
+                            {assignment.receipts && assignment.receipts.length > 0
+                              ? formatCurrency(assignment.receipts.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0))
+                              : '0,00 €'
+                            }
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -227,28 +232,34 @@ export function AssignmentPreviewModal({
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <Label>Nom</Label>
-                          <p className="font-medium">{assignment.client.name}</p>
-                        </div>
-                        <div>
-                          <Label>Email</Label>
-                          <p className="text-sm">{assignment.client.email}</p>
-                        </div>
-                        {assignment.client.phone_1 && (
+                      {assignment.client ? (
+                        <div className="space-y-3">
                           <div>
-                            <Label>Téléphone</Label>
-                            <p className="text-sm text-muted-foreground">{assignment.client.phone_1}</p>
+                            <Label>Nom</Label>
+                            <p className="font-medium">{assignment.client.name}</p>
                           </div>
-                        )}
-                        {assignment.client.address && (
                           <div>
-                            <Label>Adresse</Label>
-                            <p className="text-sm text-muted-foreground">{assignment.client.address}</p>
+                            <Label>Email</Label>
+                            <p className="text-sm">{assignment.client.email}</p>
                           </div>
-                        )}
-                      </div>
+                          {assignment.client.phone_1 && (
+                            <div>
+                              <Label>Téléphone</Label>
+                              <p className="text-sm text-muted-foreground">{assignment.client.phone_1}</p>
+                            </div>
+                          )}
+                          {assignment.client.address && (
+                            <div>
+                              <Label>Adresse</Label>
+                              <p className="text-sm text-muted-foreground">{assignment.client.address}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-muted-foreground">Aucune information client disponible</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -308,24 +319,22 @@ export function AssignmentPreviewModal({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <Label>Plaque</Label>
-                        <p className="font-semibold text-lg">{assignment.vehicle.license_plate}</p>
+                    {assignment.vehicle ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <Label>Plaque</Label>
+                          <p className="font-semibold text-lg">{assignment.vehicle.license_plate}</p>
+                        </div>
+                        <div>
+                          <Label>Usage</Label>
+                          <p className="font-semibold">{assignment.vehicle.usage || 'Non renseigné'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <Label>Usage</Label>
-                        <p className="font-semibold">{assignment.vehicle.usage || 'Non renseigné'}</p>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-muted-foreground">Aucune information véhicule disponible</p>
                       </div>
-                      <div>
-                        <Label>Type</Label>
-                        <p className="font-semibold">{assignment.vehicle.type || 'Non renseigné'}</p>
-                      </div>
-                      <div>
-                        <Label>Énergie</Label>
-                        <p className="font-semibold">{assignment.vehicle.energy || 'Non renseigné'}</p>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -343,18 +352,26 @@ export function AssignmentPreviewModal({
                     <div className="space-y-4">
                       <div className="flex justify-between">
                         <Label>Montant total</Label>
-                        <p className="font-semibold text-lg text-green-600">{formatCurrency(parseFloat(assignment.total_amount) || 0)}</p>
+                        <p className="font-semibold text-lg text-green-600">
+                          {assignment.total_amount ? formatCurrency(parseFloat(assignment.total_amount)) : 'Non renseigné'}
+                        </p>
                       </div>
                       <div className="flex justify-between">
                         <Label>Total reçu</Label>
                         <p className="font-semibold">
-                          {formatCurrency(assignment.receipts?.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0) || 0)}
+                          {assignment.receipts && assignment.receipts.length > 0 
+                            ? formatCurrency(assignment.receipts.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0))
+                            : '0,00 €'
+                          }
                         </p>
                       </div>
                       <div className="flex justify-between">
                         <Label>Reste à payer</Label>
                         <p className="font-semibold text-orange-600">
-                          {formatCurrency(parseFloat(assignment.total_amount) - (assignment.receipts?.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0) || 0))}
+                          {assignment.total_amount && assignment.receipts
+                            ? formatCurrency(parseFloat(assignment.total_amount) - assignment.receipts.reduce((sum, receipt) => sum + parseFloat(receipt.amount), 0))
+                            : 'Non calculable'
+                          }
                         </p>
                       </div>
                     </div>
@@ -406,7 +423,7 @@ export function AssignmentPreviewModal({
               Fermer
             </Button>
             <Button 
-              onClick={() => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0'))}
+              onClick={() => onOpenReceiptModal(assignment.id, assignment.total_amount ? parseFloat(assignment.total_amount) : 0)}
               className="flex items-center space-x-2"
             >
               <Receipt className="h-4 w-4" />

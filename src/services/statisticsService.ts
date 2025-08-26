@@ -32,11 +32,11 @@ class StatisticsService {
           'client',
           'insurer',
           'status',
-          'createdBy',
+          'created_by',
           'realized_by',
-          'editedBy',
-          'validatedBy',
-          'directedBy',
+          'edited_by',
+          'validated_by',
+          'directed_by',
           'claimNature'
         ]
         break
@@ -99,6 +99,8 @@ class StatisticsService {
     switch (type) {
       case 'assignments':
         const assignmentFilters = filters as AssignmentStatisticsFilters
+        
+        // Paramètres de base
         if (assignmentFilters.assignment_id) {
           params.append('assignment_id', assignmentFilters.assignment_id.toString())
         }
@@ -120,28 +122,31 @@ class StatisticsService {
         if (assignmentFilters.claim_nature_id) {
           params.append('claim_nature_id', assignmentFilters.claim_nature_id.toString())
         }
+        if (assignmentFilters.status_id) {
+          params.append('status_id', assignmentFilters.status_id.toString())
+        }
+        
+        // Paramètres utilisateur (un seul par type)
         if (assignmentFilters.created_by) {
           params.append('created_by', assignmentFilters.created_by.toString())
-        }
-        if (assignmentFilters.edited_by) {
-          params.append('edited_by', assignmentFilters.edited_by.toString())
         }
         if (assignmentFilters.realized_by) {
           params.append('realized_by', assignmentFilters.realized_by.toString())
         }
-        if (assignmentFilters.directed_by) {
-          params.append('directed_by', assignmentFilters.directed_by.toString())
+        if (assignmentFilters.edited_by) {
+          params.append('edited_by', assignmentFilters.edited_by.toString())
         }
         if (assignmentFilters.validated_by) {
           params.append('validated_by', assignmentFilters.validated_by.toString())
         }
-        if (assignmentFilters.status_id) {
-          params.append('status_id', assignmentFilters.status_id.toString())
+        if (assignmentFilters.directed_by) {
+          params.append('directed_by', assignmentFilters.directed_by.toString())
         }
         break
 
       case 'payments':
         const paymentFilters = filters as PaymentStatisticsFilters
+        
         if (paymentFilters.payment_id) {
           params.append('payment_id', paymentFilters.payment_id.toString())
         }
@@ -160,16 +165,17 @@ class StatisticsService {
         if (paymentFilters.assignment_id) {
           params.append('assignment_id', paymentFilters.assignment_id.toString())
         }
-        if (paymentFilters.created_by) {
-          params.append('created_by', paymentFilters.created_by.toString())
-        }
         if (paymentFilters.status_id) {
           params.append('status_id', paymentFilters.status_id.toString())
+        }
+        if (paymentFilters.created_by) {
+          params.append('created_by', paymentFilters.created_by.toString())
         }
         break
 
       case 'invoices':
         const invoiceFilters = filters as InvoiceStatisticsFilters
+        
         if (invoiceFilters.invoice_id) {
           params.append('invoice_id', invoiceFilters.invoice_id.toString())
         }
@@ -182,11 +188,11 @@ class StatisticsService {
         if (invoiceFilters.payment_status_id) {
           params.append('payment_status_id', invoiceFilters.payment_status_id.toString())
         }
-        if (invoiceFilters.created_by) {
-          params.append('created_by', invoiceFilters.created_by.toString())
-        }
         if (invoiceFilters.status_id) {
           params.append('status_id', invoiceFilters.status_id.toString())
+        }
+        if (invoiceFilters.created_by) {
+          params.append('created_by', invoiceFilters.created_by.toString())
         }
         break
     }

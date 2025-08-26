@@ -450,6 +450,10 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       const isRecoveryDone = assignment.recovery_status === 'done'
       const isDone = isEditionDone || isRecoveryDone
       
+      if (!client) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
+      
       return (
         <div className={`flex items-center space-x-2 
         
@@ -474,6 +478,10 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       const isEditionDone = assignment.edition_status === 'done'
       const isRecoveryDone = assignment.recovery_status === 'done'
       const isDone = isEditionDone || isRecoveryDone
+      
+      if (!vehicle) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
       
       return (
         <div className={`flex items-center space-x-2`}>
@@ -533,9 +541,14 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Reparateur',
     cell: ({ row }) => {
       const repairman = row.getValue('repairer') as Assignment['repairer']
+      
+      if (!repairman) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
+      
       return (
         <div className="text-sm text-muted-foreground">
-          {repairman?.name}
+          {repairman.name}
         </div>
       )
     },
@@ -565,6 +578,10 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       const isEditionDone = assignment.edition_status === 'done'
       const isRecoveryDone = assignment.recovery_status === 'done'
       const isDone = isEditionDone || isRecoveryDone
+      
+      if (!expertiseType) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
       
       return (
         <div 
@@ -647,6 +664,10 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       const isRecoveryDone = assignment.recovery_status === 'done'
       const isDone = isEditionDone || isRecoveryDone
       
+      if (!status) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
+      
       return (
         <div 
         // className={isDone ? 'bg-green-50' : ''}
@@ -690,8 +711,21 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     },
   },
   {
-    accessorKey: 'created_by.name',
+    accessorKey: 'created_by',
     header: 'Créé par',
+    cell: ({ row }) => {
+      const createdBy = row.getValue('created_by') as Assignment['created_by']
+      
+      if (!createdBy) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
+      
+      return (
+        <div className="text-sm text-muted-foreground">
+          {createdBy.name}
+        </div>
+      )
+    },
   },
   {
     accessorKey: 'edition_countdown',

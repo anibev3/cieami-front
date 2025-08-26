@@ -17,6 +17,7 @@ import { ClientSelect } from '@/features/widgets/client-select'
 import { InsurerSelect } from '@/features/widgets/insurer-select'
 import { UserSelect } from '@/features/widgets/user-select'
 import { ClaimNatureSelect } from '@/features/widgets/claim-nature-select'
+import { StatusSelect } from '@/features/widgets/status-select'
 
 interface UnifiedAdvancedFiltersProps {
   type: StatisticsType
@@ -74,7 +75,7 @@ export function UnifiedAdvancedFilters({
                 key: 'status_id', 
                 label: 'Statut', 
                 type: 'custom',
-                component: UserSelect,
+                component: StatusSelect,
                 props: { placeholder: 'Sélectionner un statut' }
               },
             ]
@@ -186,7 +187,7 @@ export function UnifiedAdvancedFilters({
                 key: 'status_id', 
                 label: 'Statut', 
                 type: 'custom',
-                component: UserSelect,
+                component: StatusSelect,
                 props: { placeholder: 'Sélectionner un statut' }
               },
             ]
@@ -256,7 +257,7 @@ export function UnifiedAdvancedFilters({
                 key: 'status_id', 
                 label: 'Statut', 
                 type: 'custom',
-                component: UserSelect,
+                component: StatusSelect,
                 props: { placeholder: 'Sélectionner un statut' }
               },
             ]

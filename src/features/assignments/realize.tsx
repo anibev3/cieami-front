@@ -72,7 +72,7 @@ export default function RealizeAssignmentPage() {
   const form = useForm<z.infer<typeof realizeSchema>>({
     resolver: zodResolver(realizeSchema),
     defaultValues: {
-      expertise_date: null,
+      expertise_date: undefined,
       expertise_time: '',
       expertise_place: '',
       point_noted: '',
@@ -239,18 +239,26 @@ export default function RealizeAssignmentPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-6 w-6 text-blue-600" />
+              {assignment.client ? (
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <User className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{assignment.client.name}</p>
+                    <p className="text-sm text-muted-foreground">{assignment.client.email}</p>
+                    {assignment.client.phone_1 && (
+                      <Badge variant="secondary">{assignment.client.phone_1}</Badge>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold">{assignment.client.name}</p>
-                  <p className="text-sm text-muted-foreground">{assignment.client.email}</p>
-                  {assignment.client.phone_1 && (
-                    <Badge variant="secondary">{assignment.client.phone_1}</Badge>
-                  )}
+              ) : (
+                <div className="flex flex-col items-center justify-center py-4 text-center">
+                  <User className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium text-muted-foreground">Aucun client sélectionné</p>
+                  <p className="text-xs text-muted-foreground">Le client n'a pas été sélectionné pour ce dossier</p>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -263,18 +271,26 @@ export default function RealizeAssignmentPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Car className="h-6 w-6 text-green-600" />
+              {assignment.vehicle ? (
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <Car className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">
+                      {assignment.vehicle?.brand?.label} {assignment.vehicle?.vehicle_model?.label}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{assignment.vehicle.license_plate}</p>
+                    <Badge variant="secondary">{assignment.vehicle?.color?.label}</Badge>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold">
-                    {assignment.vehicle?.brand?.label} {assignment.vehicle?.vehicle_model?.label}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{assignment.vehicle.license_plate}</p>
-                  <Badge variant="secondary">{assignment.vehicle?.color?.label}</Badge>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-4 text-center">
+                  <Car className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium text-muted-foreground">Aucune information véhicule</p>
+                  <p className="text-xs text-muted-foreground">Le véhicule n'a pas été assigné à ce dossier</p>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
