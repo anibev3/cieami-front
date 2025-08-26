@@ -7,12 +7,16 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
-import { formatCurrency } from '@/utils/format-currency'
 import { Separator } from '@/components/ui/separator'
 import { DateRangePicker } from '@/components/ui/range-calendar/date-range-picker'
 import { ClientSelect } from '@/features/widgets/client-select'
 import { UserSelect } from '@/features/widgets/user-select'
 import { AssignmentTypeSelect } from '@/features/widgets/assignment-type-select'
+import { VehicleSelect } from '@/features/widgets/vehicle-select'
+import { InsurerSelect } from '@/features/widgets/insurer-select'
+import { BrokerSelect } from '@/features/widgets/broker-select'
+import { RepairerSelect } from '@/features/widgets/repairer-select'
+import { ExpertiseTypeSelect } from '@/features/widgets/expertise-type-select'
 import { 
   Search, 
   Filter, 
@@ -39,11 +43,35 @@ export default function AssignmentsPage() {
     activeTab,
     dateRange,
     pagination,
+    selectedClient,
+    selectedExpert,
+    selectedAssignmentType,
+    selectedVehicle,
+    selectedInsurer,
+    selectedBroker,
+    selectedRepairer,
+    selectedExpertiseType,
+    selectedOpenedBy,
+    selectedRealisedBy,
+    selectedEditedBy,
+    selectedValidatedBy,
     fetchAssignments,
     setSearchQuery,
     setActiveTab,
     setDateRange,
     clearDateRange,
+    setSelectedClient,
+    setSelectedExpert,
+    setSelectedAssignmentType,
+    setSelectedVehicle,
+    setSelectedInsurer,
+    setSelectedBroker,
+    setSelectedRepairer,
+    setSelectedExpertiseType,
+    setSelectedOpenedBy,
+    setSelectedRealisedBy,
+    setSelectedEditedBy,
+    setSelectedValidatedBy,
     getFilteredAssignments,
     getStatusCounts,
     clearError,
@@ -55,9 +83,6 @@ export default function AssignmentsPage() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['all'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<number | null>(null)
-  const [selectedExpert, setSelectedExpert] = useState<number | null>(null)
-  const [selectedAssignmentType, setSelectedAssignmentType] = useState<number | null>(null)
 
   // Debounce pour la recherche
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
@@ -66,28 +91,126 @@ export default function AssignmentsPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const statusParam = urlParams.get('status')
+    const clientParam = urlParams.get('client_id')
+    const expertParam = urlParams.get('expert_id')
+    const assignmentTypeParam = urlParams.get('assignment_type_id')
+    const vehicleParam = urlParams.get('vehicle_id')
+    const insurerParam = urlParams.get('insurer_id')
+    const brokerParam = urlParams.get('broker_id')
+    const repairerParam = urlParams.get('repairer_id')
+    const expertiseTypeParam = urlParams.get('expertise_type_id')
+    const openedByParam = urlParams.get('opened_by')
+    const realisedByParam = urlParams.get('realised_by')
+    const editedByParam = urlParams.get('edited_by')
+    const validatedByParam = urlParams.get('validated_by')
+    const dateFromParam = urlParams.get('date_from')
+    const dateToParam = urlParams.get('date_to')
+    const searchParam = urlParams.get('search')
     
+    // Mettre à jour l'état avec les paramètres de l'URL
     if (statusParam) {
       const statusMap: Record<string, string> = {
-        'opened': 'open',
+        'opened': 'opened',
         'realized': 'realized',
         'edited': 'edited',
         'validated': 'validated',
-        'closed': 'closed'
+        'closed': 'closed',
+        'cancelled': 'cancelled',
+        'archived': 'archived',
+        'paid': 'paid'
       }
       const mappedStatus = statusMap[statusParam] || statusParam
       setActiveTab(mappedStatus)
       setSelectedStatuses([mappedStatus])
     }
-  }, [setActiveTab])
+    
+    if (clientParam) {
+      setSelectedClient(Number(clientParam))
+    }
+    
+    if (expertParam) {
+      setSelectedExpert(Number(expertParam))
+    }
+    
+    if (assignmentTypeParam) {
+      setSelectedAssignmentType(Number(assignmentTypeParam))
+    }
+    
+    if (vehicleParam) {
+      setSelectedVehicle(Number(vehicleParam))
+    }
+    
+    if (insurerParam) {
+      setSelectedInsurer(Number(insurerParam))
+    }
+    
+    if (brokerParam) {
+      setSelectedBroker(Number(brokerParam))
+    }
+    
+    if (repairerParam) {
+      setSelectedRepairer(Number(repairerParam))
+    }
+    
+    if (expertiseTypeParam) {
+      setSelectedExpertiseType(Number(expertiseTypeParam))
+    }
+    
+    if (openedByParam) {
+      setSelectedOpenedBy(Number(openedByParam))
+    }
+    
+    if (realisedByParam) {
+      setSelectedRealisedBy(Number(realisedByParam))
+    }
+    
+    if (editedByParam) {
+      setSelectedEditedBy(Number(editedByParam))
+    }
+    
+    if (validatedByParam) {
+      setSelectedValidatedBy(Number(validatedByParam))
+    }
+    
+    if (dateFromParam || dateToParam) {
+      setDateRange({
+        from: dateFromParam ? new Date(dateFromParam) : null,
+        to: dateToParam ? new Date(dateToParam) : null
+      })
+    }
+    
+    if (searchParam) {
+      setSearchQuery(searchParam)
+    }
+  }, [setActiveTab, setDateRange, setSelectedClient, setSelectedExpert, setSelectedAssignmentType, setSelectedVehicle, setSelectedInsurer, setSelectedBroker, setSelectedRepairer, setSelectedExpertiseType, setSelectedOpenedBy, setSelectedRealisedBy, setSelectedEditedBy, setSelectedValidatedBy, setSearchQuery])
 
   // Charger les assignations au montage et quand la recherche change
   useEffect(() => {
     if (!isInitialized) {
-      fetchAssignments(1)
+      // Construire les filtres initiaux à partir de l'URL
+      const initialFilters = {
+        search: searchQuery || undefined,
+        status_code: activeTab !== 'all' ? activeTab : undefined,
+        client_id: selectedClient || undefined,
+        expert_id: selectedExpert || undefined,
+        assignment_type_id: selectedAssignmentType || undefined,
+        vehicle_id: selectedVehicle || undefined,
+        insurer_id: selectedInsurer || undefined,
+        broker_id: selectedBroker || undefined,
+        repairer_id: selectedRepairer || undefined,
+        expertise_type_id: selectedExpertiseType || undefined,
+        opened_by: selectedOpenedBy || undefined,
+        realised_by: selectedRealisedBy || undefined,
+        edited_by: selectedEditedBy || undefined,
+        validated_by: selectedValidatedBy || undefined,
+        start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+        end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+      }
+      
+      fetchAssignments(1, initialFilters)
       setIsInitialized(true)
     }
-  }, [fetchAssignments, isInitialized])
+  }, [fetchAssignments, isInitialized, searchQuery, activeTab, selectedClient, selectedExpert, selectedAssignmentType, selectedVehicle, selectedInsurer, selectedBroker, selectedRepairer, selectedExpertiseType, selectedOpenedBy, selectedRealisedBy, selectedEditedBy, selectedValidatedBy, dateRange])
 
   // Effectuer la recherche quand le debouncedSearchQuery change
   useEffect(() => {
@@ -95,10 +218,24 @@ export default function AssignmentsPage() {
       const filters = {
         search: debouncedSearchQuery,
         status_code: activeTab !== 'all' ? activeTab : undefined,
+        client_id: selectedClient || undefined,
+        expert_id: selectedExpert || undefined,
+        assignment_type_id: selectedAssignmentType || undefined,
+        vehicle_id: selectedVehicle || undefined,
+        insurer_id: selectedInsurer || undefined,
+        broker_id: selectedBroker || undefined,
+        repairer_id: selectedRepairer || undefined,
+        expertise_type_id: selectedExpertiseType || undefined,
+        opened_by: selectedOpenedBy || undefined,
+        realised_by: selectedRealisedBy || undefined,
+        edited_by: selectedEditedBy || undefined,
+        validated_by: selectedValidatedBy || undefined,
+        start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+        end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
       }
       fetchAssignments(1, filters)
     }
-  }, [debouncedSearchQuery, activeTab, isInitialized, fetchAssignments])
+  }, [debouncedSearchQuery, isInitialized, activeTab, selectedClient, selectedExpert, selectedAssignmentType, selectedVehicle, selectedInsurer, selectedBroker, selectedRepairer, selectedExpertiseType, selectedOpenedBy, selectedRealisedBy, selectedEditedBy, selectedValidatedBy, dateRange, fetchAssignments])
 
   // Filtrer les assignations
   const filteredAssignments = getFilteredAssignments()
@@ -115,6 +252,7 @@ export default function AssignmentsPage() {
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }, [setSearchQuery])
 
   const handleStatusChange = (value: string) => {
@@ -125,6 +263,7 @@ export default function AssignmentsPage() {
       setSelectedStatuses([value])
       setActiveTab(value)
     }
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }
 
   const handleMultiStatusChange = (status: string, checked: boolean) => {
@@ -142,6 +281,7 @@ export default function AssignmentsPage() {
         setActiveTab(newStatuses[0])
       }
     }
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }
 
   const clearFilters = () => {
@@ -152,93 +292,102 @@ export default function AssignmentsPage() {
     setSelectedClient(null)
     setSelectedExpert(null)
     setSelectedAssignmentType(null)
+    setSelectedVehicle(null)
+    setSelectedInsurer(null)
+    setSelectedBroker(null)
+    setSelectedRepairer(null)
+    setSelectedExpertiseType(null)
+    setSelectedOpenedBy(null)
+    setSelectedRealisedBy(null)
+    setSelectedEditedBy(null)
+    setSelectedValidatedBy(null)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }
 
   const handleClientChange = useCallback((clientId: number | null) => {
     setSelectedClient(clientId)
-    // Recharger les données avec le nouveau filtre
-    const filters = {
-      search: searchQuery,
-      status_code: activeTab !== 'all' ? activeTab : undefined,
-      client_id: clientId || undefined,
-      expert_id: selectedExpert || undefined,
-      assignment_type_id: selectedAssignmentType || undefined,
-      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
-    }
-    fetchAssignments(1, filters)
-  }, [searchQuery, activeTab, selectedExpert, selectedAssignmentType, dateRange, fetchAssignments])
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedClient])
 
   const handleExpertChange = useCallback((expertId: number | null) => {
     setSelectedExpert(expertId)
-    // Recharger les données avec le nouveau filtre
-    const filters = {
-      search: searchQuery,
-      status_code: activeTab !== 'all' ? activeTab : undefined,
-      client_id: selectedClient || undefined,
-      expert_id: expertId || undefined,
-      assignment_type_id: selectedAssignmentType || undefined,
-      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
-    }
-    fetchAssignments(1, filters)
-  }, [searchQuery, activeTab, selectedClient, selectedAssignmentType, dateRange, fetchAssignments])
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedExpert])
 
   const handleAssignmentTypeChange = useCallback((typeId: string) => {
     setSelectedAssignmentType(typeId ? Number(typeId) : null)
-    // Recharger les données avec le nouveau filtre
-    const filters = {
-      search: searchQuery,
-      status_code: activeTab !== 'all' ? activeTab : undefined,
-      client_id: selectedClient || undefined,
-      expert_id: selectedExpert || undefined,
-      assignment_type_id: typeId ? Number(typeId) : undefined,
-      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
-    }
-    fetchAssignments(1, filters)
-  }, [searchQuery, activeTab, selectedClient, selectedExpert, dateRange, fetchAssignments])
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedAssignmentType])
+
+  const handleVehicleChange = useCallback((vehicleId: string) => {
+    const vehicleIdNum = vehicleId ? Number(vehicleId) : null
+    setSelectedVehicle(vehicleIdNum)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedVehicle])
+
+  const handleInsurerChange = useCallback((insurerId: number | null) => {
+    setSelectedInsurer(insurerId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedInsurer])
+
+  const handleBrokerChange = useCallback((brokerId: number | null) => {
+    setSelectedBroker(brokerId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedBroker])
+
+  const handleRepairerChange = useCallback((repairerId: number | null) => {
+    setSelectedRepairer(repairerId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedRepairer])
+
+  const handleExpertiseTypeChange = useCallback((expertiseTypeId: number | null) => {
+    setSelectedExpertiseType(expertiseTypeId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedExpertiseType])
+
+  const handleOpenedByChange = useCallback((userId: number | null) => {
+    setSelectedOpenedBy(userId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedOpenedBy])
+
+  const handleRealisedByChange = useCallback((userId: number | null) => {
+    setSelectedRealisedBy(userId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedRealisedBy])
+
+  const handleEditedByChange = useCallback((userId: number | null) => {
+    setSelectedEditedBy(userId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedEditedBy])
+
+  const handleValidatedByChange = useCallback((userId: number | null) => {
+    setSelectedValidatedBy(userId)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSelectedValidatedBy])
 
   const handleDateRangeChange = useCallback((values: { range: { from: Date; to: Date | undefined }; rangeCompare?: { from: Date; to: Date | undefined } }) => {
     setDateRange({
       from: values.range.from,
       to: values.range.to || null
     })
-    // Recharger les données avec le nouveau filtre de dates
-    const filters = {
-      search: searchQuery,
-      status_code: activeTab !== 'all' ? activeTab : undefined,
-      start_date: values.range.from.toISOString().split('T')[0],
-      end_date: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined
-    }
-    fetchAssignments(1, filters)
-  }, [setDateRange, searchQuery, activeTab, fetchAssignments])
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setDateRange])
 
   const handleCreateAssignment = () => {
     navigate({ to: '/assignments/create' })
   }
 
   const handleRefresh = useCallback(() => {
-    // Recharger les données avec les filtres actuels
-    const filters = {
-      search: searchQuery,
-      status_code: activeTab !== 'all' ? activeTab : undefined,
-      client_id: selectedClient || undefined,
-      expert_id: selectedExpert || undefined,
-      assignment_type_id: selectedAssignmentType || undefined,
-      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
-    }
-    fetchAssignments(1, filters)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
     toast.success('Données rafraîchies')
-  }, [searchQuery, activeTab, selectedClient, selectedExpert, selectedAssignmentType, dateRange, fetchAssignments])
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
       case 'in_progress': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
     }
   }
@@ -250,6 +399,46 @@ export default function AssignmentsPage() {
       case 'completed': return '🟢'
       case 'cancelled': return '🔴'
       default: return '⚪'
+    }
+  }
+
+  // Fonction pour formater l'affichage des filtres actifs
+  const getFilterDisplayText = (filterType: string, value: string | number | null) => {
+    switch (filterType) {
+      case 'status': {
+        const statusTab = allStatusTabs.find(tab => tab.value === value)
+        return statusTab ? statusTab.label : value
+      }
+      case 'client':
+        return `Client ID: ${value}`
+      case 'expert':
+        return `Expert ID: ${value}`
+      case 'assignmentType':
+        return `Type ID: ${value}`
+      case 'vehicle':
+        return `Véhicule ID: ${value}`
+      case 'insurer':
+        return `Assureur ID: ${value}`
+      case 'broker':
+        return `Courtier ID: ${value}`
+      case 'repairer':
+        return `Réparateur ID: ${value}`
+      case 'expertiseType':
+        return `Type d'expertise ID: ${value}`
+      case 'openedBy':
+        return `Ouvert par ID: ${value}`
+      case 'realisedBy':
+        return `Réalisé par ID: ${value}`
+      case 'editedBy':
+        return `Modifié par ID: ${value}`
+      case 'validatedBy':
+        return `Validé par ID: ${value}`
+      case 'date':
+        return value
+      case 'search':
+        return `"${value}"`
+      default:
+        return value
     }
   }
 
@@ -316,10 +505,10 @@ export default function AssignmentsPage() {
                     size="sm"
                     onClick={handleRefresh}
                     disabled={loading}
-                    className="h-11 bg-white/50 backdrop-blur-sm border-gray-200/60 hover:bg-gray-50/80"
+                    className="h-11 bg-white/50 backdrop-blur-sm border-gray-200/60 hover:bg-gray-50/80 px-4"
                     title="Rafraîchir les données"
                   >
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 mx-2 ${loading ? 'animate-spin' : ''}`} />
                   </Button>
                   
                   <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -329,7 +518,7 @@ export default function AssignmentsPage() {
                         size="sm"
                         className="h-11 bg-white/50 backdrop-blur-sm border-gray-200/60 hover:bg-gray-50/80"
                       >
-                        <Filter className="h-4 w-4 mr-2" />
+                        <Filter className="h-4 w-4 mr-2" /> Filtres
                         {selectedStatuses.length > 1 && (
                           <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs bg-blue-100 text-blue-700">
                             {selectedStatuses.length}
@@ -445,15 +634,15 @@ export default function AssignmentsPage() {
 
                         <Separator className="my-3" />
 
-                        {/* Section Type d'assignation */}
+                        {/* Section Type de mission */}
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                            <Label className="text-sm font-semibold text-gray-900">Type d'assignation</Label>
+                            <Label className="text-sm font-semibold text-gray-900">Type de mission</Label>
                           </div>
                           <div className="space-y-2">
                             <p className="text-xs text-gray-600">
-                              Choisissez le type d'assignation
+                              Choisissez le type de mission
                             </p>
                             <AssignmentTypeSelect
                               value={selectedAssignmentType?.toString() || ''}
@@ -465,42 +654,152 @@ export default function AssignmentsPage() {
 
                         <Separator className="my-3" />
 
-                        {/* Section Résumé - Plus compacte */}
+                        {/* Section Véhicule */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Véhicule</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Sélectionnez un véhicule
+                            </p>
+                            <VehicleSelect
+                              value={selectedVehicle?.toString() || ''}
+                              onValueChange={handleVehicleChange}
+                              placeholder="Sélectionner un véhicule..."
+                            />
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Assureur */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Assureur</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Sélectionnez un assureur
+                            </p>
+                            <InsurerSelect
+                              value={selectedInsurer}
+                              onValueChange={handleInsurerChange}
+                              placeholder="Sélectionner un assureur..."
+                            />
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Courtier */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Courtier</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Sélectionnez un courtier
+                            </p>
+                            <BrokerSelect
+                              value={selectedBroker}
+                              onValueChange={handleBrokerChange}
+                              placeholder="Sélectionner un courtier..."
+                            />
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Réparateur */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Réparateur</Label>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Sélectionnez un réparateur
+                            </p>
+                            <RepairerSelect
+                              value={selectedRepairer}
+                              onValueChange={handleRepairerChange}
+                              placeholder="Sélectionner un réparateur..."
+                            />
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Type d'expertise */}
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <Label className="text-sm font-semibold text-gray-900">Résumé</Label>
+                            <Label className="text-sm font-semibold text-gray-900">Type d'expertise</Label>
                           </div>
-                          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-                            <div className="grid grid-cols-2 gap-3 text-xs">
-                              <div className="space-y-1">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Total:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.total_amount || '0') || 0), 0))}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Choc:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.shock_amount || '0') || 0), 0))}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="space-y-1">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Autres:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.other_cost_amount || '0') || 0), 0))}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Quittances:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {formatCurrency(filteredAssignments.reduce((sum, a) => sum + (parseFloat(a.receipt_amount || '0') || 0), 0))}
-                                  </span>
-                                </div>
-                              </div>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-600">
+                              Sélectionnez un type d'expertise
+                            </p>
+                            <ExpertiseTypeSelect
+                              value={selectedExpertiseType}
+                              onValueChange={handleExpertiseTypeChange}
+                              placeholder="Sélectionner un type..."
+                            />
+                          </div>
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Section Responsabilités */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                            <Label className="text-sm font-semibold text-gray-900">Responsabilités</Label>
+                          </div>
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs font-medium text-gray-700">Ouvert par</Label>
+                              <UserSelect
+                                value={selectedOpenedBy}
+                                onValueChange={handleOpenedByChange}
+                                placeholder="Sélectionner un utilisateur..."
+                                filterRole="expert,expert_manager"
+                                showStatus={true}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-medium text-gray-700">Réalisé par</Label>
+                              <UserSelect
+                                value={selectedRealisedBy}
+                                onValueChange={handleRealisedByChange}
+                                placeholder="Sélectionner un utilisateur..."
+                                filterRole="expert,expert_manager"
+                                showStatus={true}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-medium text-gray-700">Modifié par</Label>
+                              <UserSelect
+                                value={selectedEditedBy}
+                                onValueChange={handleEditedByChange}
+                                placeholder="Sélectionner un utilisateur..."
+                                filterRole="expert,expert_manager"
+                                showStatus={true}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs font-medium text-gray-700">Validé par</Label>
+                              <UserSelect
+                                value={selectedValidatedBy}
+                                onValueChange={handleValidatedByChange}
+                                placeholder="Sélectionner un utilisateur..."
+                                filterRole="expert,expert_manager"
+                                showStatus={true}
+                              />
                             </div>
                           </div>
                         </div>
@@ -543,34 +842,31 @@ export default function AssignmentsPage() {
           </div>
 
           {/* Active Filters Display */}
-          {(selectedStatuses.length > 1 || dateRange.from || dateRange.to) && (
+          {(selectedStatuses.length > 1 || dateRange.from || dateRange.to || selectedClient || selectedExpert || selectedAssignmentType || selectedVehicle || selectedInsurer || selectedBroker || selectedRepairer || selectedExpertiseType || selectedOpenedBy || selectedRealisedBy || selectedEditedBy || selectedValidatedBy) && (
             <div className="mb-6 flex flex-wrap gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400">Filtres actifs:</span>
-              {selectedStatuses.length > 1 && selectedStatuses.map((status) => {
-                const tab = allStatusTabs.find(t => t.value === status)
-                return (
-                  <Badge
-                    key={status}
-                    variant="outline"
-                    className={`${getStatusColor(status)} border-current`}
+              {selectedStatuses.length > 1 && selectedStatuses.map((status) => (
+                <Badge
+                  key={status}
+                  variant="outline"
+                  className={`${getStatusColor(status)} border-current`}
+                >
+                  {getStatusIcon(status)} {getFilterDisplayText('status', status)}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleMultiStatusChange(status, false)
+                    }}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
                   >
-                    {getStatusIcon(status)} {tab?.label}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleMultiStatusChange(status, false)
-                      }}
-                      className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )
-              })}
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
               {dateRange.from && (
                 <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-                  📅 {dateRange.from.toLocaleDateString('fr-FR')}
-                  {dateRange.to && ` - ${dateRange.to.toLocaleDateString('fr-FR')}`}
+                  📅 {getFilterDisplayText('date', dateRange.from.toLocaleDateString('fr-FR'))}
+                  {dateRange.to && ` - ${getFilterDisplayText('date', dateRange.to.toLocaleDateString('fr-FR'))}`}
                   <button
                     onClick={() => clearDateRange()}
                     className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
@@ -581,7 +877,7 @@ export default function AssignmentsPage() {
               )}
               {selectedClient && (
                 <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
-                  👤 Client sélectionné
+                  👤 {getFilterDisplayText('client', selectedClient)}
                   <button
                     onClick={() => setSelectedClient(null)}
                     className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
@@ -592,7 +888,7 @@ export default function AssignmentsPage() {
               )}
               {selectedExpert && (
                 <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
-                  🔍 Expert sélectionné
+                  🔍 {getFilterDisplayText('expert', selectedExpert)}
                   <button
                     onClick={() => setSelectedExpert(null)}
                     className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
@@ -603,7 +899,7 @@ export default function AssignmentsPage() {
               )}
               {selectedAssignmentType && (
                 <Badge variant="outline" className="bg-indigo-100 text-indigo-700 border-indigo-300">
-                  📋 Type sélectionné
+                  📋 {getFilterDisplayText('assignmentType', selectedAssignmentType)}
                   <button
                     onClick={() => setSelectedAssignmentType(null)}
                     className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
@@ -612,6 +908,127 @@ export default function AssignmentsPage() {
                   </button>
                 </Badge>
               )}
+              {selectedVehicle && (
+                <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
+                  🚗 {getFilterDisplayText('vehicle', selectedVehicle)}
+                  <button
+                    onClick={() => setSelectedVehicle(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedInsurer && (
+                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                  🛡️ {getFilterDisplayText('insurer', selectedInsurer)}
+                  <button
+                    onClick={() => setSelectedInsurer(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedBroker && (
+                <Badge variant="outline" className="bg-teal-100 text-teal-700 border-teal-300">
+                  👔 {getFilterDisplayText('broker', selectedBroker)}
+                  <button
+                    onClick={() => setSelectedBroker(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedRepairer && (
+                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
+                  🔧 {getFilterDisplayText('repairer', selectedRepairer)}
+                  <button
+                    onClick={() => setSelectedRepairer(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedExpertiseType && (
+                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+                  🧠 {getFilterDisplayText('expertiseType', selectedExpertiseType)}
+                  <button
+                    onClick={() => setSelectedExpertiseType(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedOpenedBy && (
+                <Badge variant="outline" className="bg-cyan-100 text-cyan-700 border-cyan-300">
+                  🔓 {getFilterDisplayText('openedBy', selectedOpenedBy)}
+                  <button
+                    onClick={() => setSelectedOpenedBy(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedRealisedBy && (
+                <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300">
+                  ✅ {getFilterDisplayText('realisedBy', selectedRealisedBy)}
+                  <button
+                    onClick={() => setSelectedRealisedBy(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedEditedBy && (
+                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                  ✏️ {getFilterDisplayText('editedBy', selectedEditedBy)}
+                  <button
+                    onClick={() => setSelectedEditedBy(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedValidatedBy && (
+                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                  🎯 {getFilterDisplayText('validatedBy', selectedValidatedBy)}
+                  <button
+                    onClick={() => setSelectedValidatedBy(null)}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {searchQuery && (
+                <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                  🔍 {getFilterDisplayText('search', searchQuery)}
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="ml-1 hover:bg-current hover:bg-opacity-20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              
+              {/* Bouton Réinitialiser tous les filtres */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                className="ml-2 h-7 px-3 text-xs bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300"
+              >
+                <X className="mr-1 h-3 w-3" />
+                Réinitialiser tout
+              </Button>
             </div>
           )}
 

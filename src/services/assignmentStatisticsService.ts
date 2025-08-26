@@ -3,7 +3,7 @@ import axiosInstance from '@/lib/axios'
 import { AssignmentStatistics, AssignmentStatisticsFilters } from '@/types/assignments'
 
 class AssignmentStatisticsService {
-  private baseUrl = '/assignments/statistics'
+  private baseUrl = '/assignments/get/statistics'
 
   /**
    * Récupérer les statistiques des assignations
@@ -73,7 +73,7 @@ class AssignmentStatisticsService {
       'claimNature'
     ].join(',')
 
-    const url = `${this.baseUrl}/${filters.start_date}/${filters.end_date}?includes=${includes}&${params.toString()}`
+    const url = `${this.baseUrl}?includes=${includes}&${params.toString()}`
     
     console.log('Statistics API URL:', url)
     

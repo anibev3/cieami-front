@@ -27,6 +27,18 @@ interface AssignmentsState {
     from: Date | null
     to: Date | null
   }
+  selectedClient: number | null
+  selectedExpert: number | null
+  selectedAssignmentType: number | null
+  selectedVehicle: number | null
+  selectedInsurer: number | null
+  selectedBroker: number | null
+  selectedRepairer: number | null
+  selectedExpertiseType: number | null
+  selectedOpenedBy: number | null
+  selectedRealisedBy: number | null
+  selectedEditedBy: number | null
+  selectedValidatedBy: number | null
   pagination: {
     currentPage: number
     totalPages: number
@@ -57,6 +69,18 @@ interface AssignmentsActions {
   setActiveTab: (tab: string) => void
   setDateRange: (range: { from: Date | null; to: Date | null }) => void
   clearDateRange: () => void
+  setSelectedClient: (clientId: number | null) => void
+  setSelectedExpert: (expertId: number | null) => void
+  setSelectedAssignmentType: (typeId: number | null) => void
+  setSelectedVehicle: (vehicleId: number | null) => void
+  setSelectedInsurer: (insurerId: number | null) => void
+  setSelectedBroker: (brokerId: number | null) => void
+  setSelectedRepairer: (repairerId: number | null) => void
+  setSelectedExpertiseType: (expertiseTypeId: number | null) => void
+  setSelectedOpenedBy: (userId: number | null) => void
+  setSelectedRealisedBy: (userId: number | null) => void
+  setSelectedEditedBy: (userId: number | null) => void
+  setSelectedValidatedBy: (userId: number | null) => void
   getFilteredAssignments: () => Assignment[]
   getStatusCounts: () => Record<string, number>
   
@@ -137,6 +161,18 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     from: null,
     to: null,
   },
+  selectedClient: null,
+  selectedExpert: null,
+  selectedAssignmentType: null,
+  selectedVehicle: null,
+  selectedInsurer: null,
+  selectedBroker: null,
+  selectedRepairer: null,
+  selectedExpertiseType: null,
+  selectedOpenedBy: null,
+  selectedRealisedBy: null,
+  selectedEditedBy: null,
+  selectedValidatedBy: null,
   pagination: {
     currentPage: 1,
     totalPages: 1,
@@ -164,6 +200,18 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
         status_code: filters?.status_code !== undefined ? filters.status_code : (currentState.activeTab !== 'all' ? currentState.activeTab : undefined),
         start_date: filters?.start_date !== undefined ? filters.start_date : startDate,
         end_date: filters?.end_date !== undefined ? filters.end_date : endDate,
+        client_id: filters?.client_id !== undefined ? filters.client_id : (currentState.selectedClient || undefined),
+        expert_id: filters?.expert_id !== undefined ? filters.expert_id : (currentState.selectedExpert || undefined),
+        assignment_type_id: filters?.assignment_type_id !== undefined ? filters.assignment_type_id : (currentState.selectedAssignmentType || undefined),
+        vehicle_id: filters?.vehicle_id !== undefined ? filters.vehicle_id : (currentState.selectedVehicle || undefined),
+        insurer_id: filters?.insurer_id !== undefined ? filters.insurer_id : (currentState.selectedInsurer || undefined),
+        broker_id: filters?.broker_id !== undefined ? filters.broker_id : (currentState.selectedBroker || undefined),
+        repairer_id: filters?.repairer_id !== undefined ? filters.repairer_id : (currentState.selectedRepairer || undefined),
+        expertise_type_id: filters?.expertise_type_id !== undefined ? filters.expertise_type_id : (currentState.selectedExpertiseType || undefined),
+        opened_by: filters?.opened_by !== undefined ? filters.opened_by : (currentState.selectedOpenedBy || undefined),
+        realised_by: filters?.realised_by !== undefined ? filters.realised_by : (currentState.selectedRealisedBy || undefined),
+        edited_by: filters?.edited_by !== undefined ? filters.edited_by : (currentState.selectedEditedBy || undefined),
+        validated_by: filters?.validated_by !== undefined ? filters.validated_by : (currentState.selectedValidatedBy || undefined),
       }
       
       console.log('Final filters:', currentFilters)
@@ -303,9 +351,27 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   // Actions de pagination
   setCurrentPage: (page) => {
     set({ pagination: { ...get().pagination, currentPage: page } })
-    const currentFilters = {
-      search: get().searchQuery,
-      status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+    const currentState = get()
+    const startDate = currentState.dateRange.from ? currentState.dateRange.from.toISOString().split('T')[0] : undefined
+    const endDate = currentState.dateRange.to ? currentState.dateRange.to.toISOString().split('T')[0] : undefined
+    
+    const currentFilters: AssignmentFilters = { 
+      search: currentState.searchQuery,
+      status_code: currentState.activeTab !== 'all' ? currentState.activeTab : undefined,
+      start_date: startDate,
+      end_date: endDate,
+      client_id: currentState.selectedClient || undefined,
+      expert_id: currentState.selectedExpert || undefined,
+      assignment_type_id: currentState.selectedAssignmentType || undefined,
+      vehicle_id: currentState.selectedVehicle || undefined,
+      insurer_id: currentState.selectedInsurer || undefined,
+      broker_id: currentState.selectedBroker || undefined,
+      repairer_id: currentState.selectedRepairer || undefined,
+      expertise_type_id: currentState.selectedExpertiseType || undefined,
+      opened_by: currentState.selectedOpenedBy || undefined,
+      realised_by: currentState.selectedRealisedBy || undefined,
+      edited_by: currentState.selectedEditedBy || undefined,
+      validated_by: currentState.selectedValidatedBy || undefined,
     }
     get().fetchAssignments(page, currentFilters)
   },
@@ -314,9 +380,27 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     const nextPage = get().pagination.currentPage + 1
     if (nextPage <= get().pagination.totalPages) {
       set({ pagination: { ...get().pagination, currentPage: nextPage } })
-      const currentFilters = {
-        search: get().searchQuery,
-        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+      const currentState = get()
+      const startDate = currentState.dateRange.from ? currentState.dateRange.from.toISOString().split('T')[0] : undefined
+      const endDate = currentState.dateRange.to ? currentState.dateRange.to.toISOString().split('T')[0] : undefined
+      
+      const currentFilters: AssignmentFilters = { 
+        search: currentState.searchQuery,
+        status_code: currentState.activeTab !== 'all' ? currentState.activeTab : undefined,
+        start_date: startDate,
+        end_date: endDate,
+        client_id: currentState.selectedClient || undefined,
+        expert_id: currentState.selectedExpert || undefined,
+        assignment_type_id: currentState.selectedAssignmentType || undefined,
+        vehicle_id: currentState.selectedVehicle || undefined,
+        insurer_id: currentState.selectedInsurer || undefined,
+        broker_id: currentState.selectedBroker || undefined,
+        repairer_id: currentState.selectedRepairer || undefined,
+        expertise_type_id: currentState.selectedExpertiseType || undefined,
+        opened_by: currentState.selectedOpenedBy || undefined,
+        realised_by: currentState.selectedRealisedBy || undefined,
+        edited_by: currentState.selectedEditedBy || undefined,
+        validated_by: currentState.selectedValidatedBy || undefined,
       }
       get().fetchAssignments(nextPage, currentFilters)
     }
@@ -326,9 +410,27 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     const prevPage = get().pagination.currentPage - 1
     if (prevPage >= 1) {
       set({ pagination: { ...get().pagination, currentPage: prevPage } })
-      const currentFilters = {
-        search: get().searchQuery,
-        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+      const currentState = get()
+      const startDate = currentState.dateRange.from ? currentState.dateRange.from.toISOString().split('T')[0] : undefined
+      const endDate = currentState.dateRange.to ? currentState.dateRange.to.toISOString().split('T')[0] : undefined
+      
+      const currentFilters: AssignmentFilters = { 
+        search: currentState.searchQuery,
+        status_code: currentState.activeTab !== 'all' ? currentState.activeTab : undefined,
+        start_date: startDate,
+        end_date: endDate,
+        client_id: currentState.selectedClient || undefined,
+        expert_id: currentState.selectedExpert || undefined,
+        assignment_type_id: currentState.selectedAssignmentType || undefined,
+        vehicle_id: currentState.selectedVehicle || undefined,
+        insurer_id: currentState.selectedInsurer || undefined,
+        broker_id: currentState.selectedBroker || undefined,
+        repairer_id: currentState.selectedRepairer || undefined,
+        expertise_type_id: currentState.selectedExpertiseType || undefined,
+        opened_by: currentState.selectedOpenedBy || undefined,
+        realised_by: currentState.selectedRealisedBy || undefined,
+        edited_by: currentState.selectedEditedBy || undefined,
+        validated_by: currentState.selectedValidatedBy || undefined,
       }
       get().fetchAssignments(prevPage, currentFilters)
     }
@@ -337,9 +439,27 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   goToPage: (page) => {
     if (page >= 1 && page <= get().pagination.totalPages) {
       set({ pagination: { ...get().pagination, currentPage: page } })
-      const currentFilters = {
-        search: get().searchQuery,
-        status_code: get().activeTab !== 'all' ? get().activeTab : undefined,
+      const currentState = get()
+      const startDate = currentState.dateRange.from ? currentState.dateRange.from.toISOString().split('T')[0] : undefined
+      const endDate = currentState.dateRange.to ? currentState.dateRange.to.toISOString().split('T')[0] : undefined
+      
+      const currentFilters: AssignmentFilters = { 
+        search: currentState.searchQuery,
+        status_code: currentState.activeTab !== 'all' ? currentState.activeTab : undefined,
+        start_date: startDate,
+        end_date: endDate,
+        client_id: currentState.selectedClient || undefined,
+        expert_id: currentState.selectedExpert || undefined,
+        assignment_type_id: currentState.selectedAssignmentType || undefined,
+        vehicle_id: currentState.selectedVehicle || undefined,
+        insurer_id: currentState.selectedInsurer || undefined,
+        broker_id: currentState.selectedBroker || undefined,
+        repairer_id: currentState.selectedRepairer || undefined,
+        expertise_type_id: currentState.selectedExpertiseType || undefined,
+        opened_by: currentState.selectedOpenedBy || undefined,
+        realised_by: currentState.selectedRealisedBy || undefined,
+        edited_by: currentState.selectedEditedBy || undefined,
+        validated_by: currentState.selectedValidatedBy || undefined,
       }
       get().fetchAssignments(page, currentFilters)
     }
@@ -355,6 +475,18 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     const filters: AssignmentFilters = { search: query }
     if (startDate) filters.start_date = startDate
     if (endDate) filters.end_date = endDate
+    if (currentState.selectedClient) filters.client_id = currentState.selectedClient
+    if (currentState.selectedExpert) filters.expert_id = currentState.selectedExpert
+    if (currentState.selectedAssignmentType) filters.assignment_type_id = currentState.selectedAssignmentType
+    if (currentState.selectedVehicle) filters.vehicle_id = currentState.selectedVehicle
+    if (currentState.selectedInsurer) filters.insurer_id = currentState.selectedInsurer
+    if (currentState.selectedBroker) filters.broker_id = currentState.selectedBroker
+    if (currentState.selectedRepairer) filters.repairer_id = currentState.selectedRepairer
+    if (currentState.selectedExpertiseType) filters.expertise_type_id = currentState.selectedExpertiseType
+    if (currentState.selectedOpenedBy) filters.opened_by = currentState.selectedOpenedBy
+    if (currentState.selectedRealisedBy) filters.realised_by = currentState.selectedRealisedBy
+    if (currentState.selectedEditedBy) filters.edited_by = currentState.selectedEditedBy
+    if (currentState.selectedValidatedBy) filters.validated_by = currentState.selectedValidatedBy
     
     get().fetchAssignments(1, filters)
   },
@@ -368,6 +500,18 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     const filters: AssignmentFilters = tab !== 'all' ? { status_code: tab } : {}
     if (startDate) filters.start_date = startDate
     if (endDate) filters.end_date = endDate
+    if (currentState.selectedClient) filters.client_id = currentState.selectedClient
+    if (currentState.selectedExpert) filters.expert_id = currentState.selectedExpert
+    if (currentState.selectedAssignmentType) filters.assignment_type_id = currentState.selectedAssignmentType
+    if (currentState.selectedVehicle) filters.vehicle_id = currentState.selectedVehicle
+    if (currentState.selectedInsurer) filters.insurer_id = currentState.selectedInsurer
+    if (currentState.selectedBroker) filters.broker_id = currentState.selectedBroker
+    if (currentState.selectedRepairer) filters.repairer_id = currentState.selectedRepairer
+    if (currentState.selectedExpertiseType) filters.expertise_type_id = currentState.selectedExpertiseType
+    if (currentState.selectedOpenedBy) filters.opened_by = currentState.selectedOpenedBy
+    if (currentState.selectedRealisedBy) filters.realised_by = currentState.selectedRealisedBy
+    if (currentState.selectedEditedBy) filters.edited_by = currentState.selectedEditedBy
+    if (currentState.selectedValidatedBy) filters.validated_by = currentState.selectedValidatedBy
     
     get().fetchAssignments(1, filters)
   },
@@ -378,6 +522,54 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
 
   clearDateRange: () => {
     set({ dateRange: { from: null, to: null } })
+  },
+
+  setSelectedClient: (clientId) => {
+    set({ selectedClient: clientId })
+  },
+
+  setSelectedExpert: (expertId) => {
+    set({ selectedExpert: expertId })
+  },
+
+  setSelectedAssignmentType: (typeId) => {
+    set({ selectedAssignmentType: typeId })
+  },
+
+  setSelectedVehicle: (vehicleId) => {
+    set({ selectedVehicle: vehicleId })
+  },
+
+  setSelectedInsurer: (insurerId) => {
+    set({ selectedInsurer: insurerId })
+  },
+
+  setSelectedBroker: (brokerId) => {
+    set({ selectedBroker: brokerId })
+  },
+
+  setSelectedRepairer: (repairerId) => {
+    set({ selectedRepairer: repairerId })
+  },
+
+  setSelectedExpertiseType: (expertiseTypeId) => {
+    set({ selectedExpertiseType: expertiseTypeId })
+  },
+
+  setSelectedOpenedBy: (userId) => {
+    set({ selectedOpenedBy: userId })
+  },
+
+  setSelectedRealisedBy: (userId) => {
+    set({ selectedRealisedBy: userId })
+  },
+
+  setSelectedEditedBy: (userId) => {
+    set({ selectedEditedBy: userId })
+  },
+
+  setSelectedValidatedBy: (userId) => {
+    set({ selectedValidatedBy: userId })
   },
 
   getFilteredAssignments: () => {

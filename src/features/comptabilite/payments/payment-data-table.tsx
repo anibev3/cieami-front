@@ -109,7 +109,7 @@ export function PaymentDataTable({
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -135,7 +135,7 @@ export function PaymentDataTable({
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Barre d'outils */}
       <div className="flex items-center justify-between">

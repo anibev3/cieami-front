@@ -667,6 +667,15 @@ export interface AssignmentFilters {
   client_id?: number
   expert_id?: number
   assignment_type_id?: number
+  vehicle_id?: number
+  insurer_id?: number
+  broker_id?: number
+  repairer_id?: number
+  expertise_type_id?: number
+  opened_by?: number
+  realised_by?: number
+  edited_by?: number
+  validated_by?: number
   date_from?: string
   date_to?: string
   start_date?: string

@@ -554,7 +554,7 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
               }
             }}
           >
-            Mettre à jour
+            Appliquer
           </Button>
         </div>
       </PopoverContent>
