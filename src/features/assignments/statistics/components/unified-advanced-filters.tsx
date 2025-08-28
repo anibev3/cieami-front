@@ -133,7 +133,7 @@ export function UnifiedAdvancedFilters({
                 props: { placeholder: 'Sélectionner un assureur' }
               },
               { 
-                key: 'created_by', 
+                key: 'opened_by', 
                 label: 'Créé par', 
                 type: 'custom',
                 component: UserSelect,
@@ -231,7 +231,7 @@ export function UnifiedAdvancedFilters({
                 placeholder: 'ID du dossier'
               },
               { 
-                key: 'created_by', 
+                key: 'opened_by', 
                 label: 'Créé par', 
                 type: 'custom',
                 component: UserSelect,
@@ -291,7 +291,7 @@ export function UnifiedAdvancedFilters({
             icon: <User className="h-4 w-4" />,
             fields: [
               { 
-                key: 'created_by', 
+                key: 'opened_by', 
                 label: 'Créé par', 
                 type: 'custom',
                 component: UserSelect,

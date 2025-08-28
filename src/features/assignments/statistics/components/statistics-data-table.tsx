@@ -101,7 +101,7 @@ export function StatisticsDataTable({ statistics }: StatisticsDataTableProps) {
         client: countData.client || amountData.client,
         insurer: countData.insurer || amountData.insurer,
         status: countData.status || amountData.status,
-        created_by: countData.created_by || amountData.created_by,
+        opened_by: countData.opened_by || amountData.opened_by,
         realized_by: countData.realized_by || amountData.realized_by,
         edited_by: countData.edited_by || amountData.edited_by,
         validated_by: countData.validated_by || amountData.validated_by,

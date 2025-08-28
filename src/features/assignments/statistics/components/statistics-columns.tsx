@@ -22,7 +22,7 @@ export type StatisticsData = {
   client?: any
   insurer?: any
   status?: any
-  created_by?: any
+  opened_by?: any
   realized_by?: any
   edited_by?: any
   validated_by?: any
@@ -227,10 +227,10 @@ export const createStatisticsColumns = (): ColumnDef<StatisticsData>[] => [
   //   enableHiding: true,
   // },
   // {
-  //   accessorKey: 'created_by',
+  //   accessorKey: 'opened_by',
   //   header: 'Créé par',
   //   cell: ({ row }) => {
-  //     const createdBy = row.original.created_by
+  //     const createdBy = row.original.opened_by
   //     return createdBy ? (
   //       <div className="max-w-[150px] truncate text-sm">
   //         {createdBy.name}

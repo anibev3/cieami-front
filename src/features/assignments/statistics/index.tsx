@@ -38,7 +38,7 @@ const FILTER_CONFIG: Record<string, { icon: any; label: string; color: string }>
   assignment_type_id: { icon: FileText, label: 'Type de mission', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
   expertise_type_id: { icon: FileCheck, label: 'Type d\'expertise', color: 'bg-purple-100 text-purple-700 border-purple-300' },
   claim_nature_id: { icon: AlertCircle, label: 'Nature du sinistre', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  created_by: { icon: User, label: 'Créé par', color: 'bg-green-100 text-green-700 border-green-300' },
+  opened_by: { icon: User, label: 'Créé par', color: 'bg-green-100 text-green-700 border-green-300' },
   edited_by: { icon: Edit, label: 'Modifié par', color: 'bg-blue-100 text-blue-700 border-blue-300' },
   realized_by: { icon: Play, label: 'Réalisé par', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
   directed_by: { icon: Target, label: 'Dirigé par', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
@@ -113,7 +113,7 @@ export default function StatisticsPage() {
           assignment_type_id: undefined,
           expertise_type_id: undefined,
           claim_nature_id: undefined,
-          created_by: undefined,
+          opened_by: undefined,
           edited_by: undefined,
           realized_by: undefined,
           directed_by: undefined,
@@ -130,7 +130,7 @@ export default function StatisticsPage() {
           bank_id: undefined,
           client_id: undefined,
           assignment_id: undefined,
-          created_by: undefined,
+          opened_by: undefined,
           status_id: undefined,
         } as PaymentStatisticsFilters
 
@@ -141,7 +141,7 @@ export default function StatisticsPage() {
           client_id: undefined,
           assignment_id: undefined,
           payment_status_id: undefined,
-          created_by: undefined,
+          opened_by: undefined,
           status_id: undefined,
         } as InvoiceStatisticsFilters
 
