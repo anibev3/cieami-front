@@ -247,7 +247,7 @@ export default function InvoiceDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Car className="h-5 w-5" />
-                  Informations de l'assignation
+                  Informations du dossier
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -327,10 +327,10 @@ export default function InvoiceDetailPage() {
                     </div>
                   </div>
 
-                  <Separator />
+                  {/* <Separator /> */}
 
                   {/* Informations complémentaires */}
-                  <div className="space-y-3">
+                  {/* <div className="space-y-3">
                     <h4 className="font-semibold text-sm text-primary border-b pb-1">Informations complémentaires</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -350,7 +350,7 @@ export default function InvoiceDetailPage() {
                         <p className="text-sm bg-muted/50 px-2 py-1 rounded">{assignment?.administrator || 'Non renseigné'}</p>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>

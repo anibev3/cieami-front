@@ -16,9 +16,9 @@ export function PdfViewer({ open, onOpenChange, url, title }: PdfViewerProps) {
       <DialogContent className="max-w-4xl p-0 overflow-hidden">
         <DialogHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
           <DialogTitle>{title || 'Document PDF'}</DialogTitle>
-          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+          {/* <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
             <X className="h-5 w-5" />
-          </Button>
+          </Button> */}
         </DialogHeader>
         <div className="w-full h-[70vh] bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
           <iframe

@@ -103,7 +103,8 @@ export const sidebarData: SidebarData = {
           title: 'Statistiques',
           url: '/assignments/statistics',
           icon: IconCalculator,
-          // requiredPermission: Permission.ASSIGNMENT_STATISTICS,
+          requiredRoles: [UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+
         },
         {
           title: 'Tableaux de dépréciation',

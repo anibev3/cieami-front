@@ -49,14 +49,10 @@ const formatDate = (date: Date, locale: string = 'fr-FR'): string => {
 
 const getDateAdjustedForTimezone = (dateInput: Date | string): Date => {
   if (typeof dateInput === 'string') {
-    // Split the date string to get year, month, and day parts
     const parts = dateInput.split('-').map((part) => parseInt(part, 10))
-    // Create a new Date object using the local timezone
-    // Note: Month is 0-indexed, so subtract 1 from the month part
     const date = new Date(parts[0], parts[1] - 1, parts[2])
     return date
   } else {
-    // If dateInput is already a Date object, return it directly
     return dateInput
   }
 }
@@ -71,7 +67,6 @@ interface Preset {
   label: string
 }
 
-// Define presets
 const PRESETS: Preset[] = [
   { name: 'today', label: 'Aujourd\'hui' },
   { name: 'yesterday', label: 'Hier' },
@@ -117,26 +112,32 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
       : undefined
   )
 
-  // Refs to store the values of range and rangeCompare when the date picker is opened
   const openedRangeRef = useRef<DateRange | undefined>(undefined)
   const openedRangeCompareRef = useRef<DateRange | undefined>(undefined)
-
   const [selectedPreset, setSelectedPreset] = useState<string | undefined>(undefined)
 
-  const [isSmallScreen, setIsSmallScreen] = useState(
-    typeof window !== 'undefined' ? window.innerWidth < 960 : false
-  )
+  // Breakpoints plus précis pour différents cas d'usage
+  const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md' | 'lg'>('lg')
 
   useEffect(() => {
-    const handleResize = (): void => {
-      setIsSmallScreen(window.innerWidth < 960)
+    const updateScreenSize = (): void => {
+      const width = window.innerWidth
+      if (width < 480) {
+        setScreenSize('xs') // Très petits écrans (mobiles)
+      } else if (width < 768) {
+        setScreenSize('sm') // Petits écrans (tablettes portrait)
+      } else if (width < 1024) {
+        setScreenSize('md') // Écrans moyens (tablettes paysage)
+      } else {
+        setScreenSize('lg') // Grands écrans (desktop)
+      }
     }
 
-    window.addEventListener('resize', handleResize)
+    updateScreenSize()
+    window.addEventListener('resize', updateScreenSize)
 
-    // Clean up event listener on unmount
     return () => {
-      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('resize', updateScreenSize)
     }
   }, [])
 
@@ -298,24 +299,27 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
     isSelected: boolean
   }): React.JSX.Element => (
     <Button
-      className={cn(isSelected && 'pointer-events-none')}
+      className={cn(
+        "w-full justify-start text-left text-xs",
+        isSelected && 'pointer-events-none'
+      )}
       variant="ghost"
+      size="xs"
       onClick={() => {
         setPreset(preset)
       }}
     >
       <>
         <span className={cn('pr-2 opacity-0', isSelected && 'opacity-70')}>
-          <CheckIcon width={18} height={18} />
+          <CheckIcon width={16} height={16} />
         </span>
         {label}
       </>
     </Button>
   )
 
-  // Helper function to check if two date ranges are equal
   const areRangesEqual = (a?: DateRange, b?: DateRange): boolean => {
-    if (!a || !b) return a === b // If either is undefined, return true if both are undefined
+    if (!a || !b) return a === b
     return (
       a.from.getTime() === b.from.getTime() &&
       (!a.to || !b.to || a.to.getTime() === b.to.getTime())
@@ -329,6 +333,23 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
     }
   }, [isOpen])
 
+  // Configuration responsive pour le popover
+  const getPopoverWidth = () => {
+    switch (screenSize) {
+      case 'xs':
+        return 'w-[95vw] max-w-[350px]'
+      case 'sm':
+        return 'w-[90vw] max-w-[450px]'
+      case 'md':
+        return 'w-[600px]'
+      default:
+        return 'w-[800px]'
+    }
+  }
+
+  const showPresetsSidebar = screenSize === 'lg'
+  const numberOfMonths = screenSize === 'xs' ? 1 : screenSize === 'sm' ? 1 : screenSize === 'md' ? 1 : 2
+
   return (
     <Popover
       modal={true}
@@ -341,15 +362,27 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
       }}
     >
       <PopoverTrigger asChild>
-        <Button size={'lg'} variant="outline">
+        <Button 
+          size={screenSize === 'xs' ? 'default' : 'lg'} 
+          variant="outline"
+          className="min-w-fit"
+        >
           <div className="text-right">
             <div className="py-1">
-              <div>{`${formatDate(range.from, locale)}${
-                range.to != null ? ' - ' + formatDate(range.to, locale) : ''
-              }`}</div>
+              <div className={cn(
+                "truncate",
+                screenSize === 'xs' && "max-w-[200px] text-xs"
+              )}>
+                {`${formatDate(range.from, locale)}${
+                  range.to != null ? ' - ' + formatDate(range.to, locale) : ''
+                }`}
+              </div>
             </div>
             {rangeCompare != null && (
-              <div className="opacity-60 text-xs -mt-1">
+              <div className={cn(
+                "opacity-60 -mt-1",
+                screenSize === 'xs' ? "text-[10px]" : "text-xs"
+              )}>
                 <>
                   vs. {formatDate(rangeCompare.from, locale)}
                   {rangeCompare.to != null
@@ -360,17 +393,26 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
             )}
           </div>
           <div className="pl-1 opacity-60 -mr-2 scale-125">
-            {isOpen ? (<ChevronUpIcon width={24} />) : (<ChevronDownIcon width={24} />)}
+            {isOpen ? (<ChevronUpIcon width={20} />) : (<ChevronDownIcon width={20} />)}
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align={align} className={cn("w-full", className)}>
-        <div className="flex py-2">
-          <div className="flex">
-            <div className="flex flex-col">
-              <div className="flex flex-col lg:flex-row gap-2 px-3 justify-end items-center lg:items-start pb-4 lg:pb-0">
-                {showCompare && (
-                  <div className="flex items-center space-x-2 pr-4 py-1">
+      <PopoverContent 
+        align={screenSize === 'xs' ? 'center' : align} 
+        className={cn(getPopoverWidth(), "p-0 overflow-y-auto", className)}
+        sideOffset={8}
+      >
+        <div className="flex flex-col overflow-y-auto">
+          {/* Header avec contrôles */}
+          <div className="flex-shrink-0 border-b">
+            <div className="space-y-4 px-14 flex items-center justify-between">
+              <div className="">
+                {/* Switch de comparaison */}
+                {/* {showCompare && (
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="compare-mode" className="text-sm font-medium">
+                      Comparer les périodes
+                    </Label>
                     <Switch
                       defaultChecked={Boolean(rangeCompare)}
                       onCheckedChange={(checked: boolean) => {
@@ -405,11 +447,12 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                       }}
                       id="compare-mode"
                     />
-                    <Label htmlFor="compare-mode">Comparer</Label>
                   </div>
-                )}
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
+                )} */}
+
+                {/* Inputs de dates */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 h-10">
                     <DateInput
                       value={range.from}
                       onChange={(date) => {
@@ -421,9 +464,9 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                           to: toDate
                         }))
                       }}
-                      className="w-full"
+                      className="flex-1 h-8"
                     />
-                    <div className="py-1">-</div>
+                    <span className="text-muted-foreground">-</span>
                     <DateInput
                       value={range.to}
                       onChange={(date) => {
@@ -434,11 +477,12 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                           to: date
                         }))
                       }}
-                      className="w-full"
+                      className="flex-1 h-8"
                     />
                   </div>
-                  {rangeCompare != null && (
-                    <div className="flex gap-2">
+
+                  {/* {rangeCompare != null && (
+                    <div className="flex items-center gap-2">
                       <DateInput
                         value={rangeCompare?.from}
                         onChange={(date) => {
@@ -459,9 +503,9 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                             })
                           }
                         }}
-                        className="w-full"
+                        className="flex-1"
                       />
-                      <div className="py-1">-</div>
+                      <span className="text-muted-foreground">-</span>
                       <DateInput
                         value={rangeCompare?.to}
                         onChange={(date) => {
@@ -477,85 +521,103 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                             })
                           }
                         }}
-                        className="w-full"
+                        className="flex-1"
                       />
                     </div>
-                  )}
+                  )} */}
                 </div>
+
+                {/* Select pour les presets sur petits écrans */}
+                {!showPresetsSidebar && (
+                  <Select 
+                    value={selectedPreset} 
+                    onValueChange={(value) => { setPreset(value) }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une période..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRESETS.map((preset) => (
+                        <SelectItem key={preset.name} value={preset.name}>
+                          {preset.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
-              { isSmallScreen && (
-                <Select defaultValue={selectedPreset} onValueChange={(value) => { setPreset(value) }}>
-                  <SelectTrigger className="w-[180px] mx-auto mb-2">
-                    <SelectValue placeholder="Sélectionner..." />
-                  </SelectTrigger>
-                  <SelectContent className="w-full">
-                    {PRESETS.map((preset) => (
-                      <SelectItem key={preset.name} value={preset.name}>
-                        {preset.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <div className="w-full">
-                <Calendar
-                  mode="range"
-                  onSelect={(value: { from?: Date, to?: Date } | undefined) => {
-                    if (value?.from != null) {
-                      setRange({ from: value.from, to: value?.to })
+              <div className="flex justify-end gap-2">
+                <Button
+                  onClick={() => {
+                    setIsOpen(false)
+                    resetValues()
+                  }}
+                  variant="outline"
+                  // size={screenSize === 'xs' ? 'sm' : 'default'}
+                  size={'xs'}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsOpen(false)
+                    if (
+                      !areRangesEqual(range, openedRangeRef.current) ||
+                      !areRangesEqual(rangeCompare, openedRangeCompareRef.current)
+                    ) {
+                      onUpdate?.({ range, rangeCompare })
                     }
                   }}
-                  selected={range}
-                  numberOfMonths={isSmallScreen ? 1 : 2}
-                  defaultMonth={
-                    new Date(
-                      new Date().setMonth(
-                        new Date().getMonth() - (isSmallScreen ? 0 : 1)
-                      )
-                    )
-                  }
-                />
+                  // size={screenSize === 'xs' ? 'sm' : 'default'}
+                  size={'xs'}
+                >
+                  Appliquer
+                </Button>
               </div>
             </div>
           </div>
-          {!isSmallScreen && (
-            <div className="flex flex-col items-end gap-1 pr-2 pl-6 pb-6">
-              <div className="flex w-full flex-col items-end gap-1 pr-2 pl-6 pb-6">
-                {PRESETS.map((preset) => (
-                  <PresetButton
-                    key={preset.name}
-                    preset={preset.name}
-                    label={preset.label}
-                    isSelected={selectedPreset === preset.name}
-                  />
-                ))}
-              </div>
+
+          {/* Contenu principal avec calendrier et presets */}
+          <div className="flex flex-1 overflow-y-auto">
+            {/* Zone du calendrier */}
+            <div className="flex-1 p-4 overflow-auto">
+              <Calendar
+                mode="range"
+                onSelect={(value: { from?: Date, to?: Date } | undefined) => {
+                  if (value?.from != null) {
+                    setRange({ from: value.from, to: value?.to })
+                  }
+                }}
+                selected={range}
+                numberOfMonths={numberOfMonths}
+                defaultMonth={
+                  new Date(
+                    new Date().setMonth(
+                      new Date().getMonth() - (numberOfMonths === 2 ? 1 : 0)
+                    )
+                  )
+                }
+                className="w-full"
+              />
             </div>
-          )}
-        </div>
-        <div className="flex justify-end gap-2 py-2 pr-4">
-          <Button
-            onClick={() => {
-              setIsOpen(false)
-              resetValues()
-            }}
-            variant="ghost"
-          >
-            Annuler
-          </Button>
-          <Button
-            onClick={() => {
-              setIsOpen(false)
-              if (
-                !areRangesEqual(range, openedRangeRef.current) ||
-                !areRangesEqual(rangeCompare, openedRangeCompareRef.current)
-              ) {
-                onUpdate?.({ range, rangeCompare })
-              }
-            }}
-          >
-            Appliquer
-          </Button>
+
+            {/* Sidebar des presets pour grands écrans */}
+            {showPresetsSidebar && (
+              <div className="flex-shrink-0 w-48 p-4 border-l bg-muted/20">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-medium mb-3">Périodes rapides</h4>
+                  {PRESETS.map((preset) => (
+                    <PresetButton
+                      key={preset.name}
+                      preset={preset.name}
+                      label={preset.label}
+                      isSelected={selectedPreset === preset.name}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </PopoverContent>
     </Popover>

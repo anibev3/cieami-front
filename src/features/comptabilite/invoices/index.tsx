@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { DateRangePicker } from '@/components/ui/range-calendar/date-range-picker'
@@ -22,7 +22,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { 
@@ -30,7 +29,6 @@ import {
   Search, 
   Filter, 
   Eye, 
-  Trash2, 
   Download,
   FileText,
   User,
@@ -53,6 +51,8 @@ import { useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Invoice } from '@/types/comptabilite'
 
 export default function InvoicesPage() {
   const navigate = useNavigate()
@@ -62,7 +62,7 @@ export default function InvoicesPage() {
     loading, 
     pagination,
     fetchInvoices, 
-    deleteInvoice,
+    // deleteInvoice,
     cancelInvoice,
     generateInvoice
   } = useInvoiceStore()
@@ -95,7 +95,8 @@ export default function InvoicesPage() {
     key: 'date',
     direction: 'desc'
   })
-
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null)
   // Pagination state - using store data directly
   // Remove local pagination state to prevent infinite loops
   // const [currentPage, setCurrentPage] = useState(1)
@@ -208,17 +209,17 @@ export default function InvoicesPage() {
 
   const hasActiveFilters = searchTerm || selectedAssignment || dateRange.from || dateRange.to || (filters.status && filters.status !== 'all') || filters.amount_min || filters.amount_max
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
-      try {
-        await deleteInvoice(id)
-        // Refresh current page after deletion
-        fetchInvoicesWithPagination()
-      } catch (_error) {
-        // L'erreur est déjà gérée dans le store
-      }
-    }
-  }
+  // const handleDelete = async (id: number) => {
+  //   if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
+  //     try {
+  //       await deleteInvoice(id)
+  //       // Refresh current page after deletion
+  //       fetchInvoicesWithPagination()
+  //     } catch (_error) {
+  //       // L'erreur est déjà gérée dans le store
+  //     }
+  //   }
+  // }
 
   const handleViewDetails = (id: number) => {
     navigate({ to: `/comptabilite/invoices/details/${id}` })
@@ -286,9 +287,11 @@ export default function InvoicesPage() {
     if (message.toLowerCase().includes('succès') || message.toLowerCase().includes('success')) {
       toast.success(message)
       fetchInvoicesWithPagination()
+      setDeleteModalOpen(false)
     } else {
       toast.error(message)
     }
+    setDeleteModalOpen(false)
   }
 
   const handleGenerate = async (id: number) => {
@@ -371,7 +374,7 @@ export default function InvoicesPage() {
               {isMobile ? "Effacer" : <X className="h-4 w-4" />}
             </Button>
           )}
-                    <DateRangePicker
+          <DateRangePicker
             initialDateFrom={dateRange.from || undefined}
             initialDateTo={dateRange.to || undefined}
             onUpdate={handleDateRangeChange}
@@ -597,7 +600,7 @@ export default function InvoicesPage() {
                   const canCancel = !isCancelled && !isDeleted
                   const canGenerate = invoice.status?.code !== 'generated' && !isDeleted && !isCancelled
                   // const canEdit = !isCancelled && !isDeleted
-                  const canDelete = !isCancelled && !isDeleted
+                  // const canDelete = !isCancelled && !isDeleted
                   return (
                     <TableRow key={invoice.id} className="hover:bg-muted/50">
                       {columnVisibility.reference && (
@@ -688,7 +691,10 @@ export default function InvoicesPage() {
                                   </DropdownMenuItem>
                               )} */}
                               {canCancel && (
-                                <DropdownMenuItem onClick={() => handleCancel(Number(invoice.id))}>
+                                <DropdownMenuItem onClick={() => {
+                                  setInvoiceToDelete(invoice)
+                                  setDeleteModalOpen(true)
+                                }}>
                                   <AlertTriangle className="mr-2 h-4 w-4" />
                                   Annuler
                                 </DropdownMenuItem>
@@ -699,16 +705,7 @@ export default function InvoicesPage() {
                                   Générer
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuSeparator />
-                              {canDelete && (
-                                <DropdownMenuItem 
-                                  onClick={() => handleDelete(Number(invoice.id))}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Supprimer
-                                </DropdownMenuItem>
-                              )}
+                             
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -805,17 +802,6 @@ export default function InvoicesPage() {
 
       {/* Modal de filtres avancés */}
       <Sheet open={filterModalOpen} onOpenChange={setFilterModalOpen}>
-        {/* <SheetTrigger asChild>
-          <Button variant="outline" className="text-xs" size={isMobile ? "sm" : "xs"}>
-            <Filter className="mr-2 h-2 w-2 text-xs" />
-            {!isMobile && "Filtres"}
-            {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
-                {[searchTerm, selectedAssignment, dateRange.from, dateRange.to, filters.status !== 'all' ? filters.status : '', filters.amount_min, filters.amount_max].filter(Boolean).length}
-              </Badge>
-            )}
-          </Button>
-        </SheetTrigger> */}
         <SheetContent className="w-full sm:max-w-lg md:max-w-xl">
           <SheetHeader className="pb-3">
             <SheetTitle className="text-lg font-bold text-gray-900">Filtres avancés</SheetTitle>
@@ -946,6 +932,30 @@ export default function InvoicesPage() {
           </div>
         </SheetContent>
       </Sheet>
+
+
+
+      <Dialog
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+      >
+        <DialogContent className="w-1/3">
+          <DialogHeader>
+            <DialogTitle>Annuler la facture</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            Êtes-vous sûr de vouloir annuler cette facture ?
+          </DialogDescription>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+              Retour
+            </Button>
+            <Button variant="destructive" onClick={() => handleCancel(Number(invoiceToDelete?.id))}>
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog> 
     </div>
   )
 }

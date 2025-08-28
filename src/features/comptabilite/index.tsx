@@ -27,6 +27,7 @@ export default function Comptabilite() {
   
   const hasAccountantRole = useHasAnyRole([UserRole.ACCOUNTANT, UserRole.ACCOUNTANT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN])
   const hasManagerRole = useHasAnyRole([UserRole.ACCOUNTANT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN])
+  const hasCEO = useHasAnyRole([UserRole.CEO])
 
   // Configuration complète des éléments du menu avec leurs permissions
   const allSidebarNavItems = [
@@ -34,7 +35,7 @@ export default function Comptabilite() {
       title: 'Paiements',
       icon: <IconUser size={18} />,
       href: '/comptabilite/payments',
-      checkAccess: () => hasViewPayment,
+      checkAccess: () => hasViewPayment || hasCEO,
     },
     {
       title: 'Cheques',
@@ -46,31 +47,31 @@ export default function Comptabilite() {
       title: 'Factures',
       icon: <IconFileText size={18} />,
       href: '/comptabilite/invoices',
-      checkAccess: () => hasViewInvoice,
+      checkAccess: () => hasViewInvoice || hasCEO,
     },
     {
       title: 'Types de paiement',
       icon: <IconPalette size={18} />,
       href: '/comptabilite/payment-types',
-      checkAccess: () => hasManagerRole,
+      checkAccess: () => hasManagerRole || hasCEO,
     },
     {
       title: 'Méthodes de paiement',
       icon: <IconNotification size={18} />,
       href: '/comptabilite/payment-methods',
-      checkAccess: () => hasManagerRole,
+      checkAccess: () => hasManagerRole || hasCEO,
     },
     {
       title: 'Banques',
       icon: <IconBrowserCheck size={18} />,
       href: '/comptabilite/banks',
-      checkAccess: () => hasManagerRole,
+      checkAccess: () => hasManagerRole || hasCEO,
     },
     {
       title: 'Statistiques',
       icon: <IconCalculator size={18} />,
       href: '/comptabilite/statistics/assignments',
-      checkAccess: () => hasPaymentStats || hasInvoiceStats,
+      checkAccess: () => hasPaymentStats || hasInvoiceStats || hasCEO,
     },
   ]
 
@@ -110,7 +111,7 @@ export default function Comptabilite() {
           <aside className='top-0 lg:sticky lg:w-1/5'>
             <SidebarNav items={filteredSidebarNavItems} />
           </aside>
-          <div className='flex w-full overflow-y-hidden p-1'>
+          <div className='flex w-full overflow-y-auto p-1'>
             <Outlet />
           </div>
         </div>
