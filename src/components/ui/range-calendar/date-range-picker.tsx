@@ -363,7 +363,7 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
     >
       <PopoverTrigger asChild>
         <Button 
-          size={screenSize === 'xs' ? 'default' : 'lg'} 
+          size={screenSize === 'xs' ? 'default' : ''} 
           variant="outline"
           className="min-w-fit"
         >
