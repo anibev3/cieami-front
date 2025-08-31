@@ -96,9 +96,16 @@ export interface TheoreticalValueCalculationResult {
   expertise_date: string
   first_entry_into_circulation_date: string
   vehicle_new_value: number
+  year_diff: number
+  month_diff: number
   vehicle_age: number
   theorical_depreciation_rate: string
   theorical_vehicle_market_value: number
+  is_up: boolean
+  market_incidence_rate: number
+  market_incidence: number
+  kilometric_incidence: number
+  vehicle_market_value: number
 }
 
 export interface TheoreticalValueCalculationResponse {

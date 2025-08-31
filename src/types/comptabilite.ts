@@ -286,6 +286,8 @@ export interface PaymentResponse {
     to: number
     total: number
   }
+  total_amount?: string
+  export_url?: string
 }
 
 // Chèques
@@ -552,6 +554,8 @@ export interface InvoiceResponse {
     to: number
     total: number
   }
+  total_amount?: string
+  export_url?: string
 }
 
 export interface InvoiceDetailResponse {

@@ -214,7 +214,7 @@ export const createPaymentColumns = ({ onDelete, onView }: PaymentColumnsProps):
                 <AlertDialogHeader>
                   <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Cette action ne peut pas être annulée. Cela supprimera définitivement le paiement "{payment.reference}".
+                    Cette action ne peut pas être annulée. Cela annulera le paiement "{payment.reference}".
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -39,6 +39,9 @@ interface PaymentDataTableProps {
   onRefresh?: () => void
   loading?: boolean
   onSearch?: (searchQuery: string) => void
+  totalAmount: string
+  totalItems: number
+  exportUrl: string | null
 }
 
 export function PaymentDataTable({
@@ -48,7 +51,10 @@ export function PaymentDataTable({
   onDelete: _onDelete,
   onRefresh,
   loading,
-  onSearch
+  onSearch,
+  totalAmount,
+  totalItems,
+  exportUrl
 }: PaymentDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -84,15 +90,7 @@ export function PaymentDataTable({
     },
   })
 
-  // Calcul des statistiques
-  const stats = useMemo(() => {
-    const total = data.length
-    const totalAmount = data.reduce((sum, payment) => sum + parseFloat(payment.amount), 0)
-    const active = data.filter(p => p.status?.code === 'active').length
-    const pending = data.filter(p => p.status?.code === 'pending').length
 
-    return { total, totalAmount, active, pending }
-  }, [data])
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -109,12 +107,12 @@ export function PaymentDataTable({
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total des paiements</p>
+              <p className="text-2xl font-bold">{totalItems}</p>
             </div>
             <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
               <span className="text-blue-600 text-sm font-bold">P</span>
@@ -127,7 +125,7 @@ export function PaymentDataTable({
             <div>
               <p className="text-sm font-medium text-muted-foreground">Montant total</p>
               <p className="text-2xl font-bold">
-                {stats.totalAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
+                {parseFloat(totalAmount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
               </p>
             </div>
             <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
@@ -135,7 +133,44 @@ export function PaymentDataTable({
             </div>
           </div>
         </div>
-      </div> */}
+        
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Paiements actifs</p>
+              <p className="text-2xl font-bold">
+                {data.filter(p => p.status?.code === 'active').length}
+              </p>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-green-600 text-sm font-bold">✓</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Actions</p>
+              <div className="flex gap-2">
+                {exportUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(exportUrl, '_blank')}
+                    className="text-xs"
+                  >
+                                        📊 Exporter
+                   </Button>
+                  )}
+              </div>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+              <span className="text-purple-600 text-sm font-bold">⚡</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Barre d'outils */}
       <div className="flex items-center justify-between">
@@ -171,6 +206,18 @@ export function PaymentDataTable({
               Actualiser
             </Button>
           )}
+          
+          
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(exportUrl ?? '', '_blank')}
+            className="flex items-center gap-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+            disabled={!exportUrl}
+            >
+              📊 Exporter
+            </Button>
+          
         </div>
 
         <DropdownMenu>

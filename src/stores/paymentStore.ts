@@ -18,6 +18,10 @@ interface PaymentState {
   hasNextPage: boolean
   hasPrevPage: boolean
   
+  // Statistiques
+  totalAmount: string
+  exportUrl: string | null
+  
   // Actions
   fetchPayments: (page?: number, perPage?: number, search?: string, filters?: PaymentFilters) => Promise<void>
   fetchPaymentById: (id: number) => Promise<Payment | null>
@@ -44,6 +48,10 @@ export const usePaymentStore = create<PaymentState>((set) => ({
   perPage: 20,
   hasNextPage: false,
   hasPrevPage: false,
+  
+  // Statistiques initiales
+  totalAmount: "0.00",
+  exportUrl: null,
 
   // Actions
   fetchPayments: async (page = 1, perPage = 20, search = '', filters = {}) => {
@@ -52,7 +60,7 @@ export const usePaymentStore = create<PaymentState>((set) => ({
       const response = await paymentService.getAll({ page, per_page: perPage, search, ...filters })
       
       // Extraire les données de pagination de la réponse API
-      const { data, meta, links } = response
+      const { data, meta, links, total_amount, export_url } = response
       
       set({ 
         payments: data, 
@@ -62,7 +70,9 @@ export const usePaymentStore = create<PaymentState>((set) => ({
         totalItems: meta.total,
         perPage: meta.per_page,
         hasNextPage: !!links.next,
-        hasPrevPage: !!links.prev
+        hasPrevPage: !!links.prev,
+        totalAmount: total_amount || "0.00",
+        exportUrl: export_url || null
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des paiements'

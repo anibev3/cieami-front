@@ -16,6 +16,10 @@ interface InvoiceState {
     total: number
   }
   
+  // Statistiques
+  totalAmount: string
+  exportUrl: string | null
+  
   // Actions
   fetchInvoices: (filters?: InvoiceFilters) => Promise<void>
   fetchInvoiceById: (id: number) => Promise<void>
@@ -40,20 +44,28 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
     per_page: 20,
     total: 0
   },
+  
+  // Statistiques initiales
+  totalAmount: "0.00",
+  exportUrl: null,
 
   // Actions
   fetchInvoices: async (filters?: InvoiceFilters) => {
     try {
       set({ loading: true, error: null })
       const response = await invoiceService.getAll(filters)
+      const { data, meta, total_amount, export_url } = response
+      
       set({ 
-        invoices: response.data, 
+        invoices: data, 
         pagination: {
-          current_page: response.meta.current_page,
-          last_page: response.meta.last_page,
-          per_page: response.meta.per_page,
-          total: response.meta.total
+          current_page: meta.current_page,
+          last_page: meta.last_page,
+          per_page: meta.per_page,
+          total: meta.total
         },
+        totalAmount: total_amount || "0.00",
+        exportUrl: export_url || null,
         loading: false 
       })
     } catch (error) {

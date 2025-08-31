@@ -42,6 +42,8 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
     perPage,
     hasNextPage,
     hasPrevPage,
+    totalAmount,
+    exportUrl,
     fetchPayments,
     deletePayment
   } = usePaymentStore()
@@ -347,6 +349,9 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
             onRefresh={handleRefresh}
             loading={loading}
             onSearch={handleSearch}
+            totalAmount={totalAmount}
+            totalItems={totalItems}
+            exportUrl={exportUrl}
           />
 
           {/* Affichage des filtres actifs */}

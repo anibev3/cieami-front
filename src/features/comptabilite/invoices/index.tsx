@@ -61,6 +61,8 @@ export default function InvoicesPage() {
     invoices, 
     loading, 
     pagination,
+    totalAmount,
+    exportUrl,
     fetchInvoices, 
     // deleteInvoice,
     cancelInvoice,
@@ -349,6 +351,71 @@ export default function InvoicesPage() {
         </div>
       </div>
 
+      {/* Statistiques */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total des factures</p>
+              <p className="text-2xl font-bold">{pagination.total}</p>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-blue-600 text-sm font-bold">F</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Montant total</p>
+              <p className="text-2xl font-bold">
+                {parseFloat(totalAmount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
+              </p>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-green-600 text-sm font-bold">€</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Factures actives</p>
+              <p className="text-2xl font-bold">
+                {invoices.filter(inv => inv.status?.code === 'active').length}
+              </p>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-green-600 text-sm font-bold">✓</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Actions</p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(exportUrl ?? '', '_blank')}
+                  className="text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                  disabled={!exportUrl}
+                >
+                  📊 Exporter
+                </Button>
+              </div>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+              <span className="text-purple-600 text-sm font-bold">⚡</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Barre de recherche et contrôles */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         <div className="flex-1 relative">
@@ -369,6 +436,18 @@ export default function InvoicesPage() {
           <Button onClick={handleRefresh} variant="outline" size="icon">
             <RefreshCw className="h-4 w-4" />
           </Button>
+          
+          {exportUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(exportUrl, '_blank')}
+              className="flex items-center gap-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+            >
+              📊 Exporter
+            </Button>
+          )}
+          
           {hasActiveFilters && (
             <Button variant="outline" onClick={handleClearFilters} size={isMobile ? "sm" : "icon"}>
               {isMobile ? "Effacer" : <X className="h-4 w-4" />}
