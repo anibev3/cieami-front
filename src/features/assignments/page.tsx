@@ -255,6 +255,11 @@ export default function AssignmentsPage() {
     // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }, [setSearchQuery])
 
+  const handleSearchFromColumn = useCallback((query: string) => {
+    setSearchQuery(query)
+    // L'API sera appelée automatiquement par le useEffect qui surveille les changements
+  }, [setSearchQuery])
+
   const handleStatusChange = (value: string) => {
     if (value === 'all') {
       setSelectedStatuses(['all'])
@@ -1037,7 +1042,11 @@ export default function AssignmentsPage() {
             <div>
               {/* DataTable */}
               <div className=" overflow-hidden">
-                <AssignmentsDataTable data={filteredAssignments} loading={loading} />
+                <AssignmentsDataTable 
+                data={filteredAssignments} 
+                loading={loading} 
+                onSearch={handleSearchFromColumn}
+              />
               </div>
 
               {/* Pagination */}

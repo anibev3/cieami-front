@@ -3,7 +3,7 @@
 import { ColumnDef, Row } from '@tanstack/react-table'
 import { Assignment } from '@/types/assignments'
 import { Badge } from '@/components/ui/badge'
-import { ExternalLink, AlertTriangle, Clock, Info, Calendar, TrendingUp, AlertCircle, Check } from 'lucide-react'
+import { ExternalLink, AlertTriangle, Clock, Info, Calendar, TrendingUp, AlertCircle, Check, Copy, Phone, Mail, Search } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import { AssignmentActions } from './components/assignment-actions'
 import { AssignmentStatusEnum } from '@/types/global-types'
@@ -17,11 +17,13 @@ import {
 } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
+import { toast } from 'sonner'
 
 interface ColumnsProps {
   onDelete: (assignment: Assignment) => void
   onOpenReceiptModal: (assignmentId: number, amount: number) => void
   onViewDetail: (assignmentId: number) => void
+  onSearch: (query: string) => void
 }
 
 // Fonction utilitaire pour calculer le temps restant
@@ -199,6 +201,112 @@ function DelayDetailsModal({
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// Composant pour afficher les informations du client avec copie et recherche
+function ClientInfoDisplay({ client, onSearch }: { 
+  client: Assignment['client']
+  onSearch: (query: string) => void
+}) {
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+
+  if (!client) {
+    return <div className="text-muted-foreground text-sm">-</div>
+  }
+
+  const copyToClipboard = async (text: string | null, field: string) => {
+    if (!text) return
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedField(field)
+      toast.success(`${field} copié dans le presse-papiers`)
+      setTimeout(() => setCopiedField(null), 2000)
+    } catch (err) {
+      toast.error('Erreur lors de la copie')
+    }
+  }
+
+  const handleClick = (text: string | null) => {
+    if (text) {
+      onSearch(text)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Nom du client - cliquable pour la recherche */}
+      <div 
+        className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors"
+        onClick={() => handleClick(client.name)}
+        title="Cliquer pour rechercher ce nom"
+      >
+        {client.name}
+      </div>
+      
+      {/* Informations de contact avec boutons de copie */}
+      <div className="space-y-1">
+        {client.phone_1 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Phone className="h-3 w-3" />
+            <span 
+              className="cursor-pointer hover:text-primary hover:underline transition-colors"
+              onClick={() => handleClick(client.phone_1)}
+              title="Cliquer pour rechercher ce numéro"
+            >
+              {client.phone_1}
+            </span>
+            <button
+              onClick={() => copyToClipboard(client.phone_1, 'Numéro 1')}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="Copier le numéro 1"
+            >
+              <Copy className={`h-3 w-3 ${copiedField === 'Numéro 1' ? 'text-green-600' : 'text-gray-400'}`} />
+            </button>
+          </div>
+        )}
+        
+        {client.phone_2 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Phone className="h-3 w-3" />
+            <span 
+              className="cursor-pointer hover:text-primary hover:underline transition-colors"
+              onClick={() => handleClick(client.phone_2)}
+              title="Cliquer pour rechercher ce numéro"
+            >
+              {client.phone_2}
+            </span>
+            <button
+              onClick={() => copyToClipboard(client.phone_2, 'Numéro 2')}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="Copier le numéro 2"
+            >
+              <Copy className={`h-3 w-3 ${copiedField === 'Numéro 2' ? 'text-green-600' : 'text-gray-400'}`} />
+            </button>
+          </div>
+        )}
+        
+        {client.email && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Mail className="h-3 w-3" />
+            <span 
+              className="cursor-pointer hover:text-primary hover:underline transition-colors"
+              onClick={() => handleClick(client.email)}
+              title="Cliquer pour rechercher cet email"
+            >
+              {client.email}
+            </span>
+            <button
+              onClick={() => copyToClipboard(client.email, 'Email')}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="Copier l'email"
+            >
+              <Copy className={`h-3 w-3 ${copiedField === 'Email' ? 'text-green-600' : 'text-gray-400'}`} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -402,7 +510,7 @@ function getStatusVariant(statusCode: string) {
   }
 }
 
-export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: ColumnsProps): ColumnDef<Assignment>[] => [
+export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail, onSearch }: ColumnsProps): ColumnDef<Assignment>[] => [
 
   {
     id: 'select',
@@ -430,13 +538,24 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       const isDone = isEditionDone || isRecoveryDone
       
       return (
-        <button
-          onClick={() => onViewDetail(assignment.id)}
-          className={`flex items-center gap-2 font-medium text-primary hover:text-primary/80 hover:underline transition-colors bg-transparent border-none cursor-pointer text-left ${isDone ? 'bg-green-50' : ''}`}
-        >
-          {row.getValue('reference')}
-          <ExternalLink className="h-3 w-3" />
-        </button>
+        <div className={`${isDone ? 'bg-green-50' : ''}`}>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onViewDetail(assignment.id)}
+              className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 hover:underline transition-colors bg-transparent border-none cursor-pointer text-left"
+            >
+              {row.getValue('reference')}
+              <ExternalLink className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => onSearch(row.getValue('reference'))}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="Cliquer pour rechercher cette référence"
+            >
+              <Search className="h-3 w-3 text-gray-400 hover:text-gray-600" />
+            </button>
+          </div>
+        </div>
       )
     },
   },
@@ -450,21 +569,12 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       const isRecoveryDone = assignment.recovery_status === 'done'
       const isDone = isEditionDone || isRecoveryDone
       
-      if (!client) {
-        return <div className="text-muted-foreground text-sm">-</div>
-      }
-      
       return (
-        <div className={`flex items-center space-x-2 
-        
-        `}
-        >
-         
-          {/* <User className="h-4 w-4 text-muted-foreground" /> */}
-          <div>
-            <div className="font-medium">{client.name}</div>
-            <div className="text-sm text-muted-foreground">{client.email}</div>
-          </div>
+        <div className={isDone ? 'bg-green-50' : ''}>
+          <ClientInfoDisplay 
+            client={client} 
+            onSearch={onSearch}
+          />
         </div>
       )
     },
@@ -484,13 +594,13 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       }
       
       return (
-        <div className={`flex items-center space-x-2`}>
-          {/* <Car className="h-4 w-4 text-muted-foreground" /> */}
-          <div>
-            <p className="font-medium">{vehicle.license_plate}</p>
-            {/* <p className="text-sm text-muted-foreground">
-              {vehicle.type} {vehicle.option}
-            </p> */}
+        <div className={isDone ? 'bg-green-50' : ''}>
+          <div 
+            className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors"
+            onClick={() => onSearch(vehicle.license_plate)}
+            title="Cliquer pour rechercher cette plaque"
+          >
+            {vehicle.license_plate}
           </div>
         </div>
       )
@@ -506,12 +616,18 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
       const isRecoveryDone = assignment?.recovery_status === 'done'
       const isDone = isEditionDone || isRecoveryDone
       
+      if (!insurer) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
+      
       return (
-        <div className={`flex items-center justify-center space-x-2`}>
-          {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
-          <div>
-            <div className="font-medium">{insurer?.name}</div>
-            {/* <div className="text-sm text-muted-foreground">{insurer.code}</div> */}
+        <div className={isDone ? 'bg-green-50' : ''}>
+          <div 
+            className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
+            onClick={() => onSearch(insurer.name)}
+            title="Cliquer pour rechercher cet assureur"
+          >
+            {insurer.name}
           </div>
         </div>
       )
@@ -522,15 +638,23 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Courtier',
     cell: ({ row }) => {
       const broker = row?.getValue('broker') as Assignment['broker']
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
       
       if (!broker) {
         return <div className="text-muted-foreground text-sm">-</div>
       }
       
       return (
-        <div className="flex items-center justify-center space-x-2">
-          <div>
-            <div className="font-medium">{broker.name}</div>
+        <div className={isDone ? 'bg-green-50' : ''}>
+          <div 
+            className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
+            onClick={() => onSearch(broker.name)}
+            title="Cliquer pour rechercher ce courtier"
+          >
+            {broker.name}
           </div>
         </div>
       )
@@ -541,14 +665,24 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail }: Co
     header: 'Reparateur',
     cell: ({ row }) => {
       const repairman = row.getValue('repairer') as Assignment['repairer']
+      const assignment = row.original
+      const isEditionDone = assignment.edition_status === 'done'
+      const isRecoveryDone = assignment.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
       
       if (!repairman) {
         return <div className="text-muted-foreground text-sm">-</div>
       }
       
       return (
-        <div className="text-sm text-muted-foreground">
-          {repairman.name}
+        <div className={isDone ? 'bg-green-50' : ''}>
+          <div 
+            className="text-sm cursor-pointer hover:text-primary hover:underline transition-colors"
+            onClick={() => onSearch(repairman.name)}
+            title="Cliquer pour rechercher ce réparateur"
+          >
+            {repairman.name}
+          </div>
         </div>
       )
     },

@@ -30,9 +30,10 @@ import { Loader2, Database, Clock } from 'lucide-react'
 interface AssignmentsDataTableProps {
   data: Assignment[]
   loading?: boolean
+  onSearch: (query: string) => void
 }
 
-export function AssignmentsDataTable({ data, loading = false }: AssignmentsDataTableProps) {
+export function AssignmentsDataTable({ data, loading = false, onSearch }: AssignmentsDataTableProps) {
   const navigate = useNavigate()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -88,6 +89,7 @@ export function AssignmentsDataTable({ data, loading = false }: AssignmentsDataT
     onDelete: handleDelete,
     onOpenReceiptModal: handleOpenReceiptModal,
     onViewDetail: handleViewDetail,
+    onSearch,
   })
 
   const table = useReactTable({
