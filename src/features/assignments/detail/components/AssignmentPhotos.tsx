@@ -368,7 +368,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   const openEditDialog = (photo: Photo) => {
     setSelectedPhoto(photo)
     setEditData({
-      photo_type_id: photo.photo_type.id.toString(),
+      photo_type_id: photo.photo_type?.id ? photo.photo_type.id.toString() : '',
       photo: new File([], '')
     })
     setIsEditDialogOpen(true)
@@ -833,7 +833,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 </Button>
                 <Button 
                   onClick={handleUpload} 
-                  disabled={!uploadData.photo_type_id || uploadData.photos.length === 0 || uploading}
+                  disabled={uploadData.photos.length === 0 || uploading}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   {uploading ? (
@@ -1129,54 +1129,263 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Modifier la photo</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Modifier la photo #{selectedPhoto?.id}
+            </DialogTitle>
             <DialogDescription>
-              Modifiez le type de photo et l'image.
+              Modifiez le type de photo et remplacez l'image si nécessaire.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-photo-type">Type de photo</Label>
-              <Select
-                value={editData.photo_type_id}
-                onValueChange={(value) => setEditData({ ...editData, photo_type_id: value })}
-              >
-                <SelectTrigger className='w-full'>
-                  <SelectValue placeholder="Sélectionnez un type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {photoTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id.toString()}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Colonne gauche - Prévisualisation et informations */}
+            <div className="space-y-4">
+              {/* Prévisualisation de l'image actuelle */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Image actuelle</Label>
+                <div className="relative border rounded-lg overflow-hidden bg-gray-50">
+                  {selectedPhoto && (
+                    <img
+                      src={selectedPhoto.photo}
+                      alt={selectedPhoto.name || `Photo ${selectedPhoto.id}`}
+                      className="w-full h-64 object-cover"
+                    />
+                  )}
+                  {selectedPhoto?.is_cover && (
+                    <div className="absolute top-2 left-2">
+                      <Badge className="bg-yellow-500 text-white border-0">
+                        <Star className="mr-1 h-3 w-3" />
+                        Couverture
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Informations de la photo */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Informations</Label>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">ID:</span>
+                    <span className="font-medium">#{selectedPhoto?.id}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Nom:</span>
+                    <span className="font-medium truncate max-w-[200px]" title={selectedPhoto?.name}>
+                      {selectedPhoto?.name || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Type actuel:</span>
+                    <Badge variant="secondary">
+                      {selectedPhoto?.photo_type?.label || 'Non défini'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Créé le:</span>
+                    <span className="font-medium">
+                      {selectedPhoto ? new Date(selectedPhoto.created_at).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="edit-photo">Nouvelle photo</Label>
-              <input
-                id="edit-photo"
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setEditData({ ...editData, photo: e.target.files[0] })
-                  }
-                }}
-                className="w-full"
-              />
+
+            {/* Colonne droite - Formulaire de modification */}
+            <div className="space-y-4">
+              {/* Type de photo */}
+              <div className="space-y-2">
+                <Label htmlFor="edit-photo-type" className="text-sm font-medium">
+                  Type de photo *
+                </Label>
+                <Select
+                  value={editData.photo_type_id}
+                  onValueChange={(value) => setEditData({ ...editData, photo_type_id: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez un type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {photoTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <span>{type.label}</span>
+                          {type.description && (
+                            <span className="text-xs text-muted-foreground">
+                              - {type.description}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Nouvelle photo */}
+              <div className="space-y-2">
+                <Label htmlFor="edit-photo" className="text-sm font-medium">
+                  Nouvelle photo (optionnel)
+                </Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
+                  <input
+                    id="edit-photo"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setEditData({ ...editData, photo: e.target.files[0] })
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <div className="space-y-2">
+                    <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Cliquez pour sélectionner une nouvelle image
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Formats supportés: JPG, PNG, GIF, WebP
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('edit-photo')?.click()}
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Choisir un fichier
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Prévisualisation de la nouvelle image */}
+                {editData.photo && editData.photo.size > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Nouvelle image</Label>
+                    <div className="relative border rounded-lg overflow-hidden bg-gray-50">
+                      <img
+                        src={URL.createObjectURL(editData.photo)}
+                        alt="Nouvelle image"
+                        className="w-full h-32 object-cover"
+                        onLoad={(e) => {
+                          setTimeout(() => URL.revokeObjectURL(e.currentTarget.src), 1000)
+                        }}
+                      />
+                      <div className="absolute top-2 right-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setEditData({ ...editData, photo: new File([], '') })}
+                          className="h-6 w-6 p-0 rounded-full"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      <p>Nom: {editData.photo.name}</p>
+                      <p>Taille: {(editData.photo.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions rapides */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Actions rapides</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (selectedPhoto) {
+                        handleSetAsCover(selectedPhoto.id)
+                        setIsEditDialogOpen(false)
+                      }
+                    }}
+                    disabled={selectedPhoto?.is_cover}
+                    className="flex-1"
+                  >
+                    <Star className="mr-2 h-4 w-4" />
+                    {selectedPhoto?.is_cover ? 'Déjà couverture' : 'Définir couverture'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (selectedPhoto) {
+                        downloadPhoto(selectedPhoto.photo, selectedPhoto.name || `photo-${selectedPhoto.id}.jpg`)
+                      }
+                    }}
+                    className="flex-1"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Télécharger
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Annuler
-            </Button>
-            <Button onClick={handleEdit} disabled={!editData.photo_type_id}>
-              Modifier
-            </Button>
+
+          <DialogFooter className="flex justify-between">
+            <div className="flex gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer la photo</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        if (selectedPhoto) {
+                          handleDelete(selectedPhoto.id)
+                          setIsEditDialogOpen(false)
+                        }
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleEdit}
+                // disabled={!editData.photo_type_id}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Modifier
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

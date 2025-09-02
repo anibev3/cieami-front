@@ -8,7 +8,7 @@ export default function SettingsProfile() {
   return (
     <div className="h-full w-full overflow-y-auto">
       <RequireAnyRoleGate
-        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
         fallback={<ForbiddenError />}
       >
       <PaymentsPage onButtonClick={() => {

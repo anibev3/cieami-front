@@ -362,7 +362,7 @@ import { UserRole } from '@/stores/aclStore'
 export default function BanksPage() {
   return (
     <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
       fallback={<ForbiddenError />}
     >
       <BanksPageContent />

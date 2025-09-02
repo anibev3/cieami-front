@@ -411,8 +411,9 @@ function PaymentTypesPageContent() {
 export default function PaymentTypesPage() {
   return (
     <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
       fallback={<ForbiddenError />}
+
     >
       <PaymentTypesPageContent />
     </RequireAnyRoleGate>

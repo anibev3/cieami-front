@@ -78,7 +78,7 @@ class PhotoService {
     formData.append('photo_type_id', data.photo_type_id)
     formData.append('photo', data.photo)
 
-    const response = await axiosInstance.put<{ status: number; message: string; data: Photo }>(
+    const response = await axiosInstance.post<{ status: number; message: string; data: Photo }>(
       `${this.baseUrl}/${id}`,
       formData,
       {

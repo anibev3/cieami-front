@@ -100,7 +100,7 @@ export default function EditPaymentPage() {
       {/* Enhanced Header */}
 
       <RequireAnyRoleGate
-        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
         fallback={<ForbiddenError />}
       >
         <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 rounded-lg border border-orange-200 dark:border-orange-800 p-6">

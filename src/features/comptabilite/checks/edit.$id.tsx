@@ -229,7 +229,7 @@ function EditCheckPageContent() {
 export default function EditCheckPage() {
   return (
     <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
       fallback={<ForbiddenError />}
     >
       <EditCheckPageContent />
