@@ -39,10 +39,25 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
         <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
           <div className="text-xs text-muted-foreground mb-1">Valeur vénale théorique</div>
           <div className="text-2xl font-bold text-green-700">
-            {formatCurrency(result.theorical_vehicle_market_value)}
+            {formatCurrency(result.vehicle_market_value)}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             FCFA
+          </div>
+        </div>
+                {/* Résumé visuel */}
+        <div className="p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground mb-1">Résumé</div>
+            <div className="text-base font-semibold text-gray-800">
+              Le véhicule a perdu {result.theorical_depreciation_rate}% de sa valeur
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              soit {formatCurrency(depreciationAmount)} en {result.vehicle_age} mois
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Différence temporelle: {result.year_diff} an(s) {result.month_diff} mois
+            </div>
           </div>
         </div>
 
@@ -195,26 +210,10 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
           <div className="text-center">
             <div className="text-xs text-muted-foreground mb-1">Valeur finale du marché</div>
             <div className="text-xl font-bold text-purple-700">
-              {formatCurrency(result.vehicle_market_value)}
+              {formatCurrency(result.theorical_vehicle_market_value)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               Valeur après toutes les incidences
-            </div>
-          </div>
-        </div>
-
-        {/* Résumé visuel */}
-        <div className="p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-          <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">Résumé</div>
-            <div className="text-base font-semibold text-gray-800">
-              Le véhicule a perdu {result.theorical_depreciation_rate}% de sa valeur
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              soit {formatCurrency(depreciationAmount)} en {result.vehicle_age} mois
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Différence temporelle: {result.year_diff} an(s) {result.month_diff} mois
             </div>
           </div>
         </div>

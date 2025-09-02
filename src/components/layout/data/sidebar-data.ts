@@ -118,7 +118,7 @@ export const sidebarData: SidebarData = {
               icon: IconPalette,
             },
             {
-              title: 'Vénale théorique',
+              title: 'Calcul de valeur vénale',
               url: '/gestion/depreciation-tables/theoretical-value',
               icon: IconPalette,
             },
