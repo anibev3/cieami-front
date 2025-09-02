@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -64,7 +65,7 @@ export function ClientsDialogs({
   // Handlers pour la création
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!createForm.name || !createForm.email) {
+    if (!createForm.name) {
       toast.error('Nom et email obligatoires')
       return
     }

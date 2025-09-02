@@ -352,6 +352,7 @@ export default function ReportEditPage() {
   const [vehicleNewMarketValueOption, setVehicleNewMarketValueOption] = useState<string | null>(null)
   const [depreciationRate, setDepreciationRate] = useState<number | null>(null)
   const [marketValue, setMarketValue] = useState<number | null>(null)
+  const [mileage, setMileage] = useState<number | null>(null)
   
   // État pour gérer les chocs collapsés (par défaut tous ouverts)
   const [collapsedShocks, setCollapsedShocks] = useState<Set<string | number>>(new Set())
@@ -505,6 +506,11 @@ export default function ReportEditPage() {
       // }
       if ((assignment as any).vehicle_new_market_value_option) {
         setVehicleNewMarketValueOption((assignment as any).vehicle_new_market_value_option)
+      }
+      
+      // Charger le kilométrage depuis le véhicule
+      if ((assignment?.vehicle as any)?.mileage) {
+        setMileage(parseInt((assignment.vehicle as any).mileage) || null)
       }
     }
   }, [assignment, isEvaluation])
@@ -717,6 +723,7 @@ export default function ReportEditPage() {
       new_market_value: newMarketValue || null,
       depreciation_rate: depreciationRate || null,
       market_value: marketValue || null,
+      mileage: mileage || null,
       // vehicle_new_market_value: vehicleNewMarketValue || null,
       vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
@@ -768,9 +775,9 @@ export default function ReportEditPage() {
       setAssignmentTotalAmount(total)
       setShowReceiptModal(true)
     }
-  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration, newMarketValue,
+  }, [shocks, cleanOtherCosts, saveAssignment, claimNatureId, expertRemark, generalStateId, technicalConclusionId, selectedRemarkId, instructions, isEvaluation, seenBeforeWorkDate, seenDuringWorkDate, seenAfterWorkDate, contactDate, expertisePlace, assuredValue, salvageValue, workDuration,     newMarketValue,
     // vehicleNewMarketValue,
-    vehicleNewMarketValueOption, ascertainments, assignment?.vehicle?.id, depreciationRate, expertiseDate, marketIncidenceRate, marketValue, editableEvaluationData])
+    vehicleNewMarketValueOption, ascertainments, assignment?.vehicle?.id, depreciationRate, expertiseDate, marketIncidenceRate, marketValue, mileage, editableEvaluationData])
 
   // Gestion des quittances
   const handleReceiptSave = useCallback((receipts: any[]) => {
@@ -1024,6 +1031,7 @@ export default function ReportEditPage() {
       new_market_value: newMarketValue || null,
       depreciation_rate: depreciationRate || null,
       market_value: marketValue || null,
+      mileage: mileage || null,
       // vehicle_new_market_value: vehicleNewMarketValue || null,
       vehicle_new_market_value_option: vehicleNewMarketValueOption || null,
       // Champs requis selon le type d'expertise
@@ -1082,6 +1090,7 @@ export default function ReportEditPage() {
     vehicleNewMarketValueOption,
     depreciationRate,
     marketValue,
+    mileage,
     editableEvaluationData
   ])
 
@@ -1633,7 +1642,22 @@ export default function ReportEditPage() {
                   {/* // )} */}
 
                   {/* Champs supplémentaires de valeur de marché */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="mileage">
+                        Kilométrage (km)
+                      </Label>
+                      <Input
+                        id="mileage"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={mileage || ''}
+                        onChange={(e) => setMileage(parseInt(e.target.value) || null)}
+                        placeholder="Saisir le kilométrage"
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="depreciation-rate">
                         Taux de dépréciation (%)

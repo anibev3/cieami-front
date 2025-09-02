@@ -604,6 +604,7 @@ export default function EditReportPage() {
   const [vehicleNewMarketValueOption, setVehicleNewMarketValueOption] = useState<string | null>(null)
   const [depreciationRate, setDepreciationRate] = useState<number | null>(null)
   const [marketValue, setMarketValue] = useState<number | null>(null)
+  const [mileage, setMileage] = useState<number | null>(null)
 
   // États pour le modal d'ajout de point de choc
   const [showShockModal, setShowShockModal] = useState(false)
@@ -1081,6 +1082,11 @@ export default function EditReportPage() {
     setMarketValue(parseFloat(assignmentData.market_value || '0'))
     setVehicleNewMarketValueOption(assignmentData.vehicle_new_market_value_option || null)
     
+    // Charger le kilométrage depuis le véhicule
+    if ((assignmentData?.vehicle as any)?.mileage) {
+      setMileage(parseInt((assignmentData.vehicle as any).mileage) || null)
+    }
+    
     // Dates
     if (assignmentData.seen_before_work_date) {
       setSeenBeforeWorkDate(assignmentData.seen_before_work_date)
@@ -1134,6 +1140,7 @@ export default function EditReportPage() {
           new_market_value: newMarketValue ? Number(newMarketValue) : undefined,
           depreciation_rate: depreciationRate ? Number(depreciationRate) : undefined,
           market_value: marketValue ? Number(marketValue) : undefined,
+          mileage: mileage ? Number(mileage) : undefined,
           vehicle_new_market_value_option: vehicleNewMarketValueOption
         }
 
@@ -2064,8 +2071,8 @@ export default function EditReportPage() {
                                         toast.error('Erreur lors de la modification du point de choc')
                                       }
                                     }}
-                                    shockPoints={shockPoints}
                                     showSelectedInfo={true}
+                                    onCreateNew={handleCreateShockPoint}
                                   />
                                 </div>
 
@@ -2656,6 +2663,19 @@ export default function EditReportPage() {
                                   value={workDuration}
                                   onChange={(e) => setWorkDuration(e.target.value)}
                                   placeholder="Ex: 5 jours"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor="mileage">Kilométrage (km)</Label>
+                                <Input
+                                  id="mileage"
+                                  type="number"
+                                  min="0"
+                                  step="1"
+                                  value={mileage || ''}
+                                  onChange={(e) => setMileage(parseInt(e.target.value) || null)}
+                                  placeholder="Saisir le kilométrage"
                                 />
                               </div>
                             </div>

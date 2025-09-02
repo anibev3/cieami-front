@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from 'react'
+/* eslint-disable no-console */
+import { useState, useEffect, useCallback } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, ChevronsUpDown, Plus, Check, X } from 'lucide-react'
+import { MapPin, ChevronsUpDown, Plus, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import axiosInstance from '@/lib/axios'
+import { API_CONFIG } from '@/config/api'
 
 interface ShockPoint {
   id: number
@@ -17,32 +20,111 @@ interface ShockPoint {
 interface ShockPointSelectProps {
   value: number
   onValueChange: (value: number) => void
-  shockPoints: ShockPoint[]
+  shockPoints?: ShockPoint[] // Optionnel maintenant car on charge depuis l'API
   placeholder?: string
   className?: string
   showSelectedInfo?: boolean
   disabled?: boolean
   onCreateNew?: () => void
+  searchEndpoint?: string // Endpoint personnalisé pour la recherche
 }
 
 export function ShockPointSelect({
   value,
   onValueChange,
-  shockPoints,
+  shockPoints = [],
   placeholder = "🔍 Rechercher un point de choc...",
   className = "",
   showSelectedInfo = false,
   disabled = false,
-  onCreateNew
+  onCreateNew,
+  searchEndpoint = API_CONFIG.ENDPOINTS.SHOCK_POINTS
 }: ShockPointSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchResults, setSearchResults] = useState<ShockPoint[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+  const [selectedShockPoint, setSelectedShockPoint] = useState<ShockPoint | null>(null)
   
-  // Vérifications de sécurité renforcées
-  const validShockPoints = Array.isArray(shockPoints) 
-    ? shockPoints.filter(point => point != null && typeof point === 'object' && 'id' in point && 'label' in point && 'code' in point)
+  // Charger la liste initiale des points de choc
+  const loadInitialShockPoints = useCallback(async () => {
+    setIsSearching(true)
+    try {
+      const response = await axiosInstance.get(`${searchEndpoint}?per_page=50`)
+      if (response.status === 200) {
+        setSearchResults(response.data.data || [])
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des points de choc:', error)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [searchEndpoint])
+
+  // Fonction de recherche API avec debounce
+  const searchShockPoints = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      // Si pas de requête, charger la liste initiale
+      loadInitialShockPoints()
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const response = await axiosInstance.get(`${searchEndpoint}?search=${encodeURIComponent(query)}&per_page=20`)
+      if (response.status === 200) {
+        setSearchResults(response.data.data || [])
+      }
+    } catch (error) {
+      console.error('Erreur lors de la recherche des points de choc:', error)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [searchEndpoint, loadInitialShockPoints])
+
+  // Charger la liste initiale au montage du composant
+  useEffect(() => {
+    loadInitialShockPoints()
+  }, [loadInitialShockPoints])
+
+  // Debounce pour la recherche
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchShockPoints(searchQuery)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, searchShockPoints])
+
+  // Charger le point de choc sélectionné
+  useEffect(() => {
+    const loadSelectedShockPoint = async () => {
+      if (value > 0) {
+        try {
+          const response = await axiosInstance.get(`${searchEndpoint}/${value}`)
+          if (response.status === 200) {
+            setSelectedShockPoint(response.data.data || response.data)
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du point de choc sélectionné:', error)
+          setSelectedShockPoint(null)
+        }
+      } else {
+        setSelectedShockPoint(null)
+      }
+    }
+
+    loadSelectedShockPoint()
+  }, [value, searchEndpoint])
+
+  // Utiliser les résultats de recherche ou les points de choc fournis
+  const availableShockPoints = searchResults.length > 0 ? searchResults : shockPoints
+  const validShockPoints = Array.isArray(availableShockPoints) 
+    ? availableShockPoints.filter(point => point != null && typeof point === 'object' && 'id' in point && 'label' in point && 'code' in point)
     : []
   
-  const selectedShockPoint = validShockPoints.find(point => point.id === value) || null
   const hasValue = value > 0 && selectedShockPoint != null
 
   return (
@@ -77,27 +159,46 @@ export function ShockPointSelect({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Rechercher un point de choc..." />
+            <CommandInput 
+              placeholder="Rechercher un point de choc..." 
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
             <CommandList>
-              <CommandEmpty className="py-6 text-center text-sm">
-                <div className="space-y-2">
-                  <p>{validShockPoints.length === 0 ? 'Aucun point de choc trouvé' : 'Aucun résultat pour cette recherche'}</p>
-                  {onCreateNew && validShockPoints.length === 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setOpen(false)
-                        onCreateNew()
-                      }}
-                      className="mx-auto"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Créer un nouveau point de choc
-                    </Button>
-                  )}
+              {isSearching && (
+                <div className="py-6 text-center text-sm">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Recherche en cours...</span>
+                  </div>
                 </div>
-              </CommandEmpty>
+              )}
+              {!isSearching && validShockPoints.length === 0 && (
+                <CommandEmpty className="py-6 text-center text-sm">
+                  <div className="space-y-2">
+                    <p>
+                      {searchQuery.trim() 
+                        ? 'Aucun résultat pour cette recherche' 
+                        : 'Aucun point de choc disponible'
+                      }
+                    </p>
+                    {/* {onCreateNew && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setOpen(false)
+                          onCreateNew()
+                        }}
+                        className="mx-auto"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Créer un nouveau point de choc
+                      </Button>
+                    )} */}
+                  </div>
+                </CommandEmpty>
+              )}
               <CommandGroup>
                 {validShockPoints
                   .map((point) => {
@@ -139,7 +240,7 @@ export function ShockPointSelect({
                   .filter(Boolean) // Filtrer les éléments null
                 }
               </CommandGroup>
-              {onCreateNew && validShockPoints.length === 0 && (
+              {onCreateNew && validShockPoints.length === 0 && !isSearching && (
                 <div className="border-t p-2">
                   <Button
                     variant="outline"
