@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { ColumnDef } from '@tanstack/react-table'
 import { Payment } from '@/types/comptabilite'
 import { Button } from '@/components/ui/button'
@@ -7,6 +8,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Trash2, MoreHorizontal, Eye, EyeOff, Calendar } from 'lucide-react'
 import { formatCurrency } from '@/utils/format-currency'
 import { formatDate } from '@/utils/format-date'
+import { useHasAnyRole, UserRole } from '@/stores/aclStore'
+
+
+
 
 interface PaymentColumnsProps {
   onDelete: (id: number) => void
@@ -203,6 +208,7 @@ export const createPaymentColumns = ({ onDelete, onView }: PaymentColumnsProps):
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem> */}
+            {useHasAnyRole([UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN])  && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -227,7 +233,8 @@ export const createPaymentColumns = ({ onDelete, onView }: PaymentColumnsProps):
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
-            </AlertDialog>
+              </AlertDialog>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )

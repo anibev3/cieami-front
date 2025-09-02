@@ -28,6 +28,7 @@ export default function Comptabilite() {
   const hasAccountantRole = useHasAnyRole([UserRole.ACCOUNTANT, UserRole.ACCOUNTANT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN])
   const hasManagerRole = useHasAnyRole([UserRole.ACCOUNTANT_MANAGER, UserRole.ADMIN, UserRole.SYSTEM_ADMIN])
   const hasCEO = useHasAnyRole([UserRole.CEO])
+  const hasOpenerRole = useHasAnyRole([UserRole.OPENER])
 
   // Configuration complète des éléments du menu avec leurs permissions
   const allSidebarNavItems = [
@@ -35,7 +36,7 @@ export default function Comptabilite() {
       title: 'Paiements',
       icon: <IconUser size={18} />,
       href: '/comptabilite/payments',
-      checkAccess: () => hasViewPayment || hasCEO,
+      checkAccess: () => hasViewPayment || hasCEO || hasOpenerRole,
     },
     {
       title: 'Cheques',

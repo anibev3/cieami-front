@@ -20,7 +20,7 @@ import {
   IconCalculator,
   IconCreditCard,
   IconBuildingBank,
-  IconReceipt,
+  // IconReceipt,
   IconCheck,
   IconWallet,
   IconDownload,
@@ -193,13 +193,13 @@ export const sidebarData: SidebarData = {
     },
         {
       title: 'Comptabilité',
-      requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+      requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.OPENER],
       items: [
         {
           title: 'Paiements',
           url: '/comptabilite/payments',
           icon: IconCreditCard,
-          requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.OPENER],
 
         },
         {
@@ -239,37 +239,37 @@ export const sidebarData: SidebarData = {
             },
           ],
         },
-        {
-          title: 'Rapports',
-          icon: IconReceipt,
-          // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
-          // requireAllPermissions: false,
-          // requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+        // {
+        //   title: 'Rapports',
+        //   icon: IconReceipt,
+        //   // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
+        //   // requireAllPermissions: false,
+        //   requiredRoles: [UserRole.ACCOUNTANT, UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
 
-          items: [
-            {
-              title: 'Rapport des paiements',
-              url: '/comptabilite/reports/payments',
-              icon: IconReceipt,
-            },
-            {
-              title: 'Rapport des chèques',
-              url: '/comptabilite/reports/checks',
-              icon: IconCheck,
-            },
-            {
-              title: 'État de trésorerie',
-              url: '/comptabilite/reports/treasury',
-              icon: IconCalculator,
-            },
-          ],
-        },
+        //   items: [
+        //     {
+        //       title: 'Rapport des paiements',
+        //       url: '/comptabilite/reports/payments',
+        //       icon: IconReceipt,
+        //     },
+        //     {
+        //       title: 'Rapport des chèques',
+        //       url: '/comptabilite/reports/checks',
+        //       icon: IconCheck,
+        //     },
+        //     {
+        //       title: 'État de trésorerie',
+        //       url: '/comptabilite/reports/treasury',
+        //       icon: IconCalculator,
+        //     },
+        //   ],
+        // },
         {
           title: 'Statistiques',
           icon: IconCalculator,
           // requiredPermissions: [Permission.PAYMENT_STATISTICS, Permission.INVOICE_STATISTICS],
           // requireAllPermissions: false,
-          // requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
 
           items: [
             {
