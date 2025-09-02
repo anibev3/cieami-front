@@ -23,6 +23,9 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
 import { toast } from 'sonner'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import { UserRole } from '@/stores/aclStore'
+import ForbiddenError from '@/features/errors/forbidden'
 
 // Configuration des icônes et labels pour chaque type de filtre
 const FILTER_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
@@ -569,7 +572,10 @@ export default function StatisticsPage() {
   }
 
   return (
-        <>
+      <RequireAnyRoleGate
+        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+        fallback={<ForbiddenError />}
+      >
       {/* ===== Top Heading ===== */}
       <Header fixed>
         <Search />
@@ -733,6 +739,6 @@ export default function StatisticsPage() {
           )}
         </div>
       </Main>
-      </>
+      </RequireAnyRoleGate>
   )
 } 

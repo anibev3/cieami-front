@@ -5,19 +5,31 @@ export default function ForbiddenError() {
   const navigate = useNavigate()
   const { history } = useRouter()
   return (
-    <div className='h-svh'>
-      <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
-        <h1 className='text-[7rem] leading-tight font-bold'>403</h1>
-        <span className='font-medium'>Access Forbidden</span>
-        <p className='text-muted-foreground text-center'>
-          You don't have necessary permission <br />
-          to view this resource.
+    <div className='h-svh relative'>
+      <div className='absolute inset-0'>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className='w-full h-full object-cover'
+        >
+          <source src='/videos/cover.mp4' type='video/mp4' />
+        </video>
+        <div className='absolute inset-0 bg-black/40' />
+      </div>
+      <div className='relative m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
+        <h1 className='text-[7rem] leading-tight font-bold text-primary'>403</h1>
+        <span className='font-medium text-white text-[5rem]'>Accès refusé</span>
+        <p className='text-white text-center'>
+          Vous n'avez pas les permissions nécessaires <br />
+          pour voir cette ressource.
         </p>
         <div className='mt-6 flex gap-4'>
           <Button variant='outline' onClick={() => history.go(-1)}>
-            Go Back
+            Retour
           </Button>
-          <Button onClick={() => navigate({ to: '/' })}>Back to Home</Button>
+          <Button onClick={() => navigate({ to: '/' })}>Retour à la page d'accueil</Button>
         </div>
       </div>
     </div>

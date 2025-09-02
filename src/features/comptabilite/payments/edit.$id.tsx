@@ -13,6 +13,9 @@ import { AssignmentSelect } from '@/features/widgets/assignment-select'
 import { DatePicker } from '@/features/widgets/date-picker'
 import { PaymentTypeSelect } from '@/features/widgets/payment-type-select'
 import { PaymentMethodSelect } from '@/features/widgets/payment-method-select'
+import ForbiddenError from '@/features/errors/forbidden'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import { UserRole } from '@/stores/aclStore'
 
 export default function EditPaymentPage() {
   const navigate = useNavigate()
@@ -95,157 +98,163 @@ export default function EditPaymentPage() {
   return (
     <div className="space-y-6 w-full h-full overflow-y-auto pb-6">
       {/* Enhanced Header */}
-      <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 rounded-lg border border-orange-200 dark:border-orange-800 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate({ to: '/comptabilite/payments' })}
-              className="hover:bg-orange-100 dark:hover:bg-orange-900/50"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    Modifier le Paiement
-                  </h1>
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Building2 className="h-4 w-4" />
-                <span>Comptabilité</span>
-              </div>
-              <Separator orientation="vertical" className="h-4" />
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>{new Date().toLocaleDateString('fr-FR')}</span>
+
+      <RequireAnyRoleGate
+        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+        fallback={<ForbiddenError />}
+      >
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 rounded-lg border border-orange-200 dark:border-orange-800 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate({ to: '/comptabilite/payments' })}
+                className="hover:bg-orange-100 dark:hover:bg-orange-900/50"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                      Modifier le Paiement
+                    </h1>
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Building2 className="h-4 w-4" />
+                  <span>Comptabilité</span>
+                </div>
+                <Separator orientation="vertical" className="h-4" />
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>{new Date().toLocaleDateString('fr-FR')}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Breadcrumb */}
-        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <button 
-            onClick={() => navigate({ to: '/comptabilite' })}
-            className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
-          >
-            Comptabilité
-          </button>
-          <span>/</span>
-          <button 
-            onClick={() => navigate({ to: '/comptabilite/payments' })}
-            className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
-          >
-            Paiements
-          </button>
-          <span>/</span>
-          <span className="text-orange-600 dark:text-orange-400 font-medium">Modifier</span>
-        </div>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Informations principales */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Informations principales
-              </CardTitle>
-              <CardDescription>
-                Informations de base du paiement
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="assignment_id">Dossier *</Label>
-                <AssignmentSelect
-                  value={formData.assignment_id || ''}
-                  onValueChange={(value) => setFormData({ ...formData, assignment_id: value })}
-                  placeholder="Sélectionnez un dossier édité"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="amount" className="flex items-center gap-2">
-                  Montant (F CFA) *
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                  placeholder="0.00"
-                  required
-                  className="text-lg font-medium"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="date">Date de paiement *</Label>
-                <DatePicker
-                  value={formData.date || ''}
-                  onValueChange={(value) => setFormData({ ...formData, date: value })}
-                  placeholder="Sélectionnez la date de paiement"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Type et méthode de paiement */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Type et méthode
-              </CardTitle>
-              <CardDescription>
-                Définissez le type et la méthode de paiement
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="payment_type_id">Type de paiement *</Label>
-                <PaymentTypeSelect
-                  value={formData.payment_type_id || ''}
-                  onValueChange={(value) => setFormData({ ...formData, payment_type_id: value })}
-                  placeholder="Sélectionnez un type de paiement"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment_method_id">Méthode de paiement *</Label>
-                <PaymentMethodSelect
-                  value={formData.payment_method_id || ''}
-                  onValueChange={(value) => setFormData({ ...formData, payment_method_id: value })}
-                  placeholder="Sélectionnez une méthode de paiement"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          
+          {/* Breadcrumb */}
+          <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <button 
+              onClick={() => navigate({ to: '/comptabilite' })}
+              className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+            >
+              Comptabilité
+            </button>
+            <span>/</span>
+            <button 
+              onClick={() => navigate({ to: '/comptabilite/payments' })}
+              className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+            >
+              Paiements
+            </button>
+            <span>/</span>
+            <span className="text-orange-600 dark:text-orange-400 font-medium">Modifier</span>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate({ to: '/comptabilite/payments' })}
-          >
-            Annuler
-          </Button>
-          <Button type="submit" disabled={loading}>
-            <Save className="mr-2 h-4 w-4" />
-            {loading ? 'Mise à jour...' : 'Mettre à jour'}
-          </Button>
-        </div>
-      </form>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Informations principales */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Informations principales
+                </CardTitle>
+                <CardDescription>
+                  Informations de base du paiement
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="assignment_id">Dossier *</Label>
+                  <AssignmentSelect
+                    value={formData.assignment_id || ''}
+                    onValueChange={(value) => setFormData({ ...formData, assignment_id: value })}
+                    placeholder="Sélectionnez un dossier édité"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="amount" className="flex items-center gap-2">
+                    Montant (F CFA) *
+                  </Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
+                    placeholder="0.00"
+                    required
+                    className="text-lg font-medium"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date de paiement *</Label>
+                  <DatePicker
+                    value={formData.date || ''}
+                    onValueChange={(value) => setFormData({ ...formData, date: value })}
+                    placeholder="Sélectionnez la date de paiement"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Type et méthode de paiement */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Type et méthode
+                </CardTitle>
+                <CardDescription>
+                  Définissez le type et la méthode de paiement
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment_type_id">Type de paiement *</Label>
+                  <PaymentTypeSelect
+                    value={formData.payment_type_id || ''}
+                    onValueChange={(value) => setFormData({ ...formData, payment_type_id: value })}
+                    placeholder="Sélectionnez un type de paiement"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="payment_method_id">Méthode de paiement *</Label>
+                  <PaymentMethodSelect
+                    value={formData.payment_method_id || ''}
+                    onValueChange={(value) => setFormData({ ...formData, payment_method_id: value })}
+                    placeholder="Sélectionnez une méthode de paiement"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate({ to: '/comptabilite/payments' })}
+            >
+              Annuler
+            </Button>
+            <Button type="submit" disabled={loading}>
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? 'Mise à jour...' : 'Mettre à jour'}
+            </Button>
+          </div>
+        </form>
+      </RequireAnyRoleGate>
     </div>
   )
 } 

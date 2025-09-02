@@ -53,8 +53,11 @@ import { toast } from 'sonner'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Invoice } from '@/types/comptabilite'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import ForbiddenError from '@/features/errors/forbidden'
+import { UserRole } from '@/stores/aclStore'
 
-export default function InvoicesPage() {
+function InvoicesPageContent() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
   const { 
@@ -327,6 +330,7 @@ export default function InvoicesPage() {
   return (
     <div className="h-full space-y-6 relative w-full overflow-y-auto">
       {/* Header */}
+      
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Factures</h1>
@@ -1012,8 +1016,6 @@ export default function InvoicesPage() {
         </SheetContent>
       </Sheet>
 
-
-
       <Dialog
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
@@ -1036,5 +1038,17 @@ export default function InvoicesPage() {
         </DialogContent>
       </Dialog> 
     </div>
+  )
+}
+
+
+export default function InvoicesPage() {
+  return (
+    <RequireAnyRoleGate
+        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+        fallback={<ForbiddenError />}
+      >
+      <InvoicesPageContent />
+    </RequireAnyRoleGate>
   )
 }

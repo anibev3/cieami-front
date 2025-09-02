@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { 
   ArrowLeft, 
-  Edit, 
-  Trash2, 
+  // Edit, 
+  // Trash2, 
   Download, 
   FileText, 
   Car,
@@ -23,15 +23,18 @@ import { formatCurrency } from '@/utils/format-currency'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { PdfViewer } from '@/components/ui/PdfViewer'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import ForbiddenError from '@/features/errors/forbidden'
+import { UserRole } from '@/stores/aclStore'
 
-export default function InvoiceDetailPage() {
+function InvoiceDetailContent() {
   const { id } = useParams({ strict: false }) as { id: string }
   const navigate = useNavigate()
   const { 
     selectedInvoice, 
     loading, 
     fetchInvoiceById, 
-    deleteInvoice, 
+    // deleteInvoice, 
     cancelInvoice, 
     generateInvoice 
   } = useInvoiceStore()
@@ -52,21 +55,21 @@ export default function InvoiceDetailPage() {
     }
   }, [id, fetchInvoiceById])
 
-  const handleDelete = async () => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
-      try {
-        await deleteInvoice(Number(id))
-        navigate({ to: '/comptabilite/invoices' })
-        toast.success('Facture supprimée avec succès')
-      } catch (_error) {
-        // L'erreur est déjà gérée dans le store
-      }
-    }
-  }
+  // const handleDelete = async () => {
+  //   if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
+  //     try {
+  //       await deleteInvoice(Number(id))
+  //       navigate({ to: '/comptabilite/invoices' })
+  //       toast.success('Facture supprimée avec succès')
+  //     } catch (_error) {
+  //       // L'erreur est déjà gérée dans le store
+  //     }
+  //   }
+  // }
 
-  const handleEdit = () => {
-    navigate({ to: `/comptabilite/invoices/${id}/edit` })
-  }
+  // const handleEdit = () => {
+  //   navigate({ to: `/comptabilite/invoices/${id}/edit` })
+  // }
 
   const handleBack = () => {
     navigate({ to: '/comptabilite/invoices' })
@@ -142,10 +145,11 @@ export default function InvoiceDetailPage() {
   const isDeleted = invoice.deleted_at !== null
   const canCancel = !isCancelled && !isDeleted
   const canGenerate = invoice.status?.code !== 'generated' && !isDeleted && !isCancelled
-  const canEdit = !isCancelled && !isDeleted
-  const canDelete = !isCancelled && !isDeleted
+  // const canEdit = !isCancelled && !isDeleted
+  // const canDelete = !isCancelled && !isDeleted
 
   return (
+    
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -476,6 +480,16 @@ export default function InvoiceDetailPage() {
         url={pdfViewer.url}
         title={pdfViewer.title}
       />
-    </div>
+      </div>
+  )
+}
+export default function InvoiceDetailPage() {
+  return (
+    <RequireAnyRoleGate
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      fallback={<ForbiddenError />}
+    >
+      <InvoiceDetailContent />
+    </RequireAnyRoleGate>
   )
 }

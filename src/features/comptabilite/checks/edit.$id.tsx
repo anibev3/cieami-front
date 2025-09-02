@@ -12,8 +12,11 @@ import { PaymentSelect } from './components/payment-select'
 import { BankSelect } from './components/bank-select'
 import { DatePicker } from '@/features/widgets/date-picker'
 import { toast } from 'sonner'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import ForbiddenError from '@/features/errors/forbidden'
+import { UserRole } from '@/stores/aclStore'
 
-export default function EditCheckPage() {
+function EditCheckPageContent() {
   const navigate = useNavigate()
   const { id } = useParams({ from: '/_authenticated/comptabilite/check/edit/$id' })
   const { 
@@ -79,6 +82,7 @@ export default function EditCheckPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
+      
       <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10">
@@ -217,7 +221,18 @@ export default function EditCheckPage() {
             </div>
           </form>
         </CardContent>
-      </Card>
+        </Card> 
     </div>
   )
 } 
+
+export default function EditCheckPage() {
+  return (
+    <RequireAnyRoleGate
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      fallback={<ForbiddenError />}
+    >
+      <EditCheckPageContent />
+    </RequireAnyRoleGate>
+  )
+}

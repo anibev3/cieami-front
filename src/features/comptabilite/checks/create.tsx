@@ -12,8 +12,11 @@ import { PaymentSelect } from './components/payment-select'
 import { BankSelect } from './components/bank-select'
 import { DatePicker } from '@/features/widgets/date-picker'
 import { toast } from 'sonner'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import ForbiddenError from '@/features/errors/forbidden'
+import { UserRole } from '@/stores/aclStore'
 
-export default function CreateCheckPage() {
+function CreateCheckPageContent() {
   const navigate = useNavigate()
   const { createCheck, loading } = useCheckStore()
   const [formData, setFormData] = useState<CreateCheckData>({
@@ -98,6 +101,7 @@ export default function CreateCheckPage() {
   return (
     <div className="space-y-6 w-full">
       {/* Header */}
+      
       <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-300 to-blue-500 p-6 text-white">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10">
@@ -313,7 +317,19 @@ export default function CreateCheckPage() {
             </div>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+                
     </div>
   )
 } 
+
+export default function CreateCheckPage() {
+  return (
+    <RequireAnyRoleGate
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      fallback={<ForbiddenError />}
+    >
+    <CreateCheckPageContent />
+    </RequireAnyRoleGate>
+  )
+}

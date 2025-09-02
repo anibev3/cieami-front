@@ -15,7 +15,7 @@ export default function SignIn2() {
           >
             <source src='/videos/cover.mp4' type='video/mp4' />
           </video>
-          {/* <div className='absolute inset-0 bg-zinc-900/70' /> */}
+          <div className='absolute inset-0 bg-black/40' />
           <div className='relative z-20 flex items-center text-lg font-medium'>
             <img
               src='/images/logo/logo1.png'

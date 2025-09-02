@@ -103,7 +103,8 @@ export const sidebarData: SidebarData = {
           title: 'Statistiques',
           url: '/assignments/statistics',
           icon: IconCalculator,
-          requiredRoles: [UserRole.ADMIN, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+          
+          requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
 
         },
         {
@@ -192,33 +193,33 @@ export const sidebarData: SidebarData = {
     },
         {
       title: 'Comptabilité',
-      // requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+      requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
       items: [
         {
           title: 'Paiements',
           url: '/comptabilite/payments',
           icon: IconCreditCard,
-          // requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
 
         },
         {
           title: 'Chèques',
           url: '/comptabilite/checks',
           icon: IconCheck,
-          // requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
 
         },
         {
           title: 'Factures',
           url: '/comptabilite/invoices',
           icon: IconFileText,
-          // requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
 
         },
         {
           title: 'Configuration',
           icon: IconCalculator,
-          // requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
+          requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
 
           items: [
             {

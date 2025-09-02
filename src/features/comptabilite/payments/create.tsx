@@ -15,6 +15,9 @@ import { DatePicker } from '@/features/widgets/date-picker'
 import { PaymentTypeSelect } from '@/features/widgets/payment-type-select'
 import { PaymentMethodSelect } from '@/features/widgets/payment-method-select'
 import { formatCurrency } from '@/utils/format-currency'
+import { UserRole } from '@/stores/aclStore'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import ForbiddenError from '@/features/errors/forbidden'
 
 export default function CreatePaymentPage() {
   const navigate = useNavigate()
@@ -79,6 +82,10 @@ export default function CreatePaymentPage() {
   return (
     <div className="space-y-6 w-full h-full overflow-y-auto pb-6">
       {/* Enhanced Header */}
+      <RequireAnyRoleGate
+          roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+        fallback={<ForbiddenError />}
+      >
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -264,7 +271,8 @@ export default function CreatePaymentPage() {
             {loading ? 'Création...' : 'Créer le paiement'}
           </Button>
         </div>
-      </form>
+        </form>
+      </RequireAnyRoleGate>
     </div>
   )
 } 

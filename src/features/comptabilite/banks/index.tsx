@@ -10,8 +10,11 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Search, Plus, Edit, Trash2, Building2, Eye, EyeOff, Activity, MapPin } from 'lucide-react'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import ForbiddenError from '@/features/errors/forbidden'
+import { UserRole } from '@/stores/aclStore'
 
-export default function BanksPage() {
+  function BanksPageContent() {
   const {
     banks,
     loading,
@@ -355,3 +358,14 @@ export default function BanksPage() {
     </div>
   )
 } 
+
+export default function BanksPage() {
+  return (
+    <RequireAnyRoleGate
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      fallback={<ForbiddenError />}
+    >
+      <BanksPageContent />
+    </RequireAnyRoleGate>
+  )
+}

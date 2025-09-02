@@ -7,8 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Search, Plus, Edit, Trash2, CheckSquare, Eye, EyeOff, Activity, Image } from 'lucide-react'
+import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
+import ForbiddenError from '@/features/errors/forbidden'
+import { UserRole } from '@/stores/aclStore'
 
-export default function ChecksPage() {
+function ChecksPageContent() {
   const navigate = useNavigate()
   const {
     checks,
@@ -46,6 +49,7 @@ export default function ChecksPage() {
   return (
     <div className="space-y-6 w-full">
       {/* Header */}
+      
       <div className="flex items-center justify-between mb-4">
         <div className='flex flex-col gap-2'>
           <h3 className='text-lg font-bold'>Chèques</h3>
@@ -207,7 +211,21 @@ export default function ChecksPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      
     </div>
   )
 } 
+
+export default function ChecksPage() {
+  return (
+    <RequireAnyRoleGate
+      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER]}
+      fallback={<ForbiddenError />}
+    > 
+    
+      <ChecksPageContent />
+    </RequireAnyRoleGate>
+
+  )
+}
