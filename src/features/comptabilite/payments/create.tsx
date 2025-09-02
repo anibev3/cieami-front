@@ -83,7 +83,7 @@ export default function CreatePaymentPage() {
     <div className="space-y-6 w-full h-full overflow-y-auto pb-6">
       {/* Enhanced Header */}
       <RequireAnyRoleGate
-          roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
+          roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT, UserRole.OPENER]}
         fallback={<ForbiddenError />}
       >
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
