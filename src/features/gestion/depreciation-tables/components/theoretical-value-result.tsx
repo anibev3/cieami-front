@@ -35,17 +35,32 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Valeur principale */}
-        <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-          <div className="text-xs text-muted-foreground mb-1">Valeur vénale théorique</div>
-          <div className="text-2xl font-bold text-green-700">
-            {formatCurrency(result.vehicle_market_value)}
+        {/* Valeurs principales - Layout optimisé */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Valeur principale */}
+          <div className="text-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+            <div className="text-xs text-muted-foreground mb-1">Valeur vénale théorique</div>
+            <div className="text-xl font-bold text-green-700">
+              {formatCurrency(result.vehicle_market_value)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              FCFA
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            FCFA
+          
+          {/* Valeur finale du marché */}
+          <div className="text-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+            <div className="text-xs text-muted-foreground mb-1">Valeur finale du marché</div>
+            <div className="text-xl font-bold text-purple-700">
+              {formatCurrency(result.theorical_vehicle_market_value)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Après incidences
+            </div>
           </div>
         </div>
-                {/* Résumé visuel */}
+        
+        {/* Résumé visuel */}
         <div className="p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
           <div className="text-center">
             <div className="text-xs text-muted-foreground mb-1">Résumé</div>
@@ -201,19 +216,6 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
               <Badge variant={result.is_up ? "default" : "secondary"} className="font-mono text-xs">
                 {result.is_up ? "En hausse" : "En baisse"}
               </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Valeur finale du marché */}
-        <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-          <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">Valeur finale du marché</div>
-            <div className="text-xl font-bold text-purple-700">
-              {formatCurrency(result.theorical_vehicle_market_value)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Valeur après toutes les incidences
             </div>
           </div>
         </div>
