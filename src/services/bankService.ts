@@ -11,6 +11,21 @@ class BankService {
   private baseUrl = '/banks'
 
   /**
+   * Ajouter un statut par défaut si absent
+   */
+  private addDefaultStatus(bank: Bank): Bank {
+    if (!bank.status) {
+      bank.status = {
+        id: 1,
+        code: 'active',
+        label: 'Actif(ve)',
+        description: 'Actif(ve)'
+      }
+    }
+    return bank
+  }
+
+  /**
    * Récupérer toutes les banques avec pagination
    */
   async getAll(filters?: BankFilters): Promise<BankResponse> {
@@ -29,7 +44,14 @@ class BankService {
     const response = await axiosInstance.get<BankResponse>(
       `${this.baseUrl}?${params.toString()}`
     )
-    return response.data
+    
+    // Ajouter un statut par défaut pour chaque banque si absent
+    const banksWithStatus = response.data.data.map(bank => this.addDefaultStatus(bank))
+    
+    return {
+      ...response.data,
+      data: banksWithStatus
+    }
   }
 
   /**
@@ -37,7 +59,8 @@ class BankService {
    */
   async getById(id: number): Promise<Bank> {
     const response = await axiosInstance.get<{ data: Bank }>(`${this.baseUrl}/${id}`)
-    return response.data.data
+    const bankData = response.data.data
+    return this.addDefaultStatus(bankData)
   }
 
   /**
@@ -45,15 +68,18 @@ class BankService {
    */
   async create(data: CreateBankData): Promise<Bank> {
     const response = await axiosInstance.post<{ data: Bank }>(this.baseUrl, data)
-    return response.data.data
+    // L'API retourne directement l'objet banque dans data
+    const bankData = response.data.data
+    return this.addDefaultStatus(bankData)
   }
 
   /**
    * Mettre à jour une banque
    */
   async update(id: number, data: UpdateBankData): Promise<Bank> {
-    const response = await axiosInstance.post<{ data: Bank }>(`${this.baseUrl}/${id}`, data)
-    return response.data.data
+    const response = await axiosInstance.put<{ data: Bank }>(`${this.baseUrl}/${id}`, data)
+    const bankData = response.data.data
+    return this.addDefaultStatus(bankData)
   }
 
   /**
