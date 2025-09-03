@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -606,6 +606,19 @@ export default function EditReportPage() {
   const [marketValue, setMarketValue] = useState<number | null>(null)
   const [mileage, setMileage] = useState<number | null>(null)
 
+  // États pour les champs d'évaluation
+  const [vehicleAge, setVehicleAge] = useState<number | null>(null)
+  const [yearDiff, setYearDiff] = useState<number | null>(null)
+  const [monthDiff, setMonthDiff] = useState<number | null>(null)
+  const [theoricalDepreciationRate, setTheoricalDepreciationRate] = useState<number | null>(null)
+  const [theoricalVehicleMarketValue, setTheoricalVehicleMarketValue] = useState<number | null>(null)
+  const [lessValueWork, setLessValueWork] = useState<number | null>(null)
+  const [isUp, setIsUp] = useState<boolean | null>(null)
+  const [kilometricIncidence, setKilometricIncidence] = useState<number | null>(null)
+  const [marketIncidenceRateEval, setMarketIncidenceRateEval] = useState<number | null>(null)
+  const [marketIncidence, setMarketIncidence] = useState<number | null>(null)
+  const [vehicleMarketValue, setVehicleMarketValue] = useState<number | null>(null)
+
   // États pour le modal d'ajout de point de choc
   const [showShockModal, setShowShockModal] = useState(false)
   const [selectedShockPointId, setSelectedShockPointId] = useState(0)
@@ -642,7 +655,7 @@ export default function EditReportPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const tabFromUrl = urlParams.get('tab')
-    if (tabFromUrl && ['overview', 'shocks', 'costs', 'receipts', 'additional-info', 'constatations'].includes(tabFromUrl)) {
+    if (tabFromUrl && ['overview', 'shocks', 'costs', 'receipts', 'additional-info', 'constatations', 'evaluations'].includes(tabFromUrl)) {
       setActiveTab(tabFromUrl)
     }
   }, [])
@@ -1100,6 +1113,21 @@ export default function EditReportPage() {
     if (assignmentData.contact_date) {
       setContactDate(assignmentData.contact_date)
     }
+
+    // Champs d'évaluation (si disponibles)
+    if (assignmentData.evaluations) {
+      setVehicleAge(assignmentData.evaluations.vehicle_age || null)
+      setYearDiff(assignmentData.evaluations.diff_year || assignmentData.evaluations.year_diff || null)
+      setMonthDiff(assignmentData.evaluations.diff_month || assignmentData.evaluations.month_diff || null)
+      setTheoricalDepreciationRate(parseFloat(assignmentData.evaluations.theorical_depreciation_rate || '0') || null)
+      setTheoricalVehicleMarketValue(assignmentData.evaluations.theorical_vehicle_market_value || null)
+      setLessValueWork(parseFloat(assignmentData.evaluations.less_value_work || '0') || null)
+      setIsUp(assignmentData.evaluations.is_up || null)
+      setKilometricIncidence(assignmentData.evaluations.kilometric_incidence || null)
+      setMarketIncidenceRateEval(assignmentData.evaluations.market_incidence_rate || null)
+      setMarketIncidence(assignmentData.evaluations.market_incidence || null)
+      setVehicleMarketValue(assignmentData.evaluations.vehicle_market_value || null)
+    }
   }
 
   // Fonction de sauvegarde
@@ -1141,7 +1169,22 @@ export default function EditReportPage() {
           depreciation_rate: depreciationRate ? Number(depreciationRate) : undefined,
           market_value: marketValue ? Number(marketValue) : undefined,
           mileage: mileage ? Number(mileage) : undefined,
-          vehicle_new_market_value_option: vehicleNewMarketValueOption
+          vehicle_new_market_value_option: vehicleNewMarketValueOption,
+
+          // Champs d'évaluation (toujours envoyés)
+          evaluations: {
+            vehicle_age: vehicleAge || 0,
+            year_diff: yearDiff || 0,
+            month_diff: monthDiff || 0,
+            theorical_depreciation_rate: theoricalDepreciationRate || 0,
+            theorical_vehicle_market_value: theoricalVehicleMarketValue || 0,
+            less_value_work: lessValueWork || 0,
+            is_up: isUp !== null ? isUp : false,
+            kilometric_incidence: kilometricIncidence || 0,
+            market_incidence_rate: marketIncidenceRateEval || 0,
+            market_incidence: marketIncidence || 0,
+            vehicle_market_value: vehicleMarketValue || 0
+          }
         }
 
         // Nettoyer le payload en supprimant les valeurs undefined
@@ -1432,6 +1475,20 @@ export default function EditReportPage() {
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4" />
                     {!sidebarCollapsed && <span>Constatations</span>}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => changeActiveTab('evaluations')}
+                  className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
+                    activeTab === 'evaluations' 
+                      ? 'bg-gray-100 text-gray-900 font-medium' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Calculator className="h-4 w-4" />
+                    {!sidebarCollapsed && <span>Évaluations</span>}
                   </div>
                 </button>
               </nav>
@@ -2473,6 +2530,183 @@ export default function EditReportPage() {
                         </CardContent>
                       </Card>
                     )}
+                  </div>
+                )}
+
+                {/* Évaluations */}
+                {activeTab === 'evaluations' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-gray-900">Évaluations</h2>
+                      <Button 
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-black hover:bg-gray-800"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sauvegarde...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Sauvegarder
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    <Card className="shadow-none">
+                      <CardHeader>
+                        <CardTitle>Données d'évaluation</CardTitle>
+                        <CardDescription>
+                          Informations calculées pour l'évaluation du véhicule
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {/* Âge du véhicule */}
+                          <div className="space-y-2">
+                            <Label htmlFor="vehicle-age">Âge du véhicule (mois)</Label>
+                            <Input
+                              id="vehicle-age"
+                              type="number"
+                              value={vehicleAge || ''}
+                              onChange={(e) => setVehicleAge(parseInt(e.target.value) || null)}
+                              placeholder="Âge en mois"
+                            />
+                          </div>
+
+                          {/* Différence en années */}
+                          <div className="space-y-2">
+                            <Label htmlFor="year-diff">Différence (années)</Label>
+                            <Input
+                              id="year-diff"
+                              type="number"
+                              value={yearDiff || ''}
+                              onChange={(e) => setYearDiff(parseInt(e.target.value) || null)}
+                              placeholder="Différence en années"
+                            />
+                          </div>
+
+                          {/* Différence en mois */}
+                          <div className="space-y-2">
+                            <Label htmlFor="month-diff">Différence (mois)</Label>
+                            <Input
+                              id="month-diff"
+                              type="number"
+                              value={monthDiff || ''}
+                              onChange={(e) => setMonthDiff(parseInt(e.target.value) || null)}
+                              placeholder="Différence en mois"
+                            />
+                          </div>
+
+                          {/* Taux de dépréciation théorique */}
+                          <div className="space-y-2">
+                            <Label htmlFor="theorical-depreciation-rate">Taux dépréciation théorique (%)</Label>
+                            <Input
+                              id="theorical-depreciation-rate"
+                              type="number"
+                              step="0.01"
+                              value={theoricalDepreciationRate || ''}
+                              onChange={(e) => setTheoricalDepreciationRate(parseFloat(e.target.value) || null)}
+                              placeholder="Taux en %"
+                            />
+                          </div>
+
+                          {/* Valeur vénale théorique */}
+                          <div className="space-y-2">
+                            <Label htmlFor="theorical-vehicle-market-value">Valeur vénale théorique</Label>
+                            <Input
+                              id="theorical-vehicle-market-value"
+                              type="number"
+                              value={theoricalVehicleMarketValue || ''}
+                              onChange={(e) => setTheoricalVehicleMarketValue(parseInt(e.target.value) || null)}
+                              placeholder="Valeur théorique"
+                            />
+                          </div>
+
+                          {/* Moins-value travaux */}
+                          <div className="space-y-2">
+                            <Label htmlFor="less-value-work">Moins-value travaux</Label>
+                            <Input
+                              id="less-value-work"
+                              type="number"
+                              value={lessValueWork || ''}
+                              onChange={(e) => setLessValueWork(parseInt(e.target.value) || null)}
+                              placeholder="Moins-value"
+                            />
+                          </div>
+
+                          {/* Incidence kilométrique */}
+                          <div className="space-y-2">
+                            <Label htmlFor="kilometric-incidence">Incidence kilométrique</Label>
+                            <Input
+                              id="kilometric-incidence"
+                              type="number"
+                              value={kilometricIncidence || ''}
+                              onChange={(e) => setKilometricIncidence(parseInt(e.target.value) || null)}
+                              placeholder="Incidence km"
+                            />
+                          </div>
+
+                          {/* Taux d'incidence du marché */}
+                          <div className="space-y-2">
+                            <Label htmlFor="market-incidence-rate-eval">Taux incidence marché (%)</Label>
+                            <Input
+                              id="market-incidence-rate-eval"
+                              type="number"
+                              step="0.01"
+                              value={marketIncidenceRateEval || ''}
+                              onChange={(e) => setMarketIncidenceRateEval(parseFloat(e.target.value) || null)}
+                              placeholder="Taux en %"
+                            />
+                          </div>
+
+                          {/* Incidence du marché */}
+                          <div className="space-y-2">
+                            <Label htmlFor="market-incidence">Incidence du marché</Label>
+                            <Input
+                              id="market-incidence"
+                              type="number"
+                              value={marketIncidence || ''}
+                              onChange={(e) => setMarketIncidence(parseInt(e.target.value) || null)}
+                              placeholder="Incidence marché"
+                            />
+                          </div>
+
+                          {/* Valeur vénale du véhicule */}
+                          <div className="space-y-2">
+                            <Label htmlFor="vehicle-market-value">Valeur vénale véhicule</Label>
+                            <Input
+                              id="vehicle-market-value"
+                              type="number"
+                              value={vehicleMarketValue || ''}
+                              onChange={(e) => setVehicleMarketValue(parseInt(e.target.value) || null)}
+                              placeholder="Valeur vénale"
+                            />
+                          </div>
+
+                          {/* Statut (en hausse/baisse) */}
+                          <div className="space-y-2">
+                            <Label htmlFor="is-up">Statut du marché</Label>
+                            <Select
+                              value={isUp !== null ? (isUp ? 'true' : 'false') : ''}
+                              onValueChange={(value) => setIsUp(value === 'true' ? true : value === 'false' ? false : null)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner le statut" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="true">En hausse</SelectItem>
+                                <SelectItem value="false">En baisse</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 )}
 
