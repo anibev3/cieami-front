@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -43,13 +43,29 @@ export function VehicleGenresDialogs({
   const [createForm, setCreateForm] = useState<CreateVehicleGenreData>({
     code: '',
     label: '',
-    description: '',
+    description: null,
+    max_mileage_essence_per_year: 0,
+    max_mileage_diesel_per_year: 0,
   })
 
   const [editForm, setEditForm] = useState<UpdateVehicleGenreData>({
     label: '',
-    description: '',
+    description: null,
+    max_mileage_essence_per_year: 0,
+    max_mileage_diesel_per_year: 0,
   })
+
+  // Initialiser le formulaire d'édition avec les données du genre sélectionné
+  useEffect(() => {
+    if (selectedVehicleGenre && isEditOpen) {
+      setEditForm({
+        label: selectedVehicleGenre.label,
+        description: selectedVehicleGenre.description,
+        max_mileage_essence_per_year: selectedVehicleGenre.max_mileage_essence_per_year || 0,
+        max_mileage_diesel_per_year: selectedVehicleGenre.max_mileage_diesel_per_year || 0,
+      })
+    }
+  }, [selectedVehicleGenre, isEditOpen])
 
   // Gestionnaires de soumission
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -57,7 +73,7 @@ export function VehicleGenresDialogs({
     try {
       await createVehicleGenre(createForm)
       onCloseCreate()
-      setCreateForm({ code: '', label: '', description: '' })
+      setCreateForm({ code: '', label: '', description: null, max_mileage_essence_per_year: 0, max_mileage_diesel_per_year: 0 })
     } catch (_error) {
       // L'erreur est déjà gérée dans le store
     }
@@ -122,11 +138,37 @@ export function VehicleGenresDialogs({
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                value={createForm.description}
-                onChange={(e) => setCreateForm(f => ({ ...f, description: e.target.value }))}
+                value={createForm.description || ''}
+                onChange={(e) => setCreateForm(f => ({ ...f, description: e.target.value || null }))}
                 placeholder="Description du genre de véhicule"
                 rows={3}
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="max_mileage_essence_per_year">Kilométrage max essence/an *</Label>
+                <Input
+                  id="max_mileage_essence_per_year"
+                  type="number"
+                  min="0"
+                  value={createForm.max_mileage_essence_per_year}
+                  onChange={(e) => setCreateForm(f => ({ ...f, max_mileage_essence_per_year: parseInt(e.target.value) || 0 }))}
+                  placeholder="Ex: 15000"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="max_mileage_diesel_per_year">Kilométrage max diesel/an *</Label>
+                <Input
+                  id="max_mileage_diesel_per_year"
+                  type="number"
+                  min="0"
+                  value={createForm.max_mileage_diesel_per_year}
+                  onChange={(e) => setCreateForm(f => ({ ...f, max_mileage_diesel_per_year: parseInt(e.target.value) || 0 }))}
+                  placeholder="Ex: 20000"
+                  required
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onCloseCreate}>
@@ -164,11 +206,37 @@ export function VehicleGenresDialogs({
               <Label htmlFor="edit-description">Description</Label>
               <Textarea
                 id="edit-description"
-                value={editForm.description}
-                onChange={(e) => setEditForm(f => ({ ...f, description: e.target.value }))}
+                value={editForm.description || ''}
+                onChange={(e) => setEditForm(f => ({ ...f, description: e.target.value || null }))}
                 placeholder="Description du genre de véhicule"
                 rows={3}
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-max_mileage_essence_per_year">Kilométrage max essence/an *</Label>
+                <Input
+                  id="edit-max_mileage_essence_per_year"
+                  type="number"
+                  min="0"
+                  value={editForm.max_mileage_essence_per_year}
+                  onChange={(e) => setEditForm(f => ({ ...f, max_mileage_essence_per_year: parseInt(e.target.value) || 0 }))}
+                  placeholder="Ex: 15000"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-max_mileage_diesel_per_year">Kilométrage max diesel/an *</Label>
+                <Input
+                  id="edit-max_mileage_diesel_per_year"
+                  type="number"
+                  min="0"
+                  value={editForm.max_mileage_diesel_per_year}
+                  onChange={(e) => setEditForm(f => ({ ...f, max_mileage_diesel_per_year: parseInt(e.target.value) || 0 }))}
+                  placeholder="Ex: 20000"
+                  required
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onCloseEdit}>
@@ -215,12 +283,22 @@ export function VehicleGenresDialogs({
                   </span>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Statut</Label>
-                <div className="p-3 bg-muted rounded-md">
-                  <Badge variant={selectedVehicleGenre.status.code === 'active' ? 'default' : 'secondary'}>
-                    {selectedVehicleGenre.status.label}
-                  </Badge>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Kilométrage max essence/an</Label>
+                  <div className="p-3 bg-muted rounded-md">
+                    <span className="text-sm font-mono">
+                      {selectedVehicleGenre.max_mileage_essence_per_year?.toLocaleString() || 'Non défini'} km
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Kilométrage max diesel/an</Label>
+                  <div className="p-3 bg-muted rounded-md">
+                    <span className="text-sm font-mono">
+                      {selectedVehicleGenre.max_mileage_diesel_per_year?.toLocaleString() || 'Non défini'} km
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">

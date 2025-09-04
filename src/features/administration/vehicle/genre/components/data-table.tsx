@@ -27,7 +27,7 @@ export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
   const filteredVehicleGenres = vehicleGenres.filter(genre =>
     genre.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
     genre.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    genre.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (genre.description && genre.description.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   if (loading) {
@@ -62,6 +62,8 @@ export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
               <TableHead>Code</TableHead>
               <TableHead>Label</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Km max essence/an</TableHead>
+              <TableHead>Km max diesel/an</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -69,7 +71,7 @@ export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
           <TableBody>
             {filteredVehicleGenres.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   Aucun genre de véhicule trouvé
                 </TableCell>
               </TableRow>
@@ -83,13 +85,17 @@ export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
                   </TableCell>
                   <TableCell className="font-medium">{genre.label}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {genre.description}
+                    {genre.description || 'Aucune description'}
+                  </TableCell>
+                  <TableCell className="text-sm font-mono">
+                    {genre.max_mileage_essence_per_year?.toLocaleString() || 'N/A'} km
+                  </TableCell>
+                  <TableCell className="text-sm font-mono">
+                    {genre.max_mileage_diesel_per_year?.toLocaleString() || 'N/A'} km
                   </TableCell>
                   <TableCell>
-                    <Badge 
-                      variant={genre.status.code === 'active' ? 'default' : 'secondary'}
-                    >
-                      {genre.status.label}
+                    <Badge variant="default">
+                      Actif
                     </Badge>
                   </TableCell>
                   <TableCell>

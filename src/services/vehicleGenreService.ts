@@ -4,16 +4,9 @@ export interface VehicleGenre {
   id: number
   code: string
   label: string
-  description: string
-  status: {
-    id: number
-    code: string
-    label: string
-    description: string
-    deleted_at: string | null
-    created_at: string
-    updated_at: string
-  }
+  description: string | null
+  max_mileage_essence_per_year: number
+  max_mileage_diesel_per_year: number
   deleted_at: string | null
   created_at: string
   updated_at: string
@@ -46,18 +39,34 @@ export interface VehicleGenreResponse {
 export interface CreateVehicleGenreData {
   code: string
   label: string
-  description: string
+  description: string | null
+  max_mileage_essence_per_year: number
+  max_mileage_diesel_per_year: number
 }
 
 export interface UpdateVehicleGenreData {
   label?: string
-  description?: string
+  description?: string | null
+  max_mileage_essence_per_year?: number
+  max_mileage_diesel_per_year?: number
 }
 
 export interface VehicleGenreFilters {
   search?: string
   page?: number
   per_page?: number
+}
+
+export interface VehicleGenreCreateResponse {
+  status: number
+  message: string
+  data: VehicleGenre
+}
+
+export interface VehicleGenreUpdateResponse {
+  status: number
+  message: string
+  data: VehicleGenre
 }
 
 class VehicleGenreService {
@@ -97,16 +106,16 @@ class VehicleGenreService {
    * Créer un nouveau genre de véhicule
    */
   async create(data: CreateVehicleGenreData): Promise<VehicleGenre> {
-    const response = await axiosInstance.post<VehicleGenre>(this.baseUrl, data)
-    return response.data
+    const response = await axiosInstance.post<VehicleGenreCreateResponse>(this.baseUrl, data)
+    return response.data.data
   }
 
   /**
    * Mettre à jour un genre de véhicule
    */
   async update(id: number, data: UpdateVehicleGenreData): Promise<VehicleGenre> {
-    const response = await axiosInstance.put<VehicleGenre>(`${this.baseUrl}/${id}`, data)
-    return response.data
+    const response = await axiosInstance.put<VehicleGenreUpdateResponse>(`${this.baseUrl}/${id}`, data)
+    return response.data.data
   }
 
   /**
