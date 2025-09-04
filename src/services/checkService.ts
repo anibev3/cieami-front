@@ -55,7 +55,7 @@ class CheckService {
   /**
    * Créer un nouveau chèque
    */
-  async create(data: CreateCheckData): Promise<Check> {
+  async create(data: CreateCheckData): Promise<{ check: Check; message: string }> {
     const formData = new FormData()
     formData.append('payment_id', data.payment_id)
     formData.append('bank_id', data.bank_id)
@@ -66,18 +66,18 @@ class CheckService {
       formData.append('photo', data.photo)
     }
 
-    const response = await axiosInstance.post<{ data: Check }>(this.baseUrl, formData, {
+    const response = await axiosInstance.post<{ status: number; message: string; data: Check }>(this.baseUrl, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
-    return response.data.data
+    return { check: response.data.data, message: response.data.message }
   }
 
   /**
    * Mettre à jour un chèque
    */
-  async update(id: number, data: UpdateCheckData): Promise<Check> {
+  async update(id: number, data: UpdateCheckData): Promise<{ check: Check; message: string }> {
     const formData = new FormData()
     
     if (data.payment_id) {
@@ -96,12 +96,12 @@ class CheckService {
       formData.append('photo', data.photo)
     }
 
-    const response = await axiosInstance.post<{ data: Check }>(`${this.baseUrl}/${id}`, formData, {
+    const response = await axiosInstance.put<{ status: number; message: string; data: Check }>(`${this.baseUrl}/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
-    return response.data.data
+    return { check: response.data.data, message: response.data.message }
   }
 
   /**

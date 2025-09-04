@@ -35,7 +35,7 @@ interface CheckFormProps {
 
 function CheckFormContent({ isEdit = false }: CheckFormProps) {
   const navigate = useNavigate()
-  const { id } = useParams({ from: '/_authenticated/comptabilite/checks/edit/$id' })
+  const { id } = useParams( { strict: false } ) as { id: string }
   const { 
     createCheck, 
     updateCheck, 
@@ -54,6 +54,7 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [initialLoading, setInitialLoading] = useState(isEdit)
+  const [apiErrors, setApiErrors] = useState<Record<string, string[]>>({})
 
   // Charger les données du chèque en mode édition
   useEffect(() => {
@@ -73,7 +74,7 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
           if (checkData.photo) {
             setPreviewUrl(checkData.photo)
           }
-        } catch (error) {
+        } catch (_error) {
           toast.error('Erreur lors du chargement du chèque')
           navigate({ to: '/comptabilite/checks' })
         } finally {
@@ -136,6 +137,9 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Réinitialiser les erreurs
+    setApiErrors({})
+    
     if (!formData.payment_id || !formData.bank_id || !formData.date || (formData.amount ?? 0) <= 0) {
       toast.error('Veuillez remplir tous les champs obligatoires')
       return
@@ -148,20 +152,34 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
           ...formData,
           photo: selectedFile || undefined
         }
-        await updateCheck(parseInt(id), updateData)
-        toast.success('Chèque modifié avec succès')
+        const message = await updateCheck(parseInt(id), updateData)
+        toast.success(message)
       } else {
         // Mode création
-        const createData = {
-          ...formData,
+        const createData: CreateCheckData = {
+          payment_id: formData.payment_id!,
+          bank_id: formData.bank_id!,
+          date: formData.date!,
+          amount: formData.amount!,
           photo: selectedFile || undefined
         }
-        await createCheck(createData)
-        toast.success('Chèque créé avec succès')
+        const message = await createCheck(createData)
+        toast.success(message)
       }
       navigate({ to: '/comptabilite/checks' })
-    } catch (_error) {
-      toast.error(isEdit ? 'Erreur lors de la modification du chèque' : 'Erreur lors de la création du chèque')
+    } catch (error: unknown) {
+      // Gérer les erreurs de validation de l'API
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response: { data: { errors?: Record<string, string[]>; message?: string } } }
+        if (apiError.response?.data?.errors) {
+          setApiErrors(apiError.response.data.errors)
+          toast.error(apiError.response.data.message || 'Erreur de validation')
+        } else {
+          toast.error(isEdit ? 'Erreur lors de la modification du chèque' : 'Erreur lors de la création du chèque')
+        }
+      } else {
+        toast.error(isEdit ? 'Erreur lors de la modification du chèque' : 'Erreur lors de la création du chèque')
+      }
     }
   }
 
@@ -235,30 +253,46 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Payment Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="payment_id" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Paiement associé *
-              </Label>
-              <PaymentSelect
-                value={formData.payment_id || ''}
-                onValueChange={(value) => setFormData({ ...formData, payment_id: value })}
-                placeholder="Sélectionnez le paiement associé..."
-              />
-            </div>
+            <div className='grid grid-cols-2 gap-4'>
+              {/* Payment Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="payment_id" className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Paiement associé *
+                </Label>
+                {apiErrors.payment_id && (
+                  <div className="text-sm text-red-600">
+                    {apiErrors.payment_id.map((error, index) => (
+                      <p key={index}>{error}</p>
+                    ))}
+                  </div>
+                )}
+                <PaymentSelect
+                  value={formData.payment_id || ''}
+                  onValueChange={(value) => setFormData({ ...formData, payment_id: value })}
+                  placeholder="Sélectionnez le paiement associé..."
+                />
+              </div>
 
-            {/* Bank Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="bank_id" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Banque *
-              </Label>
-              <BankSelect
-                value={formData.bank_id || ''}
-                onValueChange={(value) => setFormData({ ...formData, bank_id: value })}
-                placeholder="Sélectionnez la banque..."
-              />
+              {/* Bank Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="bank_id" className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Banque *
+                </Label>
+                {apiErrors.bank_id && (
+                  <div className="text-sm text-red-600">
+                    {apiErrors.bank_id.map((error, index) => (
+                      <p key={index}>{error}</p>
+                    ))}
+                  </div>
+                )}
+                <BankSelect
+                  value={formData.bank_id || ''}
+                  onValueChange={(value) => setFormData({ ...formData, bank_id: value })}
+                  placeholder="Sélectionnez la banque..."
+                />
+              </div>
             </div>
 
             {/* Amount and Date */}
@@ -268,6 +302,13 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
                   <Euro className="h-4 w-4" />
                   Montant (XOF) *
                 </Label>
+                {apiErrors.amount && (
+                  <div className="text-sm text-red-600">
+                    {apiErrors.amount.map((error, index) => (
+                      <p key={index}>{error}</p>
+                    ))}
+                  </div>
+                )}
                 <Input
                   id="amount"
                   type="number"
@@ -284,6 +325,13 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
                   <Calendar className="h-4 w-4" />
                   Date *
                 </Label>
+                {apiErrors.date && (
+                  <div className="text-sm text-red-600">
+                    {apiErrors.date.map((error, index) => (
+                      <p key={index}>{error}</p>
+                    ))}
+                  </div>
+                )}
                 <DatePicker
                   value={formData.date || ''}
                   onValueChange={(date: string) => 
@@ -303,6 +351,13 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
                 <Image className="h-4 w-4" />
                 Photo du chèque
               </Label>
+              {apiErrors.photo && (
+                <div className="text-sm text-red-600">
+                  {apiErrors.photo.map((error, index) => (
+                    <p key={index}>{error}</p>
+                  ))}
+                </div>
+              )}
               
               {!previewUrl ? (
                 <div

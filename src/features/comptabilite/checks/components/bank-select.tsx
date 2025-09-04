@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { useBankStore } from '@/stores/bankStore'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface BankSelectProps {
   value: string
@@ -31,18 +32,32 @@ export function BankSelect({
   disabled = false
 }: BankSelectProps) {
   const [open, setOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const { banks, loading, fetchBanks } = useBankStore()
+  
+  // Debounce la recherche pour éviter trop d'appels API
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
+  const handleSearch = useCallback(() => {
+    fetchBanks(debouncedSearchTerm)
+  }, [fetchBanks, debouncedSearchTerm])
 
   useEffect(() => {
-    if (banks.length === 0) {
-      fetchBanks()
-    }
-  }, [fetchBanks, banks.length])
+    handleSearch()
+  }, [handleSearch])
 
   const selectedBank = banks.find(bank => bank.id.toString() === value)
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen) {
+      // Réinitialiser la recherche quand le popover se ferme
+      setSearchTerm('')
+    }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -71,7 +86,11 @@ export function BankSelect({
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start">
         <Command>
-          <CommandInput placeholder="Rechercher une banque..." />
+          <CommandInput 
+            placeholder="Rechercher une banque..." 
+            value={searchTerm}
+            onValueChange={setSearchTerm}
+          />
           <CommandList>
             {loading ? (
               <div className="flex items-center justify-center py-6">

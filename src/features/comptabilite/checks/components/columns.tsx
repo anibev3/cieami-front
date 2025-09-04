@@ -1,10 +1,11 @@
+/* eslint-disable react-refresh/only-export-components */
 import { ColumnDef } from '@tanstack/react-table'
 import { Check } from '@/types/comptabilite'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Edit, Trash2, Hash, Calendar, Building2, Activity, Image, CheckSquare, EyeOff } from 'lucide-react'
-import { useCheckStore } from '@/stores/checkStore'
+import { MoreHorizontal, Eye, Edit, Trash2, Hash, Building2, Activity, Image, CheckSquare, EyeOff } from 'lucide-react'
+// import { useCheckStore } from '@/stores/checkStore'
 import { useNavigate } from '@tanstack/react-router'
 
 interface CheckActionsProps {
@@ -15,23 +16,23 @@ interface CheckActionsProps {
 }
 
 function CheckActions({ check, onView, onDelete: _onDelete }: CheckActionsProps) {
-  const { deleteCheck, loading } = useCheckStore()
+  // const { deleteCheck, loading } = useCheckStore()
   const navigate = useNavigate()
 
-  const handleDelete = async () => {
-    try {
-      await deleteCheck(check.id)
-    } catch (_error) {
-      // Error handled by store
-    }
-  }
+  // const handleDelete = async () => {
+  //   try {
+  //     await deleteCheck(check.id)
+  //   } catch (_error) {
+  //     // Error handled by store
+  //   }
+  // }
 
   const handleViewDetail = () => {
-    navigate({ to: `/comptabilite/checks/detail/${check.id}` })
+    navigate({ to: `/comptabilite/check/detail/${check.id}` })
   }
 
   const handleEdit = () => {
-    navigate({ to: `/comptabilite/checks/edit/${check.id}` })
+    navigate({ to: `/comptabilite/check/edit/${check.id}` })
   }
 
   return (
@@ -59,8 +60,8 @@ function CheckActions({ check, onView, onDelete: _onDelete }: CheckActionsProps)
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          onClick={handleDelete}
-          disabled={loading}
+          onClick={() => _onDelete(check)}
+          // disabled={loading}
           className="text-red-600"
         >
           <Trash2 className="mr-2 h-4 w-4" />

@@ -66,25 +66,27 @@ export default function CheckDetailPage() {
     }
   }
 
-  const getStatusBadge = (status: Check['status']) => {
+  const getStatusBadge = (status: Check['status'] | null | undefined) => {
     let variant: "default" | "secondary" | "destructive" | "outline" = "outline"
     let label = "Inconnu"
     let icon = Activity
 
-    switch (status.code) {
-      case 'active':
-        variant = 'default'
-        label = 'Encaissé'
-        icon = CheckSquare
-        break
-      case 'pending':
-        variant = 'secondary'
-        label = 'En attente'
-        icon = EyeOff
-        break
-      default:
-        variant = 'outline'
-        label = status.label || 'Inconnu'
+    if (status) {
+      switch (status.code) {
+        case 'active':
+          variant = 'default'
+          label = 'Encaissé'
+          icon = CheckSquare
+          break
+        case 'pending':
+          variant = 'secondary'
+          label = 'En attente'
+          icon = EyeOff
+          break
+        default:
+          variant = 'outline'
+          label = status.label || 'Inconnu'
+      }
     }
     
     const IconComponent = icon
@@ -147,7 +149,7 @@ export default function CheckDetailPage() {
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
-            onClick={() => navigate({ to: `/comptabilite/checks/edit/${check.id}` })}
+            onClick={() => navigate({ to: `/comptabilite/check/edit/${check.id}` })}
           >
             <Edit className="mr-2 h-4 w-4" />
             Modifier
@@ -274,7 +276,7 @@ export default function CheckDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(check.photo, '_blank')}
+                      onClick={() => check.photo && window.open(check.photo, '_blank')}
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       Voir en plein écran
@@ -283,10 +285,12 @@ export default function CheckDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const link = document.createElement('a')
-                        link.href = check.photo
-                        link.download = `cheque-${check.reference}.jpg`
-                        link.click()
+                        if (check.photo) {
+                          const link = document.createElement('a')
+                          link.href = check.photo
+                          link.download = `cheque-${check.reference}.jpg`
+                          link.click()
+                        }
                       }}
                     >
                       <Download className="mr-2 h-4 w-4" />
@@ -364,7 +368,7 @@ export default function CheckDetailPage() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => navigate({ to: `/comptabilite/checks/edit/${check.id}` })}
+                onClick={() => navigate({ to: `/comptabilite/check/edit/${check.id}` })}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Modifier le chèque
@@ -374,7 +378,7 @@ export default function CheckDetailPage() {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => window.open(check.photo, '_blank')}
+                  onClick={() => check.photo && window.open(check.photo, '_blank')}
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   Voir la photo

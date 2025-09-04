@@ -25,25 +25,27 @@ export function CheckDialogs({
 }: CheckDialogsProps) {
   if (!selectedCheck) return null
 
-  const getStatusBadge = (status: Check['status']) => {
+  const getStatusBadge = (status: Check['status'] | null | undefined) => {
     let variant: "default" | "secondary" | "destructive" | "outline" = "outline"
     let label = "Inconnu"
     let icon = Activity
 
-    switch (status.code) {
-      case 'active':
-        variant = 'default'
-        label = 'Encaissé'
-        icon = CheckSquare
-        break
-      case 'pending':
-        variant = 'secondary'
-        label = 'En attente'
-        icon = EyeOff
-        break
-      default:
-        variant = 'outline'
-        label = status.label || 'Inconnu'
+    if (status) {
+      switch (status.code) {
+        case 'active':
+          variant = 'default'
+          label = 'Encaissé'
+          icon = CheckSquare
+          break
+        case 'pending':
+          variant = 'secondary'
+          label = 'En attente'
+          icon = EyeOff
+          break
+        default:
+          variant = 'outline'
+          label = status.label || 'Inconnu'
+      }
     }
     
     const IconComponent = icon

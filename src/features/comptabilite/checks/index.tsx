@@ -30,7 +30,7 @@ function ChecksPageContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(20)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
-
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   useEffect(() => {
     fetchChecks({
       page: currentPage,
@@ -50,6 +50,7 @@ function ChecksPageContent() {
 
   const handleDelete = (check: Check) => {
     setSelectedCheck(check)
+    setIsDeleteDialogOpen(true)
   }
 
   const handleDeleteConfirm = async () => {
@@ -59,6 +60,8 @@ function ChecksPageContent() {
       setSelectedCheck(null)
     } catch (_error) {
       // Error handled by store
+    } finally {
+      setIsDeleteDialogOpen(false)
     }
   }
 
@@ -75,8 +78,8 @@ function ChecksPageContent() {
   const stats = {
     total: pagination?.total || 0,
     totalAmount: checks.reduce((sum, check) => sum + parseFloat(check.amount), 0),
-    active: checks.filter(c => c.status.code === 'active').length,
-    pending: checks.filter(c => c.status.code === 'pending').length
+    active: checks.filter(c => c.status?.code === 'active').length,
+    pending: checks.filter(c => c.status?.code === 'pending').length
   }
 
   const columns = createColumns({
@@ -94,7 +97,7 @@ function ChecksPageContent() {
           <p className='text-muted-foreground text-sm'>Gérez tous les chèques et leurs informations</p>
         </div>
 
-        <Button onClick={() => navigate({ to: '/comptabilite/checks/create' })}>
+        <Button onClick={() => navigate({ to: '/comptabilite/check/create' })}>
           <Plus className="mr-2 h-4 w-4" />
           Nouveau chèque
         </Button>
@@ -240,7 +243,7 @@ function ChecksPageContent() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!selectedCheck && !isViewDialogOpen}>
+      <AlertDialog open={isDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
@@ -249,7 +252,7 @@ function ChecksPageContent() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSelectedCheck(null)}>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
               Annuler
             </AlertDialogCancel>
             <AlertDialogAction

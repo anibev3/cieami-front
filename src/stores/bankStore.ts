@@ -11,7 +11,7 @@ interface BankState {
   selectedBank: Bank | null
   
   // Actions
-  fetchBanks: () => Promise<void>
+  fetchBanks: (search?: string) => Promise<void>
   createBank: (data: CreateBankData) => Promise<void>
   updateBank: (id: number, data: UpdateBankData) => Promise<void>
   deleteBank: (id: number) => Promise<void>
@@ -27,10 +27,10 @@ export const useBankStore = create<BankState>((set) => ({
   selectedBank: null,
 
   // Actions
-  fetchBanks: async () => {
+  fetchBanks: async (search?: string) => {
     try {
       set({ loading: true, error: null })
-      const response = await bankService.getAll()
+      const response = await bankService.getAll({ search })
       set({ banks: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des banques'

@@ -21,8 +21,8 @@ interface CheckState {
   // Actions
   fetchChecks: (filters?: CheckFilters) => Promise<void>
   fetchCheckById: (id: number) => Promise<Check>
-  createCheck: (data: CreateCheckData) => Promise<void>
-  updateCheck: (id: number, data: UpdateCheckData) => Promise<void>
+  createCheck: (data: CreateCheckData) => Promise<string>
+  updateCheck: (id: number, data: UpdateCheckData) => Promise<string>
   deleteCheck: (id: number) => Promise<void>
   setSelectedCheck: (check: Check | null) => void
   clearError: () => void
@@ -81,18 +81,14 @@ export const useCheckStore = create<CheckState>((set) => ({
   createCheck: async (data: CreateCheckData) => {
     try {
       set({ loading: true })
-      const newCheck = await checkService.create(data)
+      const result = await checkService.create(data)
       set(state => ({ 
-        checks: [...state.checks, newCheck], 
+        checks: [...state.checks, result.check], 
         loading: false 
       }))
-      toast.success('Chèque créé avec succès')
+      return result.message
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ loading: false })
-            toast.error(errorMessage, {
-        duration: 1000,
-      })
       throw error
     }
   },
@@ -100,20 +96,16 @@ export const useCheckStore = create<CheckState>((set) => ({
   updateCheck: async (id: number, data: UpdateCheckData) => {
     try {
       set({ loading: true })
-      const updatedCheck = await checkService.update(id, data)
+      const result = await checkService.update(id, data)
       set(state => ({
         checks: state.checks.map(check =>
-          check.id === id ? updatedCheck : check
+          check.id === id ? result.check : check
         ),
         loading: false
       }))
-      toast.success('Chèque mis à jour avec succès')
+      return result.message
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
       set({ loading: false })
-            toast.error(errorMessage, {
-        duration: 1000,
-      })
       throw error
     }
   },
