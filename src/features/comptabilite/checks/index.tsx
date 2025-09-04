@@ -2,61 +2,99 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useCheckStore } from '@/stores/checkStore'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Search, Plus, Edit, Trash2, CheckSquare, Eye, EyeOff, Activity, Image } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Plus, CheckSquare, EyeOff, Activity, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
 import ForbiddenError from '@/features/errors/forbidden'
 import { UserRole } from '@/stores/aclStore'
+import { DataTable } from './components/data-table'
+import { createColumns } from './components/columns'
+import { CheckDialogs } from './components/check-dialogs'
+import { Check } from '@/types/comptabilite'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function ChecksPageContent() {
   const navigate = useNavigate()
   const {
     checks,
+    pagination,
+    loading,
     fetchChecks,
-    deleteCheck
+    deleteCheck,
+    setSelectedCheck,
+    selectedCheck
   } = useCheckStore()
 
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, _setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [perPage, setPerPage] = useState(20)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
   useEffect(() => {
-    fetchChecks()
-  }, [fetchChecks])
+    fetchChecks({
+      page: currentPage,
+      per_page: perPage,
+      search: searchTerm || undefined
+    })
+  }, [fetchChecks, currentPage, perPage, searchTerm])
 
-  const filteredChecks = checks.filter(check =>
-    check?.reference?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-    check?.bank?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-    check?.payment?.reference?.toLowerCase().includes(searchTerm?.toLowerCase())
-  )
+  const handleView = (check: Check) => {
+    setSelectedCheck(check)
+    setIsViewDialogOpen(true)
+  }
 
-  const handleDelete = async (id: number) => {
+  const handleEdit = (check: Check) => {
+    navigate({ to: `/comptabilite/checks/edit/${check.id}` })
+  }
+
+  const handleDelete = (check: Check) => {
+    setSelectedCheck(check)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedCheck) return
     try {
-      await deleteCheck(id)
+      await deleteCheck(selectedCheck.id)
+      setSelectedCheck(null)
     } catch (_error) {
       // Error handled by store
     }
   }
 
+  // Pagination functions
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePerPageChange = (newPerPage: number) => {
+    setPerPage(newPerPage)
+    setCurrentPage(1)
+  }
+
   const stats = {
-    total: checks.length,
+    total: pagination?.total || 0,
     totalAmount: checks.reduce((sum, check) => sum + parseFloat(check.amount), 0),
     active: checks.filter(c => c.status.code === 'active').length,
     pending: checks.filter(c => c.status.code === 'pending').length
   }
 
+  const columns = createColumns({
+    onView: handleView,
+    onEdit: handleEdit,
+    onDelete: handleDelete
+  })
+
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full pb-20">
       {/* Header */}
-      
       <div className="flex items-center justify-between mb-4">
         <div className='flex flex-col gap-2'>
           <h3 className='text-lg font-bold'>Chèques</h3>
-          {/* <p className='text-muted-foreground text-sm'>Gérez tous les chèques et leurs informations</p> */}
+          <p className='text-muted-foreground text-sm'>Gérez tous les chèques et leurs informations</p>
         </div>
 
-        <Button onClick={() => navigate({ to: '/comptabilite/check/create' })}>
+        <Button onClick={() => navigate({ to: '/comptabilite/checks/create' })}>
           <Plus className="mr-2 h-4 w-4" />
           Nouveau chèque
         </Button>
@@ -105,114 +143,124 @@ function ChecksPageContent() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un chèque..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
+      {/* DataTable */}
+      <DataTable
+        columns={columns}
+        data={checks}
+        loading={loading}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
-      {/* Checks Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredChecks.map((check) => (
-          <Card key={check.id} className="hover:shadow-lg transition-shadow shadow-none">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{check.reference.slice(0, 10)}...</CardTitle>
-                <div className="flex items-center space-x-2">
-                  {check.status.code === 'active' ? (
-                    <Badge variant="default" className="bg-green-100 text-green-800">
-                      <Eye className="mr-1 h-3 w-3" />
-                      Encassé
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">
-                      <EyeOff className="mr-1 h-3 w-3" />
-                      En attente
-                    </Badge>
-                  )}
-                </div>
+      {/* Pagination Sticky Bottom */}
+      {pagination && pagination.total > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg z-40">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-muted-foreground">
+                  Affichage de {pagination.from} à {pagination.to} sur {pagination.total} chèques
+                </span>
+                <Select value={perPage.toString()} onValueChange={(value) => handlePerPageChange(parseInt(value))}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <CardDescription>
-                {check.payment ? `Paiement: ${check.payment.reference}` : 'Aucun paiement'} | {check.bank ? `Banque: ${check.bank.name}` : 'Aucune banque'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="font-medium">Montant:</span> {parseFloat(check.amount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
-                  </div>
-                  <div>
-                    <span className="font-medium">Date:</span> {new Date(check.date).toLocaleDateString()}
-                  </div>
-                  <div>
-                    <span className="font-medium">Statut:</span> {check.status.label}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium">Photo:</span> 
-                    {check.photo ? (
-                      <Badge variant="outline" className="text-xs">
-                        <Image className="mr-1 h-3 w-3" />
-                        Disponible
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        Aucune
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <div className="text-xs text-muted-foreground">
-                    Créé le {new Date(check.created_at).toLocaleDateString()}
-                  </div>
-                  <div className="flex items-center space-x-1">
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Précédent
+                </Button>
+                
+                {/* Page numbers */}
+                {Array.from({ length: Math.min(5, pagination.last_page) }, (_, i) => {
+                  const pageNum = Math.max(1, currentPage - 2) + i
+                  if (pageNum > pagination.last_page) return null
+                  
+                  return (
                     <Button
-                      variant="ghost"
+                      key={pageNum}
+                      variant={pageNum === currentPage ? "default" : "outline"}
                       size="sm"
-                      onClick={() => navigate({ to: `/comptabilite/checks/edit/${check.id}` })}
+                      onClick={() => handlePageChange(pageNum)}
                     >
-                      <Edit className="h-4 w-4" />
+                      {pageNum}
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action ne peut pas être annulée. Cela supprimera définitivement le chèque {check.reference}.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(check.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Supprimer
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
+                  )
+                })}
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === pagination.last_page}
+                >
+                  Suivant
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(pagination.last_page)}
+                  disabled={currentPage === pagination.last_page}
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          </div>
         </div>
-      
+      )}
+
+      {/* Dialogs */}
+      <CheckDialogs
+        isViewOpen={isViewDialogOpen}
+        selectedCheck={selectedCheck}
+        onCloseView={() => setIsViewDialogOpen(false)}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!selectedCheck && !isViewDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action ne peut pas être annulée. Cela supprimera définitivement le chèque "{selectedCheck?.reference}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedCheck(null)}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 } 

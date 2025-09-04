@@ -1256,13 +1256,13 @@ export default function CreateAssignmentPage() {
                               </FormItem>
                             )}
                           />
-                    </div>
-                                              <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
+                      </div>
+                      <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
                         <Info className="h-5 w-5 text-gray-500" />
                         Informations complémentaires
                       </h3>
                       <div className="space-y-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="policy_number" render={({ field }) => (
                           <FormItem>
                             <FormLabel>Numéro de police</FormLabel>
@@ -1271,32 +1271,24 @@ export default function CreateAssignmentPage() {
                             </FormControl>
                             <FormMessage />
                           </FormItem>
-                        )} />
-                        <FormField control={form.control} name="claim_number" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Numéro de sinistre</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Numéro de sinistre" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                          </div>
-                          <FormField control={form.control} name="claim_starts_at" render={({ field }) => (
+                          )} />
+                          <FormField control={form.control} name="claim_number" render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Date de sinistre</FormLabel>
+                              <FormLabel>Numéro de sinistre</FormLabel>
                               <FormControl>
-                                <Input type="date" {...field} />
+                                <Input placeholder="Numéro de sinistre" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )} />
+                        </div>
+                          
                       </div>
                   </div>
 
                     {/* Assureur et Réparateur */}
                     <div className="space-y-4">
-                    <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
+                      <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <Building className="h-5 w-5 text-green-500" />
                           Assureur et Réparateur
                         </h3>
@@ -1415,18 +1407,29 @@ export default function CreateAssignmentPage() {
                                       <Info className="h-4 w-4" />
                                     </Button>
                                   )}
-                      </div>
+                              </div>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Date de réception - Pleine largeur */}
-                  <div className="mt-6">
-                      <FormField control={form.control} name="received_at" render={({ field }) => (
+                      <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
+                        <Info className="h-5 w-5 text-gray-500" />
+                        Dates informationnelles
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="claim_starts_at" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date de sinistre</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="received_at" render={({ field }) => (
                       <FormItem data-field="received_at">
                                 <FormLabel>Date de réception <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
@@ -1435,6 +1438,9 @@ export default function CreateAssignmentPage() {
                                 <FormMessage />
                               </FormItem>
                       )} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1615,13 +1621,12 @@ export default function CreateAssignmentPage() {
                       </div>
                     </div>
                     {/* Informations d'expertise et observations - Pleine largeur */}
-                    <div className="mt-8 p-6 rounded-lg border bg-gray-50">
+                    {/* <div className="mt-8 p-6 rounded-lg border bg-gray-50">
                       <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mb-6">
                         <Info className="h-5 w-5 text-gray-500" />
                         Informations d'expertise et observations
                       </h3>
                       
-                      {/* Informations d'expertise */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <FormField control={form.control} name="expertise_date" render={({ field }) => (
                               <FormItem>
@@ -1652,7 +1657,6 @@ export default function CreateAssignmentPage() {
                         )} />
                       </div>
                       
-                      {/* Observations - Pleine largeur */}
                       <div className="space-y-6">
                         <FormField control={form.control} name="circumstance" render={({ field }) => (
                             <FormItem>
@@ -1697,12 +1701,11 @@ export default function CreateAssignmentPage() {
                             </FormItem>
                         )} />
                           </div>
-                </div>
+                    </div> */}
                   </CardContent>
                 </Card>
 
-              {/* Section 3: Experts */}
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                {/* <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader className="px-3 sm:px-6">
                     <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
                       <User className="h-5 w-5 text-purple-600" />
@@ -1767,7 +1770,6 @@ export default function CreateAssignmentPage() {
                           </div>
                           </div>
                           
-                          {/* Observation - Pleine largeur */}
                           <div className="mt-4">
                           <FormField
                             control={form.control}
@@ -1795,7 +1797,7 @@ export default function CreateAssignmentPage() {
                       </Button>
                 </div>
                   </CardContent>
-                </Card>
+                </Card> */}
 
               {/* Section 4: Récapitulatif */}
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">

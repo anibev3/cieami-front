@@ -110,6 +110,7 @@ import { Route as AuthenticatedComptabiliteReportsChecksImport } from './routes/
 import { Route as AuthenticatedComptabilitePaymentCreateImport } from './routes/_authenticated/comptabilite/payment/create'
 import { Route as AuthenticatedComptabilitePaymentDetailIdImport } from './routes/_authenticated/comptabilite/payment-detail.$id'
 import { Route as AuthenticatedComptabiliteInvoicesCreateImport } from './routes/_authenticated/comptabilite/invoices/create'
+import { Route as AuthenticatedComptabiliteChecksCreateImport } from './routes/_authenticated/comptabilite/checks/create'
 import { Route as AuthenticatedComptabiliteCheckCreateImport } from './routes/_authenticated/comptabilite/check/create'
 import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
 import { Route as AuthenticatedAssignmentsEvaluateReportIdImport } from './routes/_authenticated/assignments/evaluate-report/$id'
@@ -125,7 +126,9 @@ import { Route as AuthenticatedAdministrationConstatTypeImport } from './routes/
 import { Route as AuthenticatedAdministrationConstatCreateIndexImport } from './routes/_authenticated/administration/constat/create/index'
 import { Route as AuthenticatedComptabilitePaymentEditIdImport } from './routes/_authenticated/comptabilite/payment/edit.$id'
 import { Route as AuthenticatedComptabiliteInvoicesDetailsIdImport } from './routes/_authenticated/comptabilite/invoices/details/$id'
-import { Route as AuthenticatedComptabiliteCheckEditIdImport } from './routes/_authenticated/comptabilite/check/edit.$id'
+import { Route as AuthenticatedComptabiliteChecksEditIdImport } from './routes/_authenticated/comptabilite/checks/edit.$id'
+import { Route as AuthenticatedComptabiliteCheckEditIdImport } from './routes/_authenticated/comptabilite/check/edit/$id'
+import { Route as AuthenticatedComptabiliteCheckDetailIdImport } from './routes/_authenticated/comptabilite/check/detail/$id'
 import { Route as AuthenticatedAdministrationVehicleIdEditImport } from './routes/_authenticated/administration/vehicle/$id.edit'
 import { Route as AuthenticatedAdministrationConstatDetailsIdImport } from './routes/_authenticated/administration/constat/details/$id'
 
@@ -804,6 +807,13 @@ const AuthenticatedComptabiliteInvoicesCreateRoute =
     getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
   } as any)
 
+const AuthenticatedComptabiliteChecksCreateRoute =
+  AuthenticatedComptabiliteChecksCreateImport.update({
+    id: '/create',
+    path: '/create',
+    getParentRoute: () => AuthenticatedComptabiliteChecksRoute,
+  } as any)
+
 const AuthenticatedComptabiliteCheckCreateRoute =
   AuthenticatedComptabiliteCheckCreateImport.update({
     id: '/check/create',
@@ -909,10 +919,24 @@ const AuthenticatedComptabiliteInvoicesDetailsIdRoute =
     getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
   } as any)
 
+const AuthenticatedComptabiliteChecksEditIdRoute =
+  AuthenticatedComptabiliteChecksEditIdImport.update({
+    id: '/edit/$id',
+    path: '/edit/$id',
+    getParentRoute: () => AuthenticatedComptabiliteChecksRoute,
+  } as any)
+
 const AuthenticatedComptabiliteCheckEditIdRoute =
   AuthenticatedComptabiliteCheckEditIdImport.update({
     id: '/check/edit/$id',
     path: '/check/edit/$id',
+    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
+  } as any)
+
+const AuthenticatedComptabiliteCheckDetailIdRoute =
+  AuthenticatedComptabiliteCheckDetailIdImport.update({
+    id: '/check/detail/$id',
+    path: '/check/detail/$id',
     getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
   } as any)
 
@@ -1585,6 +1609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedComptabiliteCheckCreateImport
       parentRoute: typeof AuthenticatedComptabiliteRouteImport
     }
+    '/_authenticated/comptabilite/checks/create': {
+      id: '/_authenticated/comptabilite/checks/create'
+      path: '/create'
+      fullPath: '/comptabilite/checks/create'
+      preLoaderRoute: typeof AuthenticatedComptabiliteChecksCreateImport
+      parentRoute: typeof AuthenticatedComptabiliteChecksImport
+    }
     '/_authenticated/comptabilite/invoices/create': {
       id: '/_authenticated/comptabilite/invoices/create'
       path: '/invoices/create'
@@ -1725,12 +1756,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministrationVehicleIdEditImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/comptabilite/check/detail/$id': {
+      id: '/_authenticated/comptabilite/check/detail/$id'
+      path: '/check/detail/$id'
+      fullPath: '/comptabilite/check/detail/$id'
+      preLoaderRoute: typeof AuthenticatedComptabiliteCheckDetailIdImport
+      parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
     '/_authenticated/comptabilite/check/edit/$id': {
       id: '/_authenticated/comptabilite/check/edit/$id'
       path: '/check/edit/$id'
       fullPath: '/comptabilite/check/edit/$id'
       preLoaderRoute: typeof AuthenticatedComptabiliteCheckEditIdImport
       parentRoute: typeof AuthenticatedComptabiliteRouteImport
+    }
+    '/_authenticated/comptabilite/checks/edit/$id': {
+      id: '/_authenticated/comptabilite/checks/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/comptabilite/checks/edit/$id'
+      preLoaderRoute: typeof AuthenticatedComptabiliteChecksEditIdImport
+      parentRoute: typeof AuthenticatedComptabiliteChecksImport
     }
     '/_authenticated/comptabilite/invoices/details/$id': {
       id: '/_authenticated/comptabilite/invoices/details/$id'
@@ -1758,9 +1803,27 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
+interface AuthenticatedComptabiliteChecksRouteChildren {
+  AuthenticatedComptabiliteChecksCreateRoute: typeof AuthenticatedComptabiliteChecksCreateRoute
+  AuthenticatedComptabiliteChecksEditIdRoute: typeof AuthenticatedComptabiliteChecksEditIdRoute
+}
+
+const AuthenticatedComptabiliteChecksRouteChildren: AuthenticatedComptabiliteChecksRouteChildren =
+  {
+    AuthenticatedComptabiliteChecksCreateRoute:
+      AuthenticatedComptabiliteChecksCreateRoute,
+    AuthenticatedComptabiliteChecksEditIdRoute:
+      AuthenticatedComptabiliteChecksEditIdRoute,
+  }
+
+const AuthenticatedComptabiliteChecksRouteWithChildren =
+  AuthenticatedComptabiliteChecksRoute._addFileChildren(
+    AuthenticatedComptabiliteChecksRouteChildren,
+  )
+
 interface AuthenticatedComptabiliteRouteRouteChildren {
   AuthenticatedComptabiliteBanksRoute: typeof AuthenticatedComptabiliteBanksRoute
-  AuthenticatedComptabiliteChecksRoute: typeof AuthenticatedComptabiliteChecksRoute
+  AuthenticatedComptabiliteChecksRoute: typeof AuthenticatedComptabiliteChecksRouteWithChildren
   AuthenticatedComptabilitePaymentMethodsRoute: typeof AuthenticatedComptabilitePaymentMethodsRoute
   AuthenticatedComptabilitePaymentTypesRoute: typeof AuthenticatedComptabilitePaymentTypesRoute
   AuthenticatedComptabilitePaymentsRoute: typeof AuthenticatedComptabilitePaymentsRoute
@@ -1774,6 +1837,7 @@ interface AuthenticatedComptabiliteRouteRouteChildren {
   AuthenticatedComptabiliteReportsTreasuryRoute: typeof AuthenticatedComptabiliteReportsTreasuryRoute
   AuthenticatedComptabiliteStatisticsAssignmentsRoute: typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   AuthenticatedComptabiliteInvoicesIndexRoute: typeof AuthenticatedComptabiliteInvoicesIndexRoute
+  AuthenticatedComptabiliteCheckDetailIdRoute: typeof AuthenticatedComptabiliteCheckDetailIdRoute
   AuthenticatedComptabiliteCheckEditIdRoute: typeof AuthenticatedComptabiliteCheckEditIdRoute
   AuthenticatedComptabiliteInvoicesDetailsIdRoute: typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
   AuthenticatedComptabilitePaymentEditIdRoute: typeof AuthenticatedComptabilitePaymentEditIdRoute
@@ -1782,7 +1846,8 @@ interface AuthenticatedComptabiliteRouteRouteChildren {
 const AuthenticatedComptabiliteRouteRouteChildren: AuthenticatedComptabiliteRouteRouteChildren =
   {
     AuthenticatedComptabiliteBanksRoute: AuthenticatedComptabiliteBanksRoute,
-    AuthenticatedComptabiliteChecksRoute: AuthenticatedComptabiliteChecksRoute,
+    AuthenticatedComptabiliteChecksRoute:
+      AuthenticatedComptabiliteChecksRouteWithChildren,
     AuthenticatedComptabilitePaymentMethodsRoute:
       AuthenticatedComptabilitePaymentMethodsRoute,
     AuthenticatedComptabilitePaymentTypesRoute:
@@ -1808,6 +1873,8 @@ const AuthenticatedComptabiliteRouteRouteChildren: AuthenticatedComptabiliteRout
       AuthenticatedComptabiliteStatisticsAssignmentsRoute,
     AuthenticatedComptabiliteInvoicesIndexRoute:
       AuthenticatedComptabiliteInvoicesIndexRoute,
+    AuthenticatedComptabiliteCheckDetailIdRoute:
+      AuthenticatedComptabiliteCheckDetailIdRoute,
     AuthenticatedComptabiliteCheckEditIdRoute:
       AuthenticatedComptabiliteCheckEditIdRoute,
     AuthenticatedComptabiliteInvoicesDetailsIdRoute:
@@ -2134,7 +2201,7 @@ export interface FileRoutesByFullPath {
   '/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
   '/assignments/statistics': typeof AuthenticatedAssignmentsStatisticsRoute
   '/comptabilite/banks': typeof AuthenticatedComptabiliteBanksRoute
-  '/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRoute
+  '/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRouteWithChildren
   '/comptabilite/payment-methods': typeof AuthenticatedComptabilitePaymentMethodsRoute
   '/comptabilite/payment-types': typeof AuthenticatedComptabilitePaymentTypesRoute
   '/comptabilite/payments': typeof AuthenticatedComptabilitePaymentsRoute
@@ -2192,6 +2259,7 @@ export interface FileRoutesByFullPath {
   '/assignments/evaluate-report/$id': typeof AuthenticatedAssignmentsEvaluateReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
+  '/comptabilite/checks/create': typeof AuthenticatedComptabiliteChecksCreateRoute
   '/comptabilite/invoices/create': typeof AuthenticatedComptabiliteInvoicesCreateRoute
   '/comptabilite/payment-detail/$id': typeof AuthenticatedComptabilitePaymentDetailIdRoute
   '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
@@ -2212,7 +2280,9 @@ export interface FileRoutesByFullPath {
   '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
   '/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
+  '/comptabilite/check/detail/$id': typeof AuthenticatedComptabiliteCheckDetailIdRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
+  '/comptabilite/checks/edit/$id': typeof AuthenticatedComptabiliteChecksEditIdRoute
   '/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
   '/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
   '/administration/constat/create': typeof AuthenticatedAdministrationConstatCreateIndexRoute
@@ -2249,7 +2319,7 @@ export interface FileRoutesByTo {
   '/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
   '/assignments/statistics': typeof AuthenticatedAssignmentsStatisticsRoute
   '/comptabilite/banks': typeof AuthenticatedComptabiliteBanksRoute
-  '/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRoute
+  '/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRouteWithChildren
   '/comptabilite/payment-methods': typeof AuthenticatedComptabilitePaymentMethodsRoute
   '/comptabilite/payment-types': typeof AuthenticatedComptabilitePaymentTypesRoute
   '/comptabilite/payments': typeof AuthenticatedComptabilitePaymentsRoute
@@ -2307,6 +2377,7 @@ export interface FileRoutesByTo {
   '/assignments/evaluate-report/$id': typeof AuthenticatedAssignmentsEvaluateReportIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
+  '/comptabilite/checks/create': typeof AuthenticatedComptabiliteChecksCreateRoute
   '/comptabilite/invoices/create': typeof AuthenticatedComptabiliteInvoicesCreateRoute
   '/comptabilite/payment-detail/$id': typeof AuthenticatedComptabilitePaymentDetailIdRoute
   '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
@@ -2327,7 +2398,9 @@ export interface FileRoutesByTo {
   '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
   '/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
+  '/comptabilite/check/detail/$id': typeof AuthenticatedComptabiliteCheckDetailIdRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
+  '/comptabilite/checks/edit/$id': typeof AuthenticatedComptabiliteChecksEditIdRoute
   '/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
   '/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
   '/administration/constat/create': typeof AuthenticatedAdministrationConstatCreateIndexRoute
@@ -2370,7 +2443,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments/create': typeof AuthenticatedAssignmentsCreateRoute
   '/_authenticated/assignments/statistics': typeof AuthenticatedAssignmentsStatisticsRoute
   '/_authenticated/comptabilite/banks': typeof AuthenticatedComptabiliteBanksRoute
-  '/_authenticated/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRoute
+  '/_authenticated/comptabilite/checks': typeof AuthenticatedComptabiliteChecksRouteWithChildren
   '/_authenticated/comptabilite/payment-methods': typeof AuthenticatedComptabilitePaymentMethodsRoute
   '/_authenticated/comptabilite/payment-types': typeof AuthenticatedComptabilitePaymentTypesRoute
   '/_authenticated/comptabilite/payments': typeof AuthenticatedComptabilitePaymentsRoute
@@ -2428,6 +2501,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments/evaluate-report/$id': typeof AuthenticatedAssignmentsEvaluateReportIdRoute
   '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/_authenticated/comptabilite/check/create': typeof AuthenticatedComptabiliteCheckCreateRoute
+  '/_authenticated/comptabilite/checks/create': typeof AuthenticatedComptabiliteChecksCreateRoute
   '/_authenticated/comptabilite/invoices/create': typeof AuthenticatedComptabiliteInvoicesCreateRoute
   '/_authenticated/comptabilite/payment-detail/$id': typeof AuthenticatedComptabilitePaymentDetailIdRoute
   '/_authenticated/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
@@ -2448,7 +2522,9 @@ export interface FileRoutesById {
   '/_authenticated/gestion/sinistre/': typeof AuthenticatedGestionSinistreIndexRoute
   '/_authenticated/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
   '/_authenticated/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
+  '/_authenticated/comptabilite/check/detail/$id': typeof AuthenticatedComptabiliteCheckDetailIdRoute
   '/_authenticated/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
+  '/_authenticated/comptabilite/checks/edit/$id': typeof AuthenticatedComptabiliteChecksEditIdRoute
   '/_authenticated/comptabilite/invoices/details/$id': typeof AuthenticatedComptabiliteInvoicesDetailsIdRoute
   '/_authenticated/comptabilite/payment/edit/$id': typeof AuthenticatedComptabilitePaymentEditIdRoute
   '/_authenticated/administration/constat/create/': typeof AuthenticatedAdministrationConstatCreateIndexRoute
@@ -2549,6 +2625,7 @@ export interface FileRouteTypes {
     | '/assignments/evaluate-report/$id'
     | '/assignments/realize/$id'
     | '/comptabilite/check/create'
+    | '/comptabilite/checks/create'
     | '/comptabilite/invoices/create'
     | '/comptabilite/payment-detail/$id'
     | '/comptabilite/payment/create'
@@ -2569,7 +2646,9 @@ export interface FileRouteTypes {
     | '/gestion/sinistre'
     | '/administration/constat/details/$id'
     | '/administration/vehicle/$id/edit'
+    | '/comptabilite/check/detail/$id'
     | '/comptabilite/check/edit/$id'
+    | '/comptabilite/checks/edit/$id'
     | '/comptabilite/invoices/details/$id'
     | '/comptabilite/payment/edit/$id'
     | '/administration/constat/create'
@@ -2663,6 +2742,7 @@ export interface FileRouteTypes {
     | '/assignments/evaluate-report/$id'
     | '/assignments/realize/$id'
     | '/comptabilite/check/create'
+    | '/comptabilite/checks/create'
     | '/comptabilite/invoices/create'
     | '/comptabilite/payment-detail/$id'
     | '/comptabilite/payment/create'
@@ -2683,7 +2763,9 @@ export interface FileRouteTypes {
     | '/gestion/sinistre'
     | '/administration/constat/details/$id'
     | '/administration/vehicle/$id/edit'
+    | '/comptabilite/check/detail/$id'
     | '/comptabilite/check/edit/$id'
+    | '/comptabilite/checks/edit/$id'
     | '/comptabilite/invoices/details/$id'
     | '/comptabilite/payment/edit/$id'
     | '/administration/constat/create'
@@ -2782,6 +2864,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments/evaluate-report/$id'
     | '/_authenticated/assignments/realize/$id'
     | '/_authenticated/comptabilite/check/create'
+    | '/_authenticated/comptabilite/checks/create'
     | '/_authenticated/comptabilite/invoices/create'
     | '/_authenticated/comptabilite/payment-detail/$id'
     | '/_authenticated/comptabilite/payment/create'
@@ -2802,7 +2885,9 @@ export interface FileRouteTypes {
     | '/_authenticated/gestion/sinistre/'
     | '/_authenticated/administration/constat/details/$id'
     | '/_authenticated/administration/vehicle/$id/edit'
+    | '/_authenticated/comptabilite/check/detail/$id'
     | '/_authenticated/comptabilite/check/edit/$id'
+    | '/_authenticated/comptabilite/checks/edit/$id'
     | '/_authenticated/comptabilite/invoices/details/$id'
     | '/_authenticated/comptabilite/payment/edit/$id'
     | '/_authenticated/administration/constat/create/'
@@ -2969,6 +3054,7 @@ export const routeTree = rootRoute
         "/_authenticated/comptabilite/reports/treasury",
         "/_authenticated/comptabilite/statistics/assignments",
         "/_authenticated/comptabilite/invoices/",
+        "/_authenticated/comptabilite/check/detail/$id",
         "/_authenticated/comptabilite/check/edit/$id",
         "/_authenticated/comptabilite/invoices/details/$id",
         "/_authenticated/comptabilite/payment/edit/$id"
@@ -3110,7 +3196,11 @@ export const routeTree = rootRoute
     },
     "/_authenticated/comptabilite/checks": {
       "filePath": "_authenticated/comptabilite/checks.tsx",
-      "parent": "/_authenticated/comptabilite"
+      "parent": "/_authenticated/comptabilite",
+      "children": [
+        "/_authenticated/comptabilite/checks/create",
+        "/_authenticated/comptabilite/checks/edit/$id"
+      ]
     },
     "/_authenticated/comptabilite/payment-methods": {
       "filePath": "_authenticated/comptabilite/payment-methods.tsx",
@@ -3340,6 +3430,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/comptabilite/check/create.tsx",
       "parent": "/_authenticated/comptabilite"
     },
+    "/_authenticated/comptabilite/checks/create": {
+      "filePath": "_authenticated/comptabilite/checks/create.tsx",
+      "parent": "/_authenticated/comptabilite/checks"
+    },
     "/_authenticated/comptabilite/invoices/create": {
       "filePath": "_authenticated/comptabilite/invoices/create.tsx",
       "parent": "/_authenticated/comptabilite"
@@ -3420,9 +3514,17 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/administration/vehicle/$id.edit.tsx",
       "parent": "/_authenticated"
     },
-    "/_authenticated/comptabilite/check/edit/$id": {
-      "filePath": "_authenticated/comptabilite/check/edit.$id.tsx",
+    "/_authenticated/comptabilite/check/detail/$id": {
+      "filePath": "_authenticated/comptabilite/check/detail/$id.tsx",
       "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/check/edit/$id": {
+      "filePath": "_authenticated/comptabilite/check/edit/$id.tsx",
+      "parent": "/_authenticated/comptabilite"
+    },
+    "/_authenticated/comptabilite/checks/edit/$id": {
+      "filePath": "_authenticated/comptabilite/checks/edit.$id.tsx",
+      "parent": "/_authenticated/comptabilite/checks"
     },
     "/_authenticated/comptabilite/invoices/details/$id": {
       "filePath": "_authenticated/comptabilite/invoices/details/$id.tsx",

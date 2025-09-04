@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Check, CreateCheckData, UpdateCheckData } from '@/types/comptabilite'
+import { Check, CreateCheckData, UpdateCheckData, CheckFilters } from '@/types/comptabilite'
 import { checkService } from '@/services/checkService'
 import { toast } from 'sonner'
 
@@ -9,9 +9,18 @@ interface CheckState {
   loading: boolean
   error: string | null
   selectedCheck: Check | null
+  pagination: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number
+    to: number
+  } | null
   
   // Actions
-  fetchChecks: () => Promise<void>
+  fetchChecks: (filters?: CheckFilters) => Promise<void>
+  fetchCheckById: (id: number) => Promise<Check>
   createCheck: (data: CreateCheckData) => Promise<void>
   updateCheck: (id: number, data: UpdateCheckData) => Promise<void>
   deleteCheck: (id: number) => Promise<void>
@@ -25,19 +34,47 @@ export const useCheckStore = create<CheckState>((set) => ({
   loading: false,
   error: null,
   selectedCheck: null,
+  pagination: null,
 
   // Actions
-  fetchChecks: async () => {
+  fetchChecks: async (filters?: CheckFilters) => {
     try {
       set({ loading: true, error: null })
-      const response = await checkService.getAll()
-      set({ checks: response.data, loading: false })
+      const response = await checkService.getAll(filters)
+      set({ 
+        checks: response.data, 
+        pagination: {
+          current_page: response.meta.current_page,
+          last_page: response.meta.last_page,
+          per_page: response.meta.per_page,
+          total: response.meta.total,
+          from: response.meta.from,
+          to: response.meta.to
+        },
+        loading: false 
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des chèques'
       set({ error: errorMessage, loading: false })
             toast.error(errorMessage, {
         duration: 1000,
       })
+    }
+  },
+
+  fetchCheckById: async (id: number) => {
+    try {
+      set({ loading: true, error: null })
+      const check = await checkService.getById(id)
+      set({ loading: false })
+      return check
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement du chèque'
+      set({ error: errorMessage, loading: false })
+      toast.error(errorMessage, {
+        duration: 1000,
+      })
+      throw error
     }
   },
 

@@ -1,13 +1,26 @@
-import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import { useCheckStore } from '@/stores/checkStore'
-import { CreateCheckData } from '@/types/comptabilite'
+import { CreateCheckData, UpdateCheckData, Check } from '@/types/comptabilite'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Plus, CreditCard, Building2, Calendar, Euro, Upload, X, Image, FileImage } from 'lucide-react'
+import { 
+  ArrowLeft, 
+  Plus, 
+  Save, 
+  CreditCard, 
+  Building2, 
+  Calendar, 
+  Euro, 
+  Upload, 
+  X, 
+  Image, 
+  FileImage,
+  Loader2
+} from 'lucide-react'
 import { PaymentSelect } from './components/payment-select'
 import { BankSelect } from './components/bank-select'
 import { DatePicker } from '@/features/widgets/date-picker'
@@ -16,10 +29,22 @@ import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
 import ForbiddenError from '@/features/errors/forbidden'
 import { UserRole } from '@/stores/aclStore'
 
-function CreateCheckPageContent() {
+interface CheckFormProps {
+  isEdit?: boolean
+}
+
+function CheckFormContent({ isEdit = false }: CheckFormProps) {
   const navigate = useNavigate()
-  const { createCheck, loading } = useCheckStore()
-  const [formData, setFormData] = useState<CreateCheckData>({
+  const { id } = useParams({ from: '/_authenticated/comptabilite/checks/edit/$id' })
+  const { 
+    createCheck, 
+    updateCheck, 
+    fetchCheckById, 
+    loading 
+  } = useCheckStore()
+  
+  const [check, setCheck] = useState<Check | null>(null)
+  const [formData, setFormData] = useState<CreateCheckData | UpdateCheckData>({
     payment_id: '',
     bank_id: '',
     date: new Date().toISOString().split('T')[0],
@@ -28,6 +53,36 @@ function CreateCheckPageContent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(isEdit)
+
+  // Charger les données du chèque en mode édition
+  useEffect(() => {
+    if (isEdit && id) {
+      const loadCheck = async () => {
+        try {
+          setInitialLoading(true)
+          const checkData = await fetchCheckById(parseInt(id))
+          setCheck(checkData)
+          setFormData({
+            payment_id: checkData.payment?.id?.toString() || '',
+            bank_id: checkData.bank?.id?.toString() || '',
+            date: checkData.date.split('T')[0],
+            amount: parseFloat(checkData.amount)
+          })
+          // Si le chèque a déjà une photo, on l'affiche
+          if (checkData.photo) {
+            setPreviewUrl(checkData.photo)
+          }
+        } catch (error) {
+          toast.error('Erreur lors du chargement du chèque')
+          navigate({ to: '/comptabilite/checks' })
+        } finally {
+          setInitialLoading(false)
+        }
+      }
+      loadCheck()
+    }
+  }, [isEdit, id, fetchCheckById, navigate])
 
   const handleFileSelect = (file: File) => {
     // Vérifier le type de fichier
@@ -70,7 +125,8 @@ function CreateCheckPageContent() {
   }
 
   const removeFile = () => {
-    if (previewUrl) {
+    if (previewUrl && !check?.photo) {
+      // Seulement révoquer l'URL si c'est un nouveau fichier (pas la photo existante)
       URL.revokeObjectURL(previewUrl)
     }
     setSelectedFile(null)
@@ -80,29 +136,56 @@ function CreateCheckPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.payment_id || !formData.bank_id || !formData.date || formData.amount <= 0) {
+    if (!formData.payment_id || !formData.bank_id || !formData.date || (formData.amount ?? 0) <= 0) {
       toast.error('Veuillez remplir tous les champs obligatoires')
       return
     }
 
     try {
-      const checkData = {
-        ...formData,
-        photo: selectedFile || undefined
+      if (isEdit && id) {
+        // Mode édition
+        const updateData = {
+          ...formData,
+          photo: selectedFile || undefined
+        }
+        await updateCheck(parseInt(id), updateData)
+        toast.success('Chèque modifié avec succès')
+      } else {
+        // Mode création
+        const createData = {
+          ...formData,
+          photo: selectedFile || undefined
+        }
+        await createCheck(createData)
+        toast.success('Chèque créé avec succès')
       }
-      await createCheck(checkData)
-      toast.success('Chèque créé avec succès')
       navigate({ to: '/comptabilite/checks' })
     } catch (_error) {
-      toast.error('Erreur lors de la création du chèque')
+      toast.error(isEdit ? 'Erreur lors de la modification du chèque' : 'Erreur lors de la création du chèque')
     }
   }
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground">Chargement des données du chèque...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const pageTitle = isEdit ? `Modifier le chèque #${check?.id}` : 'Nouveau chèque'
+  const pageDescription = isEdit ? 'Modifiez les informations du chèque' : 'Remplissez les informations nécessaires pour créer un nouveau chèque'
+  const submitButtonText = isEdit ? 'Modifier le chèque' : 'Créer le chèque'
+  const submitButtonIcon = isEdit ? <Save className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />
+  const breadcrumbLabel = isEdit ? 'Modification' : 'Création'
 
   return (
     <div className="space-y-6 w-full">
       {/* Header */}
-      
-      <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-300 to-blue-500 p-6 text-white">
+      <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10">
           <div className="flex items-center gap-4 w-full justify-between">
@@ -113,9 +196,17 @@ function CreateCheckPageContent() {
               className="text-white hover:bg-white/20"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              
+              Retour
             </Button>
-            <h1 className="text-2xl font-bold">Nouveau chèque</h1>
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-white/20 p-2">
+                <CreditCard className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{pageTitle}</h1>
+                <p className="text-blue-100">{pageDescription}</p>
+              </div>
+            </div>
           </div>
           
           {/* Breadcrumbs */}
@@ -125,21 +216,21 @@ function CreateCheckPageContent() {
             <span>Chèques</span>
             <span>/</span>
             <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-              Création
+              {breadcrumbLabel}
             </Badge>
           </div>
         </div>
       </div>
 
       {/* Form */}
-      <Card className=" mx-auto shadow-none">
+      <Card className="mx-auto shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
+            {isEdit ? <Save className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
             Informations du chèque
           </CardTitle>
           <CardDescription>
-            Remplissez les informations nécessaires pour créer un nouveau chèque
+            {isEdit ? `Modifiez les informations du chèque #${check?.id}` : 'Remplissez les informations nécessaires pour créer un nouveau chèque'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -151,7 +242,7 @@ function CreateCheckPageContent() {
                 Paiement associé *
               </Label>
               <PaymentSelect
-                value={formData.payment_id}
+                value={formData.payment_id || ''}
                 onValueChange={(value) => setFormData({ ...formData, payment_id: value })}
                 placeholder="Sélectionnez le paiement associé..."
               />
@@ -164,7 +255,7 @@ function CreateCheckPageContent() {
                 Banque *
               </Label>
               <BankSelect
-                value={formData.bank_id}
+                value={formData.bank_id || ''}
                 onValueChange={(value) => setFormData({ ...formData, bank_id: value })}
                 placeholder="Sélectionnez la banque..."
               />
@@ -182,7 +273,7 @@ function CreateCheckPageContent() {
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.amount}
+                  value={formData.amount || 0}
                   onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
                   placeholder="0.00"
                   className="font-mono"
@@ -194,7 +285,7 @@ function CreateCheckPageContent() {
                   Date *
                 </Label>
                 <DatePicker
-                  value={formData.date}
+                  value={formData.date || ''}
                   onValueChange={(date: string) => 
                     setFormData({ 
                       ...formData, 
@@ -277,13 +368,24 @@ function CreateCheckPageContent() {
                         </button>
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{selectedFile?.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {(selectedFile?.size || 0 / 1024 / 1024).toFixed(2)} MB
+                        <p className="font-medium text-sm">
+                          {selectedFile?.name || (check?.photo ? 'Photo existante' : 'Nouvelle photo')}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {selectedFile?.type}
-                        </p>
+                        {selectedFile && (
+                          <>
+                            <p className="text-xs text-gray-500">
+                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {selectedFile.type}
+                            </p>
+                          </>
+                        )}
+                        {check?.photo && !selectedFile && (
+                          <p className="text-xs text-gray-500">
+                            Photo actuelle du chèque
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -305,31 +407,40 @@ function CreateCheckPageContent() {
                 {loading ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Création...
+                    {isEdit ? 'Modification...' : 'Création...'}
                   </>
                 ) : (
                   <>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Créer le chèque
+                    {submitButtonIcon}
+                    {submitButtonText}
                   </>
                 )}
               </Button>
             </div>
           </form>
         </CardContent>
-        </Card>
-                
+      </Card>
     </div>
   )
-} 
+}
 
-export default function CreateCheckPage() {
+export default function CheckFormPage() {
   return (
     <RequireAnyRoleGate
       roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
       fallback={<ForbiddenError />}
     >
-    <CreateCheckPageContent />
+      <CheckFormContent />
     </RequireAnyRoleGate>
   )
+}
+
+// Composant pour la création
+export function CreateCheckPage() {
+  return <CheckFormContent isEdit={false} />
+}
+
+// Composant pour l'édition
+export function EditCheckPage() {
+  return <CheckFormContent isEdit={true} />
 }
