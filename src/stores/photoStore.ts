@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Photo, CreatePhotoData, UpdatePhotoData } from '@/types/gestion'
+import { Photo, CreatePhotoData, UpdatePhotoData, PhotoFilters } from '@/types/gestion'
 import { photoService } from '@/services/photoService'
 import { toast } from 'sonner'
 
@@ -9,9 +9,17 @@ interface PhotoState {
   loading: boolean
   error: string | null
   selectedPhoto: Photo | null
+  pagination: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number
+    to: number
+  } | null
   
   // Actions
-  fetchPhotos: (filters?: Record<string, unknown>) => Promise<void>
+  fetchPhotos: (filters?: PhotoFilters) => Promise<void>
   createPhotos: (data: CreatePhotoData) => Promise<void>
   updatePhoto: (id: number, data: UpdatePhotoData) => Promise<void>
   deletePhoto: (id: number) => Promise<void>
@@ -26,13 +34,25 @@ export const usePhotoStore = create<PhotoState>((set) => ({
   loading: false,
   error: null,
   selectedPhoto: null,
+  pagination: null,
 
   // Actions
-  fetchPhotos: async (filters?: Record<string, unknown>) => {
+  fetchPhotos: async (filters?: PhotoFilters) => {
     try {
       set({ loading: true, error: null })
       const response = await photoService.getAll(filters)
-      set({ photos: response.data, loading: false })
+      set({ 
+        photos: response.data, 
+        pagination: {
+          current_page: response.meta.current_page,
+          last_page: response.meta.last_page,
+          per_page: response.meta.per_page,
+          total: response.meta.total,
+          from: response.meta.from,
+          to: response.meta.to
+        },
+        loading: false 
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des photos'
       set({ error: errorMessage, loading: false })

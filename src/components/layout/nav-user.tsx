@@ -1,11 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import {
-  BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
-  Sparkles,
+  User,
+  Settings,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -23,17 +22,37 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { useUser } from '@/hooks/useAuth'
+import { useAuthStore } from '@/stores/authStore'
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar()
+  const user = useUser()
+  const { logout } = useAuthStore()
+
+  // Gestion de la déconnexion
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (_error) {
+      // Erreur silencieuse - l'utilisateur sera redirigé vers la page de connexion
+    }
+  }
+
+  // Si pas d'utilisateur, ne pas afficher le composant
+  if (!user) {
+    return null
+  }
+
+  // Générer les initiales pour l'avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
 
   return (
     <SidebarMenu>
@@ -45,9 +64,9 @@ export function NavUser({
               className='data-[state=open]:bg-secondary data-[state=open]:text-white hover:bg-white/10 transition-all duration-200'
             >
               <Avatar className='h-8 w-8 rounded-lg border-2 border-white/20'>
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.photo_url} alt={user.name} />
                 <AvatarFallback className='rounded-lg bg-secondary text-white font-semibold'>
-                  {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
@@ -66,38 +85,37 @@ export function NavUser({
             <DropdownMenuLabel className='p-0 font-normal bg-gradient-to-r from-primary/5 to-primary/10'>
               <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
                 <Avatar className='h-8 w-8 rounded-lg border-2 border-primary/20'>
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user.photo_url} alt={user.name} />
                   <AvatarFallback className='rounded-lg bg-primary text-white font-semibold'>
-                    {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
                   <span className='truncate font-semibold text-primary'>{user.name}</span>
                   <span className='truncate text-xs text-primary/70'>{user.email}</span>
+                  {user.role && (
+                    <span className='truncate text-xs text-primary/50'>{user.role.label}</span>
+                  )}
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-primary/20" />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white">
-                <Sparkles className="text-secondary" />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator className="bg-primary/20" />
-            <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link to='/settings/account' className="hover:bg-primary hover:text-white focus:bg-primary focus:text-white">
-                  <BadgeCheck className="text-primary" />
-                  Account
+                <Link to='/settings/profile' className="hover:bg-primary hover:text-white focus:bg-primary focus:text-white">
+                  <User className="text-primary" />
+                  Mon profil
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to='/settings' className="hover:bg-primary hover:text-white focus:bg-primary focus:text-white">
-                  <CreditCard className="text-primary" />
-                  Billing
+                  <Settings className="text-primary" />
+                  Paramètres
                 </Link>
               </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator className="bg-primary/20" />
+            <DropdownMenuGroup>
               <DropdownMenuItem asChild>
                 <Link to='/settings/notifications' className="hover:bg-primary hover:text-white focus:bg-primary focus:text-white">
                   <Bell className="text-primary" />
@@ -106,9 +124,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-primary/20" />
-            <DropdownMenuItem className="hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white">
+            <DropdownMenuItem 
+              onClick={handleLogout}
+              className="hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white cursor-pointer"
+            >
               <LogOut className="text-red-500" />
-              Log out
+              Se déconnecter
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
