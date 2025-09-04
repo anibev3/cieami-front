@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { DateRangePicker } from '@/components/ui/range-calendar/date-range-picker'
-import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
+// import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
 import { PaymentTypeSelect } from '@/features/widgets/payment-type-select'
 import { PaymentMethodSelect } from '@/features/widgets/payment-method-select'
 import { Plus, Filter, X } from 'lucide-react'
@@ -25,7 +25,7 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [selectedAssignment, setSelectedAssignment] = useState<string>('')
+  // const [selectedAssignment, setSelectedAssignment] = useState<string>('')
   const [selectedPaymentType, setSelectedPaymentType] = useState<string>('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('')
   const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>({
@@ -131,7 +131,7 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
 
   const clearFilters = () => {
     setSearchQuery('')
-    setSelectedAssignment('')
+    // setSelectedAssignment('')
     setSelectedPaymentType('')
     setSelectedPaymentMethod('')
     setDateRange({ from: null, to: null })
@@ -139,47 +139,47 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
     fetchPayments(1, perPage, '')
   }
 
-  const handleAssignmentChange = useCallback((assignmentId: string) => {
-    setSelectedAssignment(assignmentId)
-    // Recharger les données avec le nouveau filtre
-    const filters = {
-      search: searchQuery,
-      assignment_id: assignmentId || undefined,
-      payment_type_id: selectedPaymentType || undefined,
-      payment_method_id: selectedPaymentMethod || undefined,
-      date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
-    }
-    fetchPayments(1, perPage, searchQuery, filters)
-  }, [searchQuery, selectedPaymentType, selectedPaymentMethod, dateRange, fetchPayments])
+  // const handleAssignmentChange = useCallback((assignmentId: string) => {
+  //   setSelectedAssignment(assignmentId)
+  //   // Recharger les données avec le nouveau filtre
+  //   const filters = {
+  //     search: searchQuery,
+  //     assignment_id: assignmentId || undefined,
+  //     payment_type_id: selectedPaymentType || undefined,
+  //     payment_method_id: selectedPaymentMethod || undefined,
+  //     date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+  //     date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+  //   }
+  //   fetchPayments(1, perPage, searchQuery, filters)
+  // }, [searchQuery, selectedPaymentType, selectedPaymentMethod, dateRange, fetchPayments])
 
   const handlePaymentTypeChange = useCallback((typeId: string) => {
     setSelectedPaymentType(typeId)
     // Recharger les données avec le nouveau filtre
     const filters = {
       search: searchQuery,
-      assignment_id: selectedAssignment || undefined,
+      //  assignment_id: selectedAssignment || undefined,
       payment_type_id: typeId || undefined,
       payment_method_id: selectedPaymentMethod || undefined,
       date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
       date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
     }
     fetchPayments(1, perPage, searchQuery, filters)
-  }, [searchQuery, selectedAssignment, selectedPaymentMethod, dateRange, fetchPayments])
+  }, [searchQuery, selectedPaymentMethod, dateRange, fetchPayments])
 
   const handlePaymentMethodChange = useCallback((methodId: string) => {
     setSelectedPaymentMethod(methodId)
     // Recharger les données avec le nouveau filtre
     const filters = {
       search: searchQuery,
-      assignment_id: selectedAssignment || undefined,
+      // assignment_id: selectedAssignment || undefined,
       payment_type_id: selectedPaymentType || undefined,
       payment_method_id: methodId || undefined,
       date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
       date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
     }
     fetchPayments(1, perPage, searchQuery, filters)
-  }, [searchQuery, selectedAssignment, selectedPaymentType, dateRange, fetchPayments])
+  }, [searchQuery, selectedPaymentType, dateRange, fetchPayments])
 
   const handleDateRangeChange = useCallback((values: { range: { from: Date; to: Date | undefined }; rangeCompare?: { from: Date; to: Date | undefined } }) => {
     setDateRange({
@@ -189,14 +189,14 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
     // Recharger les données avec le nouveau filtre de dates
     const filters = {
       search: searchQuery,
-      assignment_id: selectedAssignment || undefined,
+      // assignment_id: selectedAssignment || undefined,
       payment_type_id: selectedPaymentType || undefined,
       payment_method_id: selectedPaymentMethod || undefined,
       date_from: values.range.from.toISOString().split('T')[0],
       date_to: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined
     }
     fetchPayments(1, perPage, searchQuery, filters)
-  }, [searchQuery, selectedAssignment, selectedPaymentType, selectedPaymentMethod, fetchPayments])
+  }, [searchQuery, selectedPaymentType, selectedPaymentMethod, fetchPayments])
 
   const columns = useMemo(() => createPaymentColumns({
     onDelete: handleDelete,
@@ -258,7 +258,7 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
                     </div>
                     
                     {/* Section Dossier */}
-                    <div className="space-y-3">
+                    {/* <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         <Label className="text-sm font-semibold text-gray-900">Dossier</Label>
@@ -271,9 +271,9 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
                           placeholder="Sélectionner un dossier..."
                         />
                       </div>
-                    </div>
+                    </div> */}
 
-                    <Separator className="my-3" />
+                    {/* <Separator className="my-3" /> */}
 
                     {/* Section Type de paiement */}
                     <div className="space-y-3">
@@ -355,10 +355,10 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
           />
 
           {/* Affichage des filtres actifs */}
-          {(selectedAssignment || selectedPaymentType || selectedPaymentMethod || dateRange.from || dateRange.to) && (
+          {(selectedPaymentType || selectedPaymentMethod || dateRange.from || dateRange.to) && (
             <div className="mb-6 flex flex-wrap gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400">Filtres actifs:</span>
-              {selectedAssignment && (
+              {/* {selectedAssignment && (
                 <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
                   📁 Dossier sélectionné
                   <button
@@ -368,7 +368,7 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
-              )}
+              )} */}
               {selectedPaymentType && (
                 <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
                   💳 Type sélectionné
