@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
@@ -25,14 +24,15 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, ArrowRight, User, Car, Building, FileType, Info, Search, Edit, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
+// import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, Trash2, User, Car, Building, FileType, Info, Search, AlertCircle, Eye, CheckCircle } from 'lucide-react'
 import { ClientSelect } from '@/features/widgets/client-select'
 import { VehicleSelect } from '@/features/widgets/vehicle-select'
 import { InsurerSelect } from '@/features/widgets/insurer-select'
 import { RepairerSelect } from '@/features/widgets/repairer-select'
 import { BrokerSelect } from '@/features/widgets/broker-select'
 import { UserSelect } from '@/features/widgets/user-select'
-import { useAssignmentsStore } from '@/stores/assignments'
+// import { useAssignmentsStore } from '@/stores/assignments' // Supprimé car non utilisé
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
 import { useAssignmentTypesStore } from '@/stores/assignmentTypesStore'
@@ -61,29 +61,21 @@ import { useClientsStore } from '../gestion/clients/store'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
-import { VehicleGenreSelect } from '@/features/widgets/vehicle-genre-select'
-import { VehicleEnergySelect } from '@/features/widgets/vehicle-energy-select'
-import { BrandSelect } from '@/features/widgets'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { HtmlContent } from '@/components/ui/html-content'
-import { VehicleModelSelect } from '@/features/assignments/cost-of-supply/components/vehicle-model-select'
 import { useBrandsStore } from '@/stores/brands'
-import { ColorSelect } from '@/features/widgets/color-select'
-import { BodyworkSelect } from '@/features/widgets/bodywork-select'
 import { CreateRepairer } from '@/features/assignments/components/create-repairer'
 import { VehicleMutateDialog } from '@/features/administration/vehicles/components/vehicle-mutate-dialog'
 import { useBrokersStore } from '@/stores/brokersStore'
 import { useRepairersStore } from '@/stores/repairersStore'
+import { useInsurersStore } from '@/stores/insurersStore'
+import axios from 'axios'
 
 // Types pour les erreurs
 interface ApiError {
   status: number
   title: string
   detail: string
-}
-
-interface ApiErrorResponse {
-  errors: ApiError[]
 }
 
 // Types pour les experts
@@ -103,24 +95,7 @@ interface AssignmentType {
   updated_at: string
 }
 
-// Types pour les modèles et couleurs
-interface VehicleModel {
-  id: number
-  label: string
-  code: string
-}
-
-interface Color {
-  id: number
-  label: string
-  code: string
-}
-
-interface Bodywork {
-  id: number
-  label: string
-  code: string
-}
+// Types pour les modèles et couleurs (supprimés car non utilisés)
 
 // Type local pour le payload de création d'assignation
 interface AssignmentCreatePayload {
@@ -190,9 +165,83 @@ export default function CreateAssignmentPage() {
     const { id } = useParams({ strict: false }) as { id: string }
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
-  const [step, setStep] = useState(1)
-  const totalSteps = 4
-  const [experts, setExperts] = useState<Expert[]>([
+  // Fonction pour vérifier si le formulaire est complet
+  const isFormComplete = () => {
+    const values = form.getValues()
+    return !!(
+      values.client_id && 
+      values.vehicle_id && 
+      values.assignment_type_id && 
+      values.expertise_type_id && 
+      values.received_at
+    )
+  }
+
+  // Fonction pour obtenir le statut des champs obligatoires
+  const getRequiredFieldsStatus = () => {
+    const values = form.getValues()
+    return [
+      {
+        name: 'Client',
+        field: 'client_id',
+        completed: !!values.client_id,
+        label: 'Client'
+      },
+      {
+        name: 'Véhicule',
+        field: 'vehicle_id',
+        completed: !!values.vehicle_id,
+        label: 'Véhicule'
+      },
+      {
+        name: 'Type de dossier',
+        field: 'assignment_type_id',
+        completed: !!values.assignment_type_id,
+        label: 'Type de dossier'
+      },
+      {
+        name: 'Type d\'expertise',
+        field: 'expertise_type_id',
+        completed: !!values.expertise_type_id,
+        label: 'Type d\'expertise'
+      },
+      {
+        name: 'Date de réception',
+        field: 'received_at',
+        completed: !!values.received_at,
+        label: 'Date de réception'
+      }
+    ]
+  }
+
+  // Fonction pour mettre le focus sur un champ
+  const focusOnField = (fieldName: string) => {
+    // Essayer de trouver l'élément par son attribut name
+    let element = document.querySelector(`[name="${fieldName}"]`) as HTMLElement
+    
+    // Si pas trouvé, essayer de trouver le conteneur du champ
+    if (!element) {
+      element = document.querySelector(`[data-field="${fieldName}"]`) as HTMLElement
+    }
+    
+    // Si toujours pas trouvé, essayer de trouver par l'ID
+    if (!element) {
+      element = document.getElementById(fieldName) as HTMLElement
+    }
+    
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // Attendre un peu pour que le scroll se termine
+      setTimeout(() => {
+        element.focus()
+        // Pour les Select, essayer de déclencher l'ouverture
+        if (element.tagName === 'BUTTON' && element.getAttribute('role') === 'combobox') {
+          element.click()
+        }
+      }, 300)
+    }
+  }
+  const [_experts, setExperts] = useState<Expert[]>([
     { expert_id: '', date: '', observation: null }
   ])
   
@@ -286,23 +335,28 @@ export default function CreateAssignmentPage() {
   // États pour la gestion des erreurs
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorDetails, setErrorDetails] = useState<ApiError[]>([])
+  // const [showSummarySheet, setShowSummarySheet] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [showCreatingModal, setShowCreatingModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [createdAssignmentId, setCreatedAssignmentId] = useState<number | null>(null)
   
   // Mode édition
   const isEditMode = !!id
   const assignmentId = id ? parseInt(id) : null
   
-  const { createAssignment } = useAssignmentsStore()
   const { users, fetchUsers } = useUsersStore()
   const { clients, fetchClients, createClient } = useClientsStore()
-  const { vehicles, fetchVehicles, createVehicle } = useVehiclesStore()
+  const { vehicles, fetchVehicles } = useVehiclesStore()
   const { assignmentTypes, fetchAssignmentTypes } = useAssignmentTypesStore()
   const { brokers, fetchBrokers } = useBrokersStore()
   const { repairers, fetchRepairers, createRepairer } = useRepairersStore()
+  const { insurers, fetchInsurers } = useInsurersStore()
   const { expertiseTypes, fetchExpertiseTypes } = useExpertiseTypesStore()
   const { documents, fetchDocuments, createDocument } = useDocumentsStore()
-  const { vehicleModels, fetchVehicleModels, createVehicleModel, loading: loadingVehicleModels } = useVehicleModelsStore()
-  const { colors, fetchColors, createColor, loading: loadingColors } = useColorsStore()
-  const { bodyworks, fetchBodyworks, createBodywork, loading: loadingBodyworks } = useBodyworksStore()
+  const { fetchVehicleModels, createVehicleModel, loading: loadingVehicleModels } = useVehicleModelsStore()
+  const { fetchColors, createColor, loading: loadingColors } = useColorsStore()
+  const { fetchBodyworks, createBodywork, loading: loadingBodyworks } = useBodyworksStore()
   const { createBrand, brands, fetchBrands, loading: loadingBrands } = useBrandsStore()
 
   const form = useForm<z.infer<typeof assignmentSchema>>({
@@ -416,9 +470,9 @@ export default function CreateAssignmentPage() {
 
           console.log('Formulaire pré-rempli avec succès')
 
-        } catch (error) {
+        } catch (error: any) {
           console.error('Erreur lors du chargement du dossier:', error)
-          toast.error('Erreur lors du chargement du dossier')
+          handleApiError(error, 'le chargement du dossier')
         } finally {
           setLoadingData(false)
         }
@@ -430,54 +484,66 @@ export default function CreateAssignmentPage() {
 
   // Charger les données de base (utilisateurs, véhicules, etc.)
   useEffect(() => {
-    fetchUsers()
-    fetchClients()
-    fetchVehicles()
-    fetchAssignmentTypes()
-    fetchBrokers()
-    fetchRepairers()
-    fetchExpertiseTypes()
-    fetchDocuments()
-    fetchVehicleModels()
-    fetchColors()
-    fetchBodyworks()
+    const loadBaseData = async () => {
+      try {
+              await Promise.allSettled([
+        fetchUsers(),
+        fetchClients(),
+        fetchVehicles(),
+        fetchAssignmentTypes(),
+        fetchBrokers(),
+        fetchRepairers(),
+        fetchInsurers(),
+        fetchExpertiseTypes(),
+        fetchDocuments(),
+        fetchVehicleModels(),
+        fetchColors(),
+        fetchBodyworks(),
     fetchBrands()
-  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
+      ])
+      } catch (error: any) {
+        console.error('Erreur lors du chargement des données de base:', error)
+        // Ne pas afficher d'erreur pour le chargement des données de base
+        // car cela pourrait être géré individuellement par chaque store
+      }
+    }
+    
+    loadBaseData()
+  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchInsurers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
 
   // Removed effect for vehicle model reset - now handled by VehicleMutateDialog
 
-  // Validations par étape (création: champs minimaux requis seulement)
-  const stepValidations = {
-    1: () => {
-      const v = form.getValues()
-      return (
-        v.client_id?.toString().length > 0 &&
-        v.vehicle_id?.toString().length > 0 &&
-        v.received_at?.toString().length > 0
-      )
-    },
-    2: () => {
-      const v = form.getValues()
-      const hasAssignmentType = v.assignment_type_id && v.assignment_type_id.toString().length > 0
-      const hasExpertiseType = v.expertise_type_id && v.expertise_type_id.toString().length > 0
-      return hasAssignmentType && hasExpertiseType
-    },
-    3: () => true,
-    4: () => true,
+
+  // Fonction pour ouvrir le récapitulatif
+  // const openSummary = () => {
+  //   setShowSummarySheet(true)
+    
+  // }
+
+  // Fonction pour confirmer la création
+  const confirmCreation = () => {
+    // setShowSummarySheet(false)
+    setShowConfirmModal(true)
   }
 
-  const canProceed = stepValidations[step as keyof typeof stepValidations]()
+  // Fonctions pour le modal de succès
+  const handleCreateNewAssignment = () => {
+    setShowSuccessModal(false)
+    setCreatedAssignmentId(null)
+    // Réinitialiser le formulaire
+    form.reset()
+    // Scroll vers le haut
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
-  const nextStep = () => {
-    if (step < totalSteps && canProceed) {
-      setStep(step + 1)
+  const handleGoToAssignment = () => {
+    if (createdAssignmentId) {
+      navigate({ to: `/assignments/${createdAssignmentId}` })
     }
   }
 
-  const prevStep = () => {
-    if (step > 1) {
-      setStep(step - 1)
-    }
+  const handleGoToAssignmentsList = () => {
+    navigate({ to: '/assignments' })
   }
 
   // Fonctions pour les experts
@@ -510,11 +576,7 @@ export default function CreateAssignmentPage() {
     }
   }
 
-  // Fonction pour ouvrir le modal des détails du véhicule
-  const openVehicleDetails = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle)
-    setShowVehicleModal(true)
-  }
+  // Fonction pour ouvrir le modal des détails du véhicule (supprimée car non utilisée)
 
   // Fonction pour gérer la sélection du client
   const handleClientSelection = (clientId: string) => {
@@ -530,10 +592,9 @@ export default function CreateAssignmentPage() {
     setShowClientModal(true)
   }
 
-  // Fonction pour gérer la sélection de l'assureur
-  const handleInsurerSelection = (insurerId: string) => {
+  // Fonction pour gérer la sélection de l'assureur (simplifiée)
+  const handleInsurerSelection = (_insurerId: string) => {
     // Les assureurs sont gérés par le store séparé useInsurersStore
-    // Cette fonction peut être simplifiée ou supprimée selon les besoins
   }
 
   // Fonction pour ouvrir le modal des détails de l'assureur
@@ -570,7 +631,7 @@ export default function CreateAssignmentPage() {
     setShowBrokerModal(true)
   }
 
-  // Fonction pour gérer la sélection du type d'assignation
+  // Fonction pour gérer la sélection du Type de mission
   const handleAssignmentTypeSelection = (assignmentTypeId: string) => {
     const assignmentType = assignmentTypes.find(at => at.id.toString() === assignmentTypeId)
     if (assignmentType) {
@@ -578,7 +639,7 @@ export default function CreateAssignmentPage() {
     }
   }
 
-  // Fonction pour ouvrir le modal des détails du type d'assignation
+  // Fonction pour ouvrir le modal des détails du Type de mission
   const openAssignmentTypeDetails = (assignmentType: AssignmentType) => {
     setSelectedAssignmentType(assignmentType)
     setShowAssignmentTypeModal(true)
@@ -604,36 +665,14 @@ export default function CreateAssignmentPage() {
     setSelectedDocuments(selectedDocs)
   }
 
-  // Fonction pour ouvrir le modal des détails du document transmis
-  const openDocumentDetails = (document: DocumentTransmitted) => {
-    setSelectedDocuments([document])
-    setShowDocumentModal(true)
-  }
+  // Fonction pour ouvrir le modal des détails du document transmis (supprimée car non utilisée)
 
-  // Fonctions pour les titres et descriptions des étapes
-  const getStepTitle = (step: number): string => {
-    const titles: Record<number, string> = {
-      1: 'Informations générales',
-      2: 'Type d\'assignation',
-      3: 'Experts',
-      4: 'Récapitulatif',
-    }
-    return titles[step] || ''
-  }
-
-  const getStepDescription = (step: number): string => {
-    const descriptions: Record<number, string> = {
-      1: 'Renseignez les informations du client, véhicule, assureur et réparateur.',
-      2: 'Sélectionnez le type d\'assignation et d\'expertise.',
-      3: 'Configurez les experts assignés au dossier.',
-      4: 'Vérifiez et validez les informations du dossier.',
-    }
-    return descriptions[step] || ''
-  }
+  // Fonctions pour les titres et descriptions des étapes (supprimées car non utilisées)
 
   const onSubmit = async (values: z.infer<typeof assignmentSchema>) => {
     // En création: seuls client_id, vehicle_id, received_at, assignment_type_id et expertise_type_id sont requis (vérifiés via stepValidations)
     setLoading(true)
+    setShowCreatingModal(true)
     
     try {
       console.log('Données du formulaire à soumettre:', values)
@@ -677,42 +716,212 @@ export default function CreateAssignmentPage() {
         }
         
         console.log('Mise à jour du dossier avec les données:', updateData)
-        const response = await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData)
+        const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL} + ${import.meta.env.VITE_API_SUFIX} +${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('expert_0001_auth_token')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        })
         console.log('Réponse de la mise à jour:', response.data)
         toast.success('Dossier modifié avec succès')
         navigate({ to: `/assignments/${assignmentId}` })
       } else {
         // Mode création
         console.log('Création du dossier avec les données:', assignmentData)
-        const response = await axiosInstance.post(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}`, assignmentData)
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_SUFIX}${API_CONFIG.ENDPOINTS.ASSIGNMENTS}`, assignmentData, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('expert_0001_auth_token')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        })
         console.log('Réponse de la création:', response.data)
         toast.success('Dossier créé avec succès')
-        navigate({ to: `/assignments/${response.data.data.id}` })
+        setCreatedAssignmentId(response.data.data.id)
+        setShowSuccessModal(true)
       }
     } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error)
       
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        setErrorDetails(apiErrors.errors)
-        setShowErrorModal(true)
+      // Gestion complète des erreurs
+      let errorMessages: ApiError[] = []
+      let toastMessage = 'Une erreur inattendue est survenue'
+      
+      if (error.response) {
+        // Erreur HTTP avec réponse
+        const status = error.response.status
+        const responseData = error.response.data
         
-        // Afficher le premier message d'erreur dans un toast
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Une erreur est survenue')
+        if (responseData?.errors && Array.isArray(responseData.errors)) {
+          // Erreurs structurées de l'API
+          errorMessages = responseData.errors.map((err: any) => ({
+            status: err.status || status,
+            title: err.title || 'Erreur de validation',
+            detail: err.detail || 'Une erreur est survenue'
+          }))
+          toastMessage = errorMessages[0]?.detail || 'Erreur de validation'
+        } else if (responseData?.message) {
+          // Message d'erreur simple
+          errorMessages = [{
+            status: status,
+            title: 'Erreur',
+            detail: responseData.message
+          }]
+          toastMessage = responseData.message
+        } else if (responseData?.error) {
+          // Erreur avec champ 'error'
+          errorMessages = [{
+            status: status,
+            title: 'Erreur',
+            detail: responseData.error
+          }]
+          toastMessage = responseData.error
+        } else {
+          // Erreur HTTP sans structure connue
+          const statusText = error.response.statusText || 'Erreur inconnue'
+          errorMessages = [{
+            status: status,
+            title: `Erreur ${status}`,
+            detail: statusText
+          }]
+          toastMessage = `Erreur ${status}: ${statusText}`
         }
+      } else if (error.request) {
+        // Erreur réseau (pas de réponse)
+        errorMessages = [{
+          status: 0,
+          title: 'Erreur de connexion',
+          detail: 'Impossible de contacter le serveur. Vérifiez votre connexion internet.'
+        }]
+        toastMessage = 'Erreur de connexion au serveur'
+      } else if (error.code === 'ECONNABORTED') {
+        // Timeout
+        errorMessages = [{
+          status: 408,
+          title: 'Délai d\'attente dépassé',
+          detail: 'La requête a pris trop de temps. Veuillez réessayer.'
+        }]
+        toastMessage = 'Délai d\'attente dépassé'
+      } else if (error.message) {
+        // Erreur JavaScript
+        errorMessages = [{
+          status: 500,
+          title: 'Erreur technique',
+          detail: error.message
+        }]
+        toastMessage = error.message
       } else {
-        // Erreur générique
-        toast.error('Erreur lors de la sauvegarde du dossier')
+        // Erreur complètement inconnue
+        errorMessages = [{
+          status: 500,
+          title: 'Erreur inconnue',
+          detail: 'Une erreur inattendue est survenue. Veuillez réessayer.'
+        }]
+        toastMessage = 'Erreur inattendue'
       }
+      
+      // Afficher les erreurs
+      setErrorDetails(errorMessages)
+      setShowErrorModal(true)
+      toast.error(toastMessage)
+      
     } finally {
       setLoading(false)
+      setShowCreatingModal(false)
     }
   }
 
   const handleCancel = () => {
     navigate({ to: '/assignments' })
+  }
+
+  // Fonction utilitaire pour gérer les erreurs de manière uniforme
+  const handleApiError = (error: any, context: string = 'opération') => {
+    console.error(`Erreur lors de ${context}:`, error)
+    
+    let errorMessages: ApiError[] = []
+    let toastMessage = `Une erreur inattendue est survenue lors de ${context}`
+    
+    if (error.response) {
+      // Erreur HTTP avec réponse
+      const status = error.response.status
+      const responseData = error.response.data
+      
+      if (responseData?.errors && Array.isArray(responseData.errors)) {
+        // Erreurs structurées de l'API
+        errorMessages = responseData.errors.map((err: any) => ({
+          status: err.status || status,
+          title: err.title || 'Erreur de validation',
+          detail: err.detail || 'Une erreur est survenue'
+        }))
+        toastMessage = errorMessages[0]?.detail || 'Erreur de validation'
+      } else if (responseData?.message) {
+        // Message d'erreur simple
+        errorMessages = [{
+          status: status,
+          title: 'Erreur',
+          detail: responseData.message
+        }]
+        toastMessage = responseData.message
+      } else if (responseData?.error) {
+        // Erreur avec champ 'error'
+        errorMessages = [{
+          status: status,
+          title: 'Erreur',
+          detail: responseData.error
+        }]
+        toastMessage = responseData.error
+      } else {
+        // Erreur HTTP sans structure connue
+        const statusText = error.response.statusText || 'Erreur inconnue'
+        errorMessages = [{
+          status: status,
+          title: `Erreur ${status}`,
+          detail: statusText
+        }]
+        toastMessage = `Erreur ${status}: ${statusText}`
+      }
+    } else if (error.request) {
+      // Erreur réseau (pas de réponse)
+      errorMessages = [{
+        status: 0,
+        title: 'Erreur de connexion',
+        detail: 'Impossible de contacter le serveur. Vérifiez votre connexion internet.'
+      }]
+      toastMessage = 'Erreur de connexion au serveur'
+    } else if (error.code === 'ECONNABORTED') {
+      // Timeout
+      errorMessages = [{
+        status: 408,
+        title: 'Délai d\'attente dépassé',
+        detail: 'La requête a pris trop de temps. Veuillez réessayer.'
+      }]
+      toastMessage = 'Délai d\'attente dépassé'
+    } else if (error.message) {
+      // Erreur JavaScript
+      errorMessages = [{
+        status: 500,
+        title: 'Erreur technique',
+        detail: error.message
+      }]
+      toastMessage = error.message
+    } else {
+      // Erreur complètement inconnue
+      errorMessages = [{
+        status: 500,
+        title: 'Erreur inconnue',
+        detail: 'Une erreur inattendue est survenue. Veuillez réessayer.'
+      }]
+      toastMessage = 'Erreur inattendue'
+    }
+    
+    // Afficher les erreurs
+    setErrorDetails(errorMessages)
+    setShowErrorModal(true)
+    toast.error(toastMessage)
+    
+    return errorMessages
   }
 
   // Handlers pour les formulaires de création rapide
@@ -729,17 +938,7 @@ export default function CreateAssignmentPage() {
       setCreateClientForm({ name: '', email: '', phone_1: '', phone_2: '', address: '' })
       fetchClients() // Recharger la liste
     } catch (error: any) {
-      console.error('Erreur lors de la création du client:', error)
-      
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création du client')
-        }
-      } else {
-        toast.error('Erreur lors de la création du client')
-      }
+      handleApiError(error, 'la création du client')
     }
   }
   
@@ -758,17 +957,7 @@ export default function CreateAssignmentPage() {
       setCreateInsurerForm({ name: '', code: '', email: '', telephone: '', address: '' })
       // fetchInsurers() // Recharger la liste
     } catch (error: any) {
-      console.error('Erreur lors de la création de l\'assureur:', error)
-      
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de l\'assureur')
-        }
-      } else {
-        toast.error('Erreur lors de la création de l\'assureur')
-      }
+      handleApiError(error, 'la création de l\'assureur')
     }
   }
 
@@ -787,17 +976,7 @@ export default function CreateAssignmentPage() {
       setCreateDocumentForm({ code: '', label: '', description: '' })
       fetchDocuments() // Recharger la liste
     } catch (error: any) {
-      console.error('Erreur lors de la création du document:', error)
-      
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création du document')
-        }
-      } else {
-        toast.error('Erreur lors de la création du document')
-      }
+      handleApiError(error, 'la création du document')
     }
   }
 
@@ -819,17 +998,7 @@ export default function CreateAssignmentPage() {
       setShowCreateBrandModal(false)
       setCreateBrandForm({ code: '', label: '', description: '' })
     } catch (error: any) {
-      console.error('Erreur lors de la création de la marque:', error)
-      
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de la marque')
-        }
-      } else {
-        toast.error('Erreur lors de la création de la marque')
-      }
+      handleApiError(error, 'la création de la marque')
     }
   }
 
@@ -848,17 +1017,7 @@ export default function CreateAssignmentPage() {
       setShowCreateVehicleModelModal(false)
       setCreateVehicleModelForm({ code: '', label: '', description: '', brand_id: '' })
     } catch (error: any) {
-      console.error('Erreur lors de la création du modèle:', error)
-      
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création du modèle')
-        }
-      } else {
-        toast.error('Erreur lors de la création du modèle')
-      }
+      handleApiError(error, 'la création du modèle')
     }
   }
 
@@ -876,17 +1035,7 @@ export default function CreateAssignmentPage() {
       setShowCreateColorModal(false)
       setCreateColorForm({ code: '', label: '', description: '' })
     } catch (error: any) {
-      console.error('Erreur lors de la création de la couleur:', error)
-      
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de la couleur')
-        }
-      } else {
-        toast.error('Erreur lors de la création de la couleur')
-      }
+      handleApiError(error, 'la création de la couleur')
     }
   }
 
@@ -904,22 +1053,12 @@ export default function CreateAssignmentPage() {
       setShowCreateBodyworkModal(false)
       setCreateBodyworkForm({ code: '', label: '', description: '' })
     } catch (error: any) {
-      console.error('Erreur lors de la création de la carrosserie:', error)
-      
-      // Gestion des erreurs de l'API
-      if (error.response?.data?.errors) {
-        const apiErrors = error.response.data as ApiErrorResponse
-        if (apiErrors.errors.length > 0) {
-          toast.error(apiErrors.errors[0].detail || 'Erreur lors de la création de la carrosserie')
-        }
-      } else {
-        toast.error('Erreur lors de la création de la carrosserie')
-      }
+      handleApiError(error, 'la création de la carrosserie')
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-16 lg:pb-0">
+      <div className="min-h-screen bg-gray-50/50 pb-16 lg:pb-0">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-gray-200/60">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-2 sm:px-4 lg:px-6 py-4">
@@ -952,218 +1091,47 @@ export default function CreateAssignmentPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button type="button" variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleCancel}>
-              Annuler
-            </Button>
-            <Button 
-              type="submit" 
-              size="sm"
-              onClick={form.handleSubmit(onSubmit)}
-              disabled={loading}
-              className="text-white flex-1 sm:flex-none"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span className="hidden sm:inline">Enregistrement...</span>
-                  <span className="sm:hidden">Sauvegarde...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">{isEditMode ? 'Mettre à jour' : 'Créer le dossier'}</span>
-                  <span className="sm:hidden">{isEditMode ? 'Mettre à jour' : 'Créer'}</span>
-                </>
-              )}
-            </Button>
+            <div className="text-sm text-gray-600 hidden sm:block">
+              {isEditMode ? 'Mode édition' : 'Nouveau dossier'}
+            </div>
           </div>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className={`flex flex-col lg:flex-row gap-4 lg:gap-6 px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${loadingData ? 'pointer-events-none opacity-50' : ''}`}>
-            {/* Sidebar */}
-            <div className="w-full lg:w-80 lg:shrink-0 order-2 lg:order-1">
-              <div className="lg:sticky lg:top-24 space-y-4">
-                {/* Progress Overview */}
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none hidden sm:block">
-                  <CardHeader className="pb-4 px-3 sm:px-6">
-                    <CardTitle className="text-lg font-semibold">
-                      {isEditMode ? 'Vue d\'ensemble' : 'Progression'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4 px-3 sm:px-6">
-                    {[
-                      { id: 1, title: 'Informations générales', icon: FileText, color: 'text-blue-600' },
-                      { id: 2, title: 'Types et documents', icon: FileType, color: 'text-green-600' },
-                      { id: 3, title: 'Experts', icon: User, color: 'text-purple-600' },
-                      { id: 4, title: 'Récapitulatif', icon: ClipboardCheck, color: 'text-orange-600' }
-                    ].map((section) => {
-                      const Icon = section.icon
-                      const isCompleted = section.id === 1 ? 
-                        (form.watch('client_id') && form.watch('vehicle_id')) :
-                        section.id === 2 ?
-                        (form.watch('assignment_type_id') && form.watch('expertise_type_id')) :
-                        section.id === 3 ?
-                        (form.watch('received_at')) :
-                        true
-                      
-                      return (
-                        <div key={section.id} className={`flex items-center gap-3 p-3 rounded-lg border ${isEditMode ? 'bg-blue-50/50 border-blue-200/40' : 'bg-gray-50/50 border-gray-200/40'}`}>
-                          <div className={`p-2 rounded-lg bg-white shadow-sm ${section.color}`}>
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {section.title}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {isEditMode ? 'Disponible' : (isCompleted ? 'Complété' : 'À remplir')}
+          <div className={`w-full px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${loadingData ? 'pointer-events-none opacity-50' : ''}`}>
+            
+            {/* Bouton de récapitulatif */}
+            {/* {!isEditMode && (
+              <div className="mb-8">
+                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Formulaire de création de dossier</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Remplissez tous les champs requis, puis consultez le récapitulatif avant de créer le dossier
                             </p>
                           </div>
-                          {isCompleted && (
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </CardContent>
-                </Card>
-
-                {/* Navigation */}
-                {!isEditMode && (
-                  <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none hidden sm:block">
-                    <CardHeader className="pb-4 px-3 sm:px-6">
-                      <CardTitle className="text-lg font-semibold">Navigation</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 px-3 sm:px-6">
-                      <div className="flex gap-2">
                         <Button 
                           type="button"
                           variant="outline" 
-                          size="sm" 
-                          onClick={prevStep}
-                          disabled={step === 1}
-                          className="flex-1"
-                        >
-                          <ChevronLeft className="mr-2 h-4 w-4" />
-                          <span className="hidden sm:inline">Retour</span>
-                          <span className="sm:hidden">Précédent</span>
+                        onClick={confirmCreation}
+                        disabled={!isFormComplete()}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Voir le récapitulatif
                         </Button>
-                        <Button 
-                          type="button"
-                          variant="default" 
-                          size="sm" 
-                          onClick={nextStep}
-                          disabled={!canProceed || step === totalSteps}
-                          className="flex-1"
-                        >
-                          <span className="hidden sm:inline">Suivant</span>
-                          <span className="sm:hidden">Suivant</span>
-                          <ChevronRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </div>
-                      <div className="text-center text-sm text-gray-500">
-                        Étape {step} sur {totalSteps}
                       </div>
                     </CardContent>
                   </Card>
-                )}
-
-                {/* Navigation mobile flottante */}
-                {!isEditMode && (
-                  <div className="lg:hidden fixed bottom-2 left-2 right-2 z-50">
-                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200/60 rounded-lg shadow-lg p-3">
-                      <div className="flex gap-2">
-                        <Button 
-                          type="button"
-                          variant="outline" 
-                          size="sm" 
-                          onClick={prevStep}
-                          disabled={step === 1}
-                          className="flex-1"
-                        >
-                          <ChevronLeft className="mr-2 h-4 w-4" />
-                          Précédent
-                        </Button>
-                        <Button 
-                          type="button"
-                          variant="default" 
-                          size="sm" 
-                          onClick={nextStep}
-                          disabled={!canProceed || step === totalSteps}
-                          className="flex-1"
-                        >
-                          Suivant
-                          <ChevronRight className="ml-2 h-4 w-4" />
-                        </Button>
                       </div>
-                      <div className="text-center text-xs text-gray-500 mt-2">
-                        Étape {step} sur {totalSteps}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                )} */}
 
-                {/* Quick Actions */}
-                {/* <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold">Actions rapides</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => setShowCreateClientModal(true)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nouveau client
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => setShowCreateVehicleModal(true)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nouveau véhicule
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => setShowCreateInsurerModal(true)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nouvel assureur
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => setShowCreateRepairerModal(true)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nouveau réparateur
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => setShowCreateDocumentModal(true)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nouveau document
-                    </Button>
-                  </CardContent>
-                </Card> */}
-        </div>
-      </div>
-
-            {/* Main Content */}
-            <div className="flex-1 space-y-4 lg:space-y-6 order-1 lg:order-2">
+            {/* Contenu principal - Pleine largeur */}
+            <div className="w-full space-y-6">
               {/* Section 1: Informations générales */}
               <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                 <CardHeader className="px-3 sm:px-6">
@@ -1175,9 +1143,9 @@ export default function CreateAssignmentPage() {
                     Renseignez les informations du client, véhicule, assureur et réparateur.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 lg:space-y-6 px-3 sm:px-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-                      {/* Client et Véhicule */}
+                <CardContent className="space-y-6 px-3 sm:px-6">
+                  {/* Section Client et Véhicule */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4">
                       <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <User className="h-5 w-5 text-blue-500" />
@@ -1188,7 +1156,7 @@ export default function CreateAssignmentPage() {
                             control={form.control}
                             name="client_id"
                             render={({ field }) => (
-                              <FormItem>
+                              <FormItem data-field="client_id">
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Client <span className="text-red-500">*</span></FormLabel>
                                 <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateClientModal(true)} className="shrink-0 w-6 h-6">
@@ -1229,7 +1197,7 @@ export default function CreateAssignmentPage() {
                             control={form.control}
                             name="vehicle_id"
                             render={({ field }) => (
-                              <FormItem>
+                              <FormItem data-field="vehicle_id">
                               <div className="flex items-center gap-2 justify-between">
                                 <FormLabel>Véhicule <span className="text-red-500">*</span></FormLabel>
                                 <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateVehicleModal(true)} className="shrink-0 w-6 h-6">
@@ -1271,7 +1239,7 @@ export default function CreateAssignmentPage() {
                                 <FormControl>
                                 <Input
                                   // type="number"
-                                    placeholder="Kilométrage"
+                                  placeholder="Kilométrage"
                                     value={field.value || ''}
                                   // onChange={(e) => {
                                   //   const value = e.target.value
@@ -1282,7 +1250,7 @@ export default function CreateAssignmentPage() {
                                   //     field.onChange(isNaN(numValue) ? null : numValue)
                                   //   }
                                   // }}
-                                  />
+                                />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1294,6 +1262,7 @@ export default function CreateAssignmentPage() {
                         Informations complémentaires
                       </h3>
                       <div className="space-y-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="policy_number" render={({ field }) => (
                           <FormItem>
                             <FormLabel>Numéro de police</FormLabel>
@@ -1312,7 +1281,7 @@ export default function CreateAssignmentPage() {
                             <FormMessage />
                           </FormItem>
                         )} />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          </div>
                           <FormField control={form.control} name="claim_starts_at" render={({ field }) => (
                             <FormItem>
                               <FormLabel>Date de sinistre</FormLabel>
@@ -1322,21 +1291,11 @@ export default function CreateAssignmentPage() {
                               <FormMessage />
                             </FormItem>
                           )} />
-                          {/* <FormField control={form.control} name="claim_ends_at" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Fin du sinistre</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} /> */}
-                        </div>
                       </div>
                   </div>
 
-                    {/* Assureur et Réparateur + Date de réception */}
-                  <div className="space-y-4 mb-15">
+                    {/* Assureur et Réparateur */}
+                    <div className="space-y-4">
                     <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <Building className="h-5 w-5 text-green-500" />
                           Assureur et Réparateur
@@ -1462,8 +1421,13 @@ export default function CreateAssignmentPage() {
                             )}
                           />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Date de réception - Pleine largeur */}
+                  <div className="mt-6">
                       <FormField control={form.control} name="received_at" render={({ field }) => (
-                              <FormItem>
+                      <FormItem data-field="received_at">
                                 <FormLabel>Date de réception <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                               <Input type="date" {...field} />
@@ -1471,14 +1435,12 @@ export default function CreateAssignmentPage() {
                                 <FormMessage />
                               </FormItem>
                       )} />
-                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Section 2: Types et Documents */}
-              {(step >= 2 || isEditMode) && (
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none mb-20">
+              <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader className="px-3 sm:px-6">
                     <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
                       <FileType className="h-5 w-5 text-green-600" />
@@ -1488,8 +1450,8 @@ export default function CreateAssignmentPage() {
                       Sélectionnez les types d'assignation et d'expertise, ainsi que les documents transmis
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 lg:space-y-6 px-3 sm:px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                  <CardContent className="space-y-6 px-3 sm:px-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Types */}
                       <div className="space-y-4">
                         <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
@@ -1501,7 +1463,7 @@ export default function CreateAssignmentPage() {
                             control={form.control}
                             name="assignment_type_id"
                             render={({ field }) => (
-                              <FormItem>
+                              <FormItem data-field="assignment_type_id">
                                 <FormLabel>Type de mission <span className="text-red-500">*</span></FormLabel>
                                 <div className="flex gap-2">
                                   <Select 
@@ -1513,7 +1475,7 @@ export default function CreateAssignmentPage() {
                                   >
                                     <FormControl>
                                       <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder="Sélectionner un type d'assignation" />
+                                        <SelectValue placeholder="Sélectionner un Type de mission" />
                             </SelectTrigger>
                                     </FormControl>
                             <SelectContent>
@@ -1547,7 +1509,7 @@ export default function CreateAssignmentPage() {
                             control={form.control}
                             name="expertise_type_id"
                             render={({ field }) => (
-                              <FormItem>
+                              <FormItem data-field="expertise_type_id">
                                 <FormLabel>Type d'expertise <span className="text-red-500">*</span></FormLabel>
                                 <div className="flex gap-2">
                                   <Select 
@@ -1593,10 +1555,10 @@ export default function CreateAssignmentPage() {
 
                       {/* Documents transmis */}
                       <div className="space-y-4">
-                        {/* <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                        <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                           <FileText className="h-5 w-5 text-indigo-500" />
                           Documents transmis
-                        </h3>  */}
+                        </h3>
                         <div className="flex items-center gap-2 justify-between">
                                                         <FormLabel>Documents transmis</FormLabel>
                           <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateDocumentModal(true)} className="shrink-0 w-6 h-6">
@@ -1652,13 +1614,15 @@ export default function CreateAssignmentPage() {
                         </div>
                       </div>
                     </div>
-                    {/* Ajout d'une section bien visible pour les informations d'expertise et observations */}
+                    {/* Informations d'expertise et observations - Pleine largeur */}
                     <div className="mt-8 p-6 rounded-lg border bg-gray-50">
-                                              <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4">
+                      <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mb-6">
                         <Info className="h-5 w-5 text-gray-500" />
                         Informations d'expertise et observations
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                      
+                      {/* Informations d'expertise */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <FormField control={form.control} name="expertise_date" render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Date d'expertise</FormLabel>
@@ -1687,7 +1651,9 @@ export default function CreateAssignmentPage() {
                               </FormItem>
                         )} />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
+                      
+                      {/* Observations - Pleine largeur */}
+                      <div className="space-y-6">
                         <FormField control={form.control} name="circumstance" render={({ field }) => (
                             <FormItem>
                               <FormLabel>Circonstance</FormLabel>
@@ -1734,10 +1700,8 @@ export default function CreateAssignmentPage() {
                 </div>
                   </CardContent>
                 </Card>
-              )}
 
               {/* Section 3: Experts */}
-              {(step >= 3 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader className="px-3 sm:px-6">
                     <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
@@ -1748,11 +1712,26 @@ export default function CreateAssignmentPage() {
                       Configurez les experts assignés au dossier
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 lg:space-y-6 px-3 sm:px-6">
+                  <CardContent className="space-y-6 px-3 sm:px-6">
+                    <div className="space-y-6">
+                      {(form.watch('experts') || []).map((_expert, idx) => (
+                        <div key={idx} className="p-6 border border-gray-200 rounded-lg bg-gray-50/50">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-800">Expert #{idx + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeExpert(idx)}
+                              disabled={(form.watch('experts') || []).length === 1}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                      {(form.watch('experts') || []).map((expert, idx) => (
-                        <div key={idx} className="space-y-4 border-b pb-4 mb-4">
-                          <div className="flex flex-col sm:flex-row gap-4 items-end">
                             <FormField
                               control={form.control}
                             name={`experts.${idx}.expert_id` as const}
@@ -1776,7 +1755,7 @@ export default function CreateAssignmentPage() {
                               control={form.control}
                             name={`experts.${idx}.date` as const}
                               render={({ field }) => (
-                              <FormItem className="flex-1">
+                                  <FormItem>
                                 <FormLabel>Date</FormLabel>
                                   <FormControl>
                                     <Input type="date" {...field} />
@@ -1785,16 +1764,11 @@ export default function CreateAssignmentPage() {
                                 </FormItem>
                               )}
                             />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeExpert(idx)}
-                              disabled={(form.watch('experts') || []).length === 1}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
                           </div>
+                          </div>
+                          
+                          {/* Observation - Pleine largeur */}
+                          <div className="mt-4">
                           <FormField
                             control={form.control}
                             name={`experts.${idx}.observation` as const}
@@ -1806,13 +1780,14 @@ export default function CreateAssignmentPage() {
                                     value={field.value || ''}
                                     onChange={field.onChange}
                                     placeholder="Ajoutez vos observations sur cet expert..."
-                                    className="min-h-[100px]"
+                                      className="min-h-[120px]"
                                   />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
+                          </div>
                         </div>
                       ))}
                       <Button type="button" variant="outline" size="sm" onClick={addExpert}>
@@ -1821,10 +1796,8 @@ export default function CreateAssignmentPage() {
                 </div>
                   </CardContent>
                 </Card>
-            )}
 
               {/* Section 4: Récapitulatif */}
-            {(step === 4 || isEditMode) && (
                 <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                   <CardHeader className="px-3 sm:px-6">
                     <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
@@ -1838,14 +1811,14 @@ export default function CreateAssignmentPage() {
                       }
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6 lg:space-y-8 px-3 sm:px-6">
+                  <CardContent className="space-y-8 px-3 sm:px-6">
                   {/* Informations générales */}
-                  <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <FileText className="h-4 w-4 text-blue-600" />
                         <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations générales</h3>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-blue-500" />
@@ -1918,17 +1891,17 @@ export default function CreateAssignmentPage() {
                     </div>
 
                     {/* Types et Documents */}
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <FileType className="h-4 w-4 text-indigo-600" />
                         <h3 className="text-base lg:text-lg font-semibold text-gray-900">Types et Documents</h3>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="space-y-4">
                           <div className="space-y-3">
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4 text-indigo-500" />
-                              <span className="font-medium text-gray-700">Type d'assignation</span>
+                              <span className="font-medium text-gray-700">Type de mission</span>
                             </div>
                             <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                               <div className="font-semibold text-indigo-900">
@@ -1996,7 +1969,7 @@ export default function CreateAssignmentPage() {
                     </div>
 
                     {/* Experts */}
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                         <User className="h-4 w-4 text-pink-600" />
                         <h3 className="text-base lg:text-lg font-semibold text-gray-900">Experts assignés</h3>
@@ -2004,7 +1977,7 @@ export default function CreateAssignmentPage() {
                           {(form.watch('experts') || []).length} expert(s)
                         </Badge>
                       </div>
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {(form.watch('experts') || []).map((expert, idx) => {
                           const expertUser = users.find(u => u.id.toString() === expert.expert_id)
                           return (
@@ -2179,14 +2152,65 @@ export default function CreateAssignmentPage() {
                       </div>
                     </div>
 
-                    {/* Bouton de soumission en bas du récapitulatif */}
-                    <div className="flex justify-center pt-6 mb-20">
+                    {/* Bouton de soumission - Pleine largeur */}
+
+                  </CardContent>
+                </Card>
+            </div>
+            
+          </div>
+                      <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 py-4 px-10 sm:px-10 lg:px-10 -mx-6 -mb-6">
+                        <div className="flex flex-col gap-4">
+                          {/* Indicateur des champs obligatoires */}
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <span className="text-xs font-medium text-gray-700 mr-2">
+                              Champs obligatoires ({getRequiredFieldsStatus().filter(f => f.completed).length}/{getRequiredFieldsStatus().length}) :
+                            </span>
+                            {getRequiredFieldsStatus().map((field) => (
+                              <button
+                                key={field.field}
+                                onClick={() => focusOnField(field.field)}
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 cursor-pointer ${
+                                  field.completed
+                                    ? 'bg-green-100 text-green-700 border border-green-200 hover:bg-green-200'
+                                    : 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'
+                                }`}
+                                title={`Cliquer pour aller au champ ${field.name}`}
+                              >
+                                {field.completed ? (
+                                  <CheckCircle className="h-3 w-3" />
+                                ) : (
+                                  <AlertCircle className="h-3 w-3" />
+                                )}
+                                {field.name}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          {/* Actions */}
+                          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                              {isEditMode 
+                                ? 'Vérifiez les informations avant de mettre à jour le dossier'
+                                : 'Vérifiez les informations avant de créer le dossier'
+                              }
+                            </div>
+                            <div className="flex gap-3">
+                              <Button 
+                                type="button"
+                                variant="outline" 
+                                onClick={handleCancel}
+                                className="px-6"
+                              >
+                                Annuler
+                              </Button>
+                              {isEditMode ? (
                       <Button 
                         type="submit" 
                         onClick={form.handleSubmit(onSubmit)}
                         disabled={loading}
                         size="lg"
-                        className="px-8 py-3 text-sm"
+                                  className="px-8"
                       >
                         {loading ? (
                           <>
@@ -2196,20 +2220,450 @@ export default function CreateAssignmentPage() {
                         ) : (
                           <>
                             <Save className="mr-2 h-5 w-5" />
-                            {isEditMode ? 'Mettre à jour le dossier' : 'Créer le dossier'}
+                                      Mettre à jour le dossier
                           </>
                         )}
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                              ) : (
+                                <Button 
+                                  type="button"
+                                  onClick={confirmCreation}
+                                  disabled={!isFormComplete()}
+                                  size="lg"
+                                  className="px-8"
+                                >
+                                  <Eye className="mr-2 h-5 w-5" />
+                                  Confirmer la création
+                                </Button>
               )}
             </div>
-            
           </div>
- 
+                        </div>
+                      </div>
         </form>
+        
       </Form>
+
+      {/* Sheet de récapitulatif */}
+      {/* <Sheet open={showSummarySheet} onOpenChange={setShowSummarySheet}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-orange-600" />
+              Récapitulatif du dossier
+            </SheetTitle>
+            <SheetDescription>
+              Vérifiez toutes les informations avant de créer le dossier
+            </SheetDescription>
+          </SheetHeader>
+          
+          <div className="mt-6 space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
+                <FileText className="h-4 w-4 text-blue-600" />
+                Informations générales
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-blue-500" />
+                    <span className="font-medium text-gray-700">Client</span>
+                  </div>
+                  <div className="text-sm text-gray-600 pl-6">
+                    {(() => {
+                      const clientId = form.watch('client_id')
+                      const client = clients.find(c => c.id.toString() === clientId)
+                      return client ? `${client.name}` : 'Non sélectionné'
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Car className="h-4 w-4 text-blue-500" />
+                    <span className="font-medium text-gray-700">Véhicule</span>
+                  </div>
+                  <div className="text-sm text-gray-600 pl-6">
+                    {(() => {
+                      const vehicleId = form.watch('vehicle_id')
+                      const vehicle = vehicles.find(v => v.id.toString() === vehicleId)
+                      return vehicle ? `${vehicle.brand.label} ${vehicle.vehicle_model.label} - ${vehicle.license_plate}` : 'Non sélectionné'
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-green-500" />
+                    <span className="font-medium text-gray-700">Assureur</span>
+                  </div>
+                  <div className="text-sm text-gray-600 pl-6">
+                    {(() => {
+                      const insurerId = form.watch('insurer_id')
+                      const insurer = insurers.find((i: any) => i.id.toString() === insurerId)
+                      return insurer ? insurer.name : 'Non sélectionné'
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="h-4 w-4 text-green-500" />
+                    <span className="font-medium text-gray-700">Réparateur</span>
+                  </div>
+                  <div className="text-sm text-gray-600 pl-6">
+                    {(() => {
+                      const repairerId = form.watch('repairer_id')
+                      const repairer = repairers.find(r => r.id.toString() === repairerId)
+                      return repairer ? repairer.name : 'Non sélectionné'
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
+                <FileType className="h-4 w-4 text-indigo-600" />
+                Types et Documents
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-indigo-500" />
+                    <span className="font-medium text-gray-700">Type de mission</span>
+                  </div>
+                  <div className="text-sm text-gray-600 pl-6">
+                    {(() => {
+                      const assignmentTypeId = form.watch('assignment_type_id')
+                      const assignmentType = assignmentTypes.find(at => at.id.toString() === assignmentTypeId)
+                      return assignmentType ? assignmentType.label : 'Non sélectionné'
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileType className="h-4 w-4 text-indigo-500" />
+                    <span className="font-medium text-gray-700">Type d'expertise</span>
+                  </div>
+                  <div className="text-sm text-gray-600 pl-6">
+                    {(() => {
+                      const expertiseTypeId = form.watch('expertise_type_id')
+                      const expertiseType = expertiseTypes.find(et => et.id.toString() === expertiseTypeId)
+                      return expertiseType ? expertiseType.label : 'Non sélectionné'
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
+                <User className="h-4 w-4 text-pink-600" />
+                Experts assignés
+              </h3>
+              <div className="space-y-3">
+                {(form.watch('experts') || []).map((expert, idx) => {
+                  const expertUser = users.find(u => u.id.toString() === expert.expert_id)
+                  return (
+                    <div key={idx} className="p-3 bg-pink-50 rounded-lg border border-pink-200">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 bg-pink-100 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-pink-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {expertUser ? `${expertUser.first_name} ${expertUser.last_name}` : 'Expert non trouvé'}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Date: {expert.date || 'Non définie'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSummarySheet(false)}
+                className="flex-1"
+              >
+                Retour au formulaire
+              </Button>
+              <Button 
+                onClick={confirmCreation}
+                className="flex-1"
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Confirmer la création
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet> */}
+
+              {/* Modal de confirmation */}
+        <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+          <DialogContent className="max-w-xl min-w-xl w-1/2 max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                Confirmation de création
+              </DialogTitle>
+              <DialogDescription>
+                Vérifiez toutes les informations avant de créer le dossier
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="overflow-y-auto max-h-[60vh] pr-2">
+              <div className="space-y-6">
+                {/* Informations générales */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Informations générales
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Client :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const clientId = form.watch('client_id')
+                          const client = clients.find(c => c.id.toString() === clientId)
+                          return client ? client.name : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Véhicule :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const vehicleId = form.watch('vehicle_id')
+                          const vehicle = vehicles.find(v => v.id.toString() === vehicleId)
+                          return vehicle ? `${vehicle?.brand?.label} ${vehicle?.vehicle_model?.label}` : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Assureur :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const insurerId = form.watch('insurer_id')
+                          const insurer = insurers?.find((i: any) => i.id.toString() === insurerId)
+                          return insurer ? insurer?.name : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Réparateur :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const repairerId = form.watch('repairer_id')
+                          const repairer = repairers?.find((r: any) => r.id.toString() === repairerId)
+                          return repairer ? repairer?.name : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Courtier :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const brokerId = form.watch('broker_id')
+                          const broker = brokers?.find((b: any) => b.id.toString() === brokerId)
+                          return broker ? broker?.name : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Date de réception :</span>
+                      <span className="text-gray-900">{form.watch('received_at') || 'Non définie'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Types et Documents */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                    <FileType className="h-4 w-4" />
+                    Types et Documents
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Type de mission :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const assignmentTypeId = form.watch('assignment_type_id')
+                          const assignmentType = assignmentTypes?.find(at => at.id.toString() === assignmentTypeId)
+                          return assignmentType ? assignmentType?.label : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Type d'expertise :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const expertiseTypeId = form.watch('expertise_type_id')
+                          const expertiseType = expertiseTypes?.find(et => et.id.toString() === expertiseTypeId)
+                          return expertiseType ? expertiseType?.label : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between md:col-span-2">
+                      <span className="font-medium text-gray-700">Documents transmis :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const documentIds = form.watch('document_transmitted_id') || []
+                          if (documentIds.length === 0) return 'Aucun document'
+                          const documentNames = documentIds.map(id => {
+                            const doc = documents.find(d => d.id.toString() === id)
+                            return doc?.label || 'Document inconnu'
+                          })
+                          return documentNames.join(', ')
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Informations complémentaires */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    Informations complémentaires
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Numéro de police :</span>
+                      <span className="text-gray-900">{form.watch('policy_number') || 'Non renseigné'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Numéro de sinistre :</span>
+                      <span className="text-gray-900">{form.watch('claim_number') || 'Non renseigné'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Date de sinistre :</span>
+                      <span className="text-gray-900">{form.watch('claim_starts_at') || 'Non définie'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Date d'expertise :</span>
+                      <span className="text-gray-900">{form.watch('expertise_date') || 'Non définie'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Lieu d'expertise :</span>
+                      <span className="text-gray-900">{form.watch('expertise_place') || 'Non renseigné'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Gestionnaire :</span>
+                      <span className="text-gray-900">{form.watch('administrator') || 'Non renseigné'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Experts */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Experts assignés ({(form.watch('experts') || []).length})
+                  </h4>
+                  <div className="space-y-2">
+                    {(form.watch('experts') || []).map((expert, idx) => {
+                      const expertUser = users.find(u => u.id.toString() === expert.expert_id)
+                      return (
+                        <div key={idx} className="bg-white rounded p-3 border border-orange-200">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-gray-700">Expert #{idx + 1} :</span>
+                            <span className="text-gray-900">
+                              {expertUser ? `${expertUser.first_name} ${expertUser.last_name}` : 'Expert non trouvé'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-xs text-gray-500">Date :</span>
+                            <span className="text-xs text-gray-600">{expert.date || 'Non définie'}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Observations */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Observations
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700 block mb-1">Circonstance :</span>
+                      <div className="text-gray-900 bg-white rounded p-2 border">
+                        {form.watch('circumstance') ? (
+                          <HtmlContent content={form.watch('circumstance') || ''} />
+                        ) : (
+                          <span className="text-gray-500 italic">Aucune circonstance renseignée</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 block mb-1">Dommages déclarés :</span>
+                      <div className="text-gray-900 bg-white rounded p-2 border">
+                        {form.watch('damage_declared') ? (
+                          <HtmlContent content={form.watch('damage_declared') || ''} />
+                        ) : (
+                          <span className="text-gray-500 italic">Aucun dommage déclaré</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 block mb-1">Observation générale :</span>
+                      <div className="text-gray-900 bg-white rounded p-2 border">
+                        {form.watch('observation') ? (
+                          <HtmlContent content={form.watch('observation') || ''} />
+                        ) : (
+                          <span className="text-gray-500 italic">Aucune observation</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowConfirmModal(false)}
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowConfirmModal(false)
+                form.handleSubmit(onSubmit)()
+              }}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Création en cours...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Créer le dossier
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modals de création rapide */}
       <Dialog open={showCreateClientModal} onOpenChange={setShowCreateClientModal}>
@@ -2913,16 +3367,16 @@ export default function CreateAssignmentPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal des détails du type d'assignation */}
+      {/* Modal des détails du Type de mission */}
       <Dialog open={showAssignmentTypeModal} onOpenChange={setShowAssignmentTypeModal}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-2.5 w-2.5" />
-              Détails du type d'assignation
+              Détails du Type de mission
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Informations complètes sur le type d'assignation sélectionné
+              Informations complètes sur le Type de mission sélectionné
             </DialogDescription>
           </DialogHeader>
           
@@ -2938,7 +3392,7 @@ export default function CreateAssignmentPage() {
                   <p className="text-gray-600 text-xs">{selectedAssignmentType?.description || ''}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xxs">
-                      Type d'assignation
+                      Type de mission
                     </Badge>
                     <span className="text-xxs text-gray-500">Code: {selectedAssignmentType.code}</span>
                   </div>
@@ -3517,50 +3971,214 @@ export default function CreateAssignmentPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal d'erreur */}
+      {/* Modal d'erreur amélioré */}
       <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />
-              Erreur lors de la sauvegarde
+              Erreur détectée
             </DialogTitle>
             <DialogDescription>
-              Des erreurs ont été détectées lors de la sauvegarde du dossier. Veuillez corriger les problèmes suivants :
+              Une ou plusieurs erreurs ont été détectées. Veuillez consulter les détails ci-dessous et corriger les problèmes :
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            {errorDetails.map((error, index) => (
-              <div key={index} className="p-3 border border-destructive/20 rounded-lg bg-destructive/5">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-destructive">
-                      {error.title}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {error.detail}
-                    </p>
-                    {error.status && (
-                      <p className="text-xs text-muted-foreground">
-                        Code d'erreur: {error.status}
-                      </p>
-                    )}
+          
+          <div className="space-y-4">
+            {/* Résumé des erreurs */}
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                <span className="font-medium text-destructive">
+                  {errorDetails.length} erreur{errorDetails.length > 1 ? 's' : ''} détectée{errorDetails.length > 1 ? 's' : ''}
+                </span>
+                      </div>
+              <p className="text-sm text-muted-foreground">
+                {errorDetails.length === 1 
+                  ? 'Une erreur a empêché la sauvegarde de votre dossier.'
+                  : 'Plusieurs erreurs ont empêché la sauvegarde de votre dossier.'
+                }
+              </p>
+                        </div>
+
+            {/* Liste détaillée des erreurs */}
+            <div className="space-y-3">
+              {errorDetails.map((error, index) => (
+                <div key={index} className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-destructive/20 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-destructive">{index + 1}</span>
+                      </div>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-destructive">
+                          {error.title}
+                        </h4>
+                        {error.status && (
+                          <span className="px-2 py-1 text-xs bg-destructive/20 text-destructive rounded-full font-mono">
+                            {error.status}
+                          </span>
+                        )}
+                    </div>
+                      <div className='p-2 bg-red-900 border border-red-200 rounded text-xs text-white'>
+                        <p className="text-sm text-white-700 leading-relaxed ">
+                         <span className='font-bold'>Détail :</span> {error.detail}
+                        </p>
+                      </div>
+                      
+                      {/* Suggestions de résolution basées sur le type d'erreur */}
+                      {error.detail?.toLowerCase().includes('existe déjà') && (
+                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                          <strong>Suggestion :</strong> Vérifiez que les informations saisies sont uniques ou modifiez les valeurs en conflit.
+                    </div>
+                      )}
+                      {error.detail?.toLowerCase().includes('requis') && (
+                        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                          <strong>Suggestion :</strong> Assurez-vous de remplir tous les champs obligatoires marqués d'un astérisque (*).
+              </div>
+            )}
+                      {error.detail?.toLowerCase().includes('connexion') && (
+                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800">
+                          <strong>Suggestion :</strong> Vérifiez votre connexion internet et réessayez dans quelques instants.
+          </div>
+                      )}
+                      {error.detail?.toLowerCase().includes('timeout') && (
+                        <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
+                          <strong>Suggestion :</strong> La requête a pris trop de temps. Réessayez ou contactez le support si le problème persiste.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Actions suggérées */}
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Actions suggérées :</h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• Vérifiez les informations saisies dans le formulaire</li>
+                <li>• Assurez-vous que tous les champs obligatoires sont remplis</li>
+                <li>• Vérifiez que les données sont uniques (numéros, codes, etc.)</li>
+                <li>• Si le problème persiste, contactez le support technique</li>
+              </ul>
+            </div>
           </div>
-          <DialogFooter>
+          
+          <DialogFooter className="flex gap-2">
             <Button 
               variant="outline" 
               onClick={() => setShowErrorModal(false)}
+              className="flex-1"
             >
               Fermer
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={() => {
+                setShowErrorModal(false)
+                // Optionnel : scroll vers le premier champ en erreur
+                const firstErrorField = document.querySelector('[data-error="true"]')
+                if (firstErrorField) {
+                  firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+              }}
+              className="flex-1"
+            >
+              Corriger les erreurs
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de création en cours */}
+      <Dialog open={showCreatingModal} onOpenChange={() => {}}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              {isEditMode ? 'Mise à jour du dossier' : 'Création du dossier'}
+            </DialogTitle>
+            <DialogDescription>
+              {isEditMode 
+                ? 'Veuillez patienter pendant la mise à jour de votre dossier...'
+                : 'Veuillez patienter pendant la création de votre dossier...'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Save className="h-6 w-6 text-blue-600" />
+      </div>
+            </div>
+            <p className="mt-4 text-sm text-gray-600 text-center">
+              {isEditMode 
+                ? 'Mise à jour en cours...'
+                : 'Création en cours...'
+              }
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de succès */}
+      <Dialog open={showSuccessModal} onOpenChange={() => {}}>
+        <DialogContent className="w-1/2">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Dossier créé avec succès !
+            </DialogTitle>
+            <DialogDescription>
+              Votre dossier a été créé avec succès. Que souhaitez-vous faire maintenant ?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center justify-center py-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <p className="text-sm text-gray-600 text-center mb-6">
+              Le dossier #{createdAssignmentId} a été créé avec succès.
+            </p>
+          </div>
+
+          <div className="flex justify-between">
+            <Button 
+              onClick={handleGoToAssignment}
+              className=""
+              size="lg"
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Voir le dossier créé
+            </Button>
+            
+            <Button 
+              onClick={handleGoToAssignmentsList}
+              variant="outline"
+              className=""
+              size="lg"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Retour à la liste
+            </Button>
+            
+            <Button 
+              onClick={handleCreateNewAssignment}
+              variant="outline"
+              className=""
+              size="lg"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Créer un nouveau dossier
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 } 

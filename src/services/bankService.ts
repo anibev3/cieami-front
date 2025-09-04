@@ -19,7 +19,10 @@ class BankService {
         id: 1,
         code: 'active',
         label: 'Actif(ve)',
-        description: 'Actif(ve)'
+        description: 'Actif(ve)',
+        deleted_at: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
     }
     return bank
