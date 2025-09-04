@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react'
 import { useBankStore } from '@/stores/bankStore'
 import { Bank, CreateBankData } from '@/types/comptabilite'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Search, Plus, Edit, Trash2, Building2, Eye, EyeOff, Activity, MapPin } from 'lucide-react'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Plus } from 'lucide-react'
 import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
 import ForbiddenError from '@/features/errors/forbidden'
 import { UserRole } from '@/stores/aclStore'
+import { DataTable } from './components/data-table'
+import { createColumns } from './components/columns'
 
   function BanksPageContent() {
   const {
@@ -26,9 +26,10 @@ import { UserRole } from '@/stores/aclStore'
     selectedBank
   } = useBankStore()
 
-  const [searchTerm, setSearchTerm] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [formData, setFormData] = useState<CreateBankData>({
     code: '',
     name: '',
@@ -39,11 +40,26 @@ import { UserRole } from '@/stores/aclStore'
     fetchBanks()
   }, [fetchBanks])
 
-  const filteredBanks = banks.filter(bank =>
-    bank.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bank.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bank.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Handlers pour les actions de la datatable
+  const handleView = (bank: Bank) => {
+    setSelectedBank(bank)
+    setIsViewDialogOpen(true)
+  }
+
+  const handleEdit = (bank: Bank) => {
+    setSelectedBank(bank)
+    setFormData({
+      code: bank.code,
+      name: bank.name,
+      description: bank.description || ''
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleDelete = (bank: Bank) => {
+    setSelectedBank(bank)
+    setIsDeleteDialogOpen(true)
+  }
 
   const handleCreate = async () => {
     try {
@@ -59,7 +75,7 @@ import { UserRole } from '@/stores/aclStore'
     }
   }
 
-  const handleEdit = async () => {
+  const handleEditSubmit = async () => {
     if (!selectedBank) return
     try {
       await updateBank(selectedBank.id, formData)
@@ -75,30 +91,22 @@ import { UserRole } from '@/stores/aclStore'
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteConfirm = async () => {
+    if (!selectedBank) return
     try {
-      await deleteBank(id)
+      await deleteBank(selectedBank.id)
+      setSelectedBank(null)
     } catch (_error) {
       // Error handled by store
     }
   }
 
-  const openEditDialog = (bank: Bank) => {
-    setSelectedBank(bank)
-    setFormData({
-      code: bank.code,
-      name: bank.name,
-      description: bank.description || ''
-    })
-    setIsEditDialogOpen(true)
-  }
-
-  const stats = {
-    total: banks.length,
-    active: banks.filter(b => b.status.code === 'active').length,
-    inactive: banks.filter(b => b.status.code === 'inactive').length,
-    pending: banks.filter(b => b.status.code === 'pending').length
-  }
+  // Création des colonnes pour la datatable
+  const columns = createColumns({
+    onView: handleView,
+    onEdit: handleEdit,
+    onDelete: handleDelete
+  })
 
   return (
     <div className="space-y-6 w-full overflow-y-auto">
@@ -167,146 +175,15 @@ import { UserRole } from '@/stores/aclStore'
         </Dialog>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className='shadow-none'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Banques</p>
-          </CardContent>
-        </Card>
-        <Card className='shadow-none'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Actives</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.active}</div>
-            <p className="text-xs text-muted-foreground">En partenariat</p>
-          </CardContent>
-        </Card>
-        <Card className='shadow-none'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactives</CardTitle>
-            <EyeOff className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.inactive}</div>
-            <p className="text-xs text-muted-foreground">Partenariat suspendu</p>
-          </CardContent>
-        </Card>
-        <Card className='shadow-none'>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En attente</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">En cours de validation</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher une banque..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
-
-      {/* Banks Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto scrollbar-hide scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-        {filteredBanks.map((bank) => (
-          <Card key={bank.id} className="hover:shadow-lg transition-shadow shadow-none">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{bank.name}</CardTitle>
-                <div className="flex items-center space-x-2">
-                  {bank.status.code === 'active' ? (
-                    <Badge variant="default" className="bg-green-100 text-green-800">
-                      <Eye className="mr-1 h-3 w-3" />
-                      Active
-                    </Badge>
-                  ) : bank.status.code === 'inactive' ? (
-                    <Badge variant="secondary">
-                      <EyeOff className="mr-1 h-3 w-3" />
-                      Inactive
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline">
-                      <MapPin className="mr-1 h-3 w-3" />
-                      En attente
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              <CardDescription>
-                {bank.description || 'Aucune description'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="font-medium">Code:</span> {bank.code}
-                  </div>
-                  <div>
-                    <span className="font-medium">Statut:</span> {bank.status.label}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <div className="text-xs text-muted-foreground">
-                    Créé le {new Date(bank.created_at).toLocaleDateString()}
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEditDialog(bank)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action ne peut pas être annulée. Cela supprimera définitivement la banque "{bank.name}".
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(bank.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Supprimer
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* DataTable */}
+      <DataTable
+        columns={columns}
+        data={banks}
+        loading={loading}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -349,12 +226,93 @@ import { UserRole } from '@/stores/aclStore'
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Annuler
             </Button>
-            <Button onClick={handleEdit} disabled={loading}>
+            <Button onClick={handleEditSubmit} disabled={loading}>
               Mettre à jour
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Détails de la banque</DialogTitle>
+            <DialogDescription>
+              Informations complètes de la banque
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBank && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Code</Label>
+                  <div className="mt-1 p-2 bg-gray-50 rounded border">
+                    {selectedBank.code}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Nom</Label>
+                  <div className="mt-1 p-2 bg-gray-50 rounded border">
+                    {selectedBank.name}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <div className="mt-1 p-2 bg-gray-50 rounded border min-h-[60px]">
+                  {selectedBank.description || 'Aucune description'}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Statut</Label>
+                  <div className="mt-1 p-2 bg-gray-50 rounded border">
+                    {selectedBank.status.label}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Créé le</Label>
+                  <div className="mt-1 p-2 bg-gray-50 rounded border">
+                    {new Date(selectedBank.created_at).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action ne peut pas être annulée. Cela supprimera définitivement la banque "{selectedBank?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsDeleteDialogOpen(false)
+              setSelectedBank(null)
+            }}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 } 
