@@ -1555,7 +1555,16 @@ export default function CreateAssignmentPage() {
                                 <FormMessage />
                               </FormItem>
                             )}
-                          />
+                        />
+                        <FormField control={form.control} name="expertise_place" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Lieu d'expertise</FormLabel>
+                                <FormControl>
+                              <Input placeholder="Lieu d'expertise" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                        )} />
                         </div>
                       </div>
 
@@ -1566,7 +1575,7 @@ export default function CreateAssignmentPage() {
                           Documents transmis
                         </h3>
                         <div className="flex items-center gap-2 justify-between">
-                                                        <FormLabel>Documents transmis</FormLabel>
+                          <FormLabel>Documents transmis</FormLabel>
                           <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateDocumentModal(true)} className="shrink-0 w-6 h-6">
                             <Plus className="h-4 w-4" />
                           </Button>

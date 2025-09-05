@@ -572,173 +572,175 @@ export default function StatisticsPage() {
   }
 
   return (
-      <RequireAnyRoleGate
-        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-        fallback={<ForbiddenError />}
-      >
+      // <RequireAnyRoleGate
+      //   roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
+      //   fallback={<ForbiddenError />}
+    // >
+      <>
       {/* ===== Top Heading ===== */}
-      <Header fixed>
-        <Search />
-        <div className='ml-auto flex items-center space-x-4'>
-          <ThemeSwitch />
-          <ProfileDropdown />
-        </div>
-      </Header>
-
-      <Main>
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Statistiques</h1>
-              <p className="text-muted-foreground">
-                Analysez les performances et les tendances de vos données
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyCurrentURL}
-                className="gap-2"
-                title="Copier l'URL avec tous les filtres"
-              >
-                <Copy className="h-4 w-4" />
-                Copier l'URL
-              </Button>
-            </div>
+        <Header fixed>
+          <Search />
+          <div className='ml-auto flex items-center space-x-4'>
+            <ThemeSwitch />
+            <ProfileDropdown />
           </div>
+        </Header>
 
-          {/* Sélecteur de type de statistique */}
-          <StatisticsTypeSelector
-            selectedType={selectedType}
-            onTypeChange={handleTypeChange}
-          />
+        <Main>
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Statistiques</h1>
+                <p className="text-muted-foreground">
+                  Analysez les performances et les tendances de vos données
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyCurrentURL}
+                  className="gap-2"
+                  title="Copier l'URL avec tous les filtres"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copier l'URL
+                </Button>
+              </div>
+            </div>
 
-          {/* Filtres de base */}
-          <Card className="shadow-none">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 justify-between">
-                <div className="flex items-center gap-2">
-                  <SearchIcon className="h-5 w-5" />
-                  Filtres de base
-                </div>
-                <div className="flex items-center gap-2">
-                  <UnifiedAdvancedFilters
-                    type={selectedType}
-                    filters={filters}
-                      onFiltersChange={handleAdvancedFiltersChange}
-                      onApplyFilters={handleApplyAdvancedFilters}
-                      onClearFilters={handleClearAdvancedFilters}
-                    onDownloadExport={statistics && 'export_url' in statistics ? downloadExport : undefined}
-                    exportUrl={statistics && 'export_url' in statistics ? statistics.export_url : undefined}
-                    loading={loading}
+            {/* Sélecteur de type de statistique */}
+            <StatisticsTypeSelector
+              selectedType={selectedType}
+              onTypeChange={handleTypeChange}
+            />
+
+            {/* Filtres de base */}
+            <Card className="shadow-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 justify-between">
+                  <div className="flex items-center gap-2">
+                    <SearchIcon className="h-5 w-5" />
+                    Filtres de base
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UnifiedAdvancedFilters
+                      type={selectedType}
+                      filters={filters}
+                        onFiltersChange={handleAdvancedFiltersChange}
+                        onApplyFilters={handleApplyAdvancedFilters}
+                        onClearFilters={handleClearAdvancedFilters}
+                      onDownloadExport={statistics && 'export_url' in statistics ? downloadExport : undefined}
+                      exportUrl={statistics && 'export_url' in statistics ? statistics.export_url : undefined}
+                      loading={loading}
+                      />
+                    {(hasActiveFilters || startDate || endDate) && (
+                        <Button 
+                          variant="outline" 
+                          onClick={handleClearAllFilters}
+                          disabled={loading}
+                        >
+                          Effacer tout
+                        </Button>
+                      )}
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Date de début */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Date de début</label>
+                    <Input
+                      type="date"
+                      value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                      onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : undefined)}
+                      className="w-full"
                     />
-                  {(hasActiveFilters || startDate || endDate) && (
+                  </div>
+
+                  {/* Date de fin */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Date de fin</label>
+                    <Input
+                      type="date"
+                      value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                      onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : undefined)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Bouton de recherche */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">&nbsp;</label>
+                    <div className="flex gap-2">
                       <Button 
-                        variant="outline" 
-                        onClick={handleClearAllFilters}
-                        disabled={loading}
+                        onClick={handleSearch} 
+                        disabled={!canSearch || loading}
+                        className="flex-1"
                       >
-                        Effacer tout
+                        {loading ? (
+                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                        <SearchIcon className="mr-2 h-4 w-4" />
+                        )}
+                        Rechercher
+                        {hasActiveFilters && (
+                          <span className="ml-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                            +{getActiveFiltersCount()} filtres
+                          </span>
+                        )}
                       </Button>
-                    )}
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Date de début */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Date de début</label>
-                  <Input
-                    type="date"
-                    value={startDate ? startDate.toISOString().split('T')[0] : ''}
-                    onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : undefined)}
-                    className="w-full"
-                  />
-                </div>
-
-                {/* Date de fin */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Date de fin</label>
-                  <Input
-                    type="date"
-                    value={endDate ? endDate.toISOString().split('T')[0] : ''}
-                    onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : undefined)}
-                    className="w-full"
-                  />
-                </div>
-
-                {/* Bouton de recherche */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">&nbsp;</label>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleSearch} 
-                      disabled={!canSearch || loading}
-                      className="flex-1"
-                    >
-                      {loading ? (
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                      <SearchIcon className="mr-2 h-4 w-4" />
-                      )}
-                      Rechercher
-                      {hasActiveFilters && (
-                        <span className="ml-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                          +{getActiveFiltersCount()} filtres
-                        </span>
-                      )}
-                    </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Affichage des filtres actifs */}
-          <ActiveFiltersDisplay />
-
-          {/* Affichage des statistiques */}
-          {statistics && (
-            <UnifiedStatisticsDisplay
-              type={selectedType}
-              statistics={statistics}
-              onDownloadExport={downloadExport}
-            />
-          )}
-
-          {/* État de chargement */}
-          {loading && (
-            <Card>
-              <CardContent className="flex items-center justify-center py-8">
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="animate-spin h-4 w-4" />
-                  Chargement des statistiques...
-                </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Message d'aide */}
-          {!statistics && !loading && (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                <SearchIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Aucune statistique affichée</h3>
-                <p className="text-muted-foreground mb-4">
-                  Sélectionnez un type de statistique, définissez une période et cliquez sur Rechercher pour afficher les données.
-                </p>
-                <Button onClick={handleSearch} disabled={!canSearch}>
-                  <SearchIcon className="mr-2 h-4 w-4" />
-                  Lancer une recherche
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </Main>
-      </RequireAnyRoleGate>
+            {/* Affichage des filtres actifs */}
+            <ActiveFiltersDisplay />
+
+            {/* Affichage des statistiques */}
+            {statistics && (
+              <UnifiedStatisticsDisplay
+                type={selectedType}
+                statistics={statistics}
+                onDownloadExport={downloadExport}
+              />
+            )}
+
+            {/* État de chargement */}
+            {loading && (
+              <Card>
+                <CardContent className="flex items-center justify-center py-8">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="animate-spin h-4 w-4" />
+                    Chargement des statistiques...
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Message d'aide */}
+            {!statistics && !loading && (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                  <SearchIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Aucune statistique affichée</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Sélectionnez un type de statistique, définissez une période et cliquez sur Rechercher pour afficher les données.
+                  </p>
+                  <Button onClick={handleSearch} disabled={!canSearch}>
+                    <SearchIcon className="mr-2 h-4 w-4" />
+                    Lancer une recherche
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </Main>
+      </>
+      // </RequireAnyRoleGate>
   )
 } 
