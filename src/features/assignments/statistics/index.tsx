@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,9 +23,8 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
 import { toast } from 'sonner'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
 import { UserRole } from '@/stores/aclStore'
-import ForbiddenError from '@/features/errors/forbidden'
+import { useUser } from '@/hooks/useAuth'
 
 // Configuration des icônes et labels pour chaque type de filtre
 const FILTER_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
@@ -68,6 +67,7 @@ const STORAGE_KEYS = {
 }
 
 export default function StatisticsPage() {
+  const user = useUser()
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
   const [selectedType, setSelectedType] = useState<StatisticsType>('assignments')
@@ -84,22 +84,22 @@ export default function StatisticsPage() {
     downloadExport
   } = useStatisticsStore()
 
-  // Synchroniser le type sélectionné avec le store
-  useEffect(() => {
-    if (currentType !== selectedType) {
-      setCurrentType(selectedType)
-    }
-  }, [selectedType, currentType, setCurrentType])
+  // Définir les rôles autorisés pour voir toutes les statistiques
+  const authorizedRoles = useMemo(() => [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT], [])
+  const hasFullAccess = useMemo(() => 
+    user?.role && authorizedRoles.includes(user.role as unknown as UserRole), 
+    [user?.role, authorizedRoles]
+  )
+  
+  // Types de statistiques disponibles selon le rôle
+  const availableTypes: StatisticsType[] = useMemo(() => 
+    hasFullAccess 
+      ? ['assignments', 'payments', 'invoices'] 
+      : ['assignments'],
+    [hasFullAccess]
+  )
 
-  // Gérer les erreurs
-  useEffect(() => {
-    if (error) {
-      toast.error(error, { duration: 5000 })
-      clearError()
-    }
-  }, [error, clearError])
-
-  const getDefaultFilters = (): StatisticsFilters => {
+  const getDefaultFilters = useCallback((): StatisticsFilters => {
     const baseFilters = {
       start_date: startDate ? startDate.toISOString().split('T')[0] : '',
       end_date: endDate ? endDate.toISOString().split('T')[0] : ''
@@ -151,22 +151,12 @@ export default function StatisticsPage() {
       default:
         return baseFilters
     }
-  }
+  }, [selectedType, startDate, endDate])
 
   const [filters, setFilters] = useState<StatisticsFilters>(getDefaultFilters())
 
-  // Charger les filtres sauvegardés au montage
-  useEffect(() => {
-    loadSavedFilters()
-  }, [])
-
-  // Sauvegarder les filtres quand ils changent
-  useEffect(() => {
-    saveFilters()
-  }, [filters, selectedType, startDate, endDate])
-
   // Charger les filtres sauvegardés
-  const loadSavedFilters = () => {
+  const loadSavedFilters = useCallback(() => {
     try {
       // Charger le type de statistique
       const savedType = localStorage.getItem(STORAGE_KEYS.STATISTICS_TYPE)
@@ -193,7 +183,7 @@ export default function StatisticsPage() {
     } catch (error) {
       console.warn('Erreur lors du chargement des filtres sauvegardés:', error)
     }
-  }
+  }, [selectedType])
 
   // Sauvegarder les filtres
   const saveFilters = useCallback(() => {
@@ -217,11 +207,43 @@ export default function StatisticsPage() {
     }
   }, [selectedType, startDate, endDate, filters])
 
+  // Synchroniser le type sélectionné avec le store
+  useEffect(() => {
+    if (currentType !== selectedType) {
+      setCurrentType(selectedType)
+    }
+  }, [selectedType, currentType, setCurrentType])
+
+  // S'assurer que le type sélectionné est valide selon le rôle
+  useEffect(() => {
+    if (!availableTypes.includes(selectedType)) {
+      setSelectedType('assignments')
+    }
+  }, [selectedType, availableTypes])
+
+  // Gérer les erreurs
+  useEffect(() => {
+    if (error) {
+      toast.error(error, { duration: 5000 })
+      clearError()
+    }
+  }, [error, clearError])
+
+  // Charger les filtres sauvegardés au montage
+  useEffect(() => {
+    loadSavedFilters()
+  }, [loadSavedFilters])
+
+  // Sauvegarder les filtres quand ils changent
+  useEffect(() => {
+    saveFilters()
+  }, [filters, selectedType, startDate, endDate, saveFilters])
+
   // Mettre à jour les filtres quand le type change
   useEffect(() => {
     setFilters(getDefaultFilters())
     clearStatistics()
-  }, [selectedType])
+  }, [selectedType, clearStatistics, getDefaultFilters])
 
   const handleSearch = () => {
     triggerSearch()
@@ -591,7 +613,9 @@ export default function StatisticsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Statistiques</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Statistiques 
+                {!hasFullAccess && <span> des dossiers</span>}
+                </h1>
                 <p className="text-muted-foreground">
                   Analysez les performances et les tendances de vos données
                 </p>
@@ -610,11 +634,32 @@ export default function StatisticsPage() {
               </div>
             </div>
 
-            {/* Sélecteur de type de statistique */}
-            <StatisticsTypeSelector
+            {/* Message d'information sur les permissions */}
+            {/* {!hasFullAccess && (
+              <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      Accès limité aux statistiques
+                    </span>
+                  </div>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    Votre rôle vous permet uniquement de consulter les statistiques des dossiers d'expertise.
+                    Pour accéder aux statistiques des paiements et factures, contactez votre administrateur.
+                  </p>
+                </CardContent>
+              </Card>
+            )} */}
+
+          {/* Sélecteur de type de statistique */}
+          {hasFullAccess && <StatisticsTypeSelector
               selectedType={selectedType}
               onTypeChange={handleTypeChange}
+              availableTypes={availableTypes}
             />
+          }
+            
 
             {/* Filtres de base */}
             <Card className="shadow-none">

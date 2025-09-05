@@ -6,17 +6,24 @@ import { cn } from '@/lib/utils'
 interface StatisticsTypeSelectorProps {
   selectedType: StatisticsType
   onTypeChange: (type: StatisticsType) => void
+  availableTypes?: StatisticsType[]
   className?: string
 }
 
 export function StatisticsTypeSelector({ 
   selectedType, 
   onTypeChange, 
+  availableTypes,
   className 
 }: StatisticsTypeSelectorProps) {
+  // Filtrer les types disponibles selon les permissions
+  const filteredTypes = availableTypes 
+    ? STATISTICS_TYPES.filter(typeConfig => availableTypes.includes(typeConfig.type))
+    : STATISTICS_TYPES
+
   return (
     <div className={cn("grid grid-cols-1 md:grid-cols-3 gap-4", className)}>
-      {STATISTICS_TYPES.map((typeConfig) => (
+      {filteredTypes.map((typeConfig) => (
         <Card
           key={typeConfig.type}
           className={cn(
