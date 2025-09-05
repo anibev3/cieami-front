@@ -716,7 +716,7 @@ export default function CreateAssignmentPage() {
         }
         
         console.log('Mise à jour du dossier avec les données:', updateData)
-        const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL} + ${import.meta.env.VITE_API_SUFIX} +${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData, {
+        const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_SUFIX}${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('expert_0001_auth_token')}`,
             'Content-Type': 'application/json',
