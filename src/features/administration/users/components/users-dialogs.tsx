@@ -6,21 +6,12 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { RoleSelector } from '@/components/ui/role-selector'
 import { Calendar, Mail, Phone, Building, User as UserIcon, Shield, AlertTriangle } from 'lucide-react'
 import { useUsersStore } from '@/stores/usersStore'
 import { useEntitiesStore } from '@/stores/entitiesStore'
 import { User, CreateUserData, UpdateUserData } from '@/types/administration'
 import { toast } from 'sonner'
-
-const ROLES = [
-  { name: 'system_admin', label: 'Administrateur système' },
-  { name: 'admin', label: 'Administrateur plateforme' },
-  { name: 'insurer_admin', label: 'Administrateur assureur' },
-  { name: 'repairer_admin', label: 'Administrateur réparateur' },
-  { name: 'ceo', label: 'Directeur général' },
-  { name: 'editor', label: 'Rédacteur' },
-  { name: 'expert', label: 'Expert' },
-]
 
 interface UsersDialogsProps {
   isCreateOpen: boolean
@@ -65,7 +56,7 @@ export function UsersDialogs({
   // Charger les entités pour le select
   useEffect(() => {
     fetchEntities()
-  }, [])
+  }, [fetchEntities])
 
   // Réinitialiser les formulaires
   useEffect(() => {
@@ -219,22 +210,12 @@ export function UsersDialogs({
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Rôle *</Label>
-              <Select
+              <RoleSelector
                 value={createForm.role}
                 onValueChange={(value) => setCreateForm({ ...createForm, role: value })}
+                placeholder="Sélectionner un rôle"
                 required
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner un rôle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLES.map((role) => (
-                    <SelectItem key={role.name} value={role.name}>
-                      {role.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onCloseCreate}>
@@ -311,23 +292,13 @@ export function UsersDialogs({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2 grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="edit-role">Rôle</Label>
-              <Select
+              <RoleSelector
                 value={editForm.role || ''}
                 onValueChange={(value) => setEditForm({ ...editForm, role: value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner un rôle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLES.map((role) => (
-                    <SelectItem key={role.name} value={role.name}>
-                      {role.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Sélectionner un rôle"
+              />
             </div>
 
             {/* code */}
