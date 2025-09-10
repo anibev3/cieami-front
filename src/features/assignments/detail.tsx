@@ -2414,7 +2414,7 @@ export default function AssignmentDetailPage() {
       )
     }
 
-    if ((isCEO() || isValidator() || isExpertManager()) && assignment.status.code === 'validated') {
+    if ((isCEO() || isValidator() || isExpertManager()) && assignment.status.code === 'validated' || assignment.status.code === 'paid') {
           actions.push({
             key: 'unvalidate',
             label: 'Annuler la validation',
