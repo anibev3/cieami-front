@@ -2341,16 +2341,7 @@ export default function AssignmentDetailPage() {
         // )
         
         // Action d'annulation de validation - seulement pour CEO et Validator
-        if ((isCEO() || isValidator() || isExpertManager()) && assignment.status.code === 'validated') {
-          actions.push({
-            key: 'unvalidate',
-            label: 'Annuler la validation',
-            icon: AlertTriangle,
-            onClick: () => setUnvalidateModalOpen(true),
-            variant: 'destructive' as const,
-            className: 'bg-red-600 hover:bg-red-700'
-          })
-        }
+        
         break
 
       case 'paid':
@@ -2422,6 +2413,17 @@ export default function AssignmentDetailPage() {
           }
       )
     }
+
+    if ((isCEO() || isValidator() || isExpertManager()) && assignment.status.code === 'validated') {
+          actions.push({
+            key: 'unvalidate',
+            label: 'Annuler la validation',
+            icon: AlertTriangle,
+            onClick: () => setUnvalidateModalOpen(true),
+            variant: 'destructive' as const,
+            className: 'bg-red-600 hover:bg-red-700'
+          })
+        }
     // if (isCEO() || isValidator() || isExpertManager()) {
     //       actions.push({
     //         key: 'edit-report',

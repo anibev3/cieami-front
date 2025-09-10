@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { DataTable } from './components/data-table'
 import { VehicleModelMutateDialog } from './components/vehicle-model-mutate-dialog'
@@ -10,6 +10,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { Header } from '@/components/layout/header'
+import { useDebounce } from '@/hooks/use-debounce'
 
 export default function VehicleModelsPage() {
   const { vehicleModels, loading, error, fetchVehicleModels } = useVehicleModelsStore()

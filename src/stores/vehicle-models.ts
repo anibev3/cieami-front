@@ -7,6 +7,11 @@ interface VehicleModelsState {
   currentVehicleModel: VehicleModel | null
   loading: boolean
   error: string | null
+  filters: {
+    search: string
+    status: string
+    brand_id: string
+  }
   pagination: {
     currentPage: number
     totalPages: number
@@ -23,6 +28,8 @@ interface VehicleModelsActions {
   updateVehicleModel: (id: number, vehicleModelData: VehicleModelUpdate) => Promise<void>
   deleteVehicleModel: (id: number) => Promise<void>
   setCurrentVehicleModel: (vehicleModel: VehicleModel | null) => void
+  setFilters: (filters: Partial<VehicleModelsState['filters']>) => void
+  setPage: (page: number) => void
   clearError: () => void
 }
 
@@ -34,6 +41,11 @@ export const useVehicleModelsStore = create<VehicleModelsStore>((set, get) => ({
   currentVehicleModel: null,
   loading: false,
   error: null,
+  filters: {
+    search: '',
+    status: '',
+    brand_id: '',
+  },
   pagination: {
     currentPage: 1,
     totalPages: 1,
@@ -42,11 +54,19 @@ export const useVehicleModelsStore = create<VehicleModelsStore>((set, get) => ({
   },
 
   // Actions
-  fetchVehicleModels: async (page = 1, filters) => {
+  fetchVehicleModels: async (page, filters) => {
+    const state = get()
+    const currentPage = page || state.pagination.currentPage
+    const currentFilters = filters || {
+      search: state.filters.search || undefined,
+      status: state.filters.status || undefined,
+      brand_id: state.filters.brand_id || undefined,
+    }
+    
     set({ loading: true, error: null })
     
     try {
-      const response = await vehicleModelService.getVehicleModels(page, filters)
+      const response = await vehicleModelService.getVehicleModels(currentPage, currentFilters)
       
       set({
         vehicleModels: response.data,
@@ -133,6 +153,19 @@ export const useVehicleModelsStore = create<VehicleModelsStore>((set, get) => ({
 
   setCurrentVehicleModel: (vehicleModel) => {
     set({ currentVehicleModel: vehicleModel })
+  },
+
+  setFilters: (filters) => {
+    set((state) => ({
+      filters: { ...state.filters, ...filters },
+      pagination: { ...state.pagination, currentPage: 1 } // Reset to page 1 when filters change
+    }))
+  },
+
+  setPage: (page) => {
+    set((state) => ({
+      pagination: { ...state.pagination, currentPage: page }
+    }))
   },
 
   clearError: () => {

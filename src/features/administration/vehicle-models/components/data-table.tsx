@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   ColumnDef,
   flexRender,
@@ -6,8 +6,6 @@ import {
   useReactTable,
   getSortedRowModel,
   SortingState,
-  getFilteredRowModel,
-  ColumnFiltersState,
 } from '@tanstack/react-table'
 import {
   Table,
@@ -19,23 +17,40 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Pagination } from '@/components/ui/pagination'
 import { VehicleModel } from '@/types/vehicle-models'
 import { createColumns } from '../columns'
 import { VehicleModelMutateDialog } from './vehicle-model-mutate-dialog'
 import { ViewVehicleModelDialog } from './view-vehicle-model-dialog'
 import { DeleteVehicleModelDialog } from './delete-vehicle-model-dialog'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
+import { useDebounce } from '@/hooks/use-debounce'
 import { toast } from 'sonner'
 
 interface DataTableProps {
   data: VehicleModel[]
   loading?: boolean
+  onSearch?: (search: string) => void
+  onPageChange?: (page: number) => void
+  pagination?: {
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    perPage: number
+  }
+  searchValue?: string
 }
 
-export function DataTable({ data, loading }: DataTableProps) {
+export function DataTable({ 
+  data, 
+  loading, 
+  onSearch, 
+  onPageChange, 
+  pagination,
+  searchValue = ''
+}: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [localSearchValue, setLocalSearchValue] = useState(searchValue)
   
   const [selectedVehicleModel, setSelectedVehicleModel] = useState<VehicleModel | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
@@ -43,6 +58,16 @@ export function DataTable({ data, loading }: DataTableProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   
   const { deleteVehicleModel } = useVehicleModelsStore()
+
+  // Debounce pour la recherche
+  const debouncedSearch = useDebounce(localSearchValue, 500)
+
+  // Appeler onSearch quand la recherche debounced change
+  useEffect(() => {
+    if (onSearch && debouncedSearch !== searchValue) {
+      onSearch(debouncedSearch)
+    }
+  }, [debouncedSearch, onSearch, searchValue])
 
   const handleView = (vehicleModel: VehicleModel) => {
     setSelectedVehicleModel(vehicleModel)
@@ -83,15 +108,12 @@ export function DataTable({ data, loading }: DataTableProps) {
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
-      columnFilters,
-      globalFilter,
     },
+    manualPagination: true, // Pagination côté serveur
+    manualFiltering: true,  // Filtrage côté serveur
   })
 
   if (loading) {
@@ -107,8 +129,8 @@ export function DataTable({ data, loading }: DataTableProps) {
       <div className="flex items-center py-4">
         <Input
           placeholder="Rechercher..."
-          value={globalFilter ?? ''}
-          onChange={(event) => setGlobalFilter(event.target.value)}
+          value={localSearchValue}
+          onChange={(event) => setLocalSearchValue(event.target.value)}
           className="max-w-sm"
         />
       </div>
@@ -157,6 +179,20 @@ export function DataTable({ data, loading }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {pagination && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            perPage={pagination.perPage}
+            onPageChange={onPageChange || (() => {})}
+            loading={loading}
+          />
+        </div>
+      )}
 
       {/* Dialogs */}
       <ViewVehicleModelDialog
