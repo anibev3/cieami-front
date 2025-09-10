@@ -105,6 +105,7 @@ interface AssignmentCreatePayload {
   insurer_id: number | null
   repairer_id: number | null
   broker_id: number | null
+  additional_insurer_id: number | null
   assignment_type_id: number
   expertise_type_id: number
   document_transmitted_id: any[]
@@ -139,6 +140,7 @@ const assignmentSchema = z.object({
   insurer_id: z.string().optional(),
   repairer_id: z.string().optional(),
   broker_id: z.string().optional(),
+  additional_insurer_id: z.string().optional(),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
   document_transmitted_id: z.array(z.string()).optional(),
@@ -404,6 +406,7 @@ export default function CreateAssignmentPage() {
             insurer_id: assignment.insurer?.id?.toString() || '',
             repairer_id: assignment.repairer?.id?.toString() || '',
             broker_id: assignment.broker?.id?.toString() || '',
+            additional_insurer_id: assignment.additional_insurer?.id?.toString()|| assignment.broker?.id?.toString() || '',
             assignment_type_id: assignment.assignment_type?.id?.toString() || '',
             expertise_type_id: assignment.expertise_type?.id?.toString() || '',
             document_transmitted_id: assignment.document_transmitted?.map((doc: any) => doc.id.toString()) || [],
@@ -486,21 +489,21 @@ export default function CreateAssignmentPage() {
   useEffect(() => {
     const loadBaseData = async () => {
       try {
-              await Promise.allSettled([
-        fetchUsers(),
-        fetchClients(),
-        fetchVehicles(),
-        fetchAssignmentTypes(),
-        fetchBrokers(),
-        fetchRepairers(),
-        fetchInsurers(),
-        fetchExpertiseTypes(),
-        fetchDocuments(),
-        fetchVehicleModels(),
-        fetchColors(),
-        fetchBodyworks(),
-    fetchBrands()
-      ])
+        await Promise.allSettled([
+          fetchUsers(),
+          fetchClients(),
+          fetchVehicles(),
+          fetchAssignmentTypes(),
+          fetchBrokers(),
+          fetchRepairers(),
+          fetchInsurers(),
+          fetchExpertiseTypes(),
+          fetchDocuments(),
+          fetchVehicleModels(),
+          fetchColors(),
+          fetchBodyworks(),
+          fetchBrands()
+        ])
       } catch (error: any) {
         console.error('Erreur lors du chargement des données de base:', error)
         // Ne pas afficher d'erreur pour le chargement des données de base
@@ -685,6 +688,7 @@ export default function CreateAssignmentPage() {
         insurer_id: values.insurer_id ? parseInt(values.insurer_id) : null,
         repairer_id: values.repairer_id ? parseInt(values.repairer_id) : null,
         broker_id: values.broker_id ? parseInt(values.broker_id) : null,
+        additional_insurer_id: values.broker_id ? parseInt(values.broker_id) : null,
         assignment_type_id: parseInt(values.assignment_type_id),
         expertise_type_id: parseInt(values.expertise_type_id),
         document_transmitted_id: values.document_transmitted_id?.map(id => parseInt(id)) || [],
@@ -2486,12 +2490,22 @@ export default function CreateAssignmentPage() {
                       <span className="font-medium text-gray-700">Courtier :</span>
                       <span className="text-gray-900">
                         {(() => {
-                          const brokerId = form.watch('broker_id')
+                          const brokerId = form.watch('broker_id') || form.watch('additional_insurer_id')
                           const broker = brokers?.find((b: any) => b.id.toString() === brokerId)
                           return broker ? broker?.name : 'Non sélectionné'
                         })()}
                       </span>
                     </div>
+                    {/* <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Assureur additionnel :</span>
+                      <span className="text-gray-900">
+                        {(() => {
+                          const additionalInsurerId = form.watch('additional_insurer_id')
+                          const additionalInsurer = additionalInsurers?.find((a: any) => a.id.toString() === additionalInsurerId)
+                          return additionalInsurer ? additionalInsurer?.name : 'Non sélectionné'
+                        })()}
+                      </span>
+                    </div> */}
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-700">Date de réception :</span>
                       <span className="text-gray-900">{form.watch('received_at') || 'Non définie'}</span>
