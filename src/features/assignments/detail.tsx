@@ -305,6 +305,16 @@ interface AssignmentDetail {
     created_at: string
     updated_at: string
   } | null
+  additional_insurer: {
+    id: number
+    code: string
+    name: string
+    email: string
+    telephone: string | null
+    address: string | null
+    created_at: string
+    updated_at: string
+  } | null
   assignment_type: {
     id: number
     code: string
@@ -1251,33 +1261,43 @@ export default function AssignmentDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Courtier */}
+              {/* Courtier / Assureur supplémentaire */}
               <Card className="shadow-none">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-sm">
                     <Building className="h-4 w-4" />
-                    Courtier
+                    {assignment.additional_insurer ? 'Assureur supplémentaire' : 'Courtier'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {assignment.broker ? (
+                  {(assignment.additional_insurer || assignment.broker) ? (
                   <div className="space-y-4">
                     {/* Informations principales */}
                     <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-sm text-primary">Informations courtier</h4>
-                        <Badge variant="outline" className="text-xs">{assignment.broker.code}</Badge>
+                        <h4 className="font-semibold text-sm text-primary">
+                          {assignment.additional_insurer ? 'Informations assureur supplémentaire' : 'Informations courtier'}
+                        </h4>
+                        <Badge variant="outline" className="text-xs">
+                          {assignment.additional_insurer?.code || assignment.broker?.code}
+                        </Badge>
                       </div>
                       <div className="space-y-2">
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground">Nom du courtier</p>
-                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.broker.name}</p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            {assignment.additional_insurer ? 'Nom de l\'assureur' : 'Nom du courtier'}
+                          </p>
+                          <p className="text-sm font-semibold bg-white/50 dark:bg-black/20 px-2 py-1 rounded">
+                            {assignment.additional_insurer?.name || assignment.broker?.name}
+                          </p>
                         </div>
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">Adresse email</p>
                           <div className="flex items-center gap-2">
                             <Mail className="h-3 w-3 text-muted-foreground" />
-                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">{assignment.broker.email}</p>
+                            <p className="text-xs bg-white/50 dark:bg-black/20 px-2 py-1 rounded">
+                              {assignment.additional_insurer?.email || assignment.broker?.email}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -1287,21 +1307,25 @@ export default function AssignmentDetailPage() {
                     <div className="space-y-3">
                       <h4 className="font-semibold text-sm text-primary border-b pb-1">Coordonnées</h4>
                       <div className="space-y-2">
-                        {assignment.broker.telephone && (
+                        {(assignment.additional_insurer?.telephone || assignment.broker?.telephone) && (
                           <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
                             <Phone className="h-3 w-3 text-muted-foreground" />
                             <div>
                               <p className="text-xs font-medium text-muted-foreground">Téléphone</p>
-                              <p className="text-sm font-semibold">{assignment.broker.telephone}</p>
+                              <p className="text-sm font-semibold">
+                                {assignment.additional_insurer?.telephone || assignment.broker?.telephone}
+                              </p>
                             </div>
                           </div>
                         )}
-                        {assignment.broker.address && (
+                        {(assignment.additional_insurer?.address || assignment.broker?.address) && (
                           <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
                             <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
                             <div>
                               <p className="text-xs font-medium text-muted-foreground">Adresse</p>
-                              <p className="text-xs whitespace-pre-line">{assignment.broker.address}</p>
+                              <p className="text-xs whitespace-pre-line">
+                                {assignment.additional_insurer?.address || assignment.broker?.address}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -1314,11 +1338,15 @@ export default function AssignmentDetailPage() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <p className="font-medium text-muted-foreground">Créé le</p>
-                          <p className="font-semibold">{formatDate(assignment.broker.created_at)}</p>
+                          <p className="font-semibold">
+                            {formatDate(assignment.additional_insurer?.created_at || assignment.broker?.created_at || null)}
+                          </p>
                         </div>
                         <div>
                           <p className="font-medium text-muted-foreground">Modifié le</p>
-                          <p className="font-semibold">{formatDate(assignment.broker.updated_at)}</p>
+                          <p className="font-semibold">
+                            {formatDate(assignment.additional_insurer?.updated_at || assignment.broker?.updated_at || null)}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1326,8 +1354,8 @@ export default function AssignmentDetailPage() {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <Building className="h-12 w-12 text-muted-foreground mb-2" />
-                      <p className="text-sm font-medium text-muted-foreground">Aucun courtier assigné</p>
-                      <p className="text-xs text-muted-foreground">Le courtier n'a pas été sélectionné pour ce dossier</p>
+                      <p className="text-sm font-medium text-muted-foreground">Aucun courtier ou assureur supplémentaire assigné</p>
+                      <p className="text-xs text-muted-foreground">Aucun courtier ou assureur supplémentaire n'a été sélectionné pour ce dossier</p>
                     </div>
                   )}
                 </CardContent>

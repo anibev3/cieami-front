@@ -633,6 +633,35 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail, onSe
       )
     },
   },
+
+  {
+    accessorKey: 'additional_insurer',
+    header: 'Assureur additionnel',
+    cell: ({ row }) => {
+      const additionalInsurer = row?.getValue('additional_insurer') as Assignment['additional_insurer']
+      const assignment = row?.original
+      const isEditionDone = assignment?.edition_status === 'done'
+      const isRecoveryDone = assignment?.recovery_status === 'done'
+      const isDone = isEditionDone || isRecoveryDone
+      
+      if (!additionalInsurer) {
+        return <div className="text-muted-foreground text-sm">-</div>
+      }
+      
+      return (
+        <div className={isDone ? 'bg-green-50' : ''}>
+          <div 
+            className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
+            onClick={() => onSearch(additionalInsurer?.name || '')}
+            title="Cliquer pour rechercher cet assureur additionnel"
+          >
+            {additionalInsurer?.name || ''}
+          </div>
+        </div>
+      )
+    },
+  },
+  
   {
     accessorKey: 'broker',
     header: 'Courtier',

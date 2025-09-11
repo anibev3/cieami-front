@@ -119,6 +119,16 @@ export interface Assignment {
     created_at: string
     updated_at: string
   } | null
+  additional_insurer: {
+    id: number
+    code: string
+    name: string
+    email: string
+    telephone: string | null
+    address: string | null
+    created_at: string
+    updated_at: string
+  } | null
   vehicle: {
     id: number
     license_plate: string
@@ -670,6 +680,7 @@ export interface AssignmentFilters {
   vehicle_id?: number
   insurer_id?: number
   broker_id?: number
+  additional_insurer_id?: number
   repairer_id?: number
   expertise_type_id?: number
   opened_by?: number

@@ -18,7 +18,7 @@ export const useBrokersStore = create<BrokersState>((set) => ({
   fetchBrokers: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await entityService.getAll({ ...filters, entity_type: '3' })
+      const response = await entityService.getAll({ ...filters, entity_type: '3,2' })
       set({ brokers: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des courtiers'

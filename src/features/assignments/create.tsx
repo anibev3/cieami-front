@@ -396,9 +396,14 @@ export default function CreateAssignmentPage() {
           const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`)
           const assignment = response.data.data
           
-          console.log('Données du dossier chargées:', assignment)
-          
           // Pré-remplir le formulaire avec les données existantes
+          // Logique de priorité pour additional_insurer_id :
+          // 1. Si additional_insurer existe, utiliser additional_insurer.id
+          // 2. Sinon, si broker existe, utiliser broker.id
+          // 3. Sinon, champ vide
+          const additionalInsurerId = assignment.additional_insurer?.id?.toString() || 
+                                    assignment.broker?.id?.toString() || ''
+
           const formData = {
             client_id: assignment.client?.id?.toString() || '',
             vehicle_id: assignment.vehicle?.id?.toString() || '',
@@ -406,7 +411,7 @@ export default function CreateAssignmentPage() {
             insurer_id: assignment.insurer?.id?.toString() || '',
             repairer_id: assignment.repairer?.id?.toString() || '',
             broker_id: assignment.broker?.id?.toString() || '',
-            additional_insurer_id: assignment.additional_insurer?.id?.toString()|| assignment.broker?.id?.toString() || '',
+            additional_insurer_id: additionalInsurerId,
             assignment_type_id: assignment.assignment_type?.id?.toString() || '',
             expertise_type_id: assignment.expertise_type?.id?.toString() || '',
             document_transmitted_id: assignment.document_transmitted?.map((doc: any) => doc.id.toString()) || [],
@@ -688,7 +693,7 @@ export default function CreateAssignmentPage() {
         insurer_id: values.insurer_id ? parseInt(values.insurer_id) : null,
         repairer_id: values.repairer_id ? parseInt(values.repairer_id) : null,
         broker_id: values.broker_id ? parseInt(values.broker_id) : null,
-        additional_insurer_id: values.broker_id ? parseInt(values.broker_id) : null,
+        additional_insurer_id: values.additional_insurer_id ? parseInt(values.additional_insurer_id) : null,
         assignment_type_id: parseInt(values.assignment_type_id),
         expertise_type_id: parseInt(values.expertise_type_id),
         document_transmitted_id: values.document_transmitted_id?.map(id => parseInt(id)) || [],
@@ -1340,11 +1345,11 @@ export default function CreateAssignmentPage() {
 
                           <FormField
                             control={form.control}
-                            name="broker_id"
+                            name="additional_insurer_id"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex items-center gap-2 justify-between">
-                                  <FormLabel>Courtier</FormLabel>
+                                  <FormLabel>Assureur additionnel</FormLabel>
                                 </div>
                                 <div className="flex gap-2">
                                   <BrokerSelect
@@ -1355,7 +1360,7 @@ export default function CreateAssignmentPage() {
                                         handleBrokerSelection(value.toString())
                                       }
                                     }}
-                                    placeholder="Sélectionner un courtier"
+                                    placeholder="Sélectionner un assureur additionnel"
                                     className="flex-1"
                                     showStatus={true}
                                   />

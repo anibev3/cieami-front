@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { Insurer, InsurerFilters } from '@/services/insurerService'
-import { insurerService } from '@/services/insurerService'
+// import { insurerService } from '@/services/insurerService'
+import { entityService } from '@/services/entityService'
+
 
 interface InsurersState {
   insurers: Insurer[]
@@ -17,7 +19,8 @@ export const useInsurersStore = create<InsurersState>((set) => ({
   fetchInsurers: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await insurerService.getAll(filters)
+      // const response = await insurerService.getAll(filters)
+      const response = await entityService.getAll({ ...filters, entity_type: '3,2' })
       set({ insurers: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des assureurs'
