@@ -137,7 +137,7 @@ const assignmentSchema = z.object({
   client_id: z.string().min(1, 'Le client est requis'),
   vehicle_id: z.string().min(1, 'Le véhicule est requis'),
   vehicle_mileage: z.string().optional(),
-  insurer_id: z.string().optional(),
+  insurer_id: z.string().min(1, 'L\'assureur est requis'),
   repairer_id: z.string().optional(),
   broker_id: z.string().optional(),
   additional_insurer_id: z.string().optional(),
@@ -173,6 +173,7 @@ export default function CreateAssignmentPage() {
     return !!(
       values.client_id && 
       values.vehicle_id && 
+      values.insurer_id &&
       values.assignment_type_id && 
       values.expertise_type_id && 
       values.received_at
@@ -194,6 +195,12 @@ export default function CreateAssignmentPage() {
         field: 'vehicle_id',
         completed: !!values.vehicle_id,
         label: 'Véhicule'
+      },
+      {
+        name: 'Assureur',
+        field: 'insurer_id',
+        completed: !!values.insurer_id,
+        label: 'Assureur'
       },
       {
         name: 'Type de dossier',
@@ -678,7 +685,7 @@ export default function CreateAssignmentPage() {
   // Fonctions pour les titres et descriptions des étapes (supprimées car non utilisées)
 
   const onSubmit = async (values: z.infer<typeof assignmentSchema>) => {
-    // En création: seuls client_id, vehicle_id, received_at, assignment_type_id et expertise_type_id sont requis (vérifiés via stepValidations)
+    // En création: client_id, vehicle_id, insurer_id, received_at, assignment_type_id et expertise_type_id sont requis (vérifiés via stepValidations)
     setLoading(true)
     setShowCreatingModal(true)
     
