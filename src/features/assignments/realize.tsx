@@ -44,7 +44,7 @@ const realizeSchema = z.object({
   expertise_date: z.date({
     required_error: "La date d'expertise est requise",
   }),
-  expertise_time: z.string().optional(),
+  // expertise_time: z.string().optional(),
   expertise_place: z.string().optional(),
   point_noted: z.string().optional(),
   directed_by: z.string().min(1, 'L\'expert responsable est requis'),
@@ -73,7 +73,7 @@ export default function RealizeAssignmentPage() {
     resolver: zodResolver(realizeSchema),
     defaultValues: {
       expertise_date: undefined,
-      expertise_time: '',
+      // expertise_time: '',
       expertise_place: '',
       point_noted: '',
       directed_by: '',
@@ -93,25 +93,25 @@ export default function RealizeAssignmentPage() {
     if (assignment) {
       // Gérer la date d'expertise
       let expertiseDate = new Date()
-      let timeString = '09:00'
+      // let timeString = '09:00'
       
       if (assignment.expertise_date) {
         expertiseDate = new Date(assignment.expertise_date)
         // Si la date contient une heure, l'extraire
-        if (assignment.expertise_date.includes('T')) {
-          const dateTime = new Date(assignment.expertise_date)
-          const hours = String(dateTime.getHours()).padStart(2, '0')
-          const minutes = String(dateTime.getMinutes()).padStart(2, '0')
-          timeString = `${hours}:${minutes}`
-        } else {
-          // Si c'est juste une date, utiliser l'heure par défaut
-          timeString = '09:00'
-        }
+        // if (assignment.expertise_date.includes('T')) {
+        //   const dateTime = new Date(assignment.expertise_date)
+        //   const hours = String(dateTime.getHours()).padStart(2, '0')
+        //   const minutes = String(dateTime.getMinutes()).padStart(2, '0')
+        //   timeString = `${hours}:${minutes}`
+        // } else {
+        //   // Si c'est juste une date, utiliser l'heure par défaut
+        //   timeString = '09:00'
+        // }
       }
       
       form.reset({
         expertise_date: expertiseDate,
-        expertise_time: timeString,
+        // expertise_time: timeString,
         expertise_place: assignment.expertise_place || '',
         point_noted: assignment.point_noted || '',
         directed_by: assignment.directed_by?.id?.toString() || '',
@@ -134,19 +134,27 @@ export default function RealizeAssignmentPage() {
       // Gérer la date et l'heure de manière optionnelle
       let formattedDateTime: string | null = null
       
-      if (values.expertise_date && values.expertise_time) {
-        const expertiseDateTime = new Date(values.expertise_date)
-        const [hours, minutes] = values.expertise_time.split(':')
-        expertiseDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-        
-        // Formater la date au format "YYYY-MM-DDTHH:mm"
-        const year = expertiseDateTime.getFullYear()
-        const month = String(expertiseDateTime.getMonth() + 1).padStart(2, '0')
-        const day = String(expertiseDateTime.getDate()).padStart(2, '0')
-        const formattedHours = String(expertiseDateTime.getHours()).padStart(2, '0')
-        const formattedMinutes = String(expertiseDateTime.getMinutes()).padStart(2, '0')
-        
-        formattedDateTime = `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`
+      if (values.expertise_date) {
+        // if (values.expertise_date && values.expertise_time) {
+        //   const expertiseDateTime = new Date(values.expertise_date)
+        //   const [hours, minutes] = values.expertise_time.split(':')
+        //   expertiseDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+        //   
+        //   // Formater la date au format "YYYY-MM-DDTHH:mm"
+        //   const year = expertiseDateTime.getFullYear()
+        //   const month = String(expertiseDateTime.getMonth() + 1).padStart(2, '0')
+        //   const day = String(expertiseDateTime.getDate()).padStart(2, '0')
+        //   const formattedHours = String(expertiseDateTime.getHours()).padStart(2, '0')
+        //   const formattedMinutes = String(expertiseDateTime.getMinutes()).padStart(2, '0')
+        //   
+        //   formattedDateTime = `${year}-${month}-${day}T${formattedHours}:${formattedMinutes}`
+        // } else {
+          // Formater seulement la date au format "YYYY-MM-DD"
+          const year = values.expertise_date.getFullYear()
+          const month = String(values.expertise_date.getMonth() + 1).padStart(2, '0')
+          const day = String(values.expertise_date.getDate()).padStart(2, '0')
+          formattedDateTime = `${year}-${month}-${day}`
+        // }
       }
       
       const payload: RealizePayload = {
@@ -335,8 +343,8 @@ export default function RealizeAssignmentPage() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Date et heure d'expertise */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Date d'expertise */}
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="expertise_date"
@@ -360,7 +368,7 @@ export default function RealizeAssignmentPage() {
                       )}
                     />
 
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="expertise_time"
                       render={({ field }) => (
@@ -376,10 +384,8 @@ export default function RealizeAssignmentPage() {
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
-                  </div>
-
-                  {/* Lieu d'expertise */}
+                    /> */}
+                        {/* Lieu d'expertise */}
                   <FormField
                     control={form.control}
                     name="expertise_place"
@@ -397,6 +403,9 @@ export default function RealizeAssignmentPage() {
                       </FormItem>
                     )}
                   />
+                  </div>
+
+                  
 
                   {/* Expert et Garage */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
