@@ -2363,7 +2363,7 @@ export default function AssignmentDetailPage() {
 
       case 'closed':
       case 'validated':
-        // actions.push(
+        actions.push(
         //   {
         //     key: 'edit-realization',
         //     label: 'Modifier la réalisation',
@@ -2377,8 +2377,20 @@ export default function AssignmentDetailPage() {
         //     icon: Edit,
         //     onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
         //     variant: 'outline' as const
-        //   },
-        // )
+          //   },
+          
+          {
+            key: 'generate-report',
+            label: 'Générer le rapport',
+            icon: Download,
+            onClick: async () => {
+              await generateReport(assignment.id)
+              // Les données seront automatiquement rafraîchies via le store
+            },
+            variant: 'default' as const,
+            loading: loadingGenerate
+          }
+        )
         
         // Action d'annulation de validation - seulement pour CEO et Validator
         
