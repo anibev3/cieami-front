@@ -339,6 +339,7 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
       set({ loading: false })
       toast.success(response.message || 'Rapport généré avec succès')
       await get().fetchAssignment(id)
+      window.location.reload()
       return response.message || 'Rapport généré avec succès'
     } catch (error: any) {
       set({ loading: false })

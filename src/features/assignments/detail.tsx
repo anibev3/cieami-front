@@ -652,7 +652,7 @@ export default function AssignmentDetailPage() {
   const [validating, setValidating] = useState(false)
   const [unvalidating, setUnvalidating] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
-  const { generateReport, loading: loadingGenerate } = useAssignmentsStore()
+  const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
   const { isCEO, isValidator, isExpertManager } = useACL()
 
   // États pour les modales d'actions
@@ -682,6 +682,15 @@ export default function AssignmentDetailPage() {
       setActiveSection(search.section)
     }
   }, [search.section, activeSection])
+
+  // Synchroniser l'état local avec le store quand les données sont mises à jour
+  useEffect(() => {
+    if (storeAssignment && storeAssignment.id === parseInt(id)) {
+      // Convertir les types pour assurer la compatibilité
+      const assignmentDetail = storeAssignment as any as AssignmentDetail
+      setAssignment(assignmentDetail)
+    }
+  }, [storeAssignment, id])
 
   const formatCurrency = (amount: string | null | undefined) => {
     const value = amount === null || amount === undefined ? 0 : parseFloat(amount)
@@ -931,7 +940,7 @@ export default function AssignmentDetailPage() {
                     <FileDown className="h-3 w-3 mr-2" />
                     Voir la fiche d'expertise
                   </Button>
-                  )}
+                )}
                   {/* expertise_report */}
                   {assignment.expertise_report && (
                     <Button variant="outline" className="w-full justify-start text-xs h-8" onClick={() => setPdfViewer({ open: true, url: assignment.expertise_report!, title: 'Rapport d\'expertise' })}>
@@ -2330,7 +2339,10 @@ export default function AssignmentDetailPage() {
             key: 'generate-report',
             label: 'Générer le rapport',
             icon: Download,
-            onClick: async () => await generateReport(assignment.id),
+            onClick: async () => {
+              await generateReport(assignment.id)
+              // Les données seront automatiquement rafraîchies via le store
+            },
             variant: 'default' as const,
             loading: loadingGenerate
           }
@@ -2435,7 +2447,10 @@ export default function AssignmentDetailPage() {
             key: 'generate-report',
             label: 'Générer le rapport',
             icon: Download,
-            onClick: async () => await generateReport(assignment.id),
+            onClick: async () => {
+              await generateReport(assignment.id)
+              // Les données seront automatiquement rafraîchies via le store
+            },
             variant: 'default' as const,
             loading: loadingGenerate
           }
