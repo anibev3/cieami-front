@@ -1,6 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState } from 'react'
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -15,8 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Pagination } from '@/components/ui/pagination'
 import { VehicleModel } from '@/types/vehicle-models'
 import { createColumns } from '../columns'
@@ -24,13 +21,11 @@ import { VehicleModelMutateDialog } from './vehicle-model-mutate-dialog'
 import { ViewVehicleModelDialog } from './view-vehicle-model-dialog'
 import { DeleteVehicleModelDialog } from './delete-vehicle-model-dialog'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
-import { useDebounce } from '@/hooks/use-debounce'
 import { toast } from 'sonner'
 
 interface DataTableProps {
   data: VehicleModel[]
   loading?: boolean
-  onSearch?: (search: string) => void
   onPageChange?: (page: number) => void
   pagination?: {
     currentPage: number
@@ -38,19 +33,15 @@ interface DataTableProps {
     totalItems: number
     perPage: number
   }
-  searchValue?: string
 }
 
 export function DataTable({ 
   data, 
   loading, 
-  onSearch, 
   onPageChange, 
-  pagination,
-  searchValue = ''
+  pagination
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [localSearchValue, setLocalSearchValue] = useState(searchValue)
   
   const [selectedVehicleModel, setSelectedVehicleModel] = useState<VehicleModel | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
@@ -58,16 +49,6 @@ export function DataTable({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   
   const { deleteVehicleModel } = useVehicleModelsStore()
-
-  // Debounce pour la recherche
-  const debouncedSearch = useDebounce(localSearchValue, 500)
-
-  // Appeler onSearch quand la recherche debounced change
-  useEffect(() => {
-    if (onSearch && debouncedSearch !== searchValue) {
-      onSearch(debouncedSearch)
-    }
-  }, [debouncedSearch, onSearch, searchValue])
 
   const handleView = (vehicleModel: VehicleModel) => {
     setSelectedVehicleModel(vehicleModel)
@@ -92,7 +73,7 @@ export function DataTable({
       toast.success('Modèle de véhicule supprimé avec succès')
       setIsDeleteDialogOpen(false)
       setSelectedVehicleModel(null)
-    } catch (error) {
+    } catch (_error) {
       // Error handled by store
     }
   }
@@ -126,15 +107,6 @@ export function DataTable({
 
   return (
     <>
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Rechercher..."
-          value={localSearchValue}
-          onChange={(event) => setLocalSearchValue(event.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-      
       <div className="rounded-md border">
         <Table>
           <TableHeader>

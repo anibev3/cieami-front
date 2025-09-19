@@ -2377,8 +2377,7 @@ export default function AssignmentDetailPage() {
         //     icon: Edit,
         //     onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
         //     variant: 'outline' as const
-          //   },
-          
+        //   },
           {
             key: 'generate-report',
             label: 'Générer le rapport',

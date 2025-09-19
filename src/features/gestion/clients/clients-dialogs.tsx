@@ -148,8 +148,8 @@ export function ClientsDialogs({
               <Input id="name-edit" value={editForm.name || ''} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email-edit">Email *</Label>
-              <Input id="email-edit" type="email" value={editForm.email || ''} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} required />
+              <Label htmlFor="email-edit">Email</Label>
+              <Input id="email-edit" type="email" value={editForm.email || ''} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone_1-edit">Téléphone 1</Label>
