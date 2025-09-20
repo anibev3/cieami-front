@@ -127,6 +127,15 @@ class PhotoService {
   async getByPhotoType(photoTypeId: string): Promise<PhotoResponse> {
     return this.getAll({ photo_type_id: photoTypeId })
   }
+
+  /**
+   * Réorganiser l'ordre des photos
+   */
+  async reorderPhotos(assignmentId: string, photoIds: number[]): Promise<void> {
+    await axiosInstance.put(`/assignments/${assignmentId}/order-photos`, {
+      photos: photoIds
+    })
+  }
 }
 
 // Export d'une instance singleton

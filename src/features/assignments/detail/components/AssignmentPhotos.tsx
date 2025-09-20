@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { usePhotoStore } from '@/stores/photoStore'
 import { usePhotoTypeStore } from '@/stores/photoTypeStore'
 import { Button } from '@/components/ui/button'
@@ -9,12 +9,33 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs } from '@/components/ui/tabs'
-import { Upload, Camera, Star, Edit, Trash2, X, Plus, Grid3X3, Eye, Loader2, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag, CheckCircle } from 'lucide-react'
+import { Upload, Camera, Star, Edit, Trash2, X, Plus, Grid3X3, Eye, Loader2, ChevronLeft, ChevronRight, Download, Info, Calendar, Hash, Tag, CheckCircle, GripVertical, Save, RotateCcw } from 'lucide-react'
 import { CreatePhotoData, UpdatePhotoData, Photo, PhotoType } from '@/types/gestion'
 import { photoService } from '@/services/photoService'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 import { PhotoTypeSelect } from '@/features/widgets/photo-type-select'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable'
+import {
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface AssignmentPhotosProps {
   assignmentId: string
@@ -35,7 +56,8 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     createPhotos,
     updatePhoto,
     deletePhoto,
-    setAsCover
+    setAsCover,
+    reorderPhotos
   } = usePhotoStore()
 
   const {
@@ -52,8 +74,14 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('grid')
   const [tabsData, setTabsData] = useState<TabData[]>([])
   const [loadingEditPhoto, setLoadingEditPhoto] = useState(false)
-  const [loadingDeletePhoto, setLoadingDeletePhoto] = useState(false)
-  const [loadingSetAsCoverPhoto, setLoadingSetAsCoverPhoto] = useState(false)
+  const [_loadingDeletePhoto, setLoadingDeletePhoto] = useState(false)
+  const [_loadingSetAsCoverPhoto, setLoadingSetAsCoverPhoto] = useState(false)
+  
+  // États pour la réorganisation
+  const [isReorderMode, setIsReorderMode] = useState(false)
+  const [reorderPhotosList, setReorderPhotosList] = useState<Photo[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [loadingReorder, setLoadingReorder] = useState(false)
   const [uploadData, setUploadData] = useState<CreatePhotoData>({
     assignment_id: assignmentId,
     photo_type_id: '',
@@ -71,6 +99,48 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [showDetails, setShowDetails] = useState(false)
+
+  // Capteurs pour le drag & drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  // Fonction pour charger les photos d'un tab spécifique
+  const loadPhotosForTab = useCallback(async (tabId: string) => {
+    setTabsData(prev => prev.map(tab => 
+      tab.id === tabId ? { ...tab, loading: true } : tab
+    ))
+
+    try {
+      let response
+      if (tabId === 'all') {
+        response = await photoService.getByAssignment(assignmentId)
+      } else {
+        response = await photoService.getAll({ 
+          assignment_id: assignmentId, 
+          photo_type_id: tabId 
+        })
+      }
+
+      setTabsData(prev => prev.map(tab => 
+        tab.id === tabId 
+          ? { 
+              ...tab, 
+              photos: response.data, 
+              loading: false, 
+              count: response.data.length 
+            }
+          : tab
+      ))
+    } catch (_error) {
+      setTabsData(prev => prev.map(tab => 
+        tab.id === tabId ? { ...tab, loading: false, photos: [] } : tab
+      ))
+    }
+  }, [assignmentId])
 
   // Charger les types de photos au montage
   useEffect(() => {
@@ -108,41 +178,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
       // Charger toutes les photos initialement
       loadPhotosForTab('all')
     }
-  }, [photoTypes])
-
-  // Fonction pour charger les photos d'un tab spécifique
-  const loadPhotosForTab = async (tabId: string) => {
-    setTabsData(prev => prev.map(tab => 
-      tab.id === tabId ? { ...tab, loading: true } : tab
-    ))
-
-    try {
-      let response
-      if (tabId === 'all') {
-        response = await photoService.getByAssignment(assignmentId)
-      } else {
-        response = await photoService.getAll({ 
-          assignment_id: assignmentId, 
-          photo_type_id: tabId 
-        })
-      }
-
-      setTabsData(prev => prev.map(tab => 
-        tab.id === tabId 
-          ? { 
-              ...tab, 
-              photos: response.data, 
-              loading: false, 
-              count: response.data.length 
-            }
-          : tab
-      ))
-    } catch (_error) {
-      setTabsData(prev => prev.map(tab => 
-        tab.id === tabId ? { ...tab, loading: false, photos: [] } : tab
-      ))
-    }
-  }
+  }, [photoTypes, loadPhotosForTab])
 
   // Gérer le changement de tab
   const handleTabChange = (tabId: string) => {
@@ -160,6 +196,65 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     loadPhotosForTab(activeTab)
   }
 
+  // Fonctions pour la réorganisation
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      setReorderPhotosList((items) => {
+        const oldIndex = items.findIndex((item) => item.id.toString() === active.id)
+        const newIndex = items.findIndex((item) => item.id.toString() === over.id)
+
+        return arrayMove(items, oldIndex, newIndex)
+      })
+    }
+
+    setActiveId(null)
+  }
+
+  const handleStartReorder = () => {
+    const currentPhotos = getCurrentTabData()?.photos || []
+    setReorderPhotosList([...currentPhotos])
+    setIsReorderMode(true)
+  }
+
+  const handleCancelReorder = () => {
+    setIsReorderMode(false)
+    setReorderPhotosList([])
+  }
+
+  const handleSaveReorder = async () => {
+    if (reorderPhotosList.length === 0) return
+
+    setLoadingReorder(true)
+    try {
+      const photoIds = reorderPhotosList.map(photo => photo.id)
+      await reorderPhotos(assignmentId, photoIds)
+      
+      // Mettre à jour les tabs avec le nouvel ordre
+      setTabsData(prev => prev.map(tab => 
+        tab.id === activeTab 
+          ? { ...tab, photos: reorderPhotosList }
+          : tab
+      ))
+      
+      setIsReorderMode(false)
+      setReorderPhotosList([])
+    } catch (_error) {
+      // Error handled by store
+    } finally {
+      setLoadingReorder(false)
+    }
+  }
+
+  const getCurrentTabData = useCallback(() => {
+    return tabsData.find(tab => tab.id === activeTab) || tabsData[0]
+  }, [tabsData, activeTab])
+
   // Photo viewer functions
   const openPhotoViewer = (photo: Photo) => {
     const currentPhotos = getCurrentTabData()?.photos || []
@@ -168,39 +263,39 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     setIsViewerOpen(true)
   }
 
-  const navigatePhoto = (direction: 'prev' | 'next') => {
+  const navigatePhoto = useCallback((direction: 'prev' | 'next') => {
     const currentPhotos = getCurrentTabData()?.photos || []
     if (direction === 'prev') {
       setCurrentPhotoIndex(prev => prev > 0 ? prev - 1 : currentPhotos.length - 1)
     } else {
       setCurrentPhotoIndex(prev => prev < currentPhotos.length - 1 ? prev + 1 : 0)
     }
-  }
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (!isViewerOpen) return
-    
-    switch (e.key) {
-      case 'ArrowLeft':
-        navigatePhoto('prev')
-        break
-      case 'ArrowRight':
-        navigatePhoto('next')
-        break
-      case 'Escape':
-        setIsViewerOpen(false)
-        break
-      case 'd':
-      case 'D':
-        setShowDetails(prev => !prev)
-        break
-    }
-  }
+  }, [getCurrentTabData])
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isViewerOpen) return
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          navigatePhoto('prev')
+          break
+        case 'ArrowRight':
+          navigatePhoto('next')
+          break
+        case 'Escape':
+          setIsViewerOpen(false)
+          break
+        case 'd':
+        case 'D':
+          setShowDetails(prev => !prev)
+          break
+      }
+    }
+
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isViewerOpen])
+  }, [isViewerOpen, navigatePhoto])
 
   // Raccourcis clavier pour la sélection multiple
   useEffect(() => {
@@ -238,10 +333,6 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     document.addEventListener('keydown', handleUploadDialogKeyDown)
     return () => document.removeEventListener('keydown', handleUploadDialogKeyDown)
   }, [isUploadDialogOpen, selectedFiles, uploadData.photos])
-
-  const getCurrentTabData = () => {
-    return tabsData.find(tab => tab.id === activeTab) || tabsData[0]
-  }
 
   const currentTabData = getCurrentTabData()
   const currentPhotos = currentTabData?.photos || []
@@ -393,6 +484,190 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     total: tabsData.reduce((sum, tab) => sum + tab.count, 0),
     cover: currentPhotos.filter(p => p.is_cover).length,
     types: photoTypes.length
+  }
+
+  // Composant pour les photos sortables
+  const SortablePhotoCard = ({ photo, isReorderMode }: { photo: Photo; isReorderMode: boolean }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: photo.id.toString() })
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    }
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg h-64 cursor-pointer transition-all duration-200 ${
+          isDragging ? 'opacity-50 scale-105 z-50' : ''
+        } ${isReorderMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        onClick={() => !isReorderMode && openPhotoViewer(photo)}
+      >
+        {/* Image de fond */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-300 group-hover:scale-105"
+          style={{ backgroundImage: `url(${photo.photo})` }}
+        />
+        
+        {/* Overlay gradient pour améliorer la lisibilité */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        
+        {/* Contenu superposé */}
+        <div className="relative h-full flex flex-col justify-between p-4">
+          {/* Header avec badges */}
+          <div className="flex items-start justify-between">
+            <div className="flex gap-2">
+              {photo.is_cover && (
+                <Badge className="bg-yellow-500 text-white border-0 shadow-lg backdrop-blur-sm">
+                  <Star className="mr-1 h-3 w-3" />
+                  Couverture
+                </Badge>
+              )}
+              <Badge variant="secondary" className="bg-white/95 text-gray-700 shadow-lg backdrop-blur-sm">
+                #{photo.id}
+              </Badge>
+            </div>
+            
+            {/* Type de photo */}
+            <Badge variant="outline" className="bg-white/95 text-gray-700 shadow-lg backdrop-blur-sm">
+              {photo?.photo_type?.label}
+            </Badge>
+          </div>
+          
+          {/* Actions au centre (visible au hover) */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <div className="flex gap-3">
+              {!isReorderMode && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openPhotoViewer(photo)
+                        }}
+                        className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                      >
+                        <Eye className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Voir la photo</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openEditDialog(photo)
+                        }}
+                        className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Modifier la photo</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSetAsCover(photo.id)
+                        }}
+                        disabled={photo.is_cover}
+                        className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                      >
+                        <Star className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Mettre en couverture</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="secondary" 
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer la photo</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(photo.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+              
+              {/* Handle de réorganisation */}
+              {isReorderMode && (
+                <div
+                  {...attributes}
+                  {...listeners}
+                  className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white shadow-lg backdrop-blur-sm flex items-center justify-center cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="h-5 w-5 text-gray-600" />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Footer avec informations */}
+          <div className="space-y-2">
+            <h4 className="font-semibold text-white truncate drop-shadow-lg text-sm">
+              {photo.name}
+            </h4>
+            <p className="text-white/90 text-xs drop-shadow-lg">
+              {new Date(photo.created_at).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const PhotoCard = ({ photo }: { photo: Photo }) => (
@@ -551,20 +826,73 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
         <div>
           <h3 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Galerie Photos
+            {isReorderMode && (
+              <Badge className="ml-3 bg-orange-500 text-white">
+                <GripVertical className="h-3 w-3 mr-1" />
+                Mode réorganisation
+              </Badge>
+            )}
           </h3>
           <p className="text-xs text-muted-foreground">
             {stats.total} photo(s) pour {assignmentReference}
+            {isReorderMode && (
+              <span className="ml-2 text-orange-600 font-medium">
+                • Glissez-déposez pour réorganiser
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setViewMode(viewMode === 'grid' ? 'gallery' : 'grid')}
-          >
-            {viewMode === 'grid' ? <Grid3X3 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {viewMode === 'grid' ? 'Grille' : 'Galerie'}
-          </Button>
+          {!isReorderMode && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setViewMode(viewMode === 'grid' ? 'gallery' : 'grid')}
+            >
+              {viewMode === 'grid' ? <Grid3X3 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {viewMode === 'grid' ? 'Grille' : 'Galerie'}
+            </Button>
+          )}
+          
+          {!isReorderMode && currentPhotos.length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleStartReorder}
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0"
+            >
+              <GripVertical className="h-4 w-4 mr-2" />
+              Réorganiser
+            </Button>
+          )}
+          
+          {isReorderMode && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancelReorder}
+                className="text-gray-600"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Annuler
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSaveReorder}
+                disabled={loadingReorder}
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0"
+              >
+                {loadingReorder ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {loadingReorder ? 'Sauvegarde...' : 'Sauvegarder'}
+              </Button>
+            </div>
+          )}
           <Dialog open={isUploadDialogOpen} onOpenChange={(open) => {
             setIsUploadDialogOpen(open)
             if (!open) {
@@ -902,15 +1230,43 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                 </div>
               </div>
             ) : currentPhotos.length > 0 ? (
-              <div className={`grid gap-6 ${
-                viewMode === 'grid' 
-                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-              }`}>
-                {currentPhotos.map((photo) => (
-                  <PhotoCard key={photo.id} photo={photo} />
-                ))}
-              </div>
+              isReorderMode ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={reorderPhotosList.map(photo => photo.id.toString())}
+                    strategy={rectSortingStrategy}
+                  >
+                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                      {reorderPhotosList.map((photo) => (
+                        <SortablePhotoCard key={photo.id} photo={photo} isReorderMode={isReorderMode} />
+                      ))}
+                    </div>
+                  </SortableContext>
+                  <DragOverlay>
+                    {activeId ? (
+                      <SortablePhotoCard 
+                        photo={reorderPhotosList.find(photo => photo.id.toString() === activeId)!} 
+                        isReorderMode={isReorderMode} 
+                      />
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+              ) : (
+                <div className={`grid gap-6 ${
+                  viewMode === 'grid' 
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                }`}>
+                  {currentPhotos.map((photo) => (
+                    <PhotoCard key={photo.id} photo={photo} />
+                  ))}
+                </div>
+              )
             ) : (
               <Card className="shadow-none bg-gradient-to-br from-gray-50 to-gray-100">
                 <CardContent className="flex flex-col items-center justify-center py-16">

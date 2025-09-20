@@ -24,6 +24,7 @@ interface PhotoState {
   updatePhoto: (id: number, data: UpdatePhotoData) => Promise<void>
   deletePhoto: (id: number) => Promise<void>
   setAsCover: (id: number) => Promise<void>
+  reorderPhotos: (assignmentId: string, photoIds: number[]) => Promise<void>
   setSelectedPhoto: (photo: Photo | null) => void
   clearError: () => void
 }
@@ -135,6 +136,38 @@ export const usePhotoStore = create<PhotoState>((set) => ({
       toast.success('Photo définie comme couverture avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la définition de la couverture'
+      set({ loading: false })
+            toast.error(errorMessage, {
+        duration: 1000,
+      })
+      throw error
+    }
+  },
+
+  reorderPhotos: async (assignmentId: string, photoIds: number[]) => {
+    try {
+      set({ loading: true })
+      await photoService.reorderPhotos(assignmentId, photoIds)
+      
+      // Mettre à jour l'ordre des photos localement
+      set(state => {
+        const reorderedPhotos = photoIds.map(id => 
+          state.photos.find(photo => photo.id === id)
+        ).filter(Boolean) as Photo[]
+        
+        const remainingPhotos = state.photos.filter(photo => 
+          !photoIds.includes(photo.id)
+        )
+        
+        return {
+          photos: [...reorderedPhotos, ...remainingPhotos],
+          loading: false
+        }
+      })
+      
+      toast.success('Ordre des photos mis à jour avec succès')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la réorganisation'
       set({ loading: false })
             toast.error(errorMessage, {
         duration: 1000,
