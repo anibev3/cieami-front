@@ -107,7 +107,7 @@ export function PaymentDataTable({
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -128,9 +128,6 @@ export function PaymentDataTable({
                 {parseFloat(totalAmount).toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
               </p>
             </div>
-            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-green-600 text-sm font-bold">€</span>
-            </div>
           </div>
         </div>
         
@@ -148,7 +145,7 @@ export function PaymentDataTable({
           </div>
         </div>
         
-        <div className="rounded-lg border bg-card p-4">
+        {/* <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Actions</p>
@@ -169,7 +166,7 @@ export function PaymentDataTable({
               <span className="text-purple-600 text-sm font-bold">⚡</span>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Barre d'outils */}

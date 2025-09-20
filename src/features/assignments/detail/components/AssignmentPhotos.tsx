@@ -1206,7 +1206,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
               {/* Type de photo */}
               <div className="space-y-2">
                 <Label htmlFor="edit-photo-type" className="text-sm font-medium">
-                  Type de photo *
+                  Type de photo
                 </Label>
                 <Select
                   value={editData.photo_type_id}

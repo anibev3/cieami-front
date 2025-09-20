@@ -163,7 +163,7 @@ export default function PaymentDetail() {
 
           {/* Informations principales */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <DollarSign className="h-4 w-4" />
@@ -180,7 +180,7 @@ export default function PaymentDetail() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Calendar className="h-4 w-4" />
@@ -197,7 +197,7 @@ export default function PaymentDetail() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <CheckCircle className="h-4 w-4" />
@@ -220,7 +220,7 @@ export default function PaymentDetail() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Informations du paiement */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5" />
@@ -266,7 +266,7 @@ export default function PaymentDetail() {
             </Card>
 
             {/* Informations du dossier */}
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
@@ -315,7 +315,7 @@ export default function PaymentDetail() {
           </div>
 
           {/* Montants détaillés */}
-          <Card>
+          <Card className='shadow-none'>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
@@ -329,7 +329,7 @@ export default function PaymentDetail() {
                   <p className="text-lg font-semibold">
                     {payment.assignment?.shock_amount_excluding_tax 
                       ? formatCurrency(parseFloat(payment.assignment.shock_amount_excluding_tax))
-                      : '0 €'
+                      : '0 F CFA'
                     }
                   </p>
                 </div>
@@ -338,7 +338,7 @@ export default function PaymentDetail() {
                   <p className="text-lg font-semibold">
                     {payment.assignment?.shock_amount_tax 
                       ? formatCurrency(parseFloat(payment.assignment.shock_amount_tax))
-                      : '0 €'
+                      : '0 F CFA'
                     }
                   </p>
                 </div>
@@ -347,7 +347,7 @@ export default function PaymentDetail() {
                   <p className="text-lg font-semibold">
                     {payment.assignment?.receipt_amount_excluding_tax 
                       ? formatCurrency(parseFloat(payment.assignment.receipt_amount_excluding_tax))
-                      : '0 €'
+                      : '0 F CFA'
                     }
                   </p>
                 </div>
@@ -356,7 +356,7 @@ export default function PaymentDetail() {
                   <p className="text-lg font-semibold">
                     {payment.assignment?.receipt_amount_tax 
                       ? formatCurrency(parseFloat(payment.assignment.receipt_amount_tax))
-                      : '0 €'
+                      : '0 F CFA'
                     }
                   </p>
                 </div>
@@ -370,7 +370,7 @@ export default function PaymentDetail() {
                   <p className="text-xl font-bold">
                     {payment.assignment?.total_amount_excluding_tax 
                       ? formatCurrency(parseFloat(payment.assignment.total_amount_excluding_tax))
-                      : '0 €'
+                      : '0 F CFA'
                     }
                   </p>
                 </div>
@@ -379,7 +379,7 @@ export default function PaymentDetail() {
                   <p className="text-xl font-bold text-green-600">
                     {payment.assignment?.total_amount 
                       ? formatCurrency(parseFloat(payment.assignment.total_amount))
-                      : '0 €'
+                      : '0 F CFA'
                     }
                   </p>
                 </div>
@@ -388,7 +388,7 @@ export default function PaymentDetail() {
                   <p className="text-xl font-bold text-blue-600">
                     {payment.assignment?.payment_received 
                       ? formatCurrency(parseFloat(payment.assignment.payment_received))
-                      : '0 €'
+                      : '0 F CFA'
                     }
                   </p>
                 </div>
@@ -398,7 +398,7 @@ export default function PaymentDetail() {
 
           {/* Informations des utilisateurs */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
@@ -419,7 +419,7 @@ export default function PaymentDetail() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
@@ -443,7 +443,7 @@ export default function PaymentDetail() {
 
           {/* Évaluations du véhicule */}
           {payment.assignment?.evaluations && (
-            <Card>
+            <Card className='shadow-none'>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Car className="h-5 w-5" />
@@ -499,7 +499,7 @@ export default function PaymentDetail() {
           )}
 
           {/* Statuts et dates */}
-          <Card>
+          <Card className='shadow-none'>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />

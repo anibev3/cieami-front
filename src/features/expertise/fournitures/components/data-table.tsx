@@ -2,6 +2,7 @@ import { Supply } from '@/types/supplies'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Pagination } from '@/components/ui/pagination'
 import { useState } from 'react'
 import { SupplyViewDialog } from './supply-view-dialog'
 import { SupplyMutateDialog } from './supply-mutate-dialog'
@@ -10,9 +11,16 @@ import { SupplyDeleteDialog } from './supply-delete-dialog'
 interface DataTableProps {
   data: Supply[]
   loading: boolean
+  onPageChange?: (page: number) => void
+  pagination?: {
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    perPage: number
+  }
 }
 
-export function DataTable({ data, loading }: DataTableProps) {
+export function DataTable({ data, loading, onPageChange, pagination }: DataTableProps) {
   const [viewId, setViewId] = useState<number | null>(null)
   const [editId, setEditId] = useState<number | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
@@ -78,6 +86,20 @@ export function DataTable({ data, loading }: DataTableProps) {
           ))}
         </TableBody>
       </Table>
+      
+      {pagination && (
+        <div className="mt-4">
+          <Pagination 
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            perPage={pagination.perPage}
+            onPageChange={onPageChange || (() => {})}
+            loading={loading}
+          />
+        </div>
+      )}
+      
       <SupplyViewDialog id={viewId} onOpenChange={() => setViewId(null)} />
       <SupplyMutateDialog id={editId} open={!!editId} onOpenChange={() => setEditId(null)} />
       <SupplyDeleteDialog id={deleteId} onOpenChange={() => setDeleteId(null)} />

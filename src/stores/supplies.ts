@@ -11,18 +11,31 @@ import {
 import * as suppliesService from '@/services/supplies'
 import { toast } from 'sonner'
 
+interface SupplyFilters {
+  search?: string
+  status?: string
+}
+
+interface SupplyPagination {
+  currentPage: number
+  totalPages: number
+  totalItems: number
+  perPage: number
+}
+
 interface SuppliesState {
   supplies: Supply[]
   loading: boolean
   error: string | null
-  total: number
-  page: number
-  perPage: number
-  fetchSupplies: (params?: Record<string, string | number | undefined>) => Promise<void>
+  pagination: SupplyPagination
+  filters: SupplyFilters
+  fetchSupplies: (page?: number, filters?: SupplyFilters) => Promise<void>
   fetchSupplyById: (id: number) => Promise<Supply>
   createSupply: (data: SupplyCreate) => Promise<Supply>
   updateSupply: (id: number | string, data: SupplyUpdate) => Promise<void>
   deleteSupply: (id: number | string) => Promise<void>
+  setFilters: (filters: SupplyFilters) => void
+  setPage: (page: number) => void
 }
 
 interface SupplyPricesState {
@@ -43,19 +56,33 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
   supplies: [],
   loading: false,
   error: null,
-  total: 0,
-  page: 1,
-  perPage: 20,
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    perPage: 20,
+  },
+  filters: {
+    search: '',
+    status: '',
+  },
 
-  fetchSupplies: async (params) => {
+  fetchSupplies: async (page = 1, filters = {}) => {
     set({ loading: true, error: null })
     try {
+      const params: Record<string, string | number | undefined> = {
+        page,
+        ...filters,
+      }
       const response = await suppliesService.getSupplies(params)
       set({
         supplies: response.data,
-        total: response.meta.total,
-        page: response.meta.current_page,
-        perPage: response.meta.per_page,
+        pagination: {
+          currentPage: response.meta.current_page,
+          totalPages: response.meta.last_page,
+          totalItems: response.meta.total,
+          perPage: response.meta.per_page,
+        },
         loading: false,
       })
     } catch (error: unknown) {
@@ -65,6 +92,14 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
         duration: 1000,
       })
     }
+  },
+
+  setFilters: (filters) => {
+    set({ filters })
+  },
+
+  setPage: (page) => {
+    set({ pagination: { ...get().pagination, currentPage: page } })
   },
 
   fetchSupplyById: async (id: number) => {
@@ -85,7 +120,7 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       const newSupply = await suppliesService.createSupply(data)
-      await get().fetchSupplies()
+      await get().fetchSupplies(get().pagination.currentPage, get().filters)
       set({ loading: false })
       toast.success('Fourniture créée avec succès')
       return newSupply
@@ -103,7 +138,7 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       await suppliesService.updateSupply(id, data)
-      await get().fetchSupplies()
+      await get().fetchSupplies(get().pagination.currentPage, get().filters)
       set({ loading: false })
       toast.success('Fourniture mise à jour avec succès')
     } catch (error: unknown) {
@@ -119,7 +154,7 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       await suppliesService.deleteSupply(id)
-      await get().fetchSupplies()
+      await get().fetchSupplies(get().pagination.currentPage, get().filters)
       set({ loading: false })
       toast.success('Fourniture supprimée avec succès')
     } catch (error: unknown) {
