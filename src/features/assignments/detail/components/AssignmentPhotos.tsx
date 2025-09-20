@@ -14,6 +14,7 @@ import { CreatePhotoData, UpdatePhotoData, Photo, PhotoType } from '@/types/gest
 import { photoService } from '@/services/photoService'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
+import { PhotoTypeSelect } from '@/features/widgets/photo-type-select'
 
 interface AssignmentPhotosProps {
   assignmentId: string
@@ -42,12 +43,17 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
     fetchPhotoTypes
   } = usePhotoTypeStore()
 
+
+
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [activeTab, setActiveTab] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'gallery'>('grid')
   const [tabsData, setTabsData] = useState<TabData[]>([])
+  const [loadingEditPhoto, setLoadingEditPhoto] = useState(false)
+  const [loadingDeletePhoto, setLoadingDeletePhoto] = useState(false)
+  const [loadingSetAsCoverPhoto, setLoadingSetAsCoverPhoto] = useState(false)
   const [uploadData, setUploadData] = useState<CreatePhotoData>({
     assignment_id: assignmentId,
     photo_type_id: '',
@@ -331,6 +337,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
 
   const handleEdit = async () => {
     if (!selectedPhoto) return
+    setLoadingEditPhoto(true)
     try {
       await updatePhoto(selectedPhoto.id, editData)
       setIsEditDialogOpen(false)
@@ -344,24 +351,32 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
       refreshCurrentTab()
     } catch (_error) {
       // Error handled by store
+    } finally {
+      setLoadingEditPhoto(false)
     }
   }
 
   const handleDelete = async (id: number) => {
+    setLoadingDeletePhoto(true)
     try {
       await deletePhoto(id)
       refreshCurrentTab()
     } catch (_error) {
       // Error handled by store
+    } finally {
+      setLoadingDeletePhoto(false)
     }
   }
 
   const handleSetAsCover = async (id: number) => {
+    setLoadingSetAsCoverPhoto(true)
     try {
       await setAsCover(id)
       refreshCurrentTab()
     } catch (_error) {
       // Error handled by store
+    } finally {
+      setLoadingSetAsCoverPhoto(false)
     }
   }
 
@@ -1204,33 +1219,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             {/* Colonne droite - Formulaire de modification */}
             <div className="space-y-4">
               {/* Type de photo */}
-              <div className="space-y-2">
-                <Label htmlFor="edit-photo-type" className="text-sm font-medium">
-                  Type de photo
-                </Label>
-                <Select
-                  value={editData.photo_type_id}
-                  onValueChange={(value) => setEditData({ ...editData, photo_type_id: value })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionnez un type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {photoTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <span>{type.label}</span>
-                          {type.description && (
-                            <span className="text-xs text-muted-foreground">
-                              - {type.description}
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <PhotoTypeSelect value={editData.photo_type_id} onValueChange={(value) => setEditData({ ...editData, photo_type_id: value })} />
 
               {/* Nouvelle photo */}
               <div className="space-y-2">
@@ -1379,11 +1368,15 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
               </Button>
               <Button 
                 onClick={handleEdit}
-                // disabled={!editData.photo_type_id}
+                disabled={loadingEditPhoto}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
-                <Edit className="mr-2 h-4 w-4" />
-                Modifier
+                {loadingEditPhoto ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Edit className="mr-2 h-4 w-4" />
+                )}
+                {loadingEditPhoto ? 'Modification en cours...' : 'Modifier'}
               </Button>
             </div>
           </DialogFooter>
