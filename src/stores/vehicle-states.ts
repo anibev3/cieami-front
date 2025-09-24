@@ -9,20 +9,24 @@ interface VehicleStatesState {
   error: string | null
   pagination: {
     currentPage: number
-    totalPages: number
-    totalItems: number
+    lastPage: number
     perPage: number
+    from: number
+    to: number
+    total: number
   }
+  filters: VehicleStateFilters
 }
 
 interface VehicleStatesActions {
   // Actions
-  fetchVehicleStates: (page?: number, filters?: VehicleStateFilters) => Promise<void>
+  fetchVehicleStates: (filters?: VehicleStateFilters) => Promise<void>
   fetchVehicleState: (id: number) => Promise<void>
   createVehicleState: (vehicleStateData: VehicleStateCreate) => Promise<void>
   updateVehicleState: (id: number, vehicleStateData: VehicleStateUpdate) => Promise<void>
   deleteVehicleState: (id: number) => Promise<void>
   setCurrentVehicleState: (vehicleState: VehicleState | null) => void
+  setFilters: (filters: VehicleStateFilters) => void
   clearError: () => void
 }
 
@@ -36,25 +40,33 @@ export const useVehicleStatesStore = create<VehicleStatesStore>((set, get) => ({
   error: null,
   pagination: {
     currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    perPage: 20,
+    lastPage: 1,
+    perPage: 25,
+    from: 1,
+    to: 1,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    page: 1
   },
 
   // Actions
-  fetchVehicleStates: async (page = 1, filters) => {
+  fetchVehicleStates: async (filters) => {
     set({ loading: true, error: null })
     
     try {
-      const response = await vehicleStateService.getVehicleStates(page, filters)
+      const response = await vehicleStateService.getVehicleStates(filters)
       
       set({
         vehicleStates: response.data,
         pagination: {
           currentPage: response.meta.current_page,
-          totalPages: response.meta.last_page,
-          totalItems: response.meta.total,
+          lastPage: response.meta.last_page,
           perPage: response.meta.per_page,
+          from: response.meta.from,
+          to: response.meta.to,
+          total: response.meta.total,
         },
         loading: false,
       })
@@ -86,7 +98,7 @@ export const useVehicleStatesStore = create<VehicleStatesStore>((set, get) => ({
     try {
       await vehicleStateService.createVehicleState(vehicleStateData)
       // Recharger la liste après création
-      await get().fetchVehicleStates(get().pagination.currentPage)
+      await get().fetchVehicleStates()
       set({ loading: false })
     } catch (error) {
       set({
@@ -103,7 +115,7 @@ export const useVehicleStatesStore = create<VehicleStatesStore>((set, get) => ({
     try {
       await vehicleStateService.updateVehicleState(id, vehicleStateData)
       // Recharger la liste après mise à jour
-      await get().fetchVehicleStates(get().pagination.currentPage)
+      await get().fetchVehicleStates()
       set({ loading: false })
     } catch (error) {
       set({
@@ -120,7 +132,7 @@ export const useVehicleStatesStore = create<VehicleStatesStore>((set, get) => ({
     try {
       await vehicleStateService.deleteVehicleState(id)
       // Recharger la liste après suppression
-      await get().fetchVehicleStates(get().pagination.currentPage)
+      await get().fetchVehicleStates()
       set({ loading: false })
     } catch (error) {
       set({
@@ -133,6 +145,10 @@ export const useVehicleStatesStore = create<VehicleStatesStore>((set, get) => ({
 
   setCurrentVehicleState: (vehicleState) => {
     set({ currentVehicleState: vehicleState })
+  },
+
+  setFilters: (filters) => {
+    set({ filters })
   },
 
   clearError: () => {

@@ -61,8 +61,8 @@ import { Route as AuthenticatedGestionDocumentsImport } from './routes/_authenti
 import { Route as AuthenticatedGestionClientsImport } from './routes/_authenticated/gestion/clients'
 import { Route as AuthenticatedGestionAssureursidImport } from './routes/_authenticated/gestion/assureurs_$id'
 import { Route as AuthenticatedGestionAssureursImport } from './routes/_authenticated/gestion/assureurs'
+import { Route as AuthenticatedFinancesReceiptsImport } from './routes/_authenticated/finances/receipts'
 import { Route as AuthenticatedFinancesReceiptTypesImport } from './routes/_authenticated/finances/receipt-types'
-import { Route as AuthenticatedFinancesQuittanceImport } from './routes/_authenticated/finances/quittance'
 import { Route as AuthenticatedFinancesOtherCostsImport } from './routes/_authenticated/finances/other-costs'
 import { Route as AuthenticatedFinancesCostTypesImport } from './routes/_authenticated/finances/cost-types'
 import { Route as AuthenticatedExpertiseTypesImport } from './routes/_authenticated/expertise/types'
@@ -463,17 +463,17 @@ const AuthenticatedGestionAssureursRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedFinancesReceiptsRoute =
+  AuthenticatedFinancesReceiptsImport.update({
+    id: '/finances/receipts',
+    path: '/finances/receipts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedFinancesReceiptTypesRoute =
   AuthenticatedFinancesReceiptTypesImport.update({
     id: '/finances/receipt-types',
     path: '/finances/receipt-types',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-
-const AuthenticatedFinancesQuittanceRoute =
-  AuthenticatedFinancesQuittanceImport.update({
-    id: '/finances/quittance',
-    path: '/finances/quittance',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1280,18 +1280,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinancesOtherCostsImport
       parentRoute: typeof AuthenticatedRouteImport
     }
-    '/_authenticated/finances/quittance': {
-      id: '/_authenticated/finances/quittance'
-      path: '/finances/quittance'
-      fullPath: '/finances/quittance'
-      preLoaderRoute: typeof AuthenticatedFinancesQuittanceImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
     '/_authenticated/finances/receipt-types': {
       id: '/_authenticated/finances/receipt-types'
       path: '/finances/receipt-types'
       fullPath: '/finances/receipt-types'
       preLoaderRoute: typeof AuthenticatedFinancesReceiptTypesImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/finances/receipts': {
+      id: '/_authenticated/finances/receipts'
+      path: '/finances/receipts'
+      fullPath: '/finances/receipts'
+      preLoaderRoute: typeof AuthenticatedFinancesReceiptsImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/gestion/assureurs': {
@@ -1943,8 +1943,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExpertiseTypesRoute: typeof AuthenticatedExpertiseTypesRoute
   AuthenticatedFinancesCostTypesRoute: typeof AuthenticatedFinancesCostTypesRoute
   AuthenticatedFinancesOtherCostsRoute: typeof AuthenticatedFinancesOtherCostsRoute
-  AuthenticatedFinancesQuittanceRoute: typeof AuthenticatedFinancesQuittanceRoute
   AuthenticatedFinancesReceiptTypesRoute: typeof AuthenticatedFinancesReceiptTypesRoute
+  AuthenticatedFinancesReceiptsRoute: typeof AuthenticatedFinancesReceiptsRoute
   AuthenticatedGestionAssureursRoute: typeof AuthenticatedGestionAssureursRoute
   AuthenticatedGestionAssureursidRoute: typeof AuthenticatedGestionAssureursidRoute
   AuthenticatedGestionClientsRoute: typeof AuthenticatedGestionClientsRoute
@@ -2039,9 +2039,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExpertiseTypesRoute: AuthenticatedExpertiseTypesRoute,
   AuthenticatedFinancesCostTypesRoute: AuthenticatedFinancesCostTypesRoute,
   AuthenticatedFinancesOtherCostsRoute: AuthenticatedFinancesOtherCostsRoute,
-  AuthenticatedFinancesQuittanceRoute: AuthenticatedFinancesQuittanceRoute,
   AuthenticatedFinancesReceiptTypesRoute:
     AuthenticatedFinancesReceiptTypesRoute,
+  AuthenticatedFinancesReceiptsRoute: AuthenticatedFinancesReceiptsRoute,
   AuthenticatedGestionAssureursRoute: AuthenticatedGestionAssureursRoute,
   AuthenticatedGestionAssureursidRoute: AuthenticatedGestionAssureursidRoute,
   AuthenticatedGestionClientsRoute: AuthenticatedGestionClientsRoute,
@@ -2212,8 +2212,8 @@ export interface FileRoutesByFullPath {
   '/expertise/types': typeof AuthenticatedExpertiseTypesRoute
   '/finances/cost-types': typeof AuthenticatedFinancesCostTypesRoute
   '/finances/other-costs': typeof AuthenticatedFinancesOtherCostsRoute
-  '/finances/quittance': typeof AuthenticatedFinancesQuittanceRoute
   '/finances/receipt-types': typeof AuthenticatedFinancesReceiptTypesRoute
+  '/finances/receipts': typeof AuthenticatedFinancesReceiptsRoute
   '/gestion/assureurs': typeof AuthenticatedGestionAssureursRoute
   '/gestion/assureurs_$id': typeof AuthenticatedGestionAssureursidRoute
   '/gestion/clients': typeof AuthenticatedGestionClientsRoute
@@ -2330,8 +2330,8 @@ export interface FileRoutesByTo {
   '/expertise/types': typeof AuthenticatedExpertiseTypesRoute
   '/finances/cost-types': typeof AuthenticatedFinancesCostTypesRoute
   '/finances/other-costs': typeof AuthenticatedFinancesOtherCostsRoute
-  '/finances/quittance': typeof AuthenticatedFinancesQuittanceRoute
   '/finances/receipt-types': typeof AuthenticatedFinancesReceiptTypesRoute
+  '/finances/receipts': typeof AuthenticatedFinancesReceiptsRoute
   '/gestion/assureurs': typeof AuthenticatedGestionAssureursRoute
   '/gestion/assureurs_$id': typeof AuthenticatedGestionAssureursidRoute
   '/gestion/clients': typeof AuthenticatedGestionClientsRoute
@@ -2454,8 +2454,8 @@ export interface FileRoutesById {
   '/_authenticated/expertise/types': typeof AuthenticatedExpertiseTypesRoute
   '/_authenticated/finances/cost-types': typeof AuthenticatedFinancesCostTypesRoute
   '/_authenticated/finances/other-costs': typeof AuthenticatedFinancesOtherCostsRoute
-  '/_authenticated/finances/quittance': typeof AuthenticatedFinancesQuittanceRoute
   '/_authenticated/finances/receipt-types': typeof AuthenticatedFinancesReceiptTypesRoute
+  '/_authenticated/finances/receipts': typeof AuthenticatedFinancesReceiptsRoute
   '/_authenticated/gestion/assureurs': typeof AuthenticatedGestionAssureursRoute
   '/_authenticated/gestion/assureurs_$id': typeof AuthenticatedGestionAssureursidRoute
   '/_authenticated/gestion/clients': typeof AuthenticatedGestionClientsRoute
@@ -2578,8 +2578,8 @@ export interface FileRouteTypes {
     | '/expertise/types'
     | '/finances/cost-types'
     | '/finances/other-costs'
-    | '/finances/quittance'
     | '/finances/receipt-types'
+    | '/finances/receipts'
     | '/gestion/assureurs'
     | '/gestion/assureurs_$id'
     | '/gestion/clients'
@@ -2695,8 +2695,8 @@ export interface FileRouteTypes {
     | '/expertise/types'
     | '/finances/cost-types'
     | '/finances/other-costs'
-    | '/finances/quittance'
     | '/finances/receipt-types'
+    | '/finances/receipts'
     | '/gestion/assureurs'
     | '/gestion/assureurs_$id'
     | '/gestion/clients'
@@ -2817,8 +2817,8 @@ export interface FileRouteTypes {
     | '/_authenticated/expertise/types'
     | '/_authenticated/finances/cost-types'
     | '/_authenticated/finances/other-costs'
-    | '/_authenticated/finances/quittance'
     | '/_authenticated/finances/receipt-types'
+    | '/_authenticated/finances/receipts'
     | '/_authenticated/gestion/assureurs'
     | '/_authenticated/gestion/assureurs_$id'
     | '/_authenticated/gestion/clients'
@@ -2978,8 +2978,8 @@ export const routeTree = rootRoute
         "/_authenticated/expertise/types",
         "/_authenticated/finances/cost-types",
         "/_authenticated/finances/other-costs",
-        "/_authenticated/finances/quittance",
         "/_authenticated/finances/receipt-types",
+        "/_authenticated/finances/receipts",
         "/_authenticated/gestion/assureurs",
         "/_authenticated/gestion/assureurs_$id",
         "/_authenticated/gestion/clients",
@@ -3242,12 +3242,12 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/finances/other-costs.tsx",
       "parent": "/_authenticated"
     },
-    "/_authenticated/finances/quittance": {
-      "filePath": "_authenticated/finances/quittance.tsx",
-      "parent": "/_authenticated"
-    },
     "/_authenticated/finances/receipt-types": {
       "filePath": "_authenticated/finances/receipt-types.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/finances/receipts": {
+      "filePath": "_authenticated/finances/receipts.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/gestion/assureurs": {

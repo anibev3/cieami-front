@@ -4,7 +4,10 @@ import {
   OtherCostTypeResponse,
   CreateOtherCostTypeData,
   UpdateOtherCostTypeData,
-  OtherCostTypeFilters
+  OtherCostTypeFilters,
+  OtherCostTypeCreateResponse,
+  OtherCostTypeUpdateResponse,
+  OtherCostTypeDeleteResponse
 } from '@/types/administration'
 
 class OtherCostTypeService {
@@ -25,17 +28,34 @@ class OtherCostTypeService {
   }
 
   async create(data: CreateOtherCostTypeData): Promise<OtherCostType> {
-    const response = await axiosInstance.post<OtherCostType>(this.baseUrl, data)
-    return response.data
+    const response = await axiosInstance.post<OtherCostTypeCreateResponse>(this.baseUrl, data)
+    return response.data.data
   }
 
   async update(id: number | string, data: UpdateOtherCostTypeData): Promise<OtherCostType> {
-    const response = await axiosInstance.put<OtherCostType>(`${this.baseUrl}/${id}`, data)
-    return response.data
+    const response = await axiosInstance.put<OtherCostTypeUpdateResponse>(`${this.baseUrl}/${id}`, data)
+    return response.data.data
   }
 
   async delete(id: number | string): Promise<void> {
-    await axiosInstance.delete(`${this.baseUrl}/${id}`)
+    const response = await axiosInstance.delete<OtherCostTypeDeleteResponse>(`${this.baseUrl}/${id}`)
+    // La réponse de suppression peut ne pas contenir de data, donc on ne retourne rien
+  }
+
+  // Méthodes qui retournent les réponses complètes avec messages
+  async createWithResponse(data: CreateOtherCostTypeData): Promise<OtherCostTypeCreateResponse> {
+    const response = await axiosInstance.post<OtherCostTypeCreateResponse>(this.baseUrl, data)
+    return response.data
+  }
+
+  async updateWithResponse(id: number | string, data: UpdateOtherCostTypeData): Promise<OtherCostTypeUpdateResponse> {
+    const response = await axiosInstance.put<OtherCostTypeUpdateResponse>(`${this.baseUrl}/${id}`, data)
+    return response.data
+  }
+
+  async deleteWithResponse(id: number | string): Promise<OtherCostTypeDeleteResponse> {
+    const response = await axiosInstance.delete<OtherCostTypeDeleteResponse>(`${this.baseUrl}/${id}`)
+    return response.data
   }
 }
 

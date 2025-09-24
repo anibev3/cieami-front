@@ -83,7 +83,7 @@ export function DataTable({ data, loading }: DataTableProps) {
         </TableBody>
       </Table>
       <ExpertiseTypeViewDialog id={viewId} onOpenChange={() => setViewId(null)} />
-      <ExpertiseTypeMutateDialog id={editId} onOpenChange={() => setEditId(null)} />
+      <ExpertiseTypeMutateDialog id={editId} open={!!editId} onOpenChange={() => setEditId(null)} />
       <ExpertiseTypeDeleteDialog id={deleteId} onOpenChange={() => setDeleteId(null)} />
     </>
   )

@@ -481,6 +481,202 @@ export interface OtherCostTypeActions {
   getAll: (filters?: OtherCostTypeFilters) => Promise<OtherCostTypeResponse>
 }
 
+// Types pour les réponses API des opérations CRUD des types de coût
+export interface OtherCostTypeCreateResponse {
+  status: number
+  message: string
+  data: OtherCostType
+}
+
+export interface OtherCostTypeUpdateResponse {
+  status: number
+  message: string
+  data: OtherCostType
+}
+
+export interface OtherCostTypeDeleteResponse {
+  status: number
+  message: string
+  data?: any
+}
+
+// Types pour les autres coûts (OtherCost)
+export interface OtherCost {
+  id: number
+  amount_excluding_tax: string
+  amount_tax: string
+  amount: string
+  other_cost_type_label: string
+  other_cost_type: OtherCostType
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface OtherCostResponse {
+  data: OtherCost[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+export interface CreateOtherCostData {
+  other_cost_type_id: number
+  amount_excluding_tax: number
+  amount_tax?: number
+  amount: number
+}
+
+export interface UpdateOtherCostData {
+  other_cost_type_id?: number
+  amount_excluding_tax?: number
+  amount_tax?: number
+  amount?: number
+}
+
+export interface OtherCostFilters {
+  search?: string
+  other_cost_type_id?: number
+  page?: number
+  per_page?: number
+}
+
+// Types pour les réponses API des opérations CRUD des autres coûts
+export interface OtherCostCreateResponse {
+  status: number
+  message: string
+  data: OtherCost
+}
+
+export interface OtherCostUpdateResponse {
+  status: number
+  message: string
+  data: OtherCost
+}
+
+export interface OtherCostDeleteResponse {
+  status: number
+  message: string
+  data?: any
+}
+
+// Types pour les quittances (Receipt)
+export interface Receipt {
+  id: number
+  assignment_id?: number
+  amount_excluding_tax: string
+  amount_tax: string
+  amount: string
+  receipt_type: {
+    id: number
+    code: string
+    label: string
+    description: string
+    created_at: string
+    updated_at: string
+  }
+  status: {
+    id: number
+    code: string
+    label: string
+    description: string
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+  }
+  created_at: string
+  updated_at: string
+}
+
+export interface ReceiptResponse {
+  data: Receipt[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+export interface CreateReceiptData {
+  assignment_id: number
+  receipt_type_id: number
+  amount: number
+}
+
+export interface CreateMultipleReceiptsData {
+  assignment_id: number
+  receipts: Array<{
+    receipt_type_id: number
+    amount: number
+  }>
+}
+
+export interface UpdateReceiptData {
+  assignment_id?: number
+  receipt_type_id?: number
+  amount?: number
+}
+
+export interface ReceiptFilters {
+  search?: string
+  receipt_type_id?: number
+  status_id?: number
+  assignment_id?: number
+  page?: number
+  per_page?: number
+}
+
+// Types pour les réponses API des opérations CRUD des quittances
+export interface ReceiptCreateResponse {
+  status: number
+  message: string
+  data: Receipt
+}
+
+export interface ReceiptUpdateResponse {
+  status: number
+  message: string
+  data: Receipt
+}
+
+export interface ReceiptDeleteResponse {
+  status: number
+  message: string
+  data?: any
+}
+
 // Types pour les types de quittances (ReceiptType)  
 export interface ReceiptType {
   id: number

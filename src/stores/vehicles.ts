@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { create } from 'zustand'
 import { vehicleService } from '@/services/vehicleService'
 import { Vehicle, VehicleCreate, VehicleUpdate, VehicleFilters } from '@/types/vehicles'

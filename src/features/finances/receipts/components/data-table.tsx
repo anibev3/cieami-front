@@ -1,56 +1,43 @@
 import { useState } from 'react'
-import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender, SortingState } from '@tanstack/react-table'
+import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, flexRender, SortingState, ColumnFiltersState } from '@tanstack/react-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { useReceiptsStore } from '@/stores/receiptsStore'
 import { createColumns } from './columns'
-import { Client } from './types'
+import { Receipt } from '@/types/administration'
 
-interface ClientsDataTableProps {
-  data: Client[]
-  loading: boolean
-  pagination: {
-    currentPage: number
-    lastPage: number
-    perPage: number
-    from: number
-    to: number
-    total: number
-  }
-  searchQuery: string
-  onView: (client: Client) => void
-  onEdit: (client: Client) => void
-  onDelete: (client: Client) => void
-  onSearchChange: (value: string) => void
-  onPageChange: (page: number) => void
+interface DataTableProps {
+  onView: (receipt: Receipt) => void
+  onEdit: (receipt: Receipt) => void
+  onDelete: (receipt: Receipt) => void
 }
 
-export function ClientsDataTable({ 
-  data, 
-  loading, 
-  pagination, 
-  searchQuery, 
-  onView, 
-  onEdit, 
-  onDelete, 
-  onSearchChange, 
-  onPageChange 
-}: ClientsDataTableProps) {
+export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
+  const { receipts, loading } = useReceiptsStore()
   const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = useState('')
   const [rowSelection, setRowSelection] = useState({})
 
   const columns = createColumns({ onView, onEdit, onDelete })
 
   const table = useReactTable({
-    data,
+    data: receipts,
     columns,
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
+      columnFilters,
+      globalFilter,
       rowSelection,
     },
   })
@@ -62,9 +49,9 @@ export function ClientsDataTable({
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher des clients..."
-              value={searchQuery}
-              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Rechercher..."
+              value={globalFilter ?? ''}
+              onChange={(event) => setGlobalFilter(event.target.value)}
               className="h-8 w-[150px] lg:w-[250px]"
             />
           </div>
@@ -110,9 +97,9 @@ export function ClientsDataTable({
         <div className="flex items-center space-x-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher des clients..."
-            value={searchQuery}
-            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Rechercher..."
+            value={globalFilter ?? ''}
+            onChange={(event) => setGlobalFilter(event.target.value)}
             className="h-8 w-[150px] lg:w-[250px]"
           />
         </div>
@@ -153,7 +140,7 @@ export function ClientsDataTable({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Aucun client trouvé.
+                  Aucune quittance trouvée.
                 </TableCell>
               </TableRow>
             )}
@@ -163,25 +150,23 @@ export function ClientsDataTable({
 
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          Affichage de {pagination.from} à {pagination.to} sur {pagination.total} clients
+          {table.getFilteredSelectedRowModel().rows.length} sur{" "}
+          {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s).
         </div>
         <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPageChange(pagination.currentPage - 1)}
-            disabled={pagination.currentPage <= 1}
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {pagination.currentPage} sur {pagination.lastPage}
-          </span>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPageChange(pagination.currentPage + 1)}
-            disabled={pagination.currentPage >= pagination.lastPage}
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -189,4 +174,4 @@ export function ClientsDataTable({
       </div>
     </div>
   )
-} 
+}

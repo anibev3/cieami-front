@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Eye, Edit, Trash2, Search } from 'lucide-react'
+import { Eye, Edit, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useVehicleAgesStore } from '@/stores/vehicleAgesStore'
 import { VehicleAge } from '@/services/vehicleAgeService'
 
@@ -18,39 +18,82 @@ interface DataTableProps {
   onView: (vehicleAge: VehicleAge) => void
   onEdit: (vehicleAge: VehicleAge) => void
   onDelete: (vehicleAge: VehicleAge) => void
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    from: number
+    to: number
+    total: number
+  }
+  searchQuery: string
+  onSearchChange: (value: string) => void
+  onPageChange: (page: number) => void
 }
 
-export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
+export function DataTable({ 
+  onView, 
+  onEdit, 
+  onDelete, 
+  pagination, 
+  searchQuery, 
+  onSearchChange, 
+  onPageChange 
+}: DataTableProps) {
   const { vehicleAges, loading } = useVehicleAgesStore()
-  const [searchTerm, setSearchTerm] = useState('')
-
-  const filteredVehicleAges = vehicleAges.filter(age =>
-    age.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    age.value.toString().includes(searchTerm) ||
-    age.description.toLowerCase().includes(searchTerm.toLowerCase())
-  )
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement des âges de véhicules...</p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher des âges de véhicules..."
+              value={searchQuery}
+              onChange={(event) => onSearchChange(event.target.value)}
+              className="h-8 w-[150px] lg:w-[250px]"
+            />
+          </div>
+        </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Valeur (mois)</TableHead>
+                <TableHead>Label</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  {Array.from({ length: 5 }).map((_, cellIndex) => (
+                    <TableCell key={cellIndex}>
+                      <div className="h-4 bg-muted animate-pulse rounded" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher un âge..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
+            placeholder="Rechercher des âges de véhicules..."
+            value={searchQuery}
+            onChange={(event) => onSearchChange(event.target.value)}
+            className="h-8 w-[150px] lg:w-[250px]"
           />
         </div>
       </div>
@@ -67,14 +110,14 @@ export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredVehicleAges.length === 0 ? (
+            {vehicleAges.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground">
                   Aucun âge de véhicule trouvé
                 </TableCell>
               </TableRow>
             ) : (
-              filteredVehicleAges.map((age) => (
+              vehicleAges.map((age) => (
                 <TableRow key={age.id}>
                   <TableCell>
                     <Badge variant="outline" className="font-mono">
@@ -122,6 +165,33 @@ export function DataTable({ onView, onEdit, onDelete }: DataTableProps) {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          Affichage de {pagination.from} à {pagination.to} sur {pagination.total} âges de véhicules
+        </div>
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(pagination.currentPage - 1)}
+            disabled={pagination.currentPage <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {pagination.currentPage} sur {pagination.lastPage}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(pagination.currentPage + 1)}
+            disabled={pagination.currentPage >= pagination.lastPage}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )

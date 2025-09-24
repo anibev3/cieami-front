@@ -5,8 +5,11 @@ import { API_CONFIG } from '@/config/api'
 const API_URL = API_CONFIG.BASE_URL + '/clients'
 
 export const getClients = async (filters?: ClientFilters, token?: string): Promise<ClientApiResponse> => {
-  const { data } = await axiosInstance.get(API_URL + '?per_page=100000', {
-    params: filters,
+  const { data } = await axiosInstance.get(API_URL, {
+    params: {
+      per_page: 25, // Pagination par défaut
+      ...filters
+    },
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })
   return data

@@ -3,6 +3,7 @@ import { useBrandsStore } from '@/stores/brands'
 import { DataTable } from './components/data-table'
 import { BrandMutateDialog } from './components/brand-mutate-dialog'
 import { toast } from 'sonner'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
@@ -13,16 +14,51 @@ import { Button } from '@/components/ui/button'
 import { PlusIcon } from 'lucide-react'
 
 export default function BrandsPage() {
-  const { brands, loading, error, fetchBrands } = useBrandsStore()
+  const { 
+    brands, 
+    loading, 
+    error, 
+    fetchBrands, 
+    pagination, 
+    setFilters 
+  } = useBrandsStore()
   const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
+  // Effet pour déclencher la recherche quand la requête change
+  useEffect(() => {
+    const newFilters = {
+      search: debouncedSearchQuery,
+      page: 1 // Reset à la première page lors d'une nouvelle recherche
+    }
+    setFilters(newFilters)
+    fetchBrands(newFilters)
+  }, [debouncedSearchQuery])
+
+  // Effet initial pour charger les données
   useEffect(() => {
     fetchBrands()
-  }, [fetchBrands])
+  }, [])
 
   useEffect(() => {
     if (error) toast.error(error)
   }, [error])
+
+  // Handler pour la recherche
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+  }
+
+  // Handler pour le changement de page
+  const handlePageChange = (page: number) => {
+    const newFilters = {
+      search: searchQuery,
+      page
+    }
+    setFilters(newFilters)
+    fetchBrands(newFilters)
+  }
 
   return (
     <>
@@ -47,14 +83,17 @@ export default function BrandsPage() {
             <PlusIcon className='h-4 w-4' />
             Ajouter une marque
           </Button>
-          
-      </div>
+        </div>
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <DataTable 
             data={brands} 
             loading={loading}
+            pagination={pagination}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onPageChange={handlePageChange}
           />
-      </div>
+        </div>
       </Main>
     </>
   )

@@ -13,29 +13,65 @@ interface VehicleEnergiesState {
   loading: boolean
   error: string | null
   selectedVehicleEnergy: VehicleEnergy | null
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    from: number
+    to: number
+    total: number
+  }
+  filters: {
+    search: string
+    page: number
+  }
   
   // Actions
-  fetchVehicleEnergies: () => Promise<void>
+  fetchVehicleEnergies: (filters?: { search?: string; page?: number }) => Promise<void>
   createVehicleEnergy: (data: CreateVehicleEnergyData) => Promise<void>
   updateVehicleEnergy: (id: number, data: UpdateVehicleEnergyData) => Promise<void>
   deleteVehicleEnergy: (id: number) => Promise<void>
   setSelectedVehicleEnergy: (vehicleEnergy: VehicleEnergy | null) => void
+  setFilters: (filters: { search: string; page: number }) => void
   clearError: () => void
 }
 
-export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
+export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set, get) => ({
   // État initial
   vehicleEnergies: [],
   loading: false,
   error: null,
   selectedVehicleEnergy: null,
+  pagination: {
+    currentPage: 1,
+    lastPage: 1,
+    perPage: 25,
+    from: 1,
+    to: 1,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    page: 1
+  },
 
   // Actions
-  fetchVehicleEnergies: async () => {
+  fetchVehicleEnergies: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await vehicleEnergyService.getAll()
-      set({ vehicleEnergies: response.data, loading: false })
+      const response = await vehicleEnergyService.getAll(filters)
+      set({ 
+        vehicleEnergies: response.data, 
+        pagination: {
+          currentPage: response.meta.current_page,
+          lastPage: response.meta.last_page,
+          perPage: response.meta.per_page,
+          from: response.meta.from,
+          to: response.meta.to,
+          total: response.meta.total,
+        },
+        loading: false 
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des énergies de véhicules'
       set({ error: errorMessage, loading: false })
@@ -49,10 +85,8 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
     try {
       set({ loading: true })
       const newVehicleEnergy = await vehicleEnergyService.create(data)
-      set(state => ({ 
-        vehicleEnergies: [...state.vehicleEnergies, newVehicleEnergy], 
-        loading: false 
-      }))
+      await get().fetchVehicleEnergies()
+      set({ loading: false })
       toast.success('Énergie de véhicule créée avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
@@ -68,12 +102,8 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
     try {
       set({ loading: true })
       const updatedVehicleEnergy = await vehicleEnergyService.update(id, data)
-      set(state => ({
-        vehicleEnergies: state.vehicleEnergies.map(vehicleEnergy =>
-          vehicleEnergy.id === id ? updatedVehicleEnergy : vehicleEnergy
-        ),
-        loading: false
-      }))
+      await get().fetchVehicleEnergies()
+      set({ loading: false })
       toast.success('Énergie de véhicule mise à jour avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
@@ -89,10 +119,8 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
     try {
       set({ loading: true })
       await vehicleEnergyService.delete(id)
-      set(state => ({
-        vehicleEnergies: state.vehicleEnergies.filter(vehicleEnergy => vehicleEnergy.id !== id),
-        loading: false
-      }))
+      await get().fetchVehicleEnergies()
+      set({ loading: false })
       toast.success('Énergie de véhicule supprimée avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
@@ -106,6 +134,10 @@ export const useVehicleEnergiesStore = create<VehicleEnergiesState>((set) => ({
 
   setSelectedVehicleEnergy: (vehicleEnergy: VehicleEnergy | null) => {
     set({ selectedVehicleEnergy: vehicleEnergy })
+  },
+
+  setFilters: (filters) => {
+    set({ filters })
   },
 
   clearError: () => {

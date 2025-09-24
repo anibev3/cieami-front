@@ -14,6 +14,7 @@ interface ClientsState {
     perPage: number
     from: number
     to: number
+    total: number
   }
   filters: ClientFilters
   fetchClients: (filters?: ClientFilters, token?: string) => Promise<void>
@@ -34,9 +35,10 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
   pagination: {
     currentPage: 1,
     lastPage: 1,
-    perPage: 15,
+    perPage: 25,
     from: 1,
-    to: 1
+    to: 1,
+    total: 0
   },
   filters: {
     search: '',
@@ -55,7 +57,8 @@ export const useClientsStore = create<ClientsState>((set, get) => ({
           lastPage: res.meta.last_page,
           perPage: res.meta.per_page,
           from: res.meta.from,
-          to: res.meta.to
+          to: res.meta.to,
+          total: res.meta.total
         },
         loading: false 
       })

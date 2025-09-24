@@ -2,6 +2,8 @@ import axiosInstance from '@/lib/axios'
 import { Receipt } from '@/types/assignments'
 import { API_CONFIG } from '@/config/api'
 
+type ApiResponse = { status: number; message: string; data: null } | { errors: Array<{ status: number; title: string; detail: string }> }
+
 interface ReceiptApiResponse {
   id: number
   assignment_id: number
@@ -47,17 +49,15 @@ class ReceiptService {
   /**
    * Créer une nouvelle quittance
    */
-  async createReceipt(assignmentId: number, receiptData: { receipt_type_id: number; amount: number }): Promise<void> {
-    await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
+  async createReceipt(assignmentId: number, receiptData: { receipt_type_id: number; amount: number }): Promise<ApiResponse> {
+    const response = await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
       assignment_id: assignmentId.toString(),
       receipts: [{
         receipt_type_id: receiptData.receipt_type_id.toString(),
         amount: receiptData.amount
       }]
     })
-    
-    // L'API retourne data: null, donc on ne retourne rien
-    // Les données seront rafraîchies via onRefresh dans le composant
+    return response.data
   }
 
   /**
@@ -88,14 +88,15 @@ class ReceiptService {
   /**
    * Créer plusieurs quittances en une fois
    */
-  async createMultipleReceipts(assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]): Promise<void> {
-    await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
+  async createMultipleReceipts(assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]): Promise<ApiResponse> {
+    const response = await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
       assignment_id: assignmentId.toString(),
       receipts: receipts.map(r => ({
         receipt_type_id: r.receipt_type_id.toString(),
         amount: r.amount
       }))
     })
+    return response.data
   }
 }
 

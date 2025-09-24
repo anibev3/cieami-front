@@ -4,6 +4,7 @@ import { VehicleGenresDialogs } from '@/features/administration/vehicle/genre/co
 import { VehicleGenresPrimaryButtons } from '@/features/administration/vehicle/genre/components/vehicle-genres-primary-buttons'
 import { useVehicleGenresStore } from '@/stores/vehicleGenresStore'
 import { VehicleGenre } from '@/services/vehicleGenreService'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
@@ -12,17 +13,33 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 
 export default function VehicleGenresPage() {
-  const { fetchVehicleGenres } = useVehicleGenresStore()
+  const { 
+    fetchVehicleGenres, 
+    pagination, 
+    setFilters 
+  } = useVehicleGenresStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isViewOpen, setIsViewOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedVehicleGenre, setSelectedVehicleGenre] = useState<VehicleGenre | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
-  // Charger les genres de véhicules une seule fois au montage du composant
+  // Effet pour déclencher la recherche quand la requête change
+  useEffect(() => {
+    const newFilters = {
+      search: debouncedSearchQuery,
+      page: 1 // Reset à la première page lors d'une nouvelle recherche
+    }
+    setFilters(newFilters)
+    fetchVehicleGenres(newFilters)
+  }, [debouncedSearchQuery])
+
+  // Effet initial pour charger les données
   useEffect(() => {
     fetchVehicleGenres()
-  }, []) // Dépendance vide pour éviter les boucles
+  }, [])
 
   // Callbacks pour les actions
   const handleCreate = () => {
@@ -43,6 +60,21 @@ export default function VehicleGenresPage() {
   const handleDelete = (vehicleGenre: VehicleGenre) => {
     setSelectedVehicleGenre(vehicleGenre)
     setIsDeleteOpen(true)
+  }
+
+  // Handler pour la recherche
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+  }
+
+  // Handler pour le changement de page
+  const handlePageChange = (page: number) => {
+    const newFilters = {
+      search: searchQuery,
+      page
+    }
+    setFilters(newFilters)
+    fetchVehicleGenres(newFilters)
   }
 
   return (
@@ -70,6 +102,10 @@ export default function VehicleGenresPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            pagination={pagination}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onPageChange={handlePageChange}
           />
         </div>
       </Main>

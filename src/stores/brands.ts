@@ -9,20 +9,24 @@ interface BrandsState {
   error: string | null
   pagination: {
     currentPage: number
-    totalPages: number
-    totalItems: number
+    lastPage: number
     perPage: number
+    from: number
+    to: number
+    total: number
   }
+  filters: BrandFilters
 }
 
 interface BrandsActions {
   // Actions
-  fetchBrands: (page?: number, filters?: BrandFilters) => Promise<void>
+  fetchBrands: (filters?: BrandFilters) => Promise<void>
   fetchBrand: (id: number) => Promise<void>
   createBrand: (brandData: BrandCreate) => Promise<void>
   updateBrand: (id: number, brandData: BrandUpdate) => Promise<void>
   deleteBrand: (id: number) => Promise<void>
   setCurrentBrand: (brand: Brand | null) => void
+  setFilters: (filters: BrandFilters) => void
   clearError: () => void
 }
 
@@ -36,25 +40,33 @@ export const useBrandsStore = create<BrandsStore>((set, get) => ({
   error: null,
   pagination: {
     currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    perPage: 20,
+    lastPage: 1,
+    perPage: 25,
+    from: 1,
+    to: 1,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    page: 1
   },
 
   // Actions
-  fetchBrands: async (page = 1, filters) => {
+  fetchBrands: async (filters) => {
     set({ loading: true, error: null })
     
     try {
-      const response = await brandService.getBrands(page, filters)
+      const response = await brandService.getBrands(filters)
       
       set({
         brands: response.data,
         pagination: {
           currentPage: response.meta.current_page,
-          totalPages: response.meta.last_page,
-          totalItems: response.meta.total,
+          lastPage: response.meta.last_page,
           perPage: response.meta.per_page,
+          from: response.meta.from,
+          to: response.meta.to,
+          total: response.meta.total,
         },
         loading: false,
       })
@@ -86,7 +98,7 @@ export const useBrandsStore = create<BrandsStore>((set, get) => ({
     try {
       await brandService.createBrand(brandData)
       // Recharger la liste après création
-      await get().fetchBrands(get().pagination.currentPage)
+      await get().fetchBrands()
       set({ loading: false })
     } catch (error) {
       set({
@@ -103,7 +115,7 @@ export const useBrandsStore = create<BrandsStore>((set, get) => ({
     try {
       await brandService.updateBrand(id, brandData)
       // Recharger la liste après mise à jour
-      await get().fetchBrands(get().pagination.currentPage)
+      await get().fetchBrands()
       set({ loading: false })
     } catch (error) {
       set({
@@ -120,7 +132,7 @@ export const useBrandsStore = create<BrandsStore>((set, get) => ({
     try {
       await brandService.deleteBrand(id)
       // Recharger la liste après suppression
-      await get().fetchBrands(get().pagination.currentPage)
+      await get().fetchBrands()
       set({ loading: false })
     } catch (error) {
       set({
@@ -133,6 +145,10 @@ export const useBrandsStore = create<BrandsStore>((set, get) => ({
 
   setCurrentBrand: (brand) => {
     set({ currentBrand: brand })
+  },
+
+  setFilters: (filters) => {
+    set({ filters })
   },
 
   clearError: () => {

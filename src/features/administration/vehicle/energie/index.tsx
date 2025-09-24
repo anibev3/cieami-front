@@ -4,6 +4,7 @@ import { VehicleEnergiesDialogs } from '../../vehicle-energies/components/vehicl
 import { VehicleEnergiesPrimaryButtons } from '../../vehicle-energies/components/vehicle-energies-primary-buttons'
 import { useVehicleEnergiesStore } from '@/stores/vehicleEnergiesStore'
 import { VehicleEnergy } from '@/services/vehicleEnergyService'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
@@ -12,17 +13,33 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 
 export default function VehicleEnergiePage() {
-  const { fetchVehicleEnergies } = useVehicleEnergiesStore()
+  const { 
+    fetchVehicleEnergies, 
+    pagination, 
+    setFilters 
+  } = useVehicleEnergiesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isViewOpen, setIsViewOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedVehicleEnergy, setSelectedVehicleEnergy] = useState<VehicleEnergy | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
-  // Charger les énergies de véhicules une seule fois au montage du composant
+  // Effet pour déclencher la recherche quand la requête change
+  useEffect(() => {
+    const newFilters = {
+      search: debouncedSearchQuery,
+      page: 1 // Reset à la première page lors d'une nouvelle recherche
+    }
+    setFilters(newFilters)
+    fetchVehicleEnergies(newFilters)
+  }, [debouncedSearchQuery])
+
+  // Effet initial pour charger les données
   useEffect(() => {
     fetchVehicleEnergies()
-  }, []) // Dépendance vide pour éviter les boucles
+  }, [])
 
   // Callbacks pour les actions
   const handleCreate = () => {
@@ -43,6 +60,21 @@ export default function VehicleEnergiePage() {
   const handleDelete = (vehicleEnergy: VehicleEnergy) => {
     setSelectedVehicleEnergy(vehicleEnergy)
     setIsDeleteOpen(true)
+  }
+
+  // Handler pour la recherche
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+  }
+
+  // Handler pour le changement de page
+  const handlePageChange = (page: number) => {
+    const newFilters = {
+      search: searchQuery,
+      page
+    }
+    setFilters(newFilters)
+    fetchVehicleEnergies(newFilters)
   }
 
   return (
@@ -70,6 +102,10 @@ export default function VehicleEnergiePage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            pagination={pagination}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onPageChange={handlePageChange}
           />
         </div>
       </Main>

@@ -8,6 +8,7 @@ export const API_CONFIG = {
       LOGIN: '/auth/tokens',
       USER_INFO: '/auth/user',
       LOGOUT: '/auth/tokens',
+      RESET_PASSWORD: '/users/reset-password',
     },
     COLORS: '/colors',
     BRANDS: '/brands',
@@ -59,6 +60,7 @@ export interface ApiConfig {
       LOGIN: string
       USER_INFO: string
       LOGOUT: string
+      RESET_PASSWORD: string
     }
     COLORS: string
     BRANDS: string

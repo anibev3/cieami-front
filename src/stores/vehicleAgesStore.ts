@@ -13,29 +13,65 @@ interface VehicleAgesState {
   loading: boolean
   error: string | null
   selectedVehicleAge: VehicleAge | null
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    from: number
+    to: number
+    total: number
+  }
+  filters: {
+    search: string
+    page: number
+  }
   
   // Actions
-  fetchVehicleAges: () => Promise<void>
+  fetchVehicleAges: (filters?: { search?: string; page?: number }) => Promise<void>
   createVehicleAge: (data: CreateVehicleAgeData) => Promise<void>
   updateVehicleAge: (id: number, data: UpdateVehicleAgeData) => Promise<void>
   deleteVehicleAge: (id: number) => Promise<void>
   setSelectedVehicleAge: (vehicleAge: VehicleAge | null) => void
+  setFilters: (filters: { search: string; page: number }) => void
   clearError: () => void
 }
 
-export const useVehicleAgesStore = create<VehicleAgesState>((set) => ({
+export const useVehicleAgesStore = create<VehicleAgesState>((set, get) => ({
   // État initial
   vehicleAges: [],
   loading: false,
   error: null,
   selectedVehicleAge: null,
+  pagination: {
+    currentPage: 1,
+    lastPage: 1,
+    perPage: 25,
+    from: 1,
+    to: 1,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    page: 1
+  },
 
   // Actions
-  fetchVehicleAges: async () => {
+  fetchVehicleAges: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await vehicleAgeService.getAll()
-      set({ vehicleAges: response.data, loading: false })
+      const response = await vehicleAgeService.getAll(filters)
+      set({ 
+        vehicleAges: response.data, 
+        pagination: {
+          currentPage: response.meta.current_page,
+          lastPage: response.meta.last_page,
+          perPage: response.meta.per_page,
+          from: response.meta.from,
+          to: response.meta.to,
+          total: response.meta.total,
+        },
+        loading: false 
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des âges de véhicules'
       set({ error: errorMessage, loading: false })
@@ -49,10 +85,8 @@ export const useVehicleAgesStore = create<VehicleAgesState>((set) => ({
     try {
       set({ loading: true })
       const newVehicleAge = await vehicleAgeService.create(data)
-      set(state => ({ 
-        vehicleAges: [...state.vehicleAges, newVehicleAge], 
-        loading: false 
-      }))
+      await get().fetchVehicleAges()
+      set({ loading: false })
       toast.success('Âge de véhicule créé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
@@ -68,12 +102,8 @@ export const useVehicleAgesStore = create<VehicleAgesState>((set) => ({
     try {
       set({ loading: true })
       const updatedVehicleAge = await vehicleAgeService.update(id, data)
-      set(state => ({
-        vehicleAges: state.vehicleAges.map(vehicleAge =>
-          vehicleAge.id === id ? updatedVehicleAge : vehicleAge
-        ),
-        loading: false
-      }))
+      await get().fetchVehicleAges()
+      set({ loading: false })
       toast.success('Âge de véhicule mis à jour avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
@@ -89,10 +119,8 @@ export const useVehicleAgesStore = create<VehicleAgesState>((set) => ({
     try {
       set({ loading: true })
       await vehicleAgeService.delete(id)
-      set(state => ({
-        vehicleAges: state.vehicleAges.filter(vehicleAge => vehicleAge.id !== id),
-        loading: false
-      }))
+      await get().fetchVehicleAges()
+      set({ loading: false })
       toast.success('Âge de véhicule supprimé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
@@ -106,6 +134,10 @@ export const useVehicleAgesStore = create<VehicleAgesState>((set) => ({
 
   setSelectedVehicleAge: (vehicleAge: VehicleAge | null) => {
     set({ selectedVehicleAge: vehicleAge })
+  },
+
+  setFilters: (filters) => {
+    set({ filters })
   },
 
   clearError: () => {

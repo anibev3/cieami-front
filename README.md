@@ -55,3 +55,5 @@ Crafted with 🤍 by [@satnaing](https://github.com/anibev3)
 ## License
 
 Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+
+zapreoumar@bca-ci.com

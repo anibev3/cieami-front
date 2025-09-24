@@ -6,15 +6,14 @@ class ColorService {
   /**
    * Récupérer la liste des couleurs avec pagination et filtres
    */
-  async getColors(page: number = 1, filters?: ColorFilters): Promise<ColorApiResponse> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      ...(filters?.search && { search: filters.search }),
-      ...(filters?.status && { status: filters.status }),
+  async getColors(filters?: ColorFilters): Promise<ColorApiResponse> {
+    const { data } = await axiosInstance.get(API_CONFIG.ENDPOINTS.COLORS, {
+      params: {
+        per_page: 25, // Pagination par défaut
+        ...filters
+      }
     })
-
-    const response = await axiosInstance.get<ColorApiResponse>(`${API_CONFIG.ENDPOINTS.COLORS}?${params}`)
-    return response.data
+    return data
   }
 
   /**

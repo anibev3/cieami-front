@@ -6,15 +6,14 @@ class BrandService {
   /**
    * Récupérer la liste des marques avec pagination et filtres
    */
-  async getBrands(page: number = 1, filters?: BrandFilters): Promise<BrandApiResponse> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      ...(filters?.search && { search: filters.search }),
-      ...(filters?.status && { status: filters.status }),
+  async getBrands(filters?: BrandFilters): Promise<BrandApiResponse> {
+    const { data } = await axiosInstance.get(API_CONFIG.ENDPOINTS.BRANDS, {
+      params: {
+        per_page: 25, // Pagination par défaut
+        ...filters
+      }
     })
-
-    const response = await axiosInstance.get<BrandApiResponse>(`${API_CONFIG.ENDPOINTS.BRANDS}?${params}&per_page=1000000`)
-    return response.data
+    return data
   }
 
   /**

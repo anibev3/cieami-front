@@ -9,29 +9,65 @@ interface GeneralStatesState {
   loading: boolean
   error: string | null
   selectedGeneralState: GeneralState | null
+  pagination: {
+    currentPage: number
+    lastPage: number
+    perPage: number
+    from: number
+    to: number
+    total: number
+  }
+  filters: {
+    search: string
+    page: number
+  }
   
   // Actions
-  fetchGeneralStates: () => Promise<void>
+  fetchGeneralStates: (filters?: { search?: string; page?: number }) => Promise<void>
   createGeneralState: (data: CreateGeneralStateData) => Promise<void>
   updateGeneralState: (id: number, data: UpdateGeneralStateData) => Promise<void>
   deleteGeneralState: (id: number) => Promise<void>
   setSelectedGeneralState: (generalState: GeneralState | null) => void
+  setFilters: (filters: { search: string; page: number }) => void
   clearError: () => void
 }
 
-export const useGeneralStatesStore = create<GeneralStatesState>((set) => ({
+export const useGeneralStatesStore = create<GeneralStatesState>((set, get) => ({
   // État initial
   generalStates: [],
   loading: false,
   error: null,
   selectedGeneralState: null,
+  pagination: {
+    currentPage: 1,
+    lastPage: 1,
+    perPage: 25,
+    from: 1,
+    to: 1,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    page: 1
+  },
 
   // Actions
-  fetchGeneralStates: async () => {
+  fetchGeneralStates: async (filters) => {
     try {
       set({ loading: true, error: null })
-      const response = await generalStateService.getAll()
-      set({ generalStates: response.data, loading: false })
+      const response = await generalStateService.getAll(filters)
+      set({ 
+        generalStates: response.data, 
+        pagination: {
+          currentPage: response.meta.current_page,
+          lastPage: response.meta.last_page,
+          perPage: response.meta.per_page,
+          from: response.meta.from,
+          to: response.meta.to,
+          total: response.meta.total,
+        },
+        loading: false 
+      })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des états généraux'
       set({ error: errorMessage, loading: false })
@@ -45,10 +81,8 @@ export const useGeneralStatesStore = create<GeneralStatesState>((set) => ({
     try {
       set({ loading: true })
       const newGeneralState = await generalStateService.create(data)
-      set(state => ({ 
-        generalStates: [...state.generalStates, newGeneralState], 
-        loading: false 
-      }))
+      await get().fetchGeneralStates()
+      set({ loading: false })
       toast.success('État général créé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
@@ -64,12 +98,8 @@ export const useGeneralStatesStore = create<GeneralStatesState>((set) => ({
     try {
       set({ loading: true })
       const updatedGeneralState = await generalStateService.update(id, data)
-      set(state => ({
-        generalStates: state.generalStates.map(gs =>
-          gs.id === id ? updatedGeneralState : gs
-        ),
-        loading: false
-      }))
+      await get().fetchGeneralStates()
+      set({ loading: false })
       toast.success('État général mis à jour avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
@@ -85,10 +115,8 @@ export const useGeneralStatesStore = create<GeneralStatesState>((set) => ({
     try {
       set({ loading: true })
       await generalStateService.delete(id)
-      set(state => ({
-        generalStates: state.generalStates.filter(gs => gs.id !== id),
-        loading: false
-      }))
+      await get().fetchGeneralStates()
+      set({ loading: false })
       toast.success('État général supprimé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'
@@ -102,6 +130,10 @@ export const useGeneralStatesStore = create<GeneralStatesState>((set) => ({
 
   setSelectedGeneralState: (generalState: GeneralState | null) => {
     set({ selectedGeneralState: generalState })
+  },
+
+  setFilters: (filters) => {
+    set({ filters })
   },
 
   clearError: () => {

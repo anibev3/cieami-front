@@ -4,6 +4,7 @@ import { VehicleAgesDialogs } from './components/vehicle-ages-dialogs'
 import { VehicleAgesPrimaryButtons } from './components/vehicle-ages-primary-buttons'
 import { useVehicleAgesStore } from '@/stores/vehicleAgesStore'
 import { VehicleAge } from '@/services/vehicleAgeService'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
@@ -12,17 +13,33 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 
 export default function VehicleAgesPage() {
-  const { fetchVehicleAges } = useVehicleAgesStore()
+  const { 
+    fetchVehicleAges, 
+    pagination, 
+    setFilters 
+  } = useVehicleAgesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isViewOpen, setIsViewOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedVehicleAge, setSelectedVehicleAge] = useState<VehicleAge | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
-  // Charger les âges de véhicules une seule fois au montage du composant
+  // Effet pour déclencher la recherche quand la requête change
+  useEffect(() => {
+    const newFilters = {
+      search: debouncedSearchQuery,
+      page: 1 // Reset à la première page lors d'une nouvelle recherche
+    }
+    setFilters(newFilters)
+    fetchVehicleAges(newFilters)
+  }, [debouncedSearchQuery])
+
+  // Effet initial pour charger les données
   useEffect(() => {
     fetchVehicleAges()
-  }, []) // Dépendance vide pour éviter les boucles
+  }, [])
 
   // Callbacks pour les actions
   const handleCreate = () => {
@@ -43,6 +60,21 @@ export default function VehicleAgesPage() {
   const handleDelete = (vehicleAge: VehicleAge) => {
     setSelectedVehicleAge(vehicleAge)
     setIsDeleteOpen(true)
+  }
+
+  // Handler pour la recherche
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+  }
+
+  // Handler pour le changement de page
+  const handlePageChange = (page: number) => {
+    const newFilters = {
+      search: searchQuery,
+      page
+    }
+    setFilters(newFilters)
+    fetchVehicleAges(newFilters)
   }
 
   return (
@@ -70,6 +102,10 @@ export default function VehicleAgesPage() {
             onView={handleView}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            pagination={pagination}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onPageChange={handlePageChange}
           />
         </div>
       </Main>

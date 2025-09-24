@@ -1,6 +1,46 @@
+// import axiosInstance from '@/lib/axios'
+// import { API_CONFIG } from '@/config/api'
+
+// export interface ResetPasswordRequest {
+//   email: string
+// }
+
+// export interface ResetPasswordResponse {
+//   message: string
+//   status: number
+// }
+
+// class AuthService {
+//   /**
+//    * Demander une réinitialisation de mot de passe
+//    */
+//   async resetPassword(data: ResetPasswordRequest): Promise<ResetPasswordResponse> {
+//     const response = await axiosInstance.post<ResetPasswordResponse>(
+//       API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD,
+//       data
+//     )
+//     return response.data
+//   }
+// }
+
+// // Export d'une instance singleton
+// export const authService = new AuthService()
+// export default authService
+
+
 import axiosInstance, { setAuthToken, removeAuthToken } from '@/lib/axios'
 import { LoginCredentials, LoginResponse, UserResponse } from '@/types/auth'
 import { API_CONFIG } from '@/config/api'
+import axios from 'axios'
+
+export interface ResetPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordResponse {
+  message: string
+  status: number
+}
 
 class AuthService {
   /**
@@ -49,6 +89,17 @@ class AuthService {
       return !!localStorage.getItem('expert_0001_auth_token')
     }
     return false
+  }
+
+  async resetPassword(data: ResetPasswordRequest): Promise<ResetPasswordResponse> {
+    // const response = await axiosInstance.post<ResetPasswordResponse>(
+    //   API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD,
+    //   data
+    // )
+    // return response.data
+
+    const response = await axios.post<ResetPasswordResponse>(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD, data)
+    return response.data
   }
 }
 

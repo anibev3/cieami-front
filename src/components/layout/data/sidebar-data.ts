@@ -406,7 +406,6 @@ export const sidebarData: SidebarData = {
         },
       ],
     },
-
     {
       title: 'Finances',
       requiredRoles: [UserRole.ACCOUNTANT, UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER],
@@ -417,7 +416,7 @@ export const sidebarData: SidebarData = {
           items: [
             {
               title: 'Quittance',
-              url: '/finances/quittance',
+              url: '/finances/receipts',
               icon: IconFileText,
             },
             {

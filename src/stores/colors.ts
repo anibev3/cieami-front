@@ -9,20 +9,24 @@ interface ColorsState {
   error: string | null
   pagination: {
     currentPage: number
-    totalPages: number
-    totalItems: number
+    lastPage: number
     perPage: number
+    from: number
+    to: number
+    total: number
   }
+  filters: ColorFilters
 }
 
 interface ColorsActions {
   // Actions
-  fetchColors: (page?: number, filters?: ColorFilters) => Promise<void>
+  fetchColors: (filters?: ColorFilters) => Promise<void>
   fetchColor: (id: number) => Promise<void>
   createColor: (colorData: ColorCreate) => Promise<void>
   updateColor: (id: number, colorData: ColorUpdate) => Promise<void>
   deleteColor: (id: number) => Promise<void>
   setCurrentColor: (color: Color | null) => void
+  setFilters: (filters: ColorFilters) => void
   clearError: () => void
 }
 
@@ -36,25 +40,33 @@ export const useColorsStore = create<ColorsStore>((set, get) => ({
   error: null,
   pagination: {
     currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    perPage: 20,
+    lastPage: 1,
+    perPage: 25,
+    from: 1,
+    to: 1,
+    total: 0,
+  },
+  filters: {
+    search: '',
+    page: 1
   },
 
   // Actions
-  fetchColors: async (page = 1, filters) => {
+  fetchColors: async (filters) => {
     set({ loading: true, error: null })
     
     try {
-      const response = await colorService.getColors(page, filters)
+      const response = await colorService.getColors(filters)
       
       set({
         colors: response.data,
         pagination: {
           currentPage: response.meta.current_page,
-          totalPages: response.meta.last_page,
-          totalItems: response.meta.total,
+          lastPage: response.meta.last_page,
           perPage: response.meta.per_page,
+          from: response.meta.from,
+          to: response.meta.to,
+          total: response.meta.total,
         },
         loading: false,
       })
@@ -86,7 +98,7 @@ export const useColorsStore = create<ColorsStore>((set, get) => ({
     try {
       await colorService.createColor(colorData)
       // Recharger la liste après création
-      await get().fetchColors(get().pagination.currentPage)
+      await get().fetchColors()
       set({ loading: false })
     } catch (error) {
       set({
@@ -103,7 +115,7 @@ export const useColorsStore = create<ColorsStore>((set, get) => ({
     try {
       await colorService.updateColor(id, colorData)
       // Recharger la liste après mise à jour
-      await get().fetchColors(get().pagination.currentPage)
+      await get().fetchColors()
       set({ loading: false })
     } catch (error) {
       set({
@@ -120,7 +132,7 @@ export const useColorsStore = create<ColorsStore>((set, get) => ({
     try {
       await colorService.deleteColor(id)
       // Recharger la liste après suppression
-      await get().fetchColors(get().pagination.currentPage)
+      await get().fetchColors()
       set({ loading: false })
     } catch (error) {
       set({
@@ -133,6 +145,10 @@ export const useColorsStore = create<ColorsStore>((set, get) => ({
 
   setCurrentColor: (color) => {
     set({ currentColor: color })
+  },
+
+  setFilters: (filters) => {
+    set({ filters })
   },
 
   clearError: () => {

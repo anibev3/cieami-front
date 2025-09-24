@@ -1,48 +1,48 @@
 import { create } from 'zustand'
-import { OtherCostType, CreateOtherCostTypeData, UpdateOtherCostTypeData } from '@/types/administration'
-import { otherCostTypeService } from '@/services/otherCostTypeService'
+import { Receipt, CreateReceiptData, UpdateReceiptData } from '@/types/administration'
+import { receiptsService } from '@/services/receiptsService'
 import { toast } from 'sonner'
 
-interface OtherCostTypesState {
-  otherCostTypes: OtherCostType[]
+interface ReceiptsState {
+  receipts: Receipt[]
   loading: boolean
   error: string | null
-  selectedOtherCostType: OtherCostType | null
+  selectedReceipt: Receipt | null
 
-  fetchOtherCostTypes: () => Promise<void>
-  createOtherCostType: (data: CreateOtherCostTypeData) => Promise<void>
-  updateOtherCostType: (id: number | string, data: UpdateOtherCostTypeData) => Promise<void>
-  deleteOtherCostType: (id: number | string) => Promise<void>
-  setSelectedOtherCostType: (otherCostType: OtherCostType | null) => void
+  fetchReceipts: () => Promise<void>
+  createReceipt: (data: CreateReceiptData) => Promise<void>
+  updateReceipt: (id: number | string, data: UpdateReceiptData) => Promise<void>
+  deleteReceipt: (id: number | string) => Promise<void>
+  setSelectedReceipt: (receipt: Receipt | null) => void
   clearError: () => void
 }
 
-export const useOtherCostTypesStore = create<OtherCostTypesState>((set) => ({
-  otherCostTypes: [],
+export const useReceiptsStore = create<ReceiptsState>((set) => ({
+  receipts: [],
   loading: false,
   error: null,
-  selectedOtherCostType: null,
+  selectedReceipt: null,
 
-  fetchOtherCostTypes: async () => {
+  fetchReceipts: async () => {
     try {
       set({ loading: true, error: null })
-      const response = await otherCostTypeService.getAll()
-      set({ otherCostTypes: response.data, loading: false })
+      const response = await receiptsService.getAll()
+      set({ receipts: response.data, loading: false })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement'
       set({ error: errorMessage, loading: false })
-            toast.error(errorMessage, {
+      toast.error(errorMessage, {
         duration: 1000,
       })
     }
   },
 
-  createOtherCostType: async (data: CreateOtherCostTypeData) => {
+  createReceipt: async (data: CreateReceiptData) => {
     try {
       set({ loading: true })
-      const response = await otherCostTypeService.createWithResponse(data)
+      const response = await receiptsService.createWithResponse(data)
       set(state => ({
-        otherCostTypes: [...state.otherCostTypes, response.data],
+        receipts: [...state.receipts, response.data],
         loading: false
       }))
       // Utiliser le message de l'API
@@ -57,12 +57,12 @@ export const useOtherCostTypesStore = create<OtherCostTypesState>((set) => ({
     }
   },
 
-  updateOtherCostType: async (id, data) => {
+  updateReceipt: async (id, data) => {
     try {
       set({ loading: true })
-      const response = await otherCostTypeService.updateWithResponse(id, data)
+      const response = await receiptsService.updateWithResponse(id, data)
       set(state => ({
-        otherCostTypes: state.otherCostTypes.map(item => item.id === response.data.id ? response.data : item),
+        receipts: state.receipts.map(item => item.id === response.data.id ? response.data : item),
         loading: false
       }))
       // Utiliser le message de l'API
@@ -77,12 +77,12 @@ export const useOtherCostTypesStore = create<OtherCostTypesState>((set) => ({
     }
   },
 
-  deleteOtherCostType: async (id) => {
+  deleteReceipt: async (id) => {
     try {
       set({ loading: true })
-      const response = await otherCostTypeService.deleteWithResponse(id)
+      const response = await receiptsService.deleteWithResponse(id)
       set(state => ({
-        otherCostTypes: state.otherCostTypes.filter(item => item.id !== id),
+        receipts: state.receipts.filter(item => item.id !== id),
         loading: false
       }))
       // Utiliser le message de l'API
@@ -97,11 +97,11 @@ export const useOtherCostTypesStore = create<OtherCostTypesState>((set) => ({
     }
   },
 
-  setSelectedOtherCostType: (otherCostType) => {
-    set({ selectedOtherCostType: otherCostType })
+  setSelectedReceipt: (receipt) => {
+    set({ selectedReceipt: receipt })
   },
 
   clearError: () => {
     set({ error: null })
   },
-})) 
+}))
