@@ -12,7 +12,8 @@ export interface UpdateProfileData {
   last_name: string
   email: string
   telephone?: string | null
-  signature?: File | null
+  // signature?: File | null
+  code: string
 }
 
 export interface UpdateProfileResponse {
@@ -134,26 +135,28 @@ class UserService {
    * Mettre à jour le profil de l'utilisateur connecté
    */
   async updateProfile(data: UpdateProfileData): Promise<UpdateProfileResponse> {
-    const formData = new FormData()
+    // const formData = new FormData()
     
-    formData.append('first_name', data.first_name)
-    formData.append('last_name', data.last_name)
-    formData.append('email', data.email)
+    // formData.append('first_name', data.first_name)
+    // formData.append('last_name', data.last_name)
+    // formData.append('email', data.email)
     
-    if (data.telephone) {
-      formData.append('telephone', data.telephone)
-    }
+    // if (data.telephone) {
+    //   formData.append('telephone', data.telephone)
+    // }
     
-    if (data.signature) {
-      formData.append('signature', data.signature)
-    }
+    // if (data.signature) {
+    //   formData.append('signature', data.signature)
+    // }
 
     const response = await axiosInstance.post<UpdateProfileResponse>(
-      `${this.baseUrl}/update-profile`,
-      formData,
+      `${this.baseUrl}/update/profile`,
+      data,
       {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          // 'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       }
     )

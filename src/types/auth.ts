@@ -28,6 +28,7 @@ export interface Role {
 
 export interface User {
   id: number
+  code: string
   hash_id: string
   email: string
   username: string

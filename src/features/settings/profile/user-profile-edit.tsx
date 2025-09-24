@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { SignaturePad } from '@/components/ui/signature-pad'
+// import { SignaturePad } from '@/components/ui/signature-pad'
 import { User, Mail, Phone, Save, RotateCcw, CheckCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -22,7 +22,8 @@ export default function UserProfileEdit() {
     last_name: user?.last_name || '',
     email: user?.email || '',
     telephone: user?.telephone || '',
-    signature: null
+    // signature: null,
+    code: user?.code || '',
   })
 
   if (!user) {
@@ -41,13 +42,13 @@ export default function UserProfileEdit() {
     setError(null)
   }
 
-  const handleSignatureChange = (signature: string | File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      signature: signature instanceof File ? signature : null
-    }))
-    setError(null)
-  }
+  // const handleSignatureChange = (signature: string | File | null) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     signature: signature instanceof File ? signature : null
+  //   }))
+  //   setError(null)
+  // }
 
   const resetForm = () => {
     setFormData({
@@ -55,7 +56,8 @@ export default function UserProfileEdit() {
       last_name: user.last_name || '',
       email: user.email || '',
       telephone: user.telephone || '',
-      signature: null
+      // signature: null,
+      code: user.code || '',
     })
     setError(null)
     setIsSuccess(false)
@@ -128,7 +130,8 @@ export default function UserProfileEdit() {
       formData.last_name !== user.last_name ||
       formData.email !== user.email ||
       formData.telephone !== user.telephone ||
-      formData.signature !== null
+      // formData.signature !== null ||
+      formData.code !== user.code
     )
   }
 
@@ -230,10 +233,10 @@ export default function UserProfileEdit() {
         </Card>
 
         {/* Signature */}
-        <SignaturePad
+        {/* <SignaturePad
           onSignatureChange={handleSignatureChange}
           currentSignature={(user as { signature_url?: string }).signature_url}
-        />
+        /> */}
 
         {/* Actions */}
         <Card>
