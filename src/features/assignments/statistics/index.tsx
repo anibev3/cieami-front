@@ -87,7 +87,7 @@ export default function StatisticsPage() {
   // Définir les rôles autorisés pour voir toutes les statistiques
   const authorizedRoles = useMemo(() => [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT], [])
   const hasFullAccess = useMemo(() => 
-    user?.role && authorizedRoles.includes(user.role as unknown as UserRole), 
+    user?.role && authorizedRoles.includes(user.role.name as UserRole), 
     [user?.role, authorizedRoles]
   )
   

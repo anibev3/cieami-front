@@ -57,3 +57,5 @@ Crafted with 🤍 by [@satnaing](https://github.com/anibev3)
 Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
 
 zapreoumar@bca-ci.com
+akealexandre@bca-ci.com
+fanebakary@bca-ci.com

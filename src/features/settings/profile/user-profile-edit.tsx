@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useUser } from '@/hooks/useAuth'
+import { useAuth } from '@/stores/authStore'
 import { userService, UpdateProfileData } from '@/services/userService'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +14,7 @@ import { toast } from 'sonner'
 
 export default function UserProfileEdit() {
   const user = useUser()
+  const { getUserInfo } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -99,9 +101,14 @@ export default function UserProfileEdit() {
         setIsSuccess(true)
         toast.success('Profil mis à jour avec succès')
         
-        // Optionnel : mettre à jour les données utilisateur dans le contexte
-        // Si vous avez un hook pour mettre à jour l'utilisateur
-        // updateUser(response.data.user)
+        // Rafraîchir les données utilisateur dans le store
+        try {
+          await getUserInfo()
+        } catch (refreshError) {
+          // eslint-disable-next-line no-console
+          console.warn('Erreur lors du rafraîchissement des données utilisateur:', refreshError)
+          // Ne pas faire échouer la mise à jour si le rafraîchissement échoue
+        }
       } else {
         setError(response.message || 'Erreur lors de la mise à jour')
         toast.error('Erreur lors de la mise à jour du profil')

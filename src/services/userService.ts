@@ -24,6 +24,21 @@ export interface UpdateProfileResponse {
   }
 }
 
+export interface ChangePasswordData {
+  current_password: string
+  password: string
+  password_confirmation: string
+  code: string
+  first_name: string
+  last_name: string
+  email: string
+}
+
+export interface ChangePasswordResponse {
+  status: number
+  message: string
+}
+
 class UserService {
   private baseUrl = '/users'
 
@@ -155,6 +170,24 @@ class UserService {
       {
         headers: {
           // 'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    return response.data
+  }
+
+  /**
+   * Changer le mot de passe de l'utilisateur connecté
+   */
+  async changePassword(data: ChangePasswordData): Promise<ChangePasswordResponse> {
+    const response = await axiosInstance.post<ChangePasswordResponse>(
+      `${this.baseUrl}/update/profile`,
+      data,
+      {
+        headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },

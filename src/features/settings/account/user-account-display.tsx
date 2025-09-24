@@ -17,10 +17,12 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import ChangePasswordModal from './change-password-modal'
 
 export default function UserAccountDisplay() {
   const user = useUser()
   const [showHashId, setShowHashId] = useState(false)
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
 
   if (!user) {
     return (
@@ -264,7 +266,11 @@ export default function UserAccountDisplay() {
             >
               Modifier le profil
             </Button>
-            <Button variant="outline" className="flex-1">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => setShowChangePasswordModal(true)}
+            >
               Changer le mot de passe
             </Button>
             <Button variant="outline" className="flex-1">
@@ -289,6 +295,12 @@ export default function UserAccountDisplay() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de changement de mot de passe */}
+      <ChangePasswordModal
+        open={showChangePasswordModal}
+        onOpenChange={setShowChangePasswordModal}
+      />
     </div>
   )
 } 

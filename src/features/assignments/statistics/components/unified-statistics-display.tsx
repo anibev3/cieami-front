@@ -1,9 +1,10 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { FileText, TrendingUp, BarChart3, Download, Calendar } from 'lucide-react'
+import { FileText, TrendingUp, Download } from 'lucide-react'
 import { StatisticsData, StatisticsType } from '@/types/statistics'
 import { formatCurrency } from '@/utils/format-currency'
 import { cn } from '@/lib/utils'
@@ -18,7 +19,7 @@ interface UnifiedStatisticsDisplayProps {
 export function UnifiedStatisticsDisplay({
   type,
   statistics,
-  onDownloadExport,
+  // onDownloadExport,
   className
 }: UnifiedStatisticsDisplayProps) {
   const getTypeConfig = () => {
@@ -56,6 +57,11 @@ export function UnifiedStatisticsDisplay({
       default:
         return null
     }
+  }
+
+  const onDownloadExport = () => {
+    console.log('onDownloadExport')
+    window.open(statistics.export_url!, '_blank')
   }
 
   const config = getTypeConfig()
@@ -101,7 +107,7 @@ export function UnifiedStatisticsDisplay({
       {hasExport && onDownloadExport && (
         <div className="flex justify-end">
           <Button
-            onClick={() => onDownloadExport(statistics.export_url!)}
+            onClick={onDownloadExport}
             variant="outline"
             className="gap-2"
           >
