@@ -60,7 +60,7 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    perPage: 20,
+    perPage: 25,
   },
   filters: {
     search: '',
@@ -71,7 +71,8 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       const params: Record<string, string | number | undefined> = {
-        page,
+        // page,
+        per_page: 25, // Pagination par défaut
         ...filters,
       }
       const response = await suppliesService.getSupplies(params)

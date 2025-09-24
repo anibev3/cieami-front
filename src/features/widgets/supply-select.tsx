@@ -50,7 +50,7 @@ export function SupplySelect({
         setLastSearchQuery(debouncedSearch.trim())
         // Appel API en temps réel avec le paramètre search
         // Limiter le nombre de résultats pour éviter la surcharge
-        void fetchSupplies({ search: debouncedSearch.trim(), per_page: 25 })
+        void fetchSupplies(25, { search: debouncedSearch.trim() })
       }
     }
   }, [debouncedSearch, fetchSupplies, lastSearchQuery])
