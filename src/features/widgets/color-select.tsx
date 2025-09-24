@@ -40,17 +40,17 @@ export function ColorSelect({
   // Charger les couleurs initiales
   useEffect(() => {
     if (colors.length === 0 && !debouncedSearchQuery) {
-      fetchColors(1, {})
+      fetchColors({})
     }
   }, [fetchColors, colors.length, debouncedSearchQuery])
 
   // Effectuer la recherche quand la query change
   useEffect(() => {
     if (debouncedSearchQuery) {
-      fetchColors(1, { search: debouncedSearchQuery })
+      fetchColors({ search: debouncedSearchQuery })
     } else if (debouncedSearchQuery === '') {
       // Recharger toutes les couleurs quand la recherche est vide
-      fetchColors(1, {})
+      fetchColors({})
     }
   }, [debouncedSearchQuery, fetchColors])
 

@@ -41,17 +41,17 @@ export function BrandSelect({
   // Charger les marques initiales
   useEffect(() => {
     if (brands.length === 0 && !debouncedSearchQuery) {
-      fetchBrands(1, {})
+      fetchBrands({})
     }
   }, [fetchBrands, brands.length, debouncedSearchQuery])
 
   // Effectuer la recherche quand la query change
   useEffect(() => {
     if (debouncedSearchQuery) {
-      fetchBrands(1, { search: debouncedSearchQuery })
+      fetchBrands({ search: debouncedSearchQuery })
     } else if (debouncedSearchQuery === '') {
       // Recharger toutes les marques quand la recherche est vide
-      fetchBrands(1, {})
+      fetchBrands({})
     }
   }, [debouncedSearchQuery, fetchBrands])
 
