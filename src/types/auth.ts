@@ -13,12 +13,32 @@ export interface Entity {
   id: number
   code: string
   name: string
+  prefix: string | null | undefined
+  suffix: string | null | undefined
   email: string
-  telephone: string | null
-  address: string | null
-  created_at: string
-  updated_at: string
+  telephone: string | null | undefined
+  address: string | null | undefined
+  description: string | null | undefined
+  logo: string | null | undefined
+  created_at: string | null | undefined
+  updated_at: string | null | undefined
 }
+
+
+        // "entity": {
+        //     "id": 4,
+        //     "code": "NSIA",
+        //     "name": "NSIA",
+        //     "prefix": "A",
+        //     "suffix": null,
+        //     "email": "support@nsia.com",
+        //     "telephone": null,
+        //     "address": null,
+        //     "description": null,
+        //     "logo": null,
+        //     "created_at": "2025-09-24 23:14:07",
+        //     "updated_at": "2025-09-24 23:14:07"
+        // },
 
 export interface Role {
   name: string

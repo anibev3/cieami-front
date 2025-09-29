@@ -1587,6 +1587,7 @@ export default function ReportEditPage() {
                       <SelectContent>
                         <SelectItem value="fa">Fabrication abandonnée</SelectItem>
                         <SelectItem value="nc">Non commercialisé</SelectItem>
+                        <SelectItem value="nci">Non commercialisé en Côte d'Ivoire</SelectItem>
                         <SelectItem value="value">Valeur neuve</SelectItem>
                       </SelectContent>
                     </Select>
