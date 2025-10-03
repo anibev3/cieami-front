@@ -106,6 +106,7 @@ export interface TheoreticalValueCalculationResult {
   market_incidence: number
   kilometric_incidence: number
   vehicle_market_value: number
+  depreciation_rate: number
 }
 
 export interface TheoreticalValueCalculationResponse {
