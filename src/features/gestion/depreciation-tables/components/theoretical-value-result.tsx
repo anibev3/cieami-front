@@ -21,6 +21,11 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
     return result.vehicle_new_value - result.theorical_vehicle_market_value
   }
 
+  // Arrondit en excès à deux décimales
+  const ceilToTwoDecimals = (value: number) => {
+    return (Math.ceil(value * 100) / 100).toFixed(2)
+  }
+
   const depreciationAmount = calculateDepreciationAmount()
 
   return (
@@ -39,9 +44,9 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Valeur finale du marché */}
           <div className="text-center p-3 from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-            <div className="text-xs text-muted-foreground mb-1">Valeur finale du marché</div>
+            <div className="text-xs text-muted-foreground mb-1">Valeur vénale</div>
             <div className="text-xl font-bold text-black-700">
-              {formatCurrency(result.theorical_vehicle_market_value)}
+              {formatCurrency(result.vehicle_market_value)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               Après incidences
@@ -51,7 +56,7 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
           <div className="text-center p-3 from-green-50 to-emerald-50 rounded-lg border border-green-200">
             <div className="text-xs text-muted-foreground mb-1">Valeur vénale théorique</div>
             <div className="text-xl font-bold text-black-700">
-              {formatCurrency(result.vehicle_market_value)}
+              {formatCurrency(result.theorical_vehicle_market_value)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               FCFA
@@ -65,9 +70,8 @@ export function TheoreticalValueResult({ result }: TheoreticalValueResultProps) 
             <div className="text-center">
               <div className="text-xs text-muted-foreground mb-1">Taux de dépréciation</div>
               <div className="text-base font-semibold text-black-800">
-                {result.depreciation_rate} %
+                {ceilToTwoDecimals(result.depreciation_rate)} %
               </div>
-              
             </div>
           </div>
           <div className="p-3 from-blue-50 to-green-50 rounded-lg border border-blue-200">
