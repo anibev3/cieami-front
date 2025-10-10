@@ -102,11 +102,8 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       toast.success('Facture créée avec succès')
       return response
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
       set({ loading: false })
-            toast.error(errorMessage, {
-        duration: 1000,
-      })
+      // L'erreur est gérée par l'intercepteur axios
       throw error
     }
   },

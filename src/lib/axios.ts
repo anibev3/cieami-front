@@ -82,11 +82,23 @@ axiosInstance.interceptors.response.use(
     // Gestion des erreurs 422 (validation)
     if (error.response?.status === 422) {
       const errorData = error.response.data
-      if (errorData?.errors) {
+      if (errorData?.errors && Array.isArray(errorData.errors)) {
+        // Structure: { errors: [{ status, title, detail }] }
+        errorData.errors.forEach((error: { status?: number; title?: string; detail?: string }) => {
+          if (error.detail) {
+            toast.error(error.detail)
+          } else if (error.title) {
+            toast.error(error.title)
+          }
+        })
+      } else if (errorData?.errors && typeof errorData.errors === 'object') {
+        // Structure: { errors: { field: [messages] } }
         const errorMessages = Object.values(errorData.errors).flat()
         errorMessages.forEach((message) => toast.error(message))
       } else if (errorData?.message) {
         toast.error(errorData.message)
+      } else {
+        toast.error('Erreur de validation')
       }
     }
 

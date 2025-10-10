@@ -96,53 +96,44 @@ export default function CreateInvoicePage() {
       console.log('debouncedSearchTerm', debouncedSearchTerm)
       console.log('statusFilter', statusFilter)
       setSearchLoading(true)
-      
+
       const filters: any = { 
         per_page: 1000000,
       }
-      
-      // Ajouter le terme de recherche seulement s'il n'est pas vide
+
       if (debouncedSearchTerm.trim()) {
         filters.search = debouncedSearchTerm.trim()
       }
-      
-      // Ajouter le filtre de statut seulement s'il n'est pas 'all'
+
       if (statusFilter !== 'all') {
         filters.status_code = statusFilter
       }
-      
+
       console.log('Filters being sent:', filters)
-      
+
       fetchAssignments(1, filters).finally(() => {
         setSearchLoading(false)
       })
-    } else if (assignments.length > 0) {
-      // If no search term and no status filter, show all assignments
-      // Appliquer le filtrage local pour l'éligibilité uniquement
-      const filtered = assignments.filter(assignment => {
-        const hasReceipts = assignment.receipts && assignment.receipts.length > 0
-        return hasReceipts
-      })
-      setFilteredAssignments(filtered)
+    } else {
+      // No active filters: ensure spinner is off; the list will be derived in the other effect
+      setSearchLoading(false)
     }
-  }, [debouncedSearchTerm, statusFilter, fetchAssignments, assignments.length, assignments])
+  }, [debouncedSearchTerm, statusFilter, fetchAssignments])
 
   // Update filtered assignments when assignments change
   useEffect(() => {
     if (assignments.length > 0) {
-      // Si on a des filtres actifs (recherche ou statut), utiliser directement les résultats de l'API
       if (debouncedSearchTerm || statusFilter !== 'all') {
         setFilteredAssignments(assignments)
       } else {
-        // Sinon, appliquer le filtrage local pour l'éligibilité uniquement
         const filtered = assignments.filter(assignment => {
-          // Vérifier que le dossier a des quittances (éligibilité)
           const hasReceipts = assignment.receipts && assignment.receipts.length > 0
           return hasReceipts
         })
-        
         setFilteredAssignments(filtered)
       }
+    } else {
+      setFilteredAssignments([])
     }
   }, [assignments, debouncedSearchTerm, statusFilter])
 
@@ -183,8 +174,9 @@ export default function CreateInvoicePage() {
       await createInvoice(invoiceData)
       toast.success('Facture créée avec succès')
       navigate({ to: '/comptabilite/invoices' })
-    } catch (_error) {
-      toast.error('Erreur lors de la création de la facture')
+    } catch (error) {
+      // L'erreur est déjà gérée par l'intercepteur axios
+      console.error('Erreur lors de la création de la facture:', error)
     } finally {
       setCreating(false)
     }
@@ -648,7 +640,7 @@ export default function CreateInvoicePage() {
                   {/* Date de facturation */}
                   <div>
                     <Label htmlFor="invoice-date" className="text-sm font-medium text-gray-700">
-                      Date de facturation
+                      Date de facturation<span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="invoice-date"
@@ -662,7 +654,7 @@ export default function CreateInvoicePage() {
                   {/* Objet de la facture */}
                   <div>
                     <Label htmlFor="invoice-object" className="text-sm font-medium text-gray-700">
-                      Objet de la facture
+                      Objet de la facture<span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="invoice-object"
