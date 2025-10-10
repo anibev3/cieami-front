@@ -568,6 +568,8 @@ export interface CreateInvoiceData {
   assignment_id: string
   date: string
   object: string
+  address: string
+  taxpayer_account_number: string
 }
 
 export interface UpdateInvoiceData {

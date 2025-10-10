@@ -62,6 +62,8 @@ export default function CreateInvoicePage() {
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null)
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0])
   const [invoiceObject, setInvoiceObject] = useState('')
+  const [address, setAddress] = useState('')
+  const [taxpayerAccountNumber, setTaxpayerAccountNumber] = useState('')
   const [creating, setCreating] = useState(false)
   const [filteredAssignments, setFilteredAssignments] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -123,7 +125,7 @@ export default function CreateInvoicePage() {
       })
       setFilteredAssignments(filtered)
     }
-  }, [debouncedSearchTerm, statusFilter, fetchAssignments, assignments.length])
+  }, [debouncedSearchTerm, statusFilter, fetchAssignments, assignments.length, assignments])
 
   // Update filtered assignments when assignments change
   useEffect(() => {
@@ -161,12 +163,24 @@ export default function CreateInvoicePage() {
       return
     }
 
+    if (!address.trim()) {
+      toast.error('Veuillez saisir l\'adresse')
+      return
+    }
+
+    if (!taxpayerAccountNumber.trim()) {
+      toast.error('Veuillez saisir le numéro de compte contribuable')
+      return
+    }
+
     setCreating(true)
     try {
       await createInvoice({
         assignment_id: selectedAssignment.id.toString(),
         date: invoiceDate,
-        object: invoiceObject.trim()
+        object: invoiceObject.trim(),
+        address: address.trim(),
+        taxpayer_account_number: taxpayerAccountNumber.trim()
       })
       toast.success('Facture créée avec succès')
       navigate({ to: '/comptabilite/invoices' })
@@ -657,6 +671,36 @@ export default function CreateInvoicePage() {
                       value={invoiceObject}
                       onChange={(e) => setInvoiceObject(e.target.value)}
                       placeholder="Ex: Expertise véhicule accidenté"
+                      className="mt-2"
+                    />
+                  </div>
+
+                  {/* Adresse */}
+                  <div>
+                    <Label htmlFor="invoice-address" className="text-sm font-medium text-gray-700">
+                      Adresse *
+                    </Label>
+                    <Input
+                      id="invoice-address"
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Ex: 123 Rue de la Paix, 75001 Paris"
+                      className="mt-2"
+                    />
+                  </div>
+
+                  {/* Numéro de compte contribuable */}
+                  <div>
+                    <Label htmlFor="taxpayer-account" className="text-sm font-medium text-gray-700">
+                      Numéro de compte contribuable *
+                    </Label>
+                    <Input
+                      id="taxpayer-account"
+                      type="text"
+                      value={taxpayerAccountNumber}
+                      onChange={(e) => setTaxpayerAccountNumber(e.target.value)}
+                      placeholder="Ex: 123456789012345"
                       className="mt-2"
                     />
                   </div>
