@@ -80,7 +80,7 @@ export default function CreateInvoicePage() {
   })
 
   // Debounce search term for dynamic search
-  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+  const debouncedSearchTerm = useDebounce(searchTerm, 2000)
 
   useEffect(() => {
     if (assignments.length === 0) {
