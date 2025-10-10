@@ -101,10 +101,25 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Statistiques',
-          url: '/assignments/statistics',
           icon: IconCalculator,
+          items: [
+            {
+              title: 'Dossiers',
+              url: '/assignments/statistics-assignments',
+              icon: IconCalculator,
+            },
+            {
+              title: 'Paiements',
+              url: '/assignments/statistics/payments',
+              icon: IconCalculator,
+            },
+            {
+              title: 'Factures',
+              url: '/assignments/statistics/invoices',
+              icon: IconCalculator,
+            },
+          ],
           // requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT],
-
         },
         {
           title: 'Tableaux de dépréciation',
