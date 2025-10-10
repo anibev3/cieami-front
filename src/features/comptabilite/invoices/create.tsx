@@ -163,25 +163,24 @@ export default function CreateInvoicePage() {
       return
     }
 
-    if (!address.trim()) {
-      toast.error('Veuillez saisir l\'adresse')
-      return
-    }
-
-    if (!taxpayerAccountNumber.trim()) {
-      toast.error('Veuillez saisir le numéro de compte contribuable')
-      return
-    }
 
     setCreating(true)
     try {
-      await createInvoice({
+      const invoiceData: any = {
         assignment_id: selectedAssignment.id.toString(),
         date: invoiceDate,
-        object: invoiceObject.trim(),
-        address: address.trim(),
-        taxpayer_account_number: taxpayerAccountNumber.trim()
-      })
+        object: invoiceObject.trim()
+      }
+
+      if (address.trim()) {
+        invoiceData.address = address.trim()
+      }
+
+      if (taxpayerAccountNumber.trim()) {
+        invoiceData.taxpayer_account_number = taxpayerAccountNumber.trim()
+      }
+
+      await createInvoice(invoiceData)
       toast.success('Facture créée avec succès')
       navigate({ to: '/comptabilite/invoices' })
     } catch (_error) {
@@ -678,7 +677,7 @@ export default function CreateInvoicePage() {
                   {/* Adresse */}
                   <div>
                     <Label htmlFor="invoice-address" className="text-sm font-medium text-gray-700">
-                      Adresse *
+                      Adresse
                     </Label>
                     <Input
                       id="invoice-address"
@@ -693,7 +692,7 @@ export default function CreateInvoicePage() {
                   {/* Numéro de compte contribuable */}
                   <div>
                     <Label htmlFor="taxpayer-account" className="text-sm font-medium text-gray-700">
-                      Numéro de compte contribuable *
+                      Numéro de compte contribuable
                     </Label>
                     <Input
                       id="taxpayer-account"
