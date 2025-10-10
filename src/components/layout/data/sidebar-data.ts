@@ -111,15 +111,16 @@ export const sidebarData: SidebarData = {
             {
               title: 'Paiements',
               url: '/assignments/statistics/payments',
+              requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT],
               icon: IconCalculator,
             },
             {
               title: 'Factures',
               url: '/assignments/statistics/invoices',
+              requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT],
               icon: IconCalculator,
             },
           ],
-          // requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT],
         },
         {
           title: 'Tableaux de dépréciation',
