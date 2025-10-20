@@ -31,7 +31,7 @@ import { VehicleSelect } from '@/features/widgets/vehicle-select'
 import { InsurerSelect } from '@/features/widgets/insurer-select'
 import { RepairerSelect } from '@/features/widgets/repairer-select'
 import { BrokerSelect } from '@/features/widgets/broker-select'
-import { UserSelect } from '@/features/widgets/user-select'
+// import { UserSelect } from '@/features/widgets/user-select'
 // import { useAssignmentsStore } from '@/stores/assignments' // Supprimé car non utilisé
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
@@ -61,7 +61,7 @@ import { useClientsStore } from '../gestion/clients/store'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
-import { RichTextEditor } from '@/components/ui/rich-text-editor'
+// import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { HtmlContent } from '@/components/ui/html-content'
 import { useBrandsStore } from '@/stores/brands'
 import { CreateRepairer } from '@/features/assignments/components/create-repairer'
@@ -167,6 +167,8 @@ export default function CreateAssignmentPage() {
     const { id } = useParams({ strict: false }) as { id: string }
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
+  // Indique si les données de base (listes) sont chargées
+  const [baseDataLoaded, setBaseDataLoaded] = useState(false)
   // Fonction pour vérifier si le formulaire est complet
   const isFormComplete = () => {
     const values = form.getValues()
@@ -487,8 +489,12 @@ export default function CreateAssignmentPage() {
       }
     }
 
-    loadAssignmentData()
-  }, [isEditMode, assignmentId, form])
+    // Attendre que les données de base soient chargées pour garantir que les Selects
+    // aient leurs options disponibles avant de réaliser le reset/pré-remplissage
+    if (baseDataLoaded) {
+      loadAssignmentData()
+    }
+  }, [isEditMode, assignmentId, form, baseDataLoaded])
 
   // Charger les données de base (utilisateurs, véhicules, etc.)
   useEffect(() => {
@@ -509,6 +515,7 @@ export default function CreateAssignmentPage() {
           fetchBodyworks(),
           fetchBrands()
         ])
+        setBaseDataLoaded(true)
       } catch (error: any) {
         console.error('Erreur lors du chargement des données de base:', error)
         // Ne pas afficher d'erreur pour le chargement des données de base
@@ -554,22 +561,7 @@ export default function CreateAssignmentPage() {
     navigate({ to: '/assignments' })
   }
 
-  // Fonctions pour les experts
-  const addExpert = () => {
-    const currentExperts = form.getValues('experts') || []
-    form.setValue('experts', [...currentExperts, {
-      expert_id: '',
-      date: new Date().toISOString().split('T')[0],
-      observation: '',
-    }])
-  }
-
-  const removeExpert = (index: number) => {
-    const currentExperts = form.getValues('experts') || []
-    if (currentExperts.length > 1) {
-      form.setValue('experts', currentExperts.filter((_, i) => i !== index))
-    }
-  }
+  // Fonctions pour les experts (UI d'édition désactivée)
 
   // Fonction pour pré-remplir le kilométrage quand un véhicule est sélectionné
   const handleVehicleSelection = (vehicleId: string) => {
