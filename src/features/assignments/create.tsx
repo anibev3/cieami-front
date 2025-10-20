@@ -169,6 +169,7 @@ export default function CreateAssignmentPage() {
   const [loadingData, setLoadingData] = useState(false)
   // Indique si les données de base (listes) sont chargées
   const [baseDataLoaded, setBaseDataLoaded] = useState(false)
+  const isInitialLoading = loadingData || !baseDataLoaded
   // Fonction pour vérifier si le formulaire est complet
   const isFormComplete = () => {
     const values = form.getValues()
@@ -328,7 +329,7 @@ export default function CreateAssignmentPage() {
   
   // États pour les entités sélectionnées
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
-  const [selectedClient, setSelectedClient] = useState<UserType | null>(null)
+  const [selectedClient, setSelectedClient] = useState<any | null>(null)
   const [selectedInsurer, setSelectedInsurer] = useState<EntityType | null>(null)
   const [selectedRepairer, setSelectedRepairer] = useState<EntityType | null>(null)
   const [selectedBroker, setSelectedBroker] = useState<EntityType | null>(null)
@@ -580,7 +581,7 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour gérer la sélection du client
   const handleClientSelection = (clientId: string) => {
-    const client = users.find(u => u.id.toString() === clientId)
+    const client = clients.find(u => u.id.toString() === clientId)
     if (client) {
       setSelectedClient(client)
     }
@@ -1101,7 +1102,7 @@ export default function CreateAssignmentPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className={`w-full px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${loadingData ? 'pointer-events-none opacity-50' : ''}`}>
+          <div className={`w-full px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${isInitialLoading ? 'pointer-events-none opacity-50' : ''}`}>
             
             {/* Bouton de récapitulatif */}
             {/* {!isEditMode && (
@@ -4110,6 +4111,29 @@ export default function CreateAssignmentPage() {
               Corriger les erreurs
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de chargement initial */}
+      <Dialog open={isInitialLoading} onOpenChange={() => {}}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              Chargement des données
+            </DialogTitle>
+            <DialogDescription>
+              Veuillez patienter pendant le chargement des informations du formulaire...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+            </div>
+            <p className="mt-4 text-sm text-gray-600 text-center">
+              Préparation du formulaire en cours...
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
 
