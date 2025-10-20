@@ -96,16 +96,23 @@ export interface AuthContextType extends AuthState {
 export enum UserRole {
   SYSTEM_ADMIN = 'system_admin',
   ADMIN = 'admin',
+  EXPERT_ADMIN = 'expert_admin',
   CEO = 'ceo',
   EXPERT_MANAGER = 'expert_manager',
   EXPERT = 'expert',
   OPENER = 'opener',
+  EDITOR_MANAGER = 'editor_manager',
   EDITOR = 'editor',
   VALIDATOR = 'validator',
+  ACCOUNTANT_MANAGER = 'accountant_manager',
   ACCOUNTANT = 'accountant',
+  BUSINESS_DEVELOPER = 'business_developer',
   INSURER_ADMIN = 'insurer_admin',
+  INSURER_STANDARD_USER = 'insurer_standard_user',
   REPAIRER_ADMIN = 'repairer_admin',
-  ACCOUNTANT_MANAGER = 'accountant_manager'
+  REPAIRER_STANDARD_USER = 'repairer_standard_user',
+  CLIENT = 'client',
+  UNASSIGNED = 'unassigned'
 }
 
 export enum Permission {

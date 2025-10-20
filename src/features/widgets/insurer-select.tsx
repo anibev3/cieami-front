@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -9,12 +9,13 @@ import { useInsurersStore } from '@/stores/insurersStore'
 import { useDebounce } from '@/hooks/use-debounce'
 
 interface InsurerSelectProps {
-  value?: number | null
-  onValueChange: (value: number | null) => void
+  value?: string | number | null
+  onValueChange: (value: string | number | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string
   showStatus?: boolean
+  valueKey?: 'id' | 'code'
 }
 
 export function InsurerSelect({
@@ -23,7 +24,8 @@ export function InsurerSelect({
   placeholder = "Sélectionner un assureur...",
   disabled = false,
   className,
-  showStatus = false
+  showStatus = false,
+  valueKey = 'id'
 }: InsurerSelectProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,7 +53,11 @@ export function InsurerSelect({
     }
   }, [insurers.length, fetchInsurers])
 
-  const selectedInsurer = insurers.find(insurer => insurer.id === value)
+  const getValueForInsurer = (insurer: (typeof insurers)[number]): string | number | undefined => {
+    return valueKey === 'id' ? insurer.id : insurer.code
+  }
+
+  const selectedInsurer = insurers.find((insurer) => getValueForInsurer(insurer) === value)
 
   // Réinitialiser la recherche quand le popover se ferme
   const handleOpenChange = (newOpen: boolean) => {
@@ -130,14 +136,15 @@ export function InsurerSelect({
                   key={insurer.id}
                   value={`${insurer.name} ${insurer.code || ''} ${insurer.email || ''}`}
                   onSelect={() => {
-                    onValueChange(insurer.id === value ? null : insurer.id)
+                    const selectedValue = getValueForInsurer(insurer)
+                    onValueChange(selectedValue === value ? null : (selectedValue ?? null))
                     setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === insurer.id ? "opacity-100" : "opacity-0"
+                      value === getValueForInsurer(insurer) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <div className="flex items-center justify-between w-full">

@@ -8,12 +8,13 @@ import { cn } from '@/lib/utils'
 import { useRepairersStore } from '@/stores/repairersStore'
 import { useDebounce } from '@/hooks/use-debounce'
 interface RepairerSelectProps {
-  value?: number | null
-  onValueChange: (value: number | null) => void
+  value?: string | number | null
+  onValueChange: (value: string | number | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string
   showStatus?: boolean
+  valueKey?: 'id' | 'code'
 }
 
 export function RepairerSelect({
@@ -22,7 +23,8 @@ export function RepairerSelect({
   placeholder = "Sélectionner un réparateur...",
   disabled = false,
   className,
-  showStatus = false
+  showStatus = false,
+  valueKey = 'id'
 }: RepairerSelectProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -50,7 +52,10 @@ export function RepairerSelect({
     }
   }, [repairers.length, fetchRepairers])
 
-  const selectedRepairer = repairers.find(repairer => repairer.id === value)
+  const getValueForRepairer = (repairer: (typeof repairers)[number]): string | number | undefined => {
+    return valueKey === 'id' ? repairer.id : repairer.code
+  }
+  const selectedRepairer = repairers.find(repairer => getValueForRepairer(repairer) === value)
 
   // Réinitialiser la recherche quand le popover se ferme
   const handleOpenChange = (newOpen: boolean) => {
@@ -129,14 +134,15 @@ export function RepairerSelect({
                   key={repairer.id}
                   value={`${repairer.name} ${repairer.code || ''} ${repairer.email || ''}`}
                   onSelect={() => {
-                    onValueChange(repairer.id === value ? null : repairer.id)
+                    const selectedValue = getValueForRepairer(repairer)
+                    onValueChange(selectedValue === value ? null : (selectedValue ?? null))
                     setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === repairer.id ? "opacity-100" : "opacity-0"
+                      value === getValueForRepairer(repairer) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <div className="flex items-center justify-between w-full">
