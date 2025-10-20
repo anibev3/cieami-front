@@ -78,7 +78,12 @@ export default function EditVehiclePage() {
   const { fetchVehicleGenres } = useVehicleGenresStore()
   const { fetchVehicleEnergies } = useVehicleEnergiesStore()
 
-  const isInitialLoading = !baseDataLoaded || !currentVehicle || currentVehicle.id !== vehicleId || loadingVehicleModels || !initialPrefillDone
+  const needsModelLoad = Boolean(currentVehicle?.brand?.id)
+  const isInitialLoading = 
+    !baseDataLoaded ||
+    !currentVehicle ||
+    currentVehicle.id !== vehicleId ||
+    (needsModelLoad ? (loadingVehicleModels || !initialPrefillDone) : false)
 
   console.log('EditVehiclePage - vehicleId:', vehicleId)
   console.log('EditVehiclePage - currentVehicle:', currentVehicle)
@@ -178,7 +183,10 @@ export default function EditVehiclePage() {
           vehicle_energy_id: currentVehicle?.vehicle_energy?.id?.toString() || '',
         })
 
-        // Ne pas terminer le pré-remplissage tant que les modèles ne sont pas assurés chargés
+        // Si aucune marque/modèle requis, marquer le pré-remplissage comme terminé
+        if (!currentVehicle?.brand?.id || !currentVehicle?.vehicle_model?.id) {
+          setInitialPrefillDone(true)
+        }
       }
     }
     prefill()
