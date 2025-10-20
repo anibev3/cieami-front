@@ -38,7 +38,7 @@ export function SupplySelect({
 }: SupplySelectProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const debouncedSearch = useDebounce(searchQuery, 300)
+  const debouncedSearch = useDebounce(searchQuery, 200)
 
   const { supplies: apiSupplies, loading, fetchSupplies } = useSuppliesStore()
   const [lastSearchQuery, setLastSearchQuery] = useState<string>('')

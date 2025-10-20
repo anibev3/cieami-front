@@ -768,19 +768,19 @@ export default function EditReportPage() {
     const fetchReferenceData = async () => {
       try {
         // Charger les fournitures
-        const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=100000`)
+        const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=50`)
         if (suppliesResponse.status === 200) {
           setSupplies(suppliesResponse.data.data)
         }
 
         // Charger les types de main d'œuvre
-        const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=100000`)
+        const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=50`)
         if (workforceTypesResponse.data.status === 200) {
           setWorkforceTypes(workforceTypesResponse.data.data)
         }
 
         // Charger les types d'autres coûts
-        const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}?per_page=100000`)
+        const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}?per_page=50`)
         if (otherCostTypesResponse.status === 200 && Array.isArray(otherCostTypesResponse.data.data)) {
           setOtherCostTypes(otherCostTypesResponse.data.data)
         } else {
@@ -788,7 +788,7 @@ export default function EditReportPage() {
         }
 
         // Charger les points de choc
-        const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}?per_page=100000`)
+        const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}?per_page=50`)
 
         console.log("================> shockPointsResponse", shockPointsResponse.status)
         if (shockPointsResponse.status === 200) {
@@ -796,7 +796,7 @@ export default function EditReportPage() {
         }
 
         // Charger les types de peinture
-        const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}?per_page=100`)
+        const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}?per_page=50`)
         if (paintTypesResponse.status === 200) {
           setPaintTypes(paintTypesResponse.data.data)
         } else {
@@ -804,7 +804,7 @@ export default function EditReportPage() {
         }
 
         // Charger les taux horaires
-        const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}?per_page=100`)
+        const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}?per_page=50`)
         if (hourlyRatesResponse.status === 200) {
           setHourlyRates(hourlyRatesResponse.data.data)
         } else {
@@ -812,22 +812,22 @@ export default function EditReportPage() {
         }
         
         // Charger les données pour les informations additionnelles
-        const generalStatesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/general-states?per_page=100000`)
+        const generalStatesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/general-states?per_page=50`)
         if (generalStatesResponse.status === 200) {
           setGeneralStates(generalStatesResponse.data.data)
         }
         
-        const claimNaturesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/claim-natures?per_page=100000`)
+        const claimNaturesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/claim-natures?per_page=50`)
         if (claimNaturesResponse.status === 200) {
           setClaimNatures(claimNaturesResponse.data.data)
         }
         
-        const technicalConclusionsResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/technical-conclusions?per_page=100000`)
+        const technicalConclusionsResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/technical-conclusions?per_page=50`)
         if (technicalConclusionsResponse.status === 200) {
           setTechnicalConclusions(technicalConclusionsResponse.data.data)
         }
         
-        const remarksResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/remarks?per_page=100000`)
+        const remarksResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/remarks?per_page=50`)
         if (remarksResponse.status === 200) {
           setRemarks(remarksResponse.data.data)
         }
