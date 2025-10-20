@@ -3,11 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useBrandsStore } from '@/stores/brands'
 import { toast } from 'sonner'
 import { VehicleModelCreate, VehicleModelUpdate } from '@/types/vehicle-models'
+import { BrandSelect } from '@/features/widgets/brand-select'
 
 interface VehicleModelMutateDialogProps {
   id?: number | null
@@ -30,7 +31,7 @@ export function VehicleModelMutateDialog({ id, open, onOpenChange }: VehicleMode
 
   useEffect(() => {
     if (open) {
-      fetchBrands()
+      fetchBrands({})
     }
   }, [open, fetchBrands])
 
@@ -126,21 +127,11 @@ export function VehicleModelMutateDialog({ id, open, onOpenChange }: VehicleMode
             <label htmlFor="brand_id" className="text-sm font-medium">
               Marque
             </label>
-            <Select
+            <BrandSelect
               value={form.brand_id}
               onValueChange={(value) => setForm((f) => ({ ...f, brand_id: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une marque" />
-              </SelectTrigger>
-              <SelectContent>
-                {brands.map((brand) => (
-                  <SelectItem key={brand.id} value={brand.id.toString()}>
-                    {brand.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Sélectionner une marque"
+            />
           </div>
 
           <DialogFooter>
