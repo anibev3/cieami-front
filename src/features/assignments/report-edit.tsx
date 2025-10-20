@@ -520,15 +520,15 @@ export default function ReportEditPage() {
     const loadSelectData = async () => {
       try {
         // Charger les états généraux
-        const generalStatesResponse = await axiosInstance.get('/general-states?per_page=100000')
+        const generalStatesResponse = await axiosInstance.get('/general-states?per_page=50')
         setGeneralStates(generalStatesResponse.data.data || [])
         
         // Charger les natures de sinistre
-        const claimNaturesResponse = await axiosInstance.get('/claim-natures?per_page=100000')
+        const claimNaturesResponse = await axiosInstance.get('/claim-natures?per_page=50')
         setClaimNatures(claimNaturesResponse.data.data || [])
         
         // Charger les conclusions techniques
-        const technicalConclusionsResponse = await axiosInstance.get('/technical-conclusions?per_page=100000')
+        const technicalConclusionsResponse = await axiosInstance.get('/technical-conclusions?per_page=50')
         setTechnicalConclusions(technicalConclusionsResponse.data.data || [])
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error)
