@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -38,10 +38,33 @@ export function SupplySelect({
 }: SupplySelectProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedSupply, setSelectedSupply] = useState<Supply | null>(null)
   const debouncedSearch = useDebounce(searchQuery, 200)
 
-  const { supplies: apiSupplies, loading, fetchSupplies } = useSuppliesStore()
+  const { supplies: apiSupplies, loading, fetchSupplies, fetchSupplyById } = useSuppliesStore()
   const [lastSearchQuery, setLastSearchQuery] = useState<string>('')
+
+  // Charger l'élément sélectionné s'il n'est pas dans la liste fournie
+  useEffect(() => {
+    if (value > 0) {
+      const foundInSupplies = supplies.find(supply => supply.id === value)
+      if (foundInSupplies) {
+        setSelectedSupply(foundInSupplies)
+      } else {
+        // L'élément n'est pas dans la liste fournie, le récupérer depuis l'API
+        fetchSupplyById(value).then(supply => {
+          if (supply) {
+            setSelectedSupply(supply)
+          }
+        }).catch(() => {
+          // Si l'élément n'existe pas, réinitialiser
+          setSelectedSupply(null)
+        })
+      }
+    } else {
+      setSelectedSupply(null)
+    }
+  }, [value, supplies, fetchSupplyById])
 
   useEffect(() => {
     if (debouncedSearch !== undefined && debouncedSearch.trim() !== '') {
@@ -63,7 +86,6 @@ export function SupplySelect({
     }
   }, [open])
 
-  const selectedSupply = supplies.find(supply => supply.id === value)
   const hasValue = value > 0
   const displaySupplies = searchQuery && searchQuery.trim() !== '' ? apiSupplies : supplies
 
