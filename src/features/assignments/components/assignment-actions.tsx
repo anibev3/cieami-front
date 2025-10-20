@@ -141,9 +141,6 @@ export function AssignmentActions({
           label: 'Rédiger le rapport', 
           icon: FileText,
           onClick: () => {
-            // if (assignment.expertise_type.code === 'evaluation') {
-            //   navigate({ to: `/assignments/evaluate-report/${assignment.id}` })
-            // } else {
               navigate({ to: `/assignments/edite-report/${assignment.id}` })
             // }
           },

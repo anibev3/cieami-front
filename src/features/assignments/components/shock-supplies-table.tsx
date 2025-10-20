@@ -57,6 +57,7 @@ interface ShockWork {
   recovery_amount_excluding_tax?: number
   recovery_amount_tax?: number
   new_amount_excluding_tax?: number
+  discount_amount_excluding_tax?: number
   new_amount_tax?: number
   new_amount?: number
   discount_amount?: number

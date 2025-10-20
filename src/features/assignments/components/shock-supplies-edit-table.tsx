@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 // import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
 import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
@@ -579,6 +579,27 @@ export function ShockSuppliesEditTable({
     discount_amount: 0
   })
 
+  // Construire une liste de fournitures qui inclut celles manquantes présentes dans les lignes pré-remplies
+  const combinedSupplies: Supply[] = useMemo(() => {
+    const byId = new Map<number, Supply>()
+    ;(supplies || []).forEach((s) => {
+      if (s && typeof s.id === 'number') byId.set(s.id, s)
+    })
+    ;(localShockWorks || []).forEach((work) => {
+      const id = Number(work?.supply_id || 0)
+      if (id && !byId.has(id)) {
+        byId.set(id, {
+          id,
+          label: work?.supply?.label || work?.supply_label || `Fourniture #${id}`,
+          code: work?.supply?.code,
+          price: work?.supply?.price,
+          // description n'est pas dans l'interface locale Supply; ignoré
+        } as Supply)
+      }
+    })
+    return Array.from(byId.values())
+  }, [supplies, localShockWorks])
+
   return (
     <div className="space-y-3">
       {/* Header with actions */}
@@ -751,7 +772,7 @@ export function ShockSuppliesEditTable({
                       key={row.uid}
                       row={row}
                       index={i}
-                      supplies={supplies}
+                      supplies={combinedSupplies}
                       modifiedRows={modifiedRows}
                       newRows={newRows}
                       isEvaluation={isEvaluation}

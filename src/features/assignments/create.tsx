@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -31,7 +31,7 @@ import { VehicleSelect } from '@/features/widgets/vehicle-select'
 import { InsurerSelect } from '@/features/widgets/insurer-select'
 import { RepairerSelect } from '@/features/widgets/repairer-select'
 import { BrokerSelect } from '@/features/widgets/broker-select'
-import { UserSelect } from '@/features/widgets/user-select'
+// import { UserSelect } from '@/features/widgets/user-select'
 // import { useAssignmentsStore } from '@/stores/assignments' // Supprimé car non utilisé
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
@@ -61,7 +61,7 @@ import { useClientsStore } from '../gestion/clients/store'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
-import { RichTextEditor } from '@/components/ui/rich-text-editor'
+// import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { HtmlContent } from '@/components/ui/html-content'
 import { useBrandsStore } from '@/stores/brands'
 import { CreateRepairer } from '@/features/assignments/components/create-repairer'
@@ -167,6 +167,9 @@ export default function CreateAssignmentPage() {
     const { id } = useParams({ strict: false }) as { id: string }
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
+  // Indique si les données de base (listes) sont chargées
+  const [baseDataLoaded, setBaseDataLoaded] = useState(false)
+  const isInitialLoading = loadingData || !baseDataLoaded
   // Fonction pour vérifier si le formulaire est complet
   const isFormComplete = () => {
     const values = form.getValues()
@@ -326,7 +329,7 @@ export default function CreateAssignmentPage() {
   
   // États pour les entités sélectionnées
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
-  const [selectedClient, setSelectedClient] = useState<UserType | null>(null)
+  const [selectedClient, setSelectedClient] = useState<any | null>(null)
   const [selectedInsurer, setSelectedInsurer] = useState<EntityType | null>(null)
   const [selectedRepairer, setSelectedRepairer] = useState<EntityType | null>(null)
   const [selectedBroker, setSelectedBroker] = useState<EntityType | null>(null)
@@ -346,6 +349,7 @@ export default function CreateAssignmentPage() {
   // Mode édition
   const isEditMode = !!id
   const assignmentId = id ? parseInt(id) : null
+  
   
   const { users, fetchUsers } = useUsersStore()
   const { clients, fetchClients, createClient } = useClientsStore()
@@ -487,37 +491,46 @@ export default function CreateAssignmentPage() {
       }
     }
 
-    loadAssignmentData()
-  }, [isEditMode, assignmentId, form])
+    // Attendre que les données de base soient chargées pour garantir que les Selects
+    // aient leurs options disponibles avant de réaliser le reset/pré-remplissage
+    if (baseDataLoaded) {
+      loadAssignmentData()
+    }
+  }, [isEditMode, assignmentId, form, baseDataLoaded])
+
+  // Mémoriser la fonction de chargement des données de base
+  const loadBaseData = useCallback(async () => {
+    try {
+      await Promise.allSettled([
+        fetchUsers(),
+        fetchClients(),
+        fetchVehicles(),
+        fetchAssignmentTypes(),
+        fetchBrokers(),
+        fetchRepairers(),
+        fetchInsurers(),
+        fetchExpertiseTypes(),
+        fetchDocuments(),
+        fetchVehicleModels(),
+        fetchColors(),
+        fetchBodyworks(),
+        fetchBrands()
+      ])
+      setBaseDataLoaded(true)
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des données de base:', error)
+      // Ne pas afficher d'erreur pour le chargement des données de base
+      // car cela pourrait être géré individuellement par chaque store
+    }
+  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchInsurers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
 
   // Charger les données de base (utilisateurs, véhicules, etc.)
   useEffect(() => {
-    const loadBaseData = async () => {
-      try {
-        await Promise.allSettled([
-          fetchUsers(),
-          fetchClients(),
-          fetchVehicles(),
-          fetchAssignmentTypes(),
-          fetchBrokers(),
-          fetchRepairers(),
-          fetchInsurers(),
-          fetchExpertiseTypes(),
-          fetchDocuments(),
-          fetchVehicleModels(),
-          fetchColors(),
-          fetchBodyworks(),
-          fetchBrands()
-        ])
-      } catch (error: any) {
-        console.error('Erreur lors du chargement des données de base:', error)
-        // Ne pas afficher d'erreur pour le chargement des données de base
-        // car cela pourrait être géré individuellement par chaque store
-      }
+    // Ne charger qu'une seule fois au montage du composant
+    if (!baseDataLoaded) {
+      loadBaseData()
     }
-    
-    loadBaseData()
-  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchInsurers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
+  }, [baseDataLoaded, loadBaseData])
 
   // Removed effect for vehicle model reset - now handled by VehicleMutateDialog
 
@@ -554,22 +567,7 @@ export default function CreateAssignmentPage() {
     navigate({ to: '/assignments' })
   }
 
-  // Fonctions pour les experts
-  const addExpert = () => {
-    const currentExperts = form.getValues('experts') || []
-    form.setValue('experts', [...currentExperts, {
-      expert_id: '',
-      date: new Date().toISOString().split('T')[0],
-      observation: '',
-    }])
-  }
-
-  const removeExpert = (index: number) => {
-    const currentExperts = form.getValues('experts') || []
-    if (currentExperts.length > 1) {
-      form.setValue('experts', currentExperts.filter((_, i) => i !== index))
-    }
-  }
+  // Fonctions pour les experts (UI d'édition désactivée)
 
   // Fonction pour pré-remplir le kilométrage quand un véhicule est sélectionné
   const handleVehicleSelection = (vehicleId: string) => {
@@ -588,7 +586,7 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour gérer la sélection du client
   const handleClientSelection = (clientId: string) => {
-    const client = users.find(u => u.id.toString() === clientId)
+    const client = clients.find(u => u.id.toString() === clientId)
     if (client) {
       setSelectedClient(client)
     }
@@ -1090,8 +1088,8 @@ export default function CreateAssignmentPage() {
                   <span className="text-xs text-gray-500">ID: {assignmentId}</span>
                   {loadingData && (
                     <div className="flex items-center gap-1">
-                      <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                      <span className="text-xs text-blue-600">Chargement...</span>
+                      <Loader2 className="h-3 w-3 animate-spin text-gray-600" />
+                      <span className="text-xs text-gray-600">Chargement...</span>
                     </div>
                   )}
                 </div>
@@ -1109,7 +1107,7 @@ export default function CreateAssignmentPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className={`w-full px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${loadingData ? 'pointer-events-none opacity-50' : ''}`}>
+          <div className={`w-full px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${isInitialLoading ? 'pointer-events-none opacity-50' : ''}`}>
             
             {/* Bouton de récapitulatif */}
             {/* {!isEditMode && (
@@ -1145,7 +1143,7 @@ export default function CreateAssignmentPage() {
               <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                 <CardHeader className="px-3 sm:px-6">
                   <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
-                    <FileText className="h-5 w-5 text-blue-600" />
+                    <FileText className="h-5 w-5 text-gray-600" />
                     Informations générales
                   </CardTitle>
                   <CardDescription>
@@ -1175,7 +1173,7 @@ export default function CreateAssignmentPage() {
                               
                                 <div className="flex gap-2">
                                   <ClientSelect
-                                    value={field.value ? Number(field.value) : null}
+                                    value={field.value}
                                     onValueChange={(value: number | null) => {
                                       field.onChange(value?.toString())
                                       if (value) {
@@ -1835,7 +1833,7 @@ export default function CreateAssignmentPage() {
                   {/* Informations générales */}
                     <div className="space-y-6">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                        <FileText className="h-4 w-4 text-blue-600" />
+                        <FileText className="h-4 w-4 text-gray-600" />
                         <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations générales</h3>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -2149,7 +2147,7 @@ export default function CreateAssignmentPage() {
                     {/* Résumé final */}
                     <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-3">
-                        <ClipboardCheck className="h-5 w-5 text-blue-600" />
+                        <ClipboardCheck className="h-5 w-5 text-gray-600" />
                         <h4 className="font-semibold text-blue-900">Résumé du dossier</h4>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -2280,7 +2278,7 @@ export default function CreateAssignmentPage() {
           <div className="mt-6 space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
-                <FileText className="h-4 w-4 text-blue-600" />
+                <FileText className="h-4 w-4 text-gray-600" />
                 Informations générales
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -4120,6 +4118,39 @@ export default function CreateAssignmentPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de chargement initial - seulement en mode édition */}
+      <Dialog open={isEditMode && isInitialLoading} onOpenChange={() => {}}>
+        <DialogContent className="w-1/3">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              Chargement des données
+            </DialogTitle>
+            <DialogDescription>
+              Veuillez patienter pendant le chargement des informations du formulaire...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+            </div>
+            <p className="mt-4 text-sm text-gray-600 text-center">
+              Préparation du formulaire en cours...
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Indicateur de chargement discret - seulement en mode création */}
+      {!isEditMode && isInitialLoading && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-700">Chargement des données...</span>
+          </div>
+        </div>
+      )}
 
       {/* Modal de création en cours */}
       <Dialog open={showCreatingModal} onOpenChange={() => {}}>

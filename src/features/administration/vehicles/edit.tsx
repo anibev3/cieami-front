@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Save, Loader2 } from 'lucide-react'
 import { VehicleUpdate } from '@/types/vehicles'
 import { useVehiclesStore } from '@/stores/vehicles'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useBrandsStore } from '@/stores/brands'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
@@ -66,18 +67,29 @@ export default function EditVehiclePage() {
   
   const [loading, setLoading] = useState(false)
   const [selectedBrandId, setSelectedBrandId] = useState<string>('')
+  const [baseDataLoaded, setBaseDataLoaded] = useState(false)
+  const [initialPrefillDone, setInitialPrefillDone] = useState(false)
   
   const { currentVehicle, fetchVehicle, updateVehicle } = useVehiclesStore()
   const { fetchBrands } = useBrandsStore()
   const { fetchColors } = useColorsStore()
   const { fetchBodyworks } = useBodyworksStore()
-  const { fetchVehicleModels } = useVehicleModelsStore()
+  const { fetchVehicleModels, loading: loadingVehicleModels } = useVehicleModelsStore()
   const { fetchVehicleGenres } = useVehicleGenresStore()
   const { fetchVehicleEnergies } = useVehicleEnergiesStore()
 
-  // eslint-disable-next-line no-console
+  const needsModelLoad = Boolean(currentVehicle?.brand?.id)
+  const isInitialLoading = 
+    !baseDataLoaded ||
+    !currentVehicle ||
+    currentVehicle.id !== vehicleId ||
+    (needsModelLoad ? (loadingVehicleModels || !initialPrefillDone) : false)
+  
+  // Pour les véhicules, on est toujours en mode édition, donc on garde le modal
+  const showLoadingModal = isInitialLoading
+  const showDiscreteLoading = false // Pas de mode création pour les véhicules
+
   console.log('EditVehiclePage - vehicleId:', vehicleId)
-  // eslint-disable-next-line no-console
   console.log('EditVehiclePage - currentVehicle:', currentVehicle)
 
   const form = useForm<VehicleEditFormData>({
@@ -108,62 +120,94 @@ export default function EditVehiclePage() {
     if (vehicleId) {
       fetchVehicle(vehicleId)
     }
-  }, [vehicleId])
+  }, [vehicleId, fetchVehicle])
 
   // Charger les données de référence
   useEffect(() => {
-    fetchBrands()
-    fetchColors()
-    fetchBodyworks()
-    fetchVehicleGenres()
-    fetchVehicleEnergies()
+    const loadRefs = async () => {
+      await Promise.allSettled([
+        fetchBrands(),
+        fetchColors(),
+        fetchBodyworks(),
+        fetchVehicleGenres(),
+        fetchVehicleEnergies(),
+      ])
+      setBaseDataLoaded(true)
+    }
+    loadRefs()
   }, [fetchBrands, fetchColors, fetchBodyworks, fetchVehicleGenres, fetchVehicleEnergies])
 
   // Réinitialiser le modèle quand la marque change et charger les modèles
   useEffect(() => {
     if (selectedBrandId !== '') {
-      form.setValue('vehicle_model_id', '')
+      // Ne réinitialiser le modèle que si l'utilisateur change réellement la marque
+      // Après le pré-remplissage initial, on permet le reset
+      if (initialPrefillDone) {
+        form.setValue('vehicle_model_id', '')
+      }
       fetchVehicleModels(1, { brand_id: selectedBrandId })
     }
-  }, [selectedBrandId])
+  }, [selectedBrandId, initialPrefillDone, fetchVehicleModels, form])
 
   // Mettre à jour le formulaire avec les données du véhicule
   useEffect(() => {
-    if (currentVehicle && currentVehicle.id === vehicleId) {
-      console.log('Setting form data with vehicle:', currentVehicle)
-      
-      // Mettre à jour la marque sélectionnée pour charger les modèles
-      if (currentVehicle.brand) {
-        setSelectedBrandId(currentVehicle.brand.id.toString())
+    const prefill = async () => {
+      if (!baseDataLoaded) return
+      if (currentVehicle && currentVehicle.id === vehicleId) {
+        console.log('Setting form data with vehicle:', currentVehicle)
+        
+        // Charger les modèles de la marque du véhicule avant le reset
+        if (currentVehicle.brand) {
+          const brandIdStr = currentVehicle.brand.id.toString()
+          setSelectedBrandId(brandIdStr)
+          try {
+            await fetchVehicleModels(1, { brand_id: brandIdStr })
+          } catch (_error) {
+            // ignore fetch error, form reset will still proceed
+          }
+        }
+        
+        form.reset({
+          license_plate: currentVehicle?.license_plate || '',
+          usage: currentVehicle?.usage || '',
+          type: currentVehicle?.type || '',
+          option: currentVehicle?.option || '',
+          bodywork_id: currentVehicle?.bodywork?.id?.toString() || '',
+          mileage: currentVehicle?.mileage || undefined,
+          serial_number: currentVehicle?.serial_number || '',
+          first_entry_into_circulation_date: currentVehicle?.first_entry_into_circulation_date || '',  
+          technical_visit_date: currentVehicle?.technical_visit_date || '',
+          fiscal_power: currentVehicle?.fiscal_power || undefined,
+          nb_seats: currentVehicle?.nb_seats || undefined,
+          new_market_value: currentVehicle?.new_market_value ? Number(currentVehicle.new_market_value) : undefined,
+          payload: currentVehicle?.payload || undefined,
+          vehicle_model_id: currentVehicle?.vehicle_model?.id?.toString() || '',
+          color_id: currentVehicle?.color?.id?.toString() || '',
+          vehicle_genre_id: currentVehicle?.vehicle_genre?.id?.toString() || '',
+          vehicle_energy_id: currentVehicle?.vehicle_energy?.id?.toString() || '',
+        })
+
+        // Si aucune marque/modèle requis, marquer le pré-remplissage comme terminé
+        if (!currentVehicle?.brand?.id || !currentVehicle?.vehicle_model?.id) {
+          setInitialPrefillDone(true)
+        }
       }
-      
-      // Log pour déboguer les valeurs
-      console.log('Vehicle genre:', currentVehicle?.vehicle_genre)
-      console.log('Vehicle energy:', currentVehicle?.vehicle_energy)
-      console.log('Vehicle genre ID:', currentVehicle?.vehicle_genre?.id.toString())
-      console.log('Vehicle energy ID:', currentVehicle?.vehicle_energy?.id.toString())
-      
-      form.reset({
-        license_plate: currentVehicle?.license_plate || '',
-        usage: currentVehicle?.usage || '',
-        type: currentVehicle?.type || '',
-        option: currentVehicle?.option || '',
-        bodywork_id: currentVehicle?.bodywork?.id.toString() || '',
-        mileage: currentVehicle?.mileage || undefined,
-        serial_number: currentVehicle?.serial_number || '',
-        first_entry_into_circulation_date: currentVehicle?.first_entry_into_circulation_date || '',  
-        technical_visit_date: currentVehicle?.technical_visit_date || '',
-        fiscal_power: currentVehicle?.fiscal_power || undefined,
-        nb_seats: currentVehicle?.nb_seats || undefined,
-        new_market_value: currentVehicle?.new_market_value ? Number(currentVehicle.new_market_value) : undefined,
-        payload: currentVehicle?.payload || undefined,
-        vehicle_model_id: currentVehicle?.vehicle_model?.id.toString() || '',
-        color_id: currentVehicle?.color?.id.toString() || '',
-        vehicle_genre_id: currentVehicle?.vehicle_genre?.id.toString() || '',
-        vehicle_energy_id: currentVehicle?.vehicle_energy?.id.toString() || '',
-      })
     }
-  }, [currentVehicle, vehicleId, form])
+    prefill()
+  }, [currentVehicle, vehicleId, form, baseDataLoaded, fetchVehicleModels])
+
+  // Une fois les modèles de la marque chargés, assurer le pré-remplissage du modèle
+  useEffect(() => {
+    if (!baseDataLoaded) return
+    if (!currentVehicle || currentVehicle.id !== vehicleId) return
+    if (!selectedBrandId) return
+    if (initialPrefillDone) return
+    if (loadingVehicleModels) return
+
+    const modelId = currentVehicle?.vehicle_model?.id?.toString() || ''
+    form.setValue('vehicle_model_id', modelId)
+    setInitialPrefillDone(true)
+  }, [baseDataLoaded, currentVehicle, vehicleId, selectedBrandId, loadingVehicleModels, initialPrefillDone, form])
 
   const onSubmit = async (data: VehicleEditFormData) => {
     console.log('onSubmit called with data:', data)
@@ -222,28 +266,7 @@ export default function EditVehiclePage() {
     navigate({ to: '/administration/vehicles' })
   }
 
-  if (!currentVehicle || currentVehicle.id !== vehicleId) {
-    return (
-      <>
-        <Header fixed>
-          <Search />
-          <div className='ml-auto flex items-center space-x-4'>
-            <ThemeSwitch />
-            <ProfileDropdown />
-          </div>
-        </Header>
-
-        <Main>
-          <div className="flex items-center justify-center h-64">
-            <div className="flex items-center space-x-2">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span>Chargement du véhicule...</span>
-            </div>
-          </div>
-        </Main>
-      </>
-    )
-  }
+  // Affichage modal de chargement initial tant que les données ne sont pas prêtes
 
   return (
     <>
@@ -270,7 +293,7 @@ export default function EditVehiclePage() {
             <div>
               <h2 className='text-2xl font-bold tracking-tight'>Modifier le véhicule</h2>
               <p className='text-muted-foreground'>
-                Modifiez les informations du véhicule {currentVehicle.license_plate}
+                Modifiez les informations du véhicule {currentVehicle?.license_plate || ''}
               </p>
             </div>
           </div>
@@ -333,7 +356,7 @@ export default function EditVehiclePage() {
                       <FormItem>
                         <FormLabel>Modèle de véhicule</FormLabel>
                         <VehicleModelSelect
-                          value={field.value}
+                          value={field.value || ''}
                           onValueChange={field.onChange}
                           placeholder="Sélectionner un modèle"
                           brandId={selectedBrandId}
@@ -350,7 +373,7 @@ export default function EditVehiclePage() {
                       <FormItem>
                         <FormLabel>Couleur</FormLabel>
                         <ColorSelect
-                          value={field.value}
+                          value={field.value || ''}
                           onValueChange={field.onChange}
                           placeholder="Sélectionner une couleur"
                         />
@@ -558,6 +581,38 @@ export default function EditVehiclePage() {
           </CardContent>
         </Card>
       </Main>
+      {/* Modal de chargement - toujours affiché pour l'édition de véhicules */}
+      <Dialog open={showLoadingModal} onOpenChange={() => {}}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              Chargement des données
+            </DialogTitle>
+            <DialogDescription>
+              Veuillez patienter pendant le chargement des informations du véhicule...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+            </div>
+            <p className="mt-4 text-sm text-gray-600 text-center">
+              Préparation du formulaire en cours...
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Indicateur de chargement discret - pas utilisé pour les véhicules */}
+      {showDiscreteLoading && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-700">Chargement des données...</span>
+          </div>
+        </div>
+      )}
     </>
   )
 } 
