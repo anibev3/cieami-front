@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { useClientsStore } from '@/features/gestion/clients/store'
 import { useDebounce } from '@/hooks/use-debounce'
 
 interface ClientSelectProps {
-  value?: number | null
+  value?: number | string | null
   onValueChange: (value: number | null) => void
   placeholder?: string
   disabled?: boolean
@@ -48,7 +48,9 @@ export function ClientSelect({
     }
   }, [clients.length, fetchClients])
 
-  const selectedClient = clients.find(client => client.id === value)
+  // Convertir la valeur en number pour la comparaison
+  const numericValue = typeof value === 'string' ? parseInt(value, 10) : value
+  const selectedClient = clients.find(client => client.id === numericValue)
 
   // Réinitialiser la recherche quand le popover se ferme
   const handleOpenChange = (newOpen: boolean) => {
@@ -114,14 +116,14 @@ export function ClientSelect({
                   key={client.id}
                   value={`${client.name} ${client.email}`}
                   onSelect={() => {
-                    onValueChange(client.id === value ? null : client.id)
+                    onValueChange(client.id === numericValue ? null : client.id)
                     setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === client.id ? "opacity-100" : "opacity-0"
+                      numericValue === client.id ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <div className="flex flex-col">

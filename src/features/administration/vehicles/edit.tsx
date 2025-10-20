@@ -84,6 +84,10 @@ export default function EditVehiclePage() {
     !currentVehicle ||
     currentVehicle.id !== vehicleId ||
     (needsModelLoad ? (loadingVehicleModels || !initialPrefillDone) : false)
+  
+  // Pour les véhicules, on est toujours en mode édition, donc on garde le modal
+  const showLoadingModal = isInitialLoading
+  const showDiscreteLoading = false // Pas de mode création pour les véhicules
 
   console.log('EditVehiclePage - vehicleId:', vehicleId)
   console.log('EditVehiclePage - currentVehicle:', currentVehicle)
@@ -577,8 +581,8 @@ export default function EditVehiclePage() {
           </CardContent>
         </Card>
       </Main>
-      {/* Modal de chargement */}
-      <Dialog open={isInitialLoading} onOpenChange={() => {}}>
+      {/* Modal de chargement - toujours affiché pour l'édition de véhicules */}
+      <Dialog open={showLoadingModal} onOpenChange={() => {}}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -599,6 +603,16 @@ export default function EditVehiclePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Indicateur de chargement discret - pas utilisé pour les véhicules */}
+      {showDiscreteLoading && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-700">Chargement des données...</span>
+          </div>
+        </div>
+      )}
     </>
   )
 } 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -350,6 +350,7 @@ export default function CreateAssignmentPage() {
   const isEditMode = !!id
   const assignmentId = id ? parseInt(id) : null
   
+  
   const { users, fetchUsers } = useUsersStore()
   const { clients, fetchClients, createClient } = useClientsStore()
   const { vehicles, fetchVehicles } = useVehiclesStore()
@@ -497,35 +498,39 @@ export default function CreateAssignmentPage() {
     }
   }, [isEditMode, assignmentId, form, baseDataLoaded])
 
+  // Mémoriser la fonction de chargement des données de base
+  const loadBaseData = useCallback(async () => {
+    try {
+      await Promise.allSettled([
+        fetchUsers(),
+        fetchClients(),
+        fetchVehicles(),
+        fetchAssignmentTypes(),
+        fetchBrokers(),
+        fetchRepairers(),
+        fetchInsurers(),
+        fetchExpertiseTypes(),
+        fetchDocuments(),
+        fetchVehicleModels(),
+        fetchColors(),
+        fetchBodyworks(),
+        fetchBrands()
+      ])
+      setBaseDataLoaded(true)
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des données de base:', error)
+      // Ne pas afficher d'erreur pour le chargement des données de base
+      // car cela pourrait être géré individuellement par chaque store
+    }
+  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchInsurers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
+
   // Charger les données de base (utilisateurs, véhicules, etc.)
   useEffect(() => {
-    const loadBaseData = async () => {
-      try {
-        await Promise.allSettled([
-          fetchUsers(),
-          fetchClients(),
-          fetchVehicles(),
-          fetchAssignmentTypes(),
-          fetchBrokers(),
-          fetchRepairers(),
-          fetchInsurers(),
-          fetchExpertiseTypes(),
-          fetchDocuments(),
-          fetchVehicleModels(),
-          fetchColors(),
-          fetchBodyworks(),
-          fetchBrands()
-        ])
-        setBaseDataLoaded(true)
-      } catch (error: any) {
-        console.error('Erreur lors du chargement des données de base:', error)
-        // Ne pas afficher d'erreur pour le chargement des données de base
-        // car cela pourrait être géré individuellement par chaque store
-      }
+    // Ne charger qu'une seule fois au montage du composant
+    if (!baseDataLoaded) {
+      loadBaseData()
     }
-    
-    loadBaseData()
-  }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchInsurers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
+  }, [baseDataLoaded, loadBaseData])
 
   // Removed effect for vehicle model reset - now handled by VehicleMutateDialog
 
@@ -1083,8 +1088,8 @@ export default function CreateAssignmentPage() {
                   <span className="text-xs text-gray-500">ID: {assignmentId}</span>
                   {loadingData && (
                     <div className="flex items-center gap-1">
-                      <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
-                      <span className="text-xs text-blue-600">Chargement...</span>
+                      <Loader2 className="h-3 w-3 animate-spin text-gray-600" />
+                      <span className="text-xs text-gray-600">Chargement...</span>
                     </div>
                   )}
                 </div>
@@ -1138,7 +1143,7 @@ export default function CreateAssignmentPage() {
               <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
                 <CardHeader className="px-3 sm:px-6">
                   <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
-                    <FileText className="h-5 w-5 text-blue-600" />
+                    <FileText className="h-5 w-5 text-gray-600" />
                     Informations générales
                   </CardTitle>
                   <CardDescription>
@@ -1168,7 +1173,7 @@ export default function CreateAssignmentPage() {
                               
                                 <div className="flex gap-2">
                                   <ClientSelect
-                                    value={field.value ? Number(field.value) : null}
+                                    value={field.value}
                                     onValueChange={(value: number | null) => {
                                       field.onChange(value?.toString())
                                       if (value) {
@@ -1828,7 +1833,7 @@ export default function CreateAssignmentPage() {
                   {/* Informations générales */}
                     <div className="space-y-6">
                       <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                        <FileText className="h-4 w-4 text-blue-600" />
+                        <FileText className="h-4 w-4 text-gray-600" />
                         <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations générales</h3>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -2142,7 +2147,7 @@ export default function CreateAssignmentPage() {
                     {/* Résumé final */}
                     <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-3">
-                        <ClipboardCheck className="h-5 w-5 text-blue-600" />
+                        <ClipboardCheck className="h-5 w-5 text-gray-600" />
                         <h4 className="font-semibold text-blue-900">Résumé du dossier</h4>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -2273,7 +2278,7 @@ export default function CreateAssignmentPage() {
           <div className="mt-6 space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
-                <FileText className="h-4 w-4 text-blue-600" />
+                <FileText className="h-4 w-4 text-gray-600" />
                 Informations générales
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -4114,9 +4119,9 @@ export default function CreateAssignmentPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de chargement initial */}
-      <Dialog open={isInitialLoading} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md">
+      {/* Modal de chargement initial - seulement en mode édition */}
+      <Dialog open={isEditMode && isInitialLoading} onOpenChange={() => {}}>
+        <DialogContent className="w-1/3">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
@@ -4136,6 +4141,16 @@ export default function CreateAssignmentPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Indicateur de chargement discret - seulement en mode création */}
+      {!isEditMode && isInitialLoading && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-700">Chargement des données...</span>
+          </div>
+        </div>
+      )}
 
       {/* Modal de création en cours */}
       <Dialog open={showCreatingModal} onOpenChange={() => {}}>
