@@ -59,8 +59,8 @@ export function useEditData() {
       const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}?per_page=50`)
       setShockPoints(shockPointsResponse.data.data)
       
-      // Charger les fournitures
-      const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=50`)
+      // Charger les fournitures (limitées à 5 pour les performances)
+      const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=5`)
       setSupplies(suppliesResponse.data.data)
       
       // Charger les types de main d'œuvre

@@ -68,6 +68,7 @@ interface SortableRowProps {
   row: ShockWork
   index: number
   supplies: Supply[]
+  combinedSupplies: Supply[]
   modifiedRows: Set<number>
   validatingRows: Set<number>
   isEvaluation: boolean
@@ -81,7 +82,8 @@ interface SortableRowProps {
 function SortableRow({
   row,
   index,
-  supplies,
+  supplies: _supplies,
+  combinedSupplies,
   modifiedRows,
   validatingRows,
   isEvaluation,
@@ -127,7 +129,7 @@ function SortableRow({
         <SupplySelect
           value={row.supply_id}
           onValueChange={(value) => updateLocalShockWork(index, 'supply_id', value)}
-          supplies={supplies}
+          supplies={combinedSupplies}
           placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
           onCreateNew={() => handleCreateSupply(index)}
         />
@@ -278,6 +280,9 @@ export function ShockSuppliesTable({
   const [validatingRows, setValidatingRows] = useState<Set<number>>(new Set())
   const [showCreateSupplyModal, setShowCreateSupplyModal] = useState(false)
   const [currentSupplyIndex, setCurrentSupplyIndex] = useState<number | null>(null)
+  
+  // État pour les fournitures combinées (liste fournie + fournitures pré-remplies)
+  const [combinedSupplies, setCombinedSupplies] = useState<Supply[]>(supplies)
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -291,6 +296,21 @@ export function ShockSuppliesTable({
   useEffect(() => {
     setLocalShockWorks(shockWorks)
   }, [shockWorks])
+
+  // Créer une liste combinée des fournitures (liste fournie + fournitures pré-remplies)
+  useEffect(() => {
+    const preloadedSupplies = shockWorks
+      .filter(work => work.supply_id > 0)
+      .map(work => ({
+        id: work.supply_id,
+        label: work.supply_label || `Fourniture ${work.supply_id}`,
+        code: '',
+        description: ''
+      }))
+      .filter(supply => !supplies.some(s => s.id === supply.id)) // Éviter les doublons
+
+    setCombinedSupplies([...supplies, ...preloadedSupplies])
+  }, [supplies, shockWorks])
 
   // Fonction de mise à jour locale
   const updateLocalShockWork = (index: number, field: keyof ShockWork, value: any) => {
@@ -540,6 +560,7 @@ export function ShockSuppliesTable({
                     row={row}
                     index={i}
                     supplies={supplies}
+                    combinedSupplies={combinedSupplies}
                     modifiedRows={modifiedRows}
                     validatingRows={validatingRows}
                     isEvaluation={isEvaluation}
