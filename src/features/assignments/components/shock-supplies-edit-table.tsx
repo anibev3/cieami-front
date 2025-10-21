@@ -646,58 +646,12 @@ export function ShockSuppliesEditTable({
           </Button>
           <Button onClick={handleAddNewRow} size="xs" className="text-white text-xs">
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter une ligne
+            Ajouter une ligne de fourniture
           </Button>
         </div>
       </div>
 
-      {/* Autres informations - seulement si les props sont fournies */}
-      {/* {(paintTypeId !== undefined || hourlyRateId !== undefined) && (
-        <div className="border rounded bg-gray-50 p-4 space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {paintTypeId !== undefined && (
-              <div>
-                <Label className="text-xs font-medium mb-2">Type de peinture</Label>
-                <Select 
-                  value={paintTypeId ? paintTypeId.toString() : ''} 
-                  onValueChange={(value) => onPaintTypeChange?.(Number(value))}
-                >
-                  <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''}`}>
-                    <SelectValue placeholder={!paintTypeId ? "⚠️ Sélectionner un type" : "Sélectionner..."} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paintTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {hourlyRateId !== undefined && (
-              <div>
-                <Label className="text-xs font-medium mb-2">Taux horaire</Label>
-                <Select 
-                  value={hourlyRateId ? hourlyRateId.toString() : ''} 
-                  onValueChange={(value) => onHourlyRateChange?.(Number(value))}
-                >
-                  <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''}`}>
-                    <SelectValue placeholder={!hourlyRateId ? "⚠️ Sélectionner un taux" : "Sélectionner..."} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hourlyRates.map((rate) => (
-                      <SelectItem key={rate.id} value={rate.id.toString()}>
-                        {rate.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </div>
-      )} */}
+     
 
       {tableExpanded ? (
         <DndContext
@@ -841,74 +795,15 @@ export function ShockSuppliesEditTable({
               </div>
             </div>
           </div>
-
-          {/* Résumé des actions */}
-          {/* <div className="bg-gradient-to-r from-gray-50 to-slate-100 rounded-xl p-4 border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="text-sm font-semibold text-gray-700">Actions en cours</h5>
-              <div className="flex gap-2">
-                {modifiedRows.size > 0 && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    {modifiedRows.size} modifié{modifiedRows.size > 1 ? 's' : ''}
-                  </span>
-                )}
-                {newRows.size > 0 && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {newRows.size} nouveau{newRows.size > 1 ? 'x' : ''}
-                  </span>
-                )}
-                {hasLocalReorderChanges && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    Réorganisation
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            {localShockWorks.length === 0 ? (
-              <div className="text-center py-6">
-                <Calculator className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Aucune fourniture ajoutée</p>
-                <p className="text-xs text-gray-400">Cliquez sur "Ajouter une ligne" pour commencer</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {localShockWorks.slice(0, 3).map((work, index) => (
-                  <div key={work.uid} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">
-                          {work.supply?.label || `Fourniture ${index + 1}`}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {work.amount > 0 ? `${formatCurrency(work.amount)} €` : 'Montant non défini'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      {work.disassembly && <span className="w-2 h-2 bg-blue-400 rounded-full" title="Démontage"></span>}
-                      {work.replacement && <span className="w-2 h-2 bg-green-400 rounded-full" title="Remplacement"></span>}
-                      {work.repair && <span className="w-2 h-2 bg-yellow-400 rounded-full" title="Réparation"></span>}
-                      {work.paint && <span className="w-2 h-2 bg-purple-400 rounded-full" title="Peinture"></span>}
-                      {work.obsolescence && <span className="w-2 h-2 bg-red-400 rounded-full" title="Vétusté"></span>}
-                    </div>
-                  </div>
-                ))}
-                {localShockWorks.length > 3 && (
-                  <div className="text-center py-2">
-                    <p className="text-xs text-gray-500">
-                      +{localShockWorks.length - 3} autre{localShockWorks.length - 3 > 1 ? 's' : ''} fourniture{localShockWorks.length - 3 > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div> */}
         </div>
       )}
+
+      <div className='flex justify-end'>
+        <Button onClick={handleAddNewRow} size="xs" className="text-white text-xs">
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une ligne de fourniture
+        </Button>
+      </div>
 
       {/* Récapitulatif moderne */}
       {tableExpanded && (

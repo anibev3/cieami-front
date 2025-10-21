@@ -1103,7 +1103,7 @@ export function ShockWorkforceTableV2({
             size="xs"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter une ligne
+            Ajouter une ligne de main d'œuvre
           </Button>
         </div>
       </div>
