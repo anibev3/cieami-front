@@ -59,3 +59,6 @@ Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
 zapreoumar@bca-ci.com
 akealexandre@bca-ci.com
 fanebakary@bca-ci.com
+
+git@github.com:anibev3/expert-auto.git
+git@github.com:anibev3/cieami-front.git
