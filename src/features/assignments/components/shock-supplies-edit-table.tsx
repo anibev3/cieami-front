@@ -11,6 +11,7 @@ import { SupplySelect } from '@/features/widgets/supply-select'
 import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
+import { useSuppliesStore } from '@/stores/supplies'
 import {
   DndContext,
   closestCenter,
@@ -314,6 +315,8 @@ export function ShockSuppliesEditTable({
   // Callback pour rafraîchir les données du dossier
   onAssignmentRefresh?: () => void
 }) {
+  // Utiliser le store de fournitures pour récupérer les détails des fournitures manquantes
+  const { fetchSupplyById } = useSuppliesStore()
   // État local pour gérer les modifications et la validation
   const [localShockWorks, setLocalShockWorks] = useState<ShockWork[]>(shockWorks)
   const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set())
@@ -323,6 +326,8 @@ export function ShockSuppliesEditTable({
   const [currentSupplyIndex, setCurrentSupplyIndex] = useState<number | null>(null)
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
   const [tableExpanded, setTableExpanded] = useState(true)
+  // État pour les fournitures récupérées dynamiquement
+  const [fetchedSupplies, setFetchedSupplies] = useState<Map<number, Supply>>(new Map())
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -337,12 +342,52 @@ export function ShockSuppliesEditTable({
     setLocalShockWorks(shockWorks)
   }, [shockWorks])
 
+  // Récupérer automatiquement les fournitures manquantes
+  useEffect(() => {
+    const fetchMissingSupplies = async () => {
+      const missingSupplyIds = new Set<number>()
+      
+      // Identifier les fournitures manquantes
+      localShockWorks.forEach(work => {
+        const id = Number(work?.supply_id || 0)
+        if (id && !supplies.find(s => s.id === id) && !fetchedSupplies.has(id)) {
+          missingSupplyIds.add(id)
+        }
+      })
+      
+      // Récupérer les fournitures manquantes
+      for (const supplyId of missingSupplyIds) {
+        try {
+          const supply = await fetchSupplyById(supplyId)
+          setFetchedSupplies(prev => new Map(prev).set(supplyId, supply))
+        } catch (error) {
+          console.error(`Erreur lors de la récupération de la fourniture ${supplyId}:`, error)
+        }
+      }
+    }
+    
+    fetchMissingSupplies()
+  }, [localShockWorks, supplies, fetchedSupplies, fetchSupplyById])
+
   // Fonction de mise à jour locale
-  const updateLocalShockWork = (index: number, field: keyof ShockWork, value: any) => {
+  const updateLocalShockWork = async (index: number, field: keyof ShockWork, value: any) => {
     const updated = [...localShockWorks]
     updated[index] = { ...updated[index], [field]: value }
     setLocalShockWorks(updated)
     setModifiedRows(prev => new Set([...prev, index]))
+    
+    // Si c'est une sélection de fourniture, récupérer ses détails si nécessaire
+    if (field === 'supply_id' && value && typeof value === 'number') {
+      const supplyId = value
+      if (!supplies.find(s => s.id === supplyId) && !fetchedSupplies.has(supplyId)) {
+        try {
+          const supply = await fetchSupplyById(supplyId)
+          setFetchedSupplies(prev => new Map(prev).set(supplyId, supply))
+        } catch (error) {
+          console.error(`Erreur lors de la récupération de la fourniture ${supplyId}:`, error)
+        }
+      }
+    }
   }
 
   // Fonction pour gérer le drag and drop
@@ -582,23 +627,56 @@ export function ShockSuppliesEditTable({
   // Construire une liste de fournitures qui inclut celles manquantes présentes dans les lignes pré-remplies
   const combinedSupplies: Supply[] = useMemo(() => {
     const byId = new Map<number, Supply>()
+    
+    // D'abord, ajouter toutes les fournitures existantes
     ;(supplies || []).forEach((s) => {
       if (s && typeof s.id === 'number') byId.set(s.id, s)
     })
+    
+    // Ajouter les fournitures récupérées dynamiquement
+    fetchedSupplies.forEach((supply, id) => {
+      byId.set(id, supply)
+    })
+    
+    // Ensuite, traiter les fournitures des lignes de travail
     ;(localShockWorks || []).forEach((work) => {
       const id = Number(work?.supply_id || 0)
-      if (id && !byId.has(id)) {
-        byId.set(id, {
-          id,
-          label: work?.supply?.label || work?.supply_label || `Fourniture #${id}`,
-          code: work?.supply?.code,
-          price: work?.supply?.price,
-          // description n'est pas dans l'interface locale Supply; ignoré
-        } as Supply)
+      if (id) {
+        // Si la fourniture n'existe pas encore dans la liste, la créer
+        if (!byId.has(id)) {
+          // Essayer de trouver la fourniture dans la liste des fournitures disponibles
+          const foundSupply = supplies.find(s => s.id === id)
+          
+          if (foundSupply) {
+            // Utiliser les données de la fourniture trouvée
+            byId.set(id, foundSupply)
+          } else {
+            // Fallback : utiliser les données disponibles dans work ou créer un placeholder
+            const label = work?.supply_label || work?.supply?.label || `Fourniture #${id}`
+            byId.set(id, {
+              id,
+              label,
+              code: work?.supply?.code,
+              price: work?.supply?.price,
+            } as Supply)
+          }
+        } else {
+          // Si elle existe mais a un supply_label plus récent, mettre à jour le label
+          const existingSupply = byId.get(id)!
+          const newLabel = work?.supply_label || work?.supply?.label
+          if (newLabel && newLabel !== existingSupply.label) {
+            byId.set(id, {
+              ...existingSupply,
+              label: newLabel
+            })
+          }
+        }
       }
     })
+    
     return Array.from(byId.values())
-  }, [supplies, localShockWorks])
+  }, [supplies, localShockWorks, fetchedSupplies])
+
 
   return (
     <div className="space-y-3">
