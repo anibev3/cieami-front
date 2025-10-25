@@ -768,7 +768,7 @@ export default function EditReportPage() {
     const fetchReferenceData = async () => {
       try {
         // Charger les fournitures
-        const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=50`)
+        const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=5`)
         if (suppliesResponse.status === 200) {
           setSupplies(suppliesResponse.data.data)
         }
@@ -2203,7 +2203,7 @@ export default function EditReportPage() {
                                     id: work.id, // ID réel de l'API pour la réorganisation
                                     uid: work.id?.toString() || crypto.randomUUID(),
                                     supply_id: work.supply?.id || 0,
-                                    supply_label: work.supply?.label || '',
+                                    supply_label: work.supply?.label || work.supply_label || '',
                                     disassembly: work?.disassembly || false,
                                     replacement: work?.replacement || false,
                                     repair: work?.repair || false,
