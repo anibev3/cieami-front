@@ -516,7 +516,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Entités',
           icon: IconBuilding,
-          requiredRoles: [UserRole.SYSTEM_ADMIN],
+          requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.ADMIN],
           items: [
             {
               title: 'Entité',
