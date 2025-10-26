@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react'
-import { ChevronsUpDown, Plus } from 'lucide-react'
+import { ChevronsUpDown } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -9,11 +8,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from '@/components/ui/sidebar'
+import { useUser } from '@/stores/authStore'
 
 export function TeamSwitcher({
-  teams,
+  teams: _teams,
 }: {
   teams: {
     name: string
@@ -21,8 +20,12 @@ export function TeamSwitcher({
     plan: string
   }[]
 }) {
-  const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const user = useUser()
+
+  // Récupération des informations de l'entité
+  const entityName = user?.entity?.name || 'LCA'
+  const entityLogo = user?.entity?.logo || '/images/logo/cieami_logo.jpg'
+  const entityCode = user?.role?.label || 'Expert Auto'
 
   return (
     <SidebarMenu>
@@ -35,16 +38,16 @@ export function TeamSwitcher({
             >
               <div className='bg-white  text-primary flex aspect-square items-center justify-center rounded-lg shadow-md'>
                 <img 
-                  src="/images/logo/logo2.png"
-                  alt="Expert Auto Logo" 
-                  className="w-20 h-10"
+                  src={entityLogo}
+                  alt={`${entityName} Logo`}
+                  className="w-20 h-10 object-contain"
                 />
               </div>
               <div className='grid flex-1 text-left text-sm leading-tight'>
                 <span className='truncate font-semibold text-primary'>
-                  BCA-CI
+                  {entityName}
                 </span>
-                <span className='truncate text-xs text-primary font-bold'>Expertise Automobile</span>
+                <span className='truncate text-xs text-primary font-bold'>{entityCode}</span>
               </div>
               <ChevronsUpDown className='ml-auto text-primary/80' />
             </SidebarMenuButton>

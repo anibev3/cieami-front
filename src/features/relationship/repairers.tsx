@@ -10,6 +10,11 @@ import { RepairerSelect } from '@/features/widgets/repairer-select'
 import { Loader2, RefreshCcw, ShieldCheck, ShieldOff, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Header } from '@/components/layout/header'
+import { Search } from '@/components/search'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { Main } from '@/components/layout/main'
 
 export default function RepairerRelationshipsPage() {
   const [loading, setLoading] = useState(false)
@@ -74,9 +79,19 @@ export default function RepairerRelationshipsPage() {
   const rows = useMemo(() => data?.data ?? [], [data])
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+          <>
+      <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main>
+      <div className="space-y-6">
+      <Card className='p-0 border-0 shadow-none'>
+        <CardHeader className="flex flex-row items-center justify-between p-0">
           <div>
             <CardTitle>Rattachements réparateurs</CardTitle>
             <CardDescription>Gérez les relations réparateur ↔ cabinet d'expertise</CardDescription>
@@ -86,7 +101,7 @@ export default function RepairerRelationshipsPage() {
             Actualiser
           </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-0">
           <div className="flex justify-end">
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
               <DialogTrigger asChild>
@@ -186,7 +201,9 @@ export default function RepairerRelationshipsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </Main>
+    </>
   )
 }
 

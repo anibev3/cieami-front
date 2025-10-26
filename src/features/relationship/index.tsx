@@ -21,7 +21,7 @@ export default function InsurerRelationshipsPage() {
   const [creating, setCreating] = useState(false)
   const [page, setPage] = useState(1)
   const [data, setData] = useState<InsurerRelationshipsResponse | null>(null)
-  const [selectedInsurerCode, setSelectedInsurerCode] = useState<string | number | null>(null)
+  const [selectedInsurerId, setSelectedInsurerId] = useState<string | number | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const fetchList = useCallback(async (targetPage = page) => {
@@ -41,16 +41,16 @@ export default function InsurerRelationshipsPage() {
   }, [fetchList])
 
   const handleCreate = async () => {
-    if (!selectedInsurerCode) {
+    if (!selectedInsurerId) {
       toast.error('Sélectionnez un assureur')
       return
     }
     setCreating(true)
     try {
-      const body: CreateInsurerRelationshipBody = { insurer_id: selectedInsurerCode }
+      const body: CreateInsurerRelationshipBody = { insurer_id: selectedInsurerId }
       await insurerRelationshipService.create(body)
       toast.success('Rattachement créé')
-      setSelectedInsurerCode(null)
+      setSelectedInsurerId(null)
       setIsCreateModalOpen(false)
       fetchList(1)
       setPage(1)
@@ -125,10 +125,10 @@ export default function InsurerRelationshipsPage() {
                     </label>
                     <div className="col-span-3">
                       <InsurerSelect 
-                        value={selectedInsurerCode} 
-                        onValueChange={setSelectedInsurerCode} 
+                        value={selectedInsurerId} 
+                        onValueChange={setSelectedInsurerId} 
                         placeholder="Sélectionner un assureur..." 
-                        valueKey="code" 
+                        valueKey="id" 
                       />
                     </div>
                   </div>
@@ -137,7 +137,7 @@ export default function InsurerRelationshipsPage() {
                   <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                     Annuler
                   </Button>
-                  <Button onClick={handleCreate} disabled={creating || !selectedInsurerCode}>
+                  <Button onClick={handleCreate} disabled={creating || !selectedInsurerId}>
                     {creating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                     Créer le rattachement
                   </Button>

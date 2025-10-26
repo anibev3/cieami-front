@@ -9,7 +9,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 
 interface ClientSelectProps {
   value?: number | string | null
-  onValueChange: (value: number | null) => void
+  onValueChange: (value: string | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string
@@ -48,9 +48,10 @@ export function ClientSelect({
     }
   }, [clients.length, fetchClients])
 
-  // Convertir la valeur en number pour la comparaison
-  const numericValue = typeof value === 'string' ? parseInt(value, 10) : value
-  const selectedClient = clients.find(client => client.id === numericValue)
+  // Les IDs sont des strings, pas des numbers
+  const selectedClient = clients.find(client => client.id === value)
+  
+  // Debug logs supprimés
 
   // Réinitialiser la recherche quand le popover se ferme
   const handleOpenChange = (newOpen: boolean) => {
@@ -115,15 +116,15 @@ export function ClientSelect({
                 <CommandItem
                   key={client.id}
                   value={`${client.name} ${client.email}`}
-                  onSelect={() => {
-                    onValueChange(client.id === numericValue ? null : client.id)
-                    setOpen(false)
-                  }}
+        onSelect={() => {
+          onValueChange(client.id === value ? null : client.id)
+          setOpen(false)
+        }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      numericValue === client.id ? "opacity-100" : "opacity-0"
+                      value === client.id ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <div className="flex flex-col">

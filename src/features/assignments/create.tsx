@@ -24,21 +24,19 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-// import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { ArrowLeft, Save, Loader2, FileText, Wrench, ClipboardCheck, Plus, User, Car, Building, FileType, Info, Search, AlertCircle, Eye, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, FileText, Wrench, Plus, User, Car, Building, FileType, Info, Search, AlertCircle, Eye, CheckCircle } from 'lucide-react'
 import { ClientSelect } from '@/features/widgets/client-select'
 import { VehicleSelect } from '@/features/widgets/vehicle-select'
-import { InsurerSelect } from '@/features/widgets/insurer-select'
-import { RepairerSelect } from '@/features/widgets/repairer-select'
-import { BrokerSelect } from '@/features/widgets/broker-select'
-// import { UserSelect } from '@/features/widgets/user-select'
-// import { useAssignmentsStore } from '@/stores/assignments' // Supprimé car non utilisé
+import { InsurerRelationshipSelect, RepairerRelationshipSelect, RepairerRelationshipSelectForInsurer, AdditionalInsurerSelect, SelectionDetailsCard } from '@/features/widgets'
+
 import { useUsersStore } from '@/stores/usersStore'
 import { useVehiclesStore } from '@/stores/vehicles'
 import { useAssignmentTypesStore } from '@/stores/assignmentTypesStore'
 
 import { useExpertiseTypesStore } from '@/stores/expertise-types'
 import { useDocumentsStore } from '@/stores/documentsStore'
+import { repairerRelationshipService } from '@/services/repairerRelationshipService'
+import { insurerRelationshipService } from '@/services/insurerRelationshipService'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -61,8 +59,6 @@ import { useClientsStore } from '../gestion/clients/store'
 import { useVehicleModelsStore } from '@/stores/vehicle-models'
 import { useColorsStore } from '@/stores/colors'
 import { useBodyworksStore } from '@/stores/bodyworks'
-// import { RichTextEditor } from '@/components/ui/rich-text-editor'
-import { HtmlContent } from '@/components/ui/html-content'
 import { useBrandsStore } from '@/stores/brands'
 import { CreateRepairer } from '@/features/assignments/components/create-repairer'
 import { VehicleMutateDialog } from '@/features/administration/vehicles/components/vehicle-mutate-dialog'
@@ -70,6 +66,9 @@ import { useBrokersStore } from '@/stores/brokersStore'
 import { useRepairersStore } from '@/stores/repairersStore'
 import { useInsurersStore } from '@/stores/insurersStore'
 import axios from 'axios'
+import { useUser } from '@/stores/authStore'
+import { UserRole } from '@/types/auth'
+import { ExpertFirmSelect } from '@/features/widgets'
 
 // Types pour les erreurs
 interface ApiError {
@@ -99,16 +98,16 @@ interface AssignmentType {
 
 // Type local pour le payload de création d'assignation
 interface AssignmentCreatePayload {
-  client_id: number
-  vehicle_id: number
-  vehicle_mileage: number | null
-  insurer_id: number | null
-  repairer_id: number | null
-  broker_id: number | null
-  additional_insurer_id: number | null
-  assignment_type_id: number
-  expertise_type_id: number
-  document_transmitted_id: any[]
+  client_id: string
+  vehicle_id: string
+  vehicle_mileage: string | null
+  insurer_id: string | null
+  repairer_id: string | null
+  broker_id: string | null
+  additional_insurer_id: string | null
+  assignment_type_id: string
+  expertise_type_id: string
+  document_transmitted_id: string[]
   policy_number: string | null
   claim_number: string | null
   claim_starts_at: string | null
@@ -121,7 +120,7 @@ interface AssignmentCreatePayload {
   damage_declared: string | null
   observation: string | null
   experts: {
-    expert_id: number
+    expert_id: string
     date: string
     observation: string | null
   }[]
@@ -141,6 +140,7 @@ const assignmentSchema = z.object({
   repairer_id: z.string().optional(),
   broker_id: z.string().optional(),
   additional_insurer_id: z.string().optional(),
+  expert_firm_id: z.string().optional(),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
   document_transmitted_id: z.array(z.string()).optional(),
@@ -170,6 +170,14 @@ export default function CreateAssignmentPage() {
   // Indique si les données de base (listes) sont chargées
   const [baseDataLoaded, setBaseDataLoaded] = useState(false)
   const isInitialLoading = loadingData || !baseDataLoaded
+  
+  // Récupérer l'utilisateur connecté
+  const user = useUser()
+  
+  // Vérifier les rôles de l'utilisateur
+  const isInsurer = user?.role?.name === UserRole.INSURER_ADMIN || user?.role?.name === UserRole.INSURER_STANDARD_USER
+  const isExpertAdmin = user?.role?.name === UserRole.EXPERT_ADMIN || user?.role?.name === UserRole.ADMIN || user?.role?.name === UserRole.SYSTEM_ADMIN
+  const isRepairer = user?.role?.name === UserRole.REPAIRER_ADMIN || user?.role?.name === UserRole.REPAIRER_STANDARD_USER
   // Fonction pour vérifier si le formulaire est complet
   const isFormComplete = () => {
     const values = form.getValues()
@@ -336,6 +344,14 @@ export default function CreateAssignmentPage() {
   const [selectedAssignmentType, setSelectedAssignmentType] = useState<AssignmentType | null>(null)
   const [selectedExpertiseType, setSelectedExpertiseType] = useState<ExpertiseType | null>(null)
   const [selectedDocuments, setSelectedDocuments] = useState<DocumentTransmitted[]>([])
+  const [selectedExpertFirmId, setSelectedExpertFirmId] = useState<string | null>(null)
+  const [insurerRelationships, setInsurerRelationships] = useState<any[]>([])
+  const [selectedClientData, setSelectedClientData] = useState<any>(null)
+  const [selectedInsurerRelationshipData, setSelectedInsurerRelationshipData] = useState<any>(null)
+  const [selectedAdditionalInsurerData, setSelectedAdditionalInsurerData] = useState<any>(null)
+  const [selectedRepairerRelationshipData, setSelectedRepairerRelationshipData] = useState<any>(null)
+  const [selectedVehicleData, setSelectedVehicleData] = useState<any>(null)
+  const [repairerRelationships, setRepairerRelationships] = useState<any[]>([])
 
   // États pour la gestion des erreurs
   const [showErrorModal, setShowErrorModal] = useState(false)
@@ -351,7 +367,7 @@ export default function CreateAssignmentPage() {
   const assignmentId = id ? parseInt(id) : null
   
   
-  const { users, fetchUsers } = useUsersStore()
+  const { fetchUsers } = useUsersStore()
   const { clients, fetchClients, createClient } = useClientsStore()
   const { vehicles, fetchVehicles } = useVehiclesStore()
   const { assignmentTypes, fetchAssignmentTypes } = useAssignmentTypesStore()
@@ -373,6 +389,7 @@ export default function CreateAssignmentPage() {
       vehicle_mileage: '',
       insurer_id: '',
       repairer_id: '',
+      expert_firm_id: '',
       assignment_type_id: '',
       expertise_type_id: '',
       document_transmitted_id: [],
@@ -390,6 +407,19 @@ export default function CreateAssignmentPage() {
       experts: [{ expert_id: '', date: '', observation: '' }]
     }
   })
+
+  // Pré-remplir automatiquement le champ assureur/réparateur si l'utilisateur est un assureur/réparateur
+  useEffect(() => {
+    if (!isEditMode && user?.entity?.id) {
+      if (isInsurer) {
+        // Si l'utilisateur est un assureur, pré-remplir le champ assureur
+        form.setValue('insurer_id', user.entity.id.toString())
+      } else if (isRepairer) {
+        // Si l'utilisateur est un réparateur, pré-remplir le champ réparateur
+        form.setValue('repairer_id', user.entity.id.toString())
+      }
+    }
+  }, [isEditMode, user, isInsurer, isRepairer, form])
 
   // Charger les données existantes en mode édition
   useEffect(() => {
@@ -530,7 +560,20 @@ export default function CreateAssignmentPage() {
     if (!baseDataLoaded) {
       loadBaseData()
     }
+    // Charger les rattachements assureurs et réparateurs
+    loadInsurerRelationships()
+    loadRepairerRelationships()
   }, [baseDataLoaded, loadBaseData])
+
+  // Log des données chargées
+  useEffect(() => {
+    console.log('=== DONNÉES CHARGÉES ===')
+    console.log('assignmentTypes loaded:', assignmentTypes.length, assignmentTypes)
+    console.log('expertiseTypes loaded:', expertiseTypes.length, expertiseTypes)
+    console.log('vehicles loaded:', vehicles.length, vehicles)
+    console.log('clients loaded:', clients.length, clients)
+    console.log('========================')
+  }, [assignmentTypes, expertiseTypes, vehicles, clients])
 
   // Removed effect for vehicle model reset - now handled by VehicleMutateDialog
 
@@ -571,14 +614,20 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour pré-remplir le kilométrage quand un véhicule est sélectionné
   const handleVehicleSelection = (vehicleId: string) => {
+    console.log('handleVehicleSelection called with:', vehicleId)
+    console.log('vehicles available:', vehicles.length)
     const vehicle = vehicles.find(v => v.id.toString() === vehicleId)
     if (vehicle) {
+      console.log('Vehicle found:', vehicle)
       setSelectedVehicle(vehicle)
+      setSelectedVehicleData(vehicle)
       // Pré-remplir le kilométrage avec la valeur du véhicule
       const mileage = vehicle.mileage
       if (mileage !== null && mileage !== undefined) {
         form.setValue('vehicle_mileage', mileage.toString())
       }
+    } else {
+      console.log('Vehicle not found for ID:', vehicleId)
     }
   }
 
@@ -589,6 +638,7 @@ export default function CreateAssignmentPage() {
     const client = clients.find(u => u.id.toString() === clientId)
     if (client) {
       setSelectedClient(client)
+      setSelectedClientData(client)
     }
   }
 
@@ -598,36 +648,80 @@ export default function CreateAssignmentPage() {
     setShowClientModal(true)
   }
 
-  // Fonction pour gérer la sélection de l'assureur (simplifiée)
-  const handleInsurerSelection = (_insurerId: string) => {
-    // Les assureurs sont gérés par le store séparé useInsurersStore
+  // Fonction pour gérer la sélection du rattachement assureur
+  const handleInsurerRelationshipSelection = (relationshipId: string) => {
+    const relationship = insurerRelationships.find(rel => rel.id === relationshipId)
+    if (relationship) {
+      setSelectedInsurer(relationship.insurer)
+      setSelectedInsurerRelationshipData(relationship)
+    }
   }
 
-  // Fonction pour ouvrir le modal des détails de l'assureur
-  const openInsurerDetails = (insurer: EntityType) => {
+  // Fonction pour ouvrir le modal des détails de l'assureur (non utilisée actuellement)
+  const _openInsurerDetails = (insurer: EntityType) => {
     setSelectedInsurer(insurer)
     setShowInsurerModal(true)
   }
 
-  // Fonction pour gérer la sélection du réparateur
-  const handleRepairerSelection = (repairerId: string) => {
-    const repairer = repairers.find(r => r.id.toString() === repairerId)
-    if (repairer) {
-      setSelectedRepairer(repairer)
+  // Fonction pour gérer la sélection du rattachement réparateur
+  const handleRepairerRelationshipSelection = (relationshipId: string) => {
+    const relationship = repairerRelationships.find(rel => rel.id === relationshipId)
+    if (relationship) {
+      setSelectedRepairerRelationshipData(relationship)
     }
   }
 
-  // Fonction pour ouvrir le modal des détails du réparateur
-  const openRepairerDetails = (repairer: EntityType) => {
+  // Fonction pour gérer la sélection du cabinet d'expertise (pour les assureurs)
+  const handleExpertFirmSelection = (expertFirmId: string) => {
+    if (isInsurer && expertFirmId) {
+      setSelectedExpertFirmId(expertFirmId)
+      // Recharger les rattachements réparateurs avec le filtre expert_firm_id
+      loadRepairerRelationshipsByExpertFirm(expertFirmId)
+    }
+  }
+
+  // Fonction pour charger les rattachements réparateurs par cabinet d'expertise
+  const loadRepairerRelationshipsByExpertFirm = async (expertFirmId: string) => {
+    try {
+      const response = await repairerRelationshipService.list(1, `?expert_firm_id=${expertFirmId}`)
+      setRepairerRelationships(response.data)
+    } catch (error) {
+      console.error('Erreur lors du chargement des rattachements réparateurs:', error)
+    }
+  }
+
+  // Fonction pour charger tous les rattachements réparateurs
+  const loadRepairerRelationships = async () => {
+    try {
+      const response = await repairerRelationshipService.list(1)
+      setRepairerRelationships(response.data)
+    } catch (error) {
+      console.error('Erreur lors du chargement des rattachements réparateurs:', error)
+    }
+  }
+
+  // Fonction pour charger les rattachements assureurs
+  const loadInsurerRelationships = async () => {
+    try {
+      const response = await insurerRelationshipService.list(1)
+      setInsurerRelationships(response.data)
+    } catch (error) {
+      console.error('Erreur lors du chargement des rattachements assureurs:', error)
+    }
+  }
+
+  // Fonction pour ouvrir le modal des détails du réparateur (non utilisée actuellement)
+  const _openRepairerDetails = (repairer: EntityType) => {
     setSelectedRepairer(repairer)
     setShowRepairerModal(true)
   }
 
-  // Fonction pour gérer la sélection du courtier
+  // Fonction pour gérer la sélection du courtier/assureur additionnel
   const handleBrokerSelection = (brokerId: string) => {
     const broker = brokers.find(b => b.id.toString() === brokerId)
     if (broker) {
       setSelectedBroker(broker)
+      setSelectedAdditionalInsurerData(broker)
     }
   }
 
@@ -639,9 +733,14 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour gérer la sélection du Type de mission
   const handleAssignmentTypeSelection = (assignmentTypeId: string) => {
+    console.log('handleAssignmentTypeSelection called with:', assignmentTypeId)
+    console.log('assignmentTypes available:', assignmentTypes.length)
     const assignmentType = assignmentTypes.find(at => at.id.toString() === assignmentTypeId)
     if (assignmentType) {
+      console.log('Assignment type found:', assignmentType)
       setSelectedAssignmentType(assignmentType)
+    } else {
+      console.log('Assignment type not found for ID:', assignmentTypeId)
     }
   }
 
@@ -653,9 +752,14 @@ export default function CreateAssignmentPage() {
 
   // Fonction pour gérer la sélection du type d'expertise
   const handleExpertiseTypeSelection = (expertiseTypeId: string) => {
+    console.log('handleExpertiseTypeSelection called with:', expertiseTypeId)
+    console.log('expertiseTypes available:', expertiseTypes.length)
     const expertiseType = expertiseTypes.find(et => et.id.toString() === expertiseTypeId)
     if (expertiseType) {
+      console.log('Expertise type found:', expertiseType)
       setSelectedExpertiseType(expertiseType)
+    } else {
+      console.log('Expertise type not found for ID:', expertiseTypeId)
     }
   }
 
@@ -682,19 +786,24 @@ export default function CreateAssignmentPage() {
     
     try {
       console.log('Données du formulaire à soumettre:', values)
+      console.log('assignment_type_id:', values.assignment_type_id, 'type:', typeof values.assignment_type_id)
+      console.log('expertise_type_id:', values.expertise_type_id, 'type:', typeof values.expertise_type_id)
+      console.log('vehicle_id:', values.vehicle_id, 'type:', typeof values.vehicle_id)
+
       
-      // Préparer les données pour l'API
+      
+      // Préparer les données pour l'API - transmission des données telles quelles
       const assignmentData = {
-        client_id: parseInt(values.client_id),
-        vehicle_id: parseInt(values.vehicle_id),
-        vehicle_mileage: values.vehicle_mileage ? parseInt(values.vehicle_mileage) : null,
-        insurer_id: values.insurer_id ? parseInt(values.insurer_id) : null,
-        repairer_id: values.repairer_id ? parseInt(values.repairer_id) : null,
-        broker_id: values.broker_id ? parseInt(values.broker_id) : null,
-        additional_insurer_id: values.additional_insurer_id ? parseInt(values.additional_insurer_id) : null,
-        assignment_type_id: parseInt(values.assignment_type_id),
-        expertise_type_id: parseInt(values.expertise_type_id),
-        document_transmitted_id: values.document_transmitted_id?.map(id => parseInt(id)) || [],
+        client_id: values.client_id,
+        vehicle_id: values.vehicle_id,
+        vehicle_mileage: values.vehicle_mileage || null,
+        insurer_id: values.insurer_id || null,
+        repairer_id: values.repairer_id || null,
+        broker_id: values.broker_id || null,
+        additional_insurer_id: values.additional_insurer_id || null,
+        assignment_type_id: values.assignment_type_id,
+        expertise_type_id: values.expertise_type_id,
+        document_transmitted_id: values.document_transmitted_id || [],
         policy_number: values.policy_number || null,
         claim_number: values.claim_number || null,
         claim_starts_at: values.claim_starts_at || null,
@@ -707,7 +816,7 @@ export default function CreateAssignmentPage() {
         damage_declared: values.damage_declared || null,
         observation: values.observation || null,
         experts: (values.experts || []).filter(expert => expert.expert_id && expert.date).map((expert) => ({
-          expert_id: parseInt(expert.expert_id!),
+          expert_id: expert.expert_id!,
           date: expert.date!,
           observation: expert.observation || null,
         })),
@@ -1108,34 +1217,6 @@ export default function CreateAssignmentPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className={`w-full px-2 sm:px-4 lg:px-6 py-4 lg:py-6 ${isInitialLoading ? 'pointer-events-none opacity-50' : ''}`}>
-            
-            {/* Bouton de récapitulatif */}
-            {/* {!isEditMode && (
-              <div className="mb-8">
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Formulaire de création de dossier</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Remplissez tous les champs requis, puis consultez le récapitulatif avant de créer le dossier
-                            </p>
-                          </div>
-                        <Button 
-                          type="button"
-                          variant="outline" 
-                        onClick={confirmCreation}
-                        disabled={!isFormComplete()}
-                        className="flex items-center gap-2"
-                      >
-                        <Eye className="h-4 w-4" />
-                        Voir le récapitulatif
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                      </div>
-                )} */}
 
             {/* Contenu principal - Pleine largeur */}
             <div className="w-full space-y-6">
@@ -1172,17 +1253,22 @@ export default function CreateAssignmentPage() {
                               </div>
                               
                                 <div className="flex gap-2">
-                                  <ClientSelect
-                                    value={field.value}
-                                    onValueChange={(value: number | null) => {
-                                      field.onChange(value?.toString())
-                                      if (value) {
-                                        handleClientSelection(value.toString())
-                                      }
-                                    }}
-                                    placeholder="Sélectionner un client"
-                                    className="flex-1"
-                                  />
+                                    <ClientSelect
+                                      value={field.value || null}
+                                      onValueChange={(value: string | null) => {
+                                        console.log('=== CLIENT SELECT ===')
+                                        console.log('Value received:', value, 'type:', typeof value)
+                                        console.log('Field value before:', field.value)
+                                        field.onChange(value || '')
+                                        console.log('Field value after:', field.value)
+                                        if (value) {
+                                          handleClientSelection(value)
+                                        }
+                                        console.log('=====================')
+                                      }}
+                                      placeholder="Sélectionner un client"
+                                      className="flex-1"
+                                    />
                                   {selectedClient && (
                                     <Button
                                       type="button"
@@ -1194,7 +1280,15 @@ export default function CreateAssignmentPage() {
                                       <Info className="h-4 w-4" />
                                     </Button>
                                   )}
-                      </div>
+                                </div>
+                                {selectedClientData && (
+                                  <div className="mt-3">
+                                    <SelectionDetailsCard
+                                      type="client"
+                                      data={selectedClientData}
+                                    />
+                                  </div>
+                                )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1215,8 +1309,13 @@ export default function CreateAssignmentPage() {
                                   <VehicleSelect
                                     value={field.value}
                                     onValueChange={(value) => {
+                                      console.log('=== VEHICLE SELECT ===')
+                                      console.log('Value received:', value, 'type:', typeof value)
+                                      console.log('Field value before:', field.value)
                                       field.onChange(value)
+                                      console.log('Field value after:', field.value)
                                       handleVehicleSelection(value)
+                                      console.log('======================')
                                     }}
                                     placeholder="Sélectionner un véhicule"
                                   />
@@ -1232,6 +1331,14 @@ export default function CreateAssignmentPage() {
                                     </Button>
                                   )} */}
                       </div>
+                      {selectedVehicleData && (
+                        <div className="mt-3">
+                          <SelectionDetailsCard
+                            type="vehicle"
+                            data={selectedVehicleData}
+                          />
+                        </div>
+                      )}
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -1297,128 +1404,196 @@ export default function CreateAssignmentPage() {
                     <div className="space-y-4">
                       <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800">
                         <Building className="h-5 w-5 text-green-500" />
-                          Assureur et Réparateur
+                          {isInsurer ? 'Cabinet d\'expertise' : 'Assureur et Réparateur'}
                         </h3>
                         <div className="space-y-4">
-                          <FormField
-                            control={form.control}
-                            name="insurer_id"
-                            render={({ field }) => (
-                              <FormItem>
-                              <div className="flex items-center gap-2 justify-between">
-                                <FormLabel>Assureur</FormLabel>
-                                {/* <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateInsurerModal(true)} className="shrink-0 w-6 h-6">
-                                  <Plus className="h-4 w-4" />
-                                </Button> */}
-                              </div>
-                                <div className="flex gap-2">
-                                  <InsurerSelect
-                                    value={field.value ? Number(field.value) : null}
-                                    onValueChange={(value: number | null) => {
-                                      field.onChange(value?.toString())
-                                      if (value) {
-                                        handleInsurerSelection(value.toString())
-                                      }
-                                    }}
-                                    placeholder="Sélectionner un assureur"
-                                    className="flex-1"
-                                    showStatus={true}
-                                  />
-                                  {selectedInsurer && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openInsurerDetails(selectedInsurer)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          {/* Si l'utilisateur est un assureur, afficher un champ pour sélectionner le rattachement */}
+                          {isInsurer && (
+                            <FormField
+                              control={form.control}
+                              name="insurer_id"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <div className="flex items-center gap-2 justify-between">
+                                    <FormLabel>Rattachement Assureur <span className="text-red-500">*</span></FormLabel>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <ExpertFirmSelect
+                                      value={field.value || null}
+                                      onValueChange={(value: string | null) => {
+                                        field.onChange(value || '')
+                                        if (value) {
+                                          handleExpertFirmSelection(value)
+                                        }
+                                      }}
+                                      placeholder="Sélectionner un cabinet d'expertise"
+                                      className="flex-1"
+                                      showStatus={true}
+                                    />
+                                  </div>
+                                  <FormMessage />
+                                  <p className="text-xs text-muted-foreground">
+                                    Votre assurance ({user?.entity?.name}) est automatiquement assignée à ce dossier
+                                  </p>
+                                </FormItem>
+                              )}
+                            />
+                          )}
 
-                          <FormField
-                            control={form.control}
-                            name="additional_insurer_id"
-                            render={({ field }) => (
-                              <FormItem>
+                          {/* Champ rattachement assureur - masqué pour les assureurs */}
+                          {!isInsurer && (
+                            <FormField
+                              control={form.control}
+                              name="insurer_id"
+                              render={({ field }) => (
+                                <FormItem>
                                 <div className="flex items-center gap-2 justify-between">
-                                  <FormLabel>Assureur additionnel</FormLabel>
+                                  <FormLabel>Rattachement Assureur</FormLabel>
                                 </div>
-                                <div className="flex gap-2">
-                                  <BrokerSelect
-                                    value={field.value ? Number(field.value) : null}
-                                    onValueChange={(value: number | null) => {
-                                      field.onChange(value?.toString())
-                                      if (value) {
-                                        handleBrokerSelection(value.toString())
-                                      }
-                                    }}
-                                    placeholder="Sélectionner un assureur additionnel"
-                                    className="flex-1"
-                                    showStatus={true}
-                                  />
-                                  {selectedBroker && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openBrokerDetails(selectedBroker)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
+                                  <div className="flex gap-2">
+                                    <InsurerRelationshipSelect
+                                      value={field.value || null}
+                                      onValueChange={(value: string | null) => {
+                                        field.onChange(value || '')
+                                        if (value) {
+                                          handleInsurerRelationshipSelection(value)
+                                        }
+                                      }}
+                                      placeholder="Sélectionner un rattachement assureur"
+                                      className="flex-1"
+                                      showStatus={true}
+                                      showExpertFirm={true}
+                                    />
+                                  </div>
+                                  {selectedInsurerRelationshipData && (
+                                    <div className="mt-3">
+                                      <SelectionDetailsCard
+                                        type="insurer-relationship"
+                                        data={selectedInsurerRelationshipData}
+                                      />
+                                    </div>
                                   )}
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
 
-                          <FormField
-                            control={form.control}
-                            name="repairer_id"
-                            render={({ field }) => (
-                              <FormItem>
-                              <div className="flex items-center gap-2 justify-between">
-                                <FormLabel>Réparateur</FormLabel>
-                                <Button type="button" variant="outline" size="icon" onClick={() => setShowCreateRepairerModal(true)} className="shrink-0 w-6 h-6">
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </div>
-                                <div className="flex gap-2">
-                                  <RepairerSelect
-                                    value={field.value ? Number(field.value) : null}
-                                    onValueChange={(value: number | null) => {
-                                      field.onChange(value?.toString())
-                                      if (value) {
-                                        handleRepairerSelection(value.toString())
-                                      }
-                                    }}
-                                    placeholder="Sélectionner un réparateur"
-                                    className="flex-1"
-                                    showStatus={true}
-                                  />
-                                  {selectedRepairer && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => openRepairerDetails(selectedRepairer)}
-                                      className="shrink-0"
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </Button>
+                          {/* Assureur additionnel - masqué pour les assureurs */}
+                          {!isInsurer && isExpertAdmin && (
+                            <FormField
+                              control={form.control}
+                              name="additional_insurer_id"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <div className="flex items-center gap-2 justify-between">
+                                    <FormLabel>Assureur additionnel</FormLabel>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <AdditionalInsurerSelect
+                                      value={field.value || null}
+                                      onValueChange={(value: string | null) => {
+                                        field.onChange(value || '')
+                                        if (value) {
+                                          handleBrokerSelection(value)
+                                        }
+                                      }}
+                                      placeholder="Sélectionner un assureur additionnel"
+                                      className="flex-1"
+                                      showStatus={true}
+                                      showExpertFirm={true}
+                                      excludeInsurerId={selectedInsurer?.id?.toString() || null}
+                                    />
+                                    {selectedBroker && (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => openBrokerDetails(selectedBroker)}
+                                        className="shrink-0"
+                                      >
+                                        <Info className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                  {selectedAdditionalInsurerData && (
+                                    <div className="mt-3">
+                                      <SelectionDetailsCard
+                                        type="additional-insurer"
+                                        data={selectedAdditionalInsurerData}
+                                      />
+                                    </div>
                                   )}
-                              </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+
+                          {/* Rattachement réparateur - accessible pour tous sauf si réparateur */}
+                          {!isRepairer && (
+                            <FormField
+                              control={form.control}
+                              name="repairer_id"
+                              render={({ field }) => (
+                                <FormItem>
+                                <div className="flex items-center gap-2 justify-between">
+                                  <FormLabel>Rattachement Réparateur</FormLabel>
+                                </div>
+                                  <div className="flex gap-2">
+                                    {isInsurer ? (
+                                      <RepairerRelationshipSelectForInsurer
+                                        value={field.value || null}
+                                        onValueChange={(value: string | null) => {
+                                          field.onChange(value || '')
+                                          if (value) {
+                                            handleRepairerRelationshipSelection(value)
+                                          }
+                                        }}
+                                        placeholder="Sélectionner un rattachement réparateur"
+                                        className="flex-1"
+                                        showStatus={true}
+                                        showExpertFirm={true}
+                                        expertFirmId={selectedExpertFirmId}
+                                      />
+                                    ) : (
+                                      <RepairerRelationshipSelect
+                                        value={field.value || null}
+                                        onValueChange={(value: string | null) => {
+                                          field.onChange(value || '')
+                                          if (value) {
+                                            handleRepairerRelationshipSelection(value)
+                                          }
+                                        }}
+                                        placeholder="Sélectionner un rattachement réparateur"
+                                        className="flex-1"
+                                        showStatus={true}
+                                        showExpertFirm={true}
+                                      />
+                                    )}
+                                  </div>
+                                  {selectedRepairerRelationshipData && (
+                                    <div className="mt-3">
+                                      <SelectionDetailsCard
+                                        type="repairer-relationship"
+                                        data={selectedRepairerRelationshipData}
+                                      />
+                                    </div>
+                                  )}
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                          
+                          {/* Message pour les réparateurs */}
+                          {isRepairer && (
+                            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                              <p className="text-sm text-orange-900 font-medium">
+                                Votre atelier ({user?.entity?.name}) est automatiquement assigné à ce dossier
+                              </p>
+                            </div>
+                          )}
                       </div>
 
                       <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mt-6">
@@ -1481,8 +1656,13 @@ export default function CreateAssignmentPage() {
                                 <div className="flex gap-2">
                                   <Select 
                                     onValueChange={(value) => {
+                                      console.log('=== ASSIGNMENT TYPE SELECT ===')
+                                      console.log('Value received:', value, 'type:', typeof value)
+                                      console.log('Field value before:', field.value)
                                       field.onChange(value)
+                                      console.log('Field value after:', field.value)
                                       handleAssignmentTypeSelection(value)
+                                      console.log('===============================')
                                     }} 
                                     value={field.value}
                                   >
@@ -1493,11 +1673,17 @@ export default function CreateAssignmentPage() {
                                     </FormControl>
                             <SelectContent>
                                       <ScrollArea className="h-[200px]">
-                                        {assignmentTypes.map((type) => (
-                                          <SelectItem key={type.id} value={type.id.toString()}>
-                                            {type.label}
-                                  </SelectItem>
-                                ))}
+                                        {assignmentTypes.length === 0 ? (
+                                          <div className="p-4 text-center text-gray-500">
+                                            Chargement des types de mission...
+                                          </div>
+                                        ) : (
+                                          assignmentTypes.map((type) => (
+                                            <SelectItem key={type.id} value={type.id.toString()}>
+                                              {type.label}
+                                            </SelectItem>
+                                          ))
+                                        )}
                               </ScrollArea>
                             </SelectContent>
                           </Select>
@@ -1527,8 +1713,13 @@ export default function CreateAssignmentPage() {
                                 <div className="flex gap-2">
                                   <Select 
                                     onValueChange={(value) => {
+                                      console.log('=== EXPERTISE TYPE SELECT ===')
+                                      console.log('Value received:', value, 'type:', typeof value)
+                                      console.log('Field value before:', field.value)
                                       field.onChange(value)
+                                      console.log('Field value after:', field.value)
                                       handleExpertiseTypeSelection(value)
+                                      console.log('================================')
                                     }} 
                                     value={field.value}
                                   >
@@ -1539,11 +1730,17 @@ export default function CreateAssignmentPage() {
                                     </FormControl>
                                     <SelectContent>
                                       <ScrollArea className="h-[200px]">
-                                        {expertiseTypes.map((type) => (
-                                          <SelectItem key={type.id} value={type.id.toString()}>
-                                            {type.label}
-                                          </SelectItem>
-                                        ))}
+                                        {expertiseTypes.length === 0 ? (
+                                          <div className="p-4 text-center text-gray-500">
+                                            Chargement des types d'expertise...
+                                          </div>
+                                        ) : (
+                                          expertiseTypes.map((type) => (
+                                            <SelectItem key={type.id} value={type.id.toString()}>
+                                              {type.label}
+                                            </SelectItem>
+                                          ))
+                                        )}
                                       </ScrollArea>
                                     </SelectContent>
                                   </Select>
@@ -1636,542 +1833,6 @@ export default function CreateAssignmentPage() {
                         </div>
                       </div>
                     </div>
-                    {/* Informations d'expertise et observations - Pleine largeur */}
-                    {/* <div className="mt-8 p-6 rounded-lg border bg-gray-50">
-                      <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-gray-800 mb-6">
-                        <Info className="h-5 w-5 text-gray-500" />
-                        Informations d'expertise et observations
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <FormField control={form.control} name="expertise_date" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Date d'expertise</FormLabel>
-                                <FormControl>
-                              <Input type="date" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                        )} />
-                        <FormField control={form.control} name="expertise_place" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Lieu d'expertise</FormLabel>
-                                <FormControl>
-                              <Input placeholder="Lieu d'expertise" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                        )} />
-                        <FormField control={form.control} name="administrator" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Gestionnaire</FormLabel>
-                                <FormControl>
-                              <Input placeholder="Gestionnaire" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                        )} />
-                      </div>
-                      
-                      <div className="space-y-6">
-                        <FormField control={form.control} name="circumstance" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Circonstance</FormLabel>
-                              <FormControl>
-                                <RichTextEditor
-                                  value={field.value || ''}
-                                  onChange={field.onChange}
-                                  placeholder="Décrivez les circonstances de l'accident..."
-                                  className="min-h-[120px]"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="damage_declared" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Dégâts déclarés</FormLabel>
-                              <FormControl>
-                                <RichTextEditor
-                                  value={field.value || ''}
-                                  onChange={field.onChange}
-                                  placeholder="Décrivez les dégâts déclarés par le client..."
-                                  className="min-h-[120px]"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="observation" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Observation générale</FormLabel>
-                              <FormControl>
-                                <RichTextEditor
-                                  value={field.value || ''}
-                                  onChange={field.onChange}
-                                  placeholder="Ajoutez vos observations générales..."
-                                  className="min-h-[120px]"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                        )} />
-                          </div>
-                    </div> */}
-                  </CardContent>
-                </Card>
-
-                {/* <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader className="px-3 sm:px-6">
-                    <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
-                      <User className="h-5 w-5 text-purple-600" />
-                      Experts
-                    </CardTitle>
-                    <CardDescription>
-                      Configurez les experts assignés au dossier
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6 px-3 sm:px-6">
-                    <div className="space-y-6">
-                      {(form.watch('experts') || []).map((_expert, idx) => (
-                        <div key={idx} className="p-6 border border-gray-200 rounded-lg bg-gray-50/50">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-lg font-semibold text-gray-800">Expert #{idx + 1}</h4>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeExpert(idx)}
-                              disabled={(form.watch('experts') || []).length === 1}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                            <FormField
-                              control={form.control}
-                            name={`experts.${idx}.expert_id` as const}
-                              render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel>Expert</FormLabel>
-                                <UserSelect
-                                  value={field.value ? Number(field.value) : null}
-                                  onValueChange={(value: number | null) => {
-                                    field.onChange(value?.toString())
-                                  }}
-                                  placeholder="Sélectionner un expert"
-                                  filterRole="expert"
-                                  showStatus={true}
-                                />
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                            name={`experts.${idx}.date` as const}
-                              render={({ field }) => (
-                                  <FormItem>
-                                <FormLabel>Date</FormLabel>
-                                  <FormControl>
-                                    <Input type="date" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          </div>
-                          
-                          <div className="mt-4">
-                          <FormField
-                            control={form.control}
-                            name={`experts.${idx}.observation` as const}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Observation</FormLabel>
-                                <FormControl>
-                                  <RichTextEditor
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                    placeholder="Ajoutez vos observations sur cet expert..."
-                                      className="min-h-[120px]"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          </div>
-                        </div>
-                      ))}
-                      <Button type="button" variant="outline" size="sm" onClick={addExpert}>
-                        <Plus className="mr-2 h-4 w-4" /> Ajouter un expert
-                      </Button>
-                </div>
-                  </CardContent>
-                </Card> */}
-
-              {/* Section 4: Récapitulatif */}
-                <Card className="bg-white/60 backdrop-blur-sm border-gray-200/60 shadow-none">
-                  <CardHeader className="px-3 sm:px-6">
-                    <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
-                      <ClipboardCheck className="h-5 w-5 text-orange-600" />
-                      Récapitulatif du dossier
-                    </CardTitle>
-                    <CardDescription>
-                      {isEditMode 
-                        ? 'Vérifiez et validez toutes les informations avant la mise à jour du dossier'
-                        : 'Vérifiez et validez toutes les informations avant la création du dossier'
-                      }
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-8 px-3 sm:px-6">
-                  {/* Informations générales */}
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                        <FileText className="h-4 w-4 text-gray-600" />
-                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations générales</h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-blue-500" />
-                            <span className="font-medium text-gray-700">Client</span>
-                          </div>
-                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="font-semibold text-blue-900">
-                              {clients.find(c => c.id.toString() === form.watch('client_id'))?.name || 'Non sélectionné'}
-                            </div>
-                            <div className="text-sm text-blue-700 mt-1">
-                              {clients.find(c => c.id.toString() === form.watch('client_id'))?.email || ''}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Car className="h-4 w-4 text-green-500" />
-                            <span className="font-medium text-gray-700">Véhicule</span>
-                          </div>
-                          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                            <div className="font-semibold text-green-900">
-                              {vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))?.license_plate || 'Non sélectionné'}
-                            </div>
-                            <div className="text-sm text-green-700 mt-1">
-                              {(() => {
-                                const vehicle = vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))
-                                return vehicle ? `${vehicle.brand?.label || ''} ${vehicle.vehicle_model?.label || ''}` : ''
-                              })()}
-                            </div>
-                            {form.watch('vehicle_mileage') && (
-                              <div className="text-xs text-green-600 mt-1">
-                                Kilométrage: {form.watch('vehicle_mileage')} km
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Building className="h-4 w-4 text-purple-500" />
-                            <span className="font-medium text-gray-700">Assureur</span>
-                          </div>
-                          <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                            <div className="font-semibold text-purple-900">
-                              {/* Les assureurs sont gérés par le store séparé useInsurersStore */}
-                              Assureur sélectionné
-                            </div>
-                            <div className="text-sm text-purple-700 mt-1">
-                              {/* Email de l'assureur */}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Wrench className="h-4 w-4 text-orange-500" />
-                            <span className="font-medium text-gray-700">Réparateur</span>
-                          </div>
-                          <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                            <div className="font-semibold text-orange-900">
-                              {repairers.find(r => r.id.toString() === form.watch('repairer_id'))?.name || 'Non sélectionné'}
-                            </div>
-                            <div className="text-sm text-orange-700 mt-1">
-                              {repairers.find(r => r.id.toString() === form.watch('repairer_id'))?.email || ''}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Types et Documents */}
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                        <FileType className="h-4 w-4 text-indigo-600" />
-                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Types et Documents</h3>
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-indigo-500" />
-                              <span className="font-medium text-gray-700">Type de mission</span>
-                            </div>
-                            <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                              <div className="font-semibold text-indigo-900">
-                                {assignmentTypes.find(t => t.id.toString() === form.watch('assignment_type_id'))?.label || 'Non sélectionné'}
-                              </div>
-                              <div className="text-sm text-indigo-700 mt-1">
-                                {assignmentTypes.find(t => t.id.toString() === form.watch('assignment_type_id'))?.description || ''}
-                              </div>
-                              <Badge variant="outline" className="mt-2 bg-indigo-100 text-indigo-800 border-indigo-300">
-                                {assignmentTypes.find(t => t.id.toString() === form.watch('assignment_type_id'))?.code || ''}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <Search className="h-4 w-4 text-teal-500" />
-                              <span className="font-medium text-gray-700">Type d'expertise</span>
-                            </div>
-                            <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
-                              <div className="font-semibold text-teal-900">
-                                {expertiseTypes.find(t => t.id.toString() === form.watch('expertise_type_id'))?.label || 'Non sélectionné'}
-                              </div>
-                              <div className="text-sm text-teal-700 mt-1">
-                                {expertiseTypes.find(t => t.id.toString() === form.watch('expertise_type_id'))?.description || ''}
-                              </div>
-                              <Badge variant="outline" className="mt-2 bg-teal-100 text-teal-800 border-teal-300">
-                                {expertiseTypes.find(t => t.id.toString() === form.watch('expertise_type_id'))?.code || ''}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-amber-500" />
-                            <span className="font-medium text-gray-700">Documents transmis</span>
-                            <Badge variant="secondary" className="ml-auto">
-                              {selectedDocuments.length} document(s)
-                            </Badge>
-                          </div>
-                          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                            {selectedDocuments.length > 0 ? (
-                      <div className="space-y-2">
-                                {selectedDocuments.map((doc) => (
-                                  <div key={doc.id} className="flex items-center justify-between p-2 bg-white rounded border">
-                                    <div>
-                                      <div className="font-medium text-amber-900">{doc.label}</div>
-                                      <div className="text-xs text-amber-700">{doc.code}</div>
-                        </div>
-                                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
-                                      ✓ Sélectionné
-                                    </Badge>
-                        </div>
-                                ))}
-                        </div>
-                            ) : (
-                              <div className="text-amber-700 text-center py-4">
-                                Aucun document sélectionné
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Experts */}
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                        <User className="h-4 w-4 text-pink-600" />
-                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Experts assignés</h3>
-                        <Badge variant="secondary" className="ml-auto">
-                          {(form.watch('experts') || []).length} expert(s)
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {(form.watch('experts') || []).map((expert, idx) => {
-                          const expertUser = users.find(u => u.id.toString() === expert.expert_id)
-                          return (
-                            <div key={idx} className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                        <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-8 w-8 bg-pink-100 rounded-full flex items-center justify-center">
-                                    <User className="h-4 w-4 text-pink-600" />
-                                  </div>
-                                  <div>
-                                    <div className="font-semibold text-pink-900">
-                                      {expertUser?.name || 'Expert non sélectionné'}
-                                    </div>
-                                    <div className="text-sm text-pink-700">
-                                      {expertUser?.email || ''}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-sm font-medium text-pink-900">
-                                    {expert.date ? new Date(expert.date).toLocaleDateString('fr-FR') : 'Date non définie'}
-                                  </div>
-                                  <Badge variant="outline" className="mt-1 bg-pink-100 text-pink-800 border-pink-300">
-                                    Expert #{idx + 1}
-                                  </Badge>
-                                </div>
-                              </div>
-                              {expert.observation && (
-                                <div className="mt-3 space-y-2">
-                                  <div className="text-xs text-pink-600 font-medium">Observation:</div>
-                                  <HtmlContent
-                                    content={expert.observation || ''}
-                                    className="p-2 bg-white rounded border border-pink-200"
-                                    label=""
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Informations complémentaires */}
-                    <div className="space-y-4" style={{ display: 'none' }}>
-                      <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                        <Info className="h-4 w-4 text-gray-600" />
-                        <h3 className="text-base lg:text-lg font-semibold text-gray-900">Informations complémentaires</h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            <span className="font-medium text-gray-700">Numéro de police</span>
-                            <div className="p-3 bg-gray-50 rounded-lg border">
-                              <span className="font-mono text-gray-900">
-                                {form.watch('policy_number') || 'Non renseigné'}
-                              </span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                            <span className="font-medium text-gray-700">Numéro de sinistre</span>
-                            <div className="p-3 bg-gray-50 rounded-lg border">
-                              <span className="font-mono text-gray-900">
-                                {form.watch('claim_number') || 'Non renseigné'}
-                              </span>
-                        </div>
-                          </div>
-                          <div className="space-y-2">
-                            <span className="font-medium text-gray-700">Date de réception</span>
-                            <div className="p-3 bg-gray-50 rounded-lg border">
-                              <span className="text-gray-900">
-                                {form.watch('received_at') ? new Date(form.watch('received_at')!).toLocaleDateString('fr-FR') : 'Non définie'}
-                              </span>
-                        </div>
-                        </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            <span className="font-medium text-gray-700">Date d'expertise</span>
-                            <div className="p-3 bg-gray-50 rounded-lg border">
-                              <span className="text-gray-900">
-                                {form.watch('expertise_date') ? new Date(form.watch('expertise_date')!).toLocaleDateString('fr-FR') : 'Non définie'}
-                              </span>
-                        </div>
-                        </div>
-                          <div className="space-y-2">
-                            <span className="font-medium text-gray-700">Lieu d'expertise</span>
-                            <div className="p-3 bg-gray-50 rounded-lg border">
-                              <span className="text-gray-900">
-                                {form.watch('expertise_place') || 'Non renseigné'}
-                              </span>
-                      </div>
-                          </div>
-                        <div className="space-y-2">
-                            <span className="font-medium text-gray-700">Gestionnaire</span>
-                            <div className="p-3 bg-gray-50 rounded-lg border">
-                              <span className="text-gray-900">
-                                {form.watch('administrator') || 'Non renseigné'}
-                              </span>
-                            </div>
-                    </div>
-                  </div>
-                </div>
-
-                      {/* Observations et circonstances */}
-                      {(form.watch('circumstance') || form.watch('damage_declared') || form.watch('observation')) && (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-gray-600" />
-                            <span className="font-medium text-gray-700">Observations et détails</span>
-                          </div>
-                          <div className="space-y-3">
-                            {form.watch('circumstance') && (
-                              <div className="space-y-2">
-                                <div className="text-sm font-medium text-blue-900">Circonstances:</div>
-                                <HtmlContent
-                                  content={form.watch('circumstance') || ''}
-                                  className="p-3 bg-blue-50 rounded-lg border border-blue-200"
-                                  label=""
-                                />
-                              </div>
-                            )}
-                            {form.watch('damage_declared') && (
-                              <div className="space-y-2">
-                                <div className="text-sm font-medium text-red-900">Dégâts déclarés:</div>
-                                <HtmlContent
-                                  content={form.watch('damage_declared') || ''}
-                                  className="p-3 bg-red-50 rounded-lg border border-red-200"
-                                  label=""
-                                />
-                              </div>
-                            )}
-                            {form.watch('observation') && (
-                              <div className="space-y-2">
-                                <div className="text-sm font-medium text-green-900">Observation générale:</div>
-                                <HtmlContent
-                                  content={form.watch('observation') || ''}
-                                  className="p-3 bg-green-50 rounded-lg border border-green-200"
-                                  label=""
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Résumé final */}
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <ClipboardCheck className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-semibold text-blue-900">Résumé du dossier</h4>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div className="text-center">
-                          <div className="font-bold text-blue-900">{clients.find(c => c.id.toString() === form.watch('client_id'))?.name ? '✓' : '✗'}</div>
-                          <div className="text-blue-700">Client</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-blue-900">{vehicles.find(v => v.id.toString() === form.watch('vehicle_id'))?.license_plate ? '✓' : '✗'}</div>
-                          <div className="text-blue-700">Véhicule</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-blue-900">{(form.watch('experts') || []).length > 0 ? '✓' : '✗'}</div>
-                          <div className="text-blue-700">Experts</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-blue-900">{selectedDocuments.length > 0 ? '✓' : '✗'}</div>
-                          <div className="text-blue-700">Documents</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bouton de soumission - Pleine largeur */}
-
                   </CardContent>
                 </Card>
             </div>
@@ -2262,172 +1923,7 @@ export default function CreateAssignmentPage() {
         
       </Form>
 
-      {/* Sheet de récapitulatif */}
-      {/* <Sheet open={showSummarySheet} onOpenChange={setShowSummarySheet}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5 text-orange-600" />
-              Récapitulatif du dossier
-            </SheetTitle>
-            <SheetDescription>
-              Vérifiez toutes les informations avant de créer le dossier
-            </SheetDescription>
-          </SheetHeader>
-          
-          <div className="mt-6 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
-                <FileText className="h-4 w-4 text-gray-600" />
-                Informations générales
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium text-gray-700">Client</span>
-                  </div>
-                  <div className="text-sm text-gray-600 pl-6">
-                    {(() => {
-                      const clientId = form.watch('client_id')
-                      const client = clients.find(c => c.id.toString() === clientId)
-                      return client ? `${client.name}` : 'Non sélectionné'
-                    })()}
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Car className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium text-gray-700">Véhicule</span>
-                  </div>
-                  <div className="text-sm text-gray-600 pl-6">
-                    {(() => {
-                      const vehicleId = form.watch('vehicle_id')
-                      const vehicle = vehicles.find(v => v.id.toString() === vehicleId)
-                      return vehicle ? `${vehicle.brand.label} ${vehicle.vehicle_model.label} - ${vehicle.license_plate}` : 'Non sélectionné'
-                    })()}
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-green-500" />
-                    <span className="font-medium text-gray-700">Assureur</span>
-                  </div>
-                  <div className="text-sm text-gray-600 pl-6">
-                    {(() => {
-                      const insurerId = form.watch('insurer_id')
-                      const insurer = insurers.find((i: any) => i.id.toString() === insurerId)
-                      return insurer ? insurer.name : 'Non sélectionné'
-                    })()}
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Wrench className="h-4 w-4 text-green-500" />
-                    <span className="font-medium text-gray-700">Réparateur</span>
-                  </div>
-                  <div className="text-sm text-gray-600 pl-6">
-                    {(() => {
-                      const repairerId = form.watch('repairer_id')
-                      const repairer = repairers.find(r => r.id.toString() === repairerId)
-                      return repairer ? repairer.name : 'Non sélectionné'
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
-                <FileType className="h-4 w-4 text-indigo-600" />
-                Types et Documents
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-indigo-500" />
-                    <span className="font-medium text-gray-700">Type de mission</span>
-                  </div>
-                  <div className="text-sm text-gray-600 pl-6">
-                    {(() => {
-                      const assignmentTypeId = form.watch('assignment_type_id')
-                      const assignmentType = assignmentTypes.find(at => at.id.toString() === assignmentTypeId)
-                      return assignmentType ? assignmentType.label : 'Non sélectionné'
-                    })()}
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <FileType className="h-4 w-4 text-indigo-500" />
-                    <span className="font-medium text-gray-700">Type d'expertise</span>
-                  </div>
-                  <div className="text-sm text-gray-600 pl-6">
-                    {(() => {
-                      const expertiseTypeId = form.watch('expertise_type_id')
-                      const expertiseType = expertiseTypes.find(et => et.id.toString() === expertiseTypeId)
-                      return expertiseType ? expertiseType.label : 'Non sélectionné'
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
-                <User className="h-4 w-4 text-pink-600" />
-                Experts assignés
-              </h3>
-              <div className="space-y-3">
-                {(form.watch('experts') || []).map((expert, idx) => {
-                  const expertUser = users.find(u => u.id.toString() === expert.expert_id)
-                  return (
-                    <div key={idx} className="p-3 bg-pink-50 rounded-lg border border-pink-200">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-pink-100 rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-pink-600" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">
-                            {expertUser ? `${expertUser.first_name} ${expertUser.last_name}` : 'Expert non trouvé'}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            Date: {expert.date || 'Non définie'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowSummarySheet(false)}
-                className="flex-1"
-              >
-                Retour au formulaire
-              </Button>
-              <Button 
-                onClick={confirmCreation}
-                className="flex-1"
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Confirmer la création
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet> */}
-
-              {/* Modal de confirmation */}
+        {/* Modal de confirmation */}
         <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
           <DialogContent className="max-w-xl min-w-xl w-1/2 max-h-[90vh] overflow-hidden">
             <DialogHeader>
@@ -2595,7 +2091,7 @@ export default function CreateAssignmentPage() {
                 </div>
 
                 {/* Experts */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                {/* <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Experts assignés ({(form.watch('experts') || []).length})
@@ -2619,10 +2115,10 @@ export default function CreateAssignmentPage() {
                       )
                     })}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Observations */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                {/* <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     Observations
@@ -2659,7 +2155,7 @@ export default function CreateAssignmentPage() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -4001,7 +3497,7 @@ export default function CreateAssignmentPage() {
 
       {/* Modal d'erreur amélioré */}
       <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[300px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />

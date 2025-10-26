@@ -5,8 +5,9 @@ import { CreateRepairerRelationshipBody, RepairerRelationshipsResponse, Repairer
 const BASE_URL = API_CONFIG.ENDPOINTS.REPAIRER_RELATIONSHIPS
 
 class RepairerRelationshipService {
-  async list(page: number = 1): Promise<RepairerRelationshipsResponse> {
-    const { data } = await axiosInstance.get(`${BASE_URL}?page=${page}`)
+  async list(page: number = 1, queryParams?: string): Promise<RepairerRelationshipsResponse> {
+    const url = queryParams ? `${BASE_URL}?page=${page}&${queryParams}` : `${BASE_URL}?page=${page}`
+    const { data } = await axiosInstance.get(url)
     return data
   }
 
