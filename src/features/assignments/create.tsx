@@ -101,10 +101,10 @@ interface AssignmentCreatePayload {
   client_id: string
   vehicle_id: string
   vehicle_mileage: string | null
-  insurer_id: string | null
-  repairer_id: string | null
+  insurer_relationship_id: string | null
+  repairer_relationship_id: string | null
   broker_id: string | null
-  additional_insurer_id: string | null
+  additional_insurer_relationship_id: string | null
   assignment_type_id: string
   expertise_type_id: string
   document_transmitted_id: string[]
@@ -128,7 +128,7 @@ interface AssignmentCreatePayload {
 
 // Type local pour le payload de mise à jour d'assignation
 interface AssignmentUpdatePayload extends AssignmentCreatePayload {
-  id: number
+  id: string | number
 }
 
 // Schéma de validation
@@ -136,10 +136,10 @@ const assignmentSchema = z.object({
   client_id: z.string().min(1, 'Le client est requis'),
   vehicle_id: z.string().min(1, 'Le véhicule est requis'),
   vehicle_mileage: z.string().optional(),
-  insurer_id: z.string().optional(),
-  repairer_id: z.string().optional(),
+  insurer_relationship_id: z.string().optional(),
+  repairer_relationship_id: z.string().optional(),
   broker_id: z.string().optional(),
-  additional_insurer_id: z.string().optional(),
+  additional_insurer_relationship_id: z.string().optional(),
   expert_firm_id: z.string().optional(),
   assignment_type_id: z.string().min(1, 'Le type d\'assignation est requis'),
   expertise_type_id: z.string().min(1, 'Le type d\'expertise est requis'),
@@ -364,7 +364,7 @@ export default function CreateAssignmentPage() {
   
   // Mode édition
   const isEditMode = !!id
-  const assignmentId = id ? parseInt(id) : null
+  const assignmentId = id || null
   
   
   const { fetchUsers } = useUsersStore()
@@ -387,8 +387,8 @@ export default function CreateAssignmentPage() {
       client_id: '',
       vehicle_id: '',
       vehicle_mileage: '',
-      insurer_id: '',
-      repairer_id: '',
+      insurer_relationship_id: '',
+      repairer_relationship_id: '',
       expert_firm_id: '',
       assignment_type_id: '',
       expertise_type_id: '',
@@ -413,10 +413,10 @@ export default function CreateAssignmentPage() {
     if (!isEditMode && user?.entity?.id) {
       if (isInsurer) {
         // Si l'utilisateur est un assureur, pré-remplir le champ assureur
-        form.setValue('insurer_id', user.entity.id.toString())
+        form.setValue('insurer_relationship_id', user.entity.id.toString())
       } else if (isRepairer) {
         // Si l'utilisateur est un réparateur, pré-remplir le champ réparateur
-        form.setValue('repairer_id', user.entity.id.toString())
+        form.setValue('repairer_relationship_id', user.entity.id.toString())
       }
     }
   }, [isEditMode, user, isInsurer, isRepairer, form])
@@ -431,21 +431,55 @@ export default function CreateAssignmentPage() {
           const assignment = response.data.data
           
           // Pré-remplir le formulaire avec les données existantes
-          // Logique de priorité pour additional_insurer_id :
+          // Logique de priorité pour additional_insurer_relationship_id :
           // 1. Si additional_insurer existe, utiliser additional_insurer.id
           // 2. Sinon, si broker existe, utiliser broker.id
           // 3. Sinon, champ vide
           const additionalInsurerId = assignment.additional_insurer?.id?.toString() || 
                                     assignment.broker?.id?.toString() || ''
 
+          // Fonction pour trouver l'ID de rattachement basé sur l'entité
+          const findRelationshipId = async (entityId: string, type: 'insurer' | 'repairer') => {
+            try {
+              if (type === 'insurer') {
+                const response = await insurerRelationshipService.list(1)
+                const relationship = response.data.find((rel: any) => rel.insurer?.id?.toString() === entityId)
+                return relationship?.id?.toString() || ''
+              } else {
+                const response = await repairerRelationshipService.list(1)
+                const relationship = response.data.find((rel: any) => rel.repairer?.id?.toString() === entityId)
+                return relationship?.id?.toString() || ''
+              }
+            } catch (error) {
+              console.error(`Erreur lors de la recherche du rattachement ${type}:`, error)
+              return ''
+            }
+          }
+
+          // Trouver les IDs de rattachement si nécessaire
+          let insurerRelationshipId = assignment.insurer_relationship_id?.toString() || ''
+          let repairerRelationshipId = assignment.repairer_relationship_id?.toString() || ''
+          let additionalInsurerRelationshipId = assignment.additional_insurer_relationship_id?.toString() || ''
+
+          // Si pas d'ID de rattachement direct, chercher basé sur l'entité
+          if (!insurerRelationshipId && assignment.insurer?.id) {
+            insurerRelationshipId = await findRelationshipId(assignment.insurer.id.toString(), 'insurer')
+          }
+          if (!repairerRelationshipId && assignment.repairer?.id) {
+            repairerRelationshipId = await findRelationshipId(assignment.repairer.id.toString(), 'repairer')
+          }
+          if (!additionalInsurerRelationshipId && assignment.additional_insurer?.id) {
+            additionalInsurerRelationshipId = await findRelationshipId(assignment.additional_insurer.id.toString(), 'insurer')
+          }
+
           const formData = {
             client_id: assignment.client?.id?.toString() || '',
             vehicle_id: assignment.vehicle?.id?.toString() || '',
             vehicle_mileage: assignment.vehicle?.mileage?.toString() || '',
-            insurer_id: assignment.insurer?.id?.toString() || '',
-            repairer_id: assignment.repairer?.id?.toString() || '',
+            insurer_relationship_id: insurerRelationshipId,
+            repairer_relationship_id: repairerRelationshipId,
             broker_id: assignment.broker?.id?.toString() || '',
-            additional_insurer_id: additionalInsurerId,
+            additional_insurer_relationship_id: additionalInsurerRelationshipId || additionalInsurerId,
             assignment_type_id: assignment.assignment_type?.id?.toString() || '',
             expertise_type_id: assignment.expertise_type?.id?.toString() || '',
             document_transmitted_id: assignment.document_transmitted?.map((doc: any) => doc.id.toString()) || [],
@@ -767,7 +801,7 @@ export default function CreateAssignmentPage() {
   // Fonctions pour les titres et descriptions des étapes (supprimées car non utilisées)
 
   const onSubmit = async (values: z.infer<typeof assignmentSchema>) => {
-    // En création: client_id, vehicle_id, insurer_id, received_at, assignment_type_id et expertise_type_id sont requis (vérifiés via stepValidations)
+    // En création: client_id, vehicle_id, insurer_relationship_id, received_at, assignment_type_id et expertise_type_id sont requis (vérifiés via stepValidations)
     setLoading(true)
     setShowCreatingModal(true)
     
@@ -779,10 +813,10 @@ export default function CreateAssignmentPage() {
         client_id: values.client_id,
         vehicle_id: values.vehicle_id,
         vehicle_mileage: values.vehicle_mileage || null,
-        insurer_id: values.insurer_id || null,
-        repairer_id: values.repairer_id || null,
+        insurer_relationship_id: values.insurer_relationship_id || null,
+        repairer_relationship_id: values.repairer_relationship_id || null,
         broker_id: values.broker_id || null,
-        additional_insurer_id: values.additional_insurer_id || null,
+        additional_insurer_relationship_id: values.additional_insurer_relationship_id || null,
         assignment_type_id: values.assignment_type_id,
         expertise_type_id: values.expertise_type_id,
         document_transmitted_id: values.document_transmitted_id || [],
@@ -1385,7 +1419,7 @@ export default function CreateAssignmentPage() {
                           {isInsurer && (
                             <FormField
                               control={form.control}
-                              name="insurer_id"
+                              name="insurer_relationship_id"
                               render={({ field }) => (
                                 <FormItem>
                                   <div className="flex items-center gap-2 justify-between">
@@ -1418,7 +1452,7 @@ export default function CreateAssignmentPage() {
                           {!isInsurer && (
                             <FormField
                               control={form.control}
-                              name="insurer_id"
+                              name="insurer_relationship_id"
                               render={({ field }) => (
                                 <FormItem>
                                 <div className="flex items-center gap-2 justify-between">
@@ -1457,7 +1491,7 @@ export default function CreateAssignmentPage() {
                           {!isInsurer && isExpertAdmin && (
                             <FormField
                               control={form.control}
-                              name="additional_insurer_id"
+                              name="additional_insurer_relationship_id"
                               render={({ field }) => (
                                 <FormItem>
                                   <div className="flex items-center gap-2 justify-between">
@@ -1508,7 +1542,7 @@ export default function CreateAssignmentPage() {
                           {!isRepairer && (
                             <FormField
                               control={form.control}
-                              name="repairer_id"
+                              name="repairer_relationship_id"
                               render={({ field }) => (
                                 <FormItem>
                                 <div className="flex items-center gap-2 justify-between">
@@ -1943,7 +1977,7 @@ export default function CreateAssignmentPage() {
                       <span className="font-medium text-gray-700">Assureur :</span>
                       <span className="text-gray-900">
                         {(() => {
-                          const insurerId = form.watch('insurer_id')
+                          const insurerId = form.watch('insurer_relationship_id')
                           const insurer = insurers?.find((i: any) => i.id.toString() === insurerId)
                           return insurer ? insurer?.name : 'Non sélectionné'
                         })()}
@@ -1953,7 +1987,7 @@ export default function CreateAssignmentPage() {
                       <span className="font-medium text-gray-700">Réparateur :</span>
                       <span className="text-gray-900">
                         {(() => {
-                          const repairerId = form.watch('repairer_id')
+                          const repairerId = form.watch('repairer_relationship_id')
                           const repairer = repairers?.find((r: any) => r.id.toString() === repairerId)
                           return repairer ? repairer?.name : 'Non sélectionné'
                         })()}
@@ -1963,7 +1997,7 @@ export default function CreateAssignmentPage() {
                       <span className="font-medium text-gray-700">Courtier :</span>
                       <span className="text-gray-900">
                         {(() => {
-                          const brokerId = form.watch('broker_id') || form.watch('additional_insurer_id')
+                          const brokerId = form.watch('broker_id') || form.watch('additional_insurer_relationship_id')
                           const broker = brokers?.find((b: any) => b.id.toString() === brokerId)
                           return broker ? broker?.name : 'Non sélectionné'
                         })()}
@@ -1973,7 +2007,7 @@ export default function CreateAssignmentPage() {
                       <span className="font-medium text-gray-700">Assureur additionnel :</span>
                       <span className="text-gray-900">
                         {(() => {
-                          const additionalInsurerId = form.watch('additional_insurer_id')
+                          const additionalInsurerId = form.watch('additional_insurer_relationship_id')
                           const additionalInsurer = additionalInsurers?.find((a: any) => a.id.toString() === additionalInsurerId)
                           return additionalInsurer ? additionalInsurer?.name : 'Non sélectionné'
                         })()}
