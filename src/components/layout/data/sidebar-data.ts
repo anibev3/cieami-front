@@ -27,7 +27,7 @@ import {
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
-import { UserRole } from '@/types/auth'
+import { Permission, UserRole } from '@/types/auth'
 // import { Permission, UserRole } from '@/types/auth'
 
 export const sidebarData: SidebarData = {
@@ -92,6 +92,16 @@ export const sidebarData: SidebarData = {
           url: '/administration/constat',
           icon: IconFolder,
           // requiredPermission: Permission.VIEW_ASSIGNMENT,
+        },
+        {
+          title: 'Rattachements assureurs',
+          url: '/relationship',
+          icon: IconBuilding,
+        },
+        {
+          title: 'Rattachements réparateurs',
+          url: '/relationship/repairers',
+          icon: IconTool,
         },
         {
           title: 'Coût de fourniture',
@@ -468,7 +478,8 @@ export const sidebarData: SidebarData = {
           title: 'Utilisateurs',
           url: '/administration/users',
           icon: IconUsers,
-          requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.ADMIN],
+          // requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.ADMIN],
+          requiredPermission: Permission.VIEW_USER,
         },
         {
           title: 'Documents',
@@ -505,7 +516,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Entités',
           icon: IconBuilding,
-          requiredRoles: [UserRole.SYSTEM_ADMIN],
+          requiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.ADMIN],
           items: [
             {
               title: 'Entité',

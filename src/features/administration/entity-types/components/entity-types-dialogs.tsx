@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { useEntityTypesStore } from '@/stores/entityTypesStore'
 import { CreateEntityTypeData, UpdateEntityTypeData, EntityType } from '@/types/administration'
 import { Hash, Calendar, AlertTriangle, Trash2, Power, PowerOff } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface EntityTypesDialogsProps {
   isCreateOpen: boolean
@@ -48,6 +49,10 @@ export function EntityTypesDialogs({
   // Gérer la création
   const handleCreate = async () => {
     try {
+      if (!formData.label) {
+        toast.error('Le libellé est requis')
+        return
+      } 
       await createEntityType(formData)
       onCloseCreate()
       setFormData({ code: '', label: '', description: '' })
@@ -119,16 +124,16 @@ export function EntityTypesDialogs({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            {/* <div>
               <label className="text-sm font-medium">Code</label>
               <Input
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 placeholder="ex: main_org"
               />
-            </div>
+            </div> */}
             <div>
-              <label className="text-sm font-medium">Libellé</label>
+              <label className="text-sm font-medium">Libellé <span className="text-red-500">*</span></label>
               <Input
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}

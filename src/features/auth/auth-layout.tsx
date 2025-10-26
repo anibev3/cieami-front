@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: Props) {
       <div className='mx-auto flex w-full flex-col justify-center space-y-2 py-8 sm:w-[480px] sm:p-8'>
         <div className='mb-4 flex items-center justify-center'>
           <img
-              src='/images/logo/logo1.png'
+              src='/images/logo/cieami_logo.jpg'
               alt='Expert Auto Logo'
               className='mr-3 h-40 w-auto'
             />

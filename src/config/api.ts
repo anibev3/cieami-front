@@ -25,6 +25,8 @@ export const API_CONFIG = {
     RECEIPTS: '/receipts',
     RECEIPT_TYPES: '/receipt-types',
     INVOICES: '/invoices',
+    INSURER_RELATIONSHIPS: '/insurer-relationships',
+    REPAIRER_RELATIONSHIPS: '/repairer-relationships',
     // Endpoints pour l'édition des assignations
     SHOCK_POINTS: '/shock-points',
     SUPPLIES: '/supplies',

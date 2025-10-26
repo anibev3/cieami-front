@@ -18,9 +18,9 @@ export default function SignIn2() {
           <div className='absolute inset-0 bg-black/40' />
           <div className='relative z-20 flex items-center text-lg font-medium'>
             <img
-              src='/images/logo/logo1.png'
+              src='/images/logo/cieami_logo.jpg'
               alt='Expert Auto Logo'
-              className='mr-3 h-40 w-auto'
+              className='mr-3 h-25 w-auto rounded-lg'
             />
 
           </div>
@@ -48,7 +48,7 @@ export default function SignIn2() {
             {/* Logo section pour mobile/tablette */}
             <div className='flex justify-center mb-6 lg:hidden'>
               <img
-                src='/images/logo/logo1.png'
+                src='/images/logo/cieami_logo.jpg'
                 alt='Expert Auto Logo'
                 className='h-16 w-auto'
               />

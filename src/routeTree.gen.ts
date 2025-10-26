@@ -31,6 +31,7 @@ import { Route as AuthenticatedComptabiliteRouteImport } from './routes/_authent
 import { Route as AuthenticatedUsersIndexImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedRelationshipIndexImport } from './routes/_authenticated/relationship/index'
 import { Route as AuthenticatedHelpCenterIndexImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedComptabiliteIndexImport } from './routes/_authenticated/comptabilite/index'
 import { Route as AuthenticatedChatsIndexImport } from './routes/_authenticated/chats/index'
@@ -52,6 +53,7 @@ import { Route as AuthenticatedReparationPrixPeintureImport } from './routes/_au
 import { Route as AuthenticatedReparationHorairesPeintureImport } from './routes/_authenticated/reparation/horaires-peinture'
 import { Route as AuthenticatedReparationElementsPeintureImport } from './routes/_authenticated/reparation/elements-peinture'
 import { Route as AuthenticatedReparationCarrosseriesImport } from './routes/_authenticated/reparation/carrosseries'
+import { Route as AuthenticatedRelationshipRepairersImport } from './routes/_authenticated/relationship/repairers'
 import { Route as AuthenticatedGestionReparateursidImport } from './routes/_authenticated/gestion/reparateurs_$id'
 import { Route as AuthenticatedGestionReparateursImport } from './routes/_authenticated/gestion/reparateurs'
 import { Route as AuthenticatedGestionPhotosImport } from './routes/_authenticated/gestion/photos'
@@ -257,6 +259,13 @@ const AuthenticatedSettingsIndexRoute = AuthenticatedSettingsIndexImport.update(
   } as any,
 )
 
+const AuthenticatedRelationshipIndexRoute =
+  AuthenticatedRelationshipIndexImport.update({
+    id: '/relationship/',
+    path: '/relationship/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexImport.update({
     id: '/help-center/',
@@ -397,6 +406,13 @@ const AuthenticatedReparationCarrosseriesRoute =
   AuthenticatedReparationCarrosseriesImport.update({
     id: '/reparation/carrosseries',
     path: '/reparation/carrosseries',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedRelationshipRepairersRoute =
+  AuthenticatedRelationshipRepairersImport.update({
+    id: '/relationship/repairers',
+    path: '/relationship/repairers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1365,6 +1381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGestionReparateursidImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/relationship/repairers': {
+      id: '/_authenticated/relationship/repairers'
+      path: '/relationship/repairers'
+      fullPath: '/relationship/repairers'
+      preLoaderRoute: typeof AuthenticatedRelationshipRepairersImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/reparation/carrosseries': {
       id: '/_authenticated/reparation/carrosseries'
       path: '/reparation/carrosseries'
@@ -1510,6 +1533,13 @@ declare module '@tanstack/react-router' {
       path: '/help-center'
       fullPath: '/help-center'
       preLoaderRoute: typeof AuthenticatedHelpCenterIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/relationship/': {
+      id: '/_authenticated/relationship/'
+      path: '/relationship'
+      fullPath: '/relationship'
+      preLoaderRoute: typeof AuthenticatedRelationshipIndexImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/settings/': {
@@ -1969,6 +1999,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestionPhotosRoute: typeof AuthenticatedGestionPhotosRoute
   AuthenticatedGestionReparateursRoute: typeof AuthenticatedGestionReparateursRoute
   AuthenticatedGestionReparateursidRoute: typeof AuthenticatedGestionReparateursidRoute
+  AuthenticatedRelationshipRepairersRoute: typeof AuthenticatedRelationshipRepairersRoute
   AuthenticatedReparationCarrosseriesRoute: typeof AuthenticatedReparationCarrosseriesRoute
   AuthenticatedReparationElementsPeintureRoute: typeof AuthenticatedReparationElementsPeintureRoute
   AuthenticatedReparationHorairesPeintureRoute: typeof AuthenticatedReparationHorairesPeintureRoute
@@ -1980,6 +2011,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsIndexRoute: typeof AuthenticatedAssignmentsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
+  AuthenticatedRelationshipIndexRoute: typeof AuthenticatedRelationshipIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedAdministrationConstatTypeRoute: typeof AuthenticatedAdministrationConstatTypeRoute
@@ -2068,6 +2100,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGestionReparateursRoute: AuthenticatedGestionReparateursRoute,
   AuthenticatedGestionReparateursidRoute:
     AuthenticatedGestionReparateursidRoute,
+  AuthenticatedRelationshipRepairersRoute:
+    AuthenticatedRelationshipRepairersRoute,
   AuthenticatedReparationCarrosseriesRoute:
     AuthenticatedReparationCarrosseriesRoute,
   AuthenticatedReparationElementsPeintureRoute:
@@ -2086,6 +2120,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssignmentsIndexRoute: AuthenticatedAssignmentsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
+  AuthenticatedRelationshipIndexRoute: AuthenticatedRelationshipIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedAdministrationConstatTypeRoute:
@@ -2241,6 +2276,7 @@ export interface FileRoutesByFullPath {
   '/gestion/photos': typeof AuthenticatedGestionPhotosRoute
   '/gestion/reparateurs': typeof AuthenticatedGestionReparateursRoute
   '/gestion/reparateurs_$id': typeof AuthenticatedGestionReparateursidRoute
+  '/relationship/repairers': typeof AuthenticatedRelationshipRepairersRoute
   '/reparation/carrosseries': typeof AuthenticatedReparationCarrosseriesRoute
   '/reparation/elements-peinture': typeof AuthenticatedReparationElementsPeintureRoute
   '/reparation/horaires-peinture': typeof AuthenticatedReparationHorairesPeintureRoute
@@ -2262,6 +2298,7 @@ export interface FileRoutesByFullPath {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/comptabilite/': typeof AuthenticatedComptabiliteIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/relationship': typeof AuthenticatedRelationshipIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
@@ -2360,6 +2397,7 @@ export interface FileRoutesByTo {
   '/gestion/photos': typeof AuthenticatedGestionPhotosRoute
   '/gestion/reparateurs': typeof AuthenticatedGestionReparateursRoute
   '/gestion/reparateurs_$id': typeof AuthenticatedGestionReparateursidRoute
+  '/relationship/repairers': typeof AuthenticatedRelationshipRepairersRoute
   '/reparation/carrosseries': typeof AuthenticatedReparationCarrosseriesRoute
   '/reparation/elements-peinture': typeof AuthenticatedReparationElementsPeintureRoute
   '/reparation/horaires-peinture': typeof AuthenticatedReparationHorairesPeintureRoute
@@ -2381,6 +2419,7 @@ export interface FileRoutesByTo {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/comptabilite': typeof AuthenticatedComptabiliteIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/relationship': typeof AuthenticatedRelationshipIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
@@ -2485,6 +2524,7 @@ export interface FileRoutesById {
   '/_authenticated/gestion/photos': typeof AuthenticatedGestionPhotosRoute
   '/_authenticated/gestion/reparateurs': typeof AuthenticatedGestionReparateursRoute
   '/_authenticated/gestion/reparateurs_$id': typeof AuthenticatedGestionReparateursidRoute
+  '/_authenticated/relationship/repairers': typeof AuthenticatedRelationshipRepairersRoute
   '/_authenticated/reparation/carrosseries': typeof AuthenticatedReparationCarrosseriesRoute
   '/_authenticated/reparation/elements-peinture': typeof AuthenticatedReparationElementsPeintureRoute
   '/_authenticated/reparation/horaires-peinture': typeof AuthenticatedReparationHorairesPeintureRoute
@@ -2506,6 +2546,7 @@ export interface FileRoutesById {
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/comptabilite/': typeof AuthenticatedComptabiliteIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/relationship/': typeof AuthenticatedRelationshipIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
@@ -2610,6 +2651,7 @@ export interface FileRouteTypes {
     | '/gestion/photos'
     | '/gestion/reparateurs'
     | '/gestion/reparateurs_$id'
+    | '/relationship/repairers'
     | '/reparation/carrosseries'
     | '/reparation/elements-peinture'
     | '/reparation/horaires-peinture'
@@ -2631,6 +2673,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/comptabilite/'
     | '/help-center'
+    | '/relationship'
     | '/settings/'
     | '/tasks'
     | '/users'
@@ -2728,6 +2771,7 @@ export interface FileRouteTypes {
     | '/gestion/photos'
     | '/gestion/reparateurs'
     | '/gestion/reparateurs_$id'
+    | '/relationship/repairers'
     | '/reparation/carrosseries'
     | '/reparation/elements-peinture'
     | '/reparation/horaires-peinture'
@@ -2749,6 +2793,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/comptabilite'
     | '/help-center'
+    | '/relationship'
     | '/settings'
     | '/tasks'
     | '/users'
@@ -2851,6 +2896,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gestion/photos'
     | '/_authenticated/gestion/reparateurs'
     | '/_authenticated/gestion/reparateurs_$id'
+    | '/_authenticated/relationship/repairers'
     | '/_authenticated/reparation/carrosseries'
     | '/_authenticated/reparation/elements-peinture'
     | '/_authenticated/reparation/horaires-peinture'
@@ -2872,6 +2918,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chats/'
     | '/_authenticated/comptabilite/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/relationship/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
@@ -3013,6 +3060,7 @@ export const routeTree = rootRoute
         "/_authenticated/gestion/photos",
         "/_authenticated/gestion/reparateurs",
         "/_authenticated/gestion/reparateurs_$id",
+        "/_authenticated/relationship/repairers",
         "/_authenticated/reparation/carrosseries",
         "/_authenticated/reparation/elements-peinture",
         "/_authenticated/reparation/horaires-peinture",
@@ -3024,6 +3072,7 @@ export const routeTree = rootRoute
         "/_authenticated/assignments/",
         "/_authenticated/chats/",
         "/_authenticated/help-center/",
+        "/_authenticated/relationship/",
         "/_authenticated/tasks/",
         "/_authenticated/users/",
         "/_authenticated/administration/constat/type",
@@ -3311,6 +3360,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/gestion/reparateurs_$id.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/relationship/repairers": {
+      "filePath": "_authenticated/relationship/repairers.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/reparation/carrosseries": {
       "filePath": "_authenticated/reparation/carrosseries.tsx",
       "parent": "/_authenticated"
@@ -3393,6 +3446,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/help-center/": {
       "filePath": "_authenticated/help-center/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/relationship/": {
+      "filePath": "_authenticated/relationship/index.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/settings/": {
