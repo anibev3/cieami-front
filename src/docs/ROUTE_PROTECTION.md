@@ -261,12 +261,3 @@ authTest.simulateLogout()
 1. Modifier `StrictProtectedRoute.tsx` pour la logique principale
 2. Modifier `authenticated-layout.tsx` pour l'affichage
 3. Modifier `route.tsx` pour la protection au niveau routeur
-
-### Debugging
-
-```typescript
-// Dans la console du navigateur
-console.log('Token:', authTest.getToken())
-console.log('Authentifié:', authTest.isAuthenticated())
-console.log('Protection:', authTest.checkRouteProtection())
-```

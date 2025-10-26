@@ -109,7 +109,6 @@ export default function CreateVehiclePage() {
   }, [selectedBrandId])
 
   const onSubmit = async (data: VehicleCreateFormData) => {
-    console.log('onSubmit called with data:', data)
     setLoading(true)
     
     try {
@@ -119,7 +118,7 @@ export default function CreateVehiclePage() {
         type: data.type || undefined,
         option: data.option || undefined,
         bodywork_id: data.bodywork_id || undefined,
-        mileage: data.mileage || undefined,
+        mileage: data.mileage || undefined || 0,
         serial_number: data.serial_number || undefined,
         first_entry_into_circulation_date: data.first_entry_into_circulation_date || undefined,
         technical_visit_date: data.technical_visit_date || undefined,
@@ -127,13 +126,12 @@ export default function CreateVehiclePage() {
         nb_seats: Number(data.nb_seats),
         new_market_value: Number(data.new_market_value),
         payload: Number(data.payload),
-        vehicle_model_id: data.vehicle_model_id || undefined,
-        color_id: data.color_id || undefined,
+        vehicle_model_id: data.vehicle_model_id || undefined || '',
+        color_id: data.color_id || undefined || '',
         vehicle_genre_id: data.vehicle_genre_id || undefined,
         vehicle_energy_id: data.vehicle_energy_id || undefined,
       }
       
-      console.log('Creating vehicle with data:', createData)
       await createVehicle(createData)
       toast.success('Véhicule créé avec succès')
       navigate({ to: '/administration/vehicles' })

@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -70,8 +70,6 @@ interface VehicleMutateDialogProps {
 // Types pour les modèles et couleurs (non utilisés, supprimés)
 
 export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDialogProps) {
-  // eslint-disable-next-line no-console
-  console.log('VehicleMutateDialog rendered with:', { id, open })
   const [loading, setLoading] = useState(false)
   const [selectedBrandId, setSelectedBrandId] = useState<string>('')
   const { createVehicle, updateVehicle, currentVehicle, fetchVehicle, setCurrentVehicle } = useVehiclesStore()
@@ -195,7 +193,6 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
   }, [currentVehicle, isEditing, form])
 
   const onSubmit = async (data: VehicleFormData) => {
-    console.log('onSubmit called with data:', data)
     setLoading(true)
     
     try {
@@ -219,7 +216,6 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
           vehicle_genre_id: data.vehicle_genre_id || undefined,
           vehicle_energy_id: data.vehicle_energy_id || undefined,
         }
-        console.log('Updating vehicle with data:', updateData)
         await updateVehicle(id, updateData)
         toast.success('Véhicule mis à jour avec succès')
       } else {
@@ -242,7 +238,6 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
           vehicle_genre_id: data.vehicle_genre_id || undefined,
           vehicle_energy_id: data.vehicle_energy_id || undefined,
         }
-        console.log('Creating vehicle with data:', createData)
         await createVehicle(createData)
         toast.success('Véhicule créé avec succès')
       }
@@ -250,7 +245,6 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
       onOpenChange(false)
       form.reset()
     } catch (error) {
-      console.error('Error in onSubmit:', error)
       // Error handled by store
     } finally {
       setLoading(false)
@@ -370,7 +364,6 @@ export function VehicleMutateDialog({ id, open, onOpenChange }: VehicleMutateDia
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-            console.log('Form validation errors:', errors)
           })} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField

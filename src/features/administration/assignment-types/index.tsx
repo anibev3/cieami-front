@@ -36,9 +36,9 @@ export default function AssignmentTypesPage() {
       <Main>
         <div className='mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Types d'affectation</h2>
+            <h2 className='text-2xl font-bold tracking-tight'>Types de missions</h2>
             <p className='text-muted-foreground'>
-              Gérez les types d'affectation du système
+              Gérez les types de missions du système
             </p>
           </div>
           <AssignmentTypesPrimaryButtons onCreate={handleCreate} />
@@ -51,6 +51,7 @@ export default function AssignmentTypesPage() {
       {/* Dialog de création */}
       <AssignmentTypeMutateDialog 
         id={null}
+        assignmentType={null}
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
       />

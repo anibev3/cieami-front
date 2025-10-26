@@ -89,9 +89,6 @@ export default function EditVehiclePage() {
   const showLoadingModal = isInitialLoading
   const showDiscreteLoading = false // Pas de mode création pour les véhicules
 
-  console.log('EditVehiclePage - vehicleId:', vehicleId)
-  console.log('EditVehiclePage - currentVehicle:', currentVehicle)
-
   const form = useForm<VehicleEditFormData>({
     resolver: zodResolver(vehicleEditSchema),
     defaultValues: {
@@ -154,7 +151,6 @@ export default function EditVehiclePage() {
     const prefill = async () => {
       if (!baseDataLoaded) return
       if (currentVehicle && currentVehicle.id === vehicleId) {
-        console.log('Setting form data with vehicle:', currentVehicle)
         
         // Charger les modèles de la marque du véhicule avant le reset
         if (currentVehicle.brand) {
@@ -210,7 +206,6 @@ export default function EditVehiclePage() {
   }, [baseDataLoaded, currentVehicle, vehicleId, selectedBrandId, loadingVehicleModels, initialPrefillDone, form])
 
   const onSubmit = async (data: VehicleEditFormData) => {
-    console.log('onSubmit called with data:', data)
     setLoading(true)
     
     try {
@@ -234,7 +229,6 @@ export default function EditVehiclePage() {
         vehicle_energy_id: data.vehicle_energy_id || undefined,
       }
       
-      console.log('Updating vehicle with data:', updateData)
       await updateVehicle(vehicleId, updateData)
       toast.success('Véhicule mis à jour avec succès')
       navigate({ to: '/administration/vehicles' })

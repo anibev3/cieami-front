@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -68,8 +69,6 @@ interface VehicleEditDialogProps {
 }
 
 export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogProps) {
-  // eslint-disable-next-line no-console
-  console.log('VehicleEditDialog rendered with:', { id, open })
   
   const [loading, setLoading] = useState(false)
   const [selectedBrandId, setSelectedBrandId] = useState<string>('')
@@ -138,8 +137,6 @@ export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogP
   // Charger les données pour l'édition
   useEffect(() => {
     if (id && open && (!currentVehicle || currentVehicle.id !== id)) {
-      // eslint-disable-next-line no-console
-      console.log('Fetching vehicle with id:', id)
       fetchVehicle(id)
     }
   }, [id, open, currentVehicle]) // Retirer fetchVehicle des dépendances
@@ -156,8 +153,6 @@ export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogP
   // Réinitialiser le modèle quand la marque change et charger les modèles
   useEffect(() => {
     if (selectedBrandId !== '') {
-      // eslint-disable-next-line no-console
-      console.log('Loading vehicle models for brand:', selectedBrandId)
       form.setValue('vehicle_model_id', '')
       // Charger les modèles pour la marque sélectionnée
       fetchVehicleModels(1, { brand_id: selectedBrandId })
@@ -167,8 +162,6 @@ export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogP
   // Mettre à jour le formulaire avec les données du véhicule
   useEffect(() => {
     if (currentVehicle && id && currentVehicle.id === id) {
-      // eslint-disable-next-line no-console
-      console.log('Setting form data with vehicle:', currentVehicle)
       
       // Mettre à jour la marque sélectionnée pour charger les modèles
       if (currentVehicle.brand) {
@@ -198,8 +191,6 @@ export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogP
   }, [currentVehicle, id, form])
 
   const onSubmit = async (data: VehicleEditFormData) => {
-    // eslint-disable-next-line no-console
-    console.log('onSubmit called with data:', data)
     setLoading(true)
     
     try {
@@ -223,8 +214,6 @@ export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogP
           vehicle_genre_id: data.vehicle_genre_id || undefined,
           vehicle_energy_id: data.vehicle_energy_id || undefined,
         }
-        // eslint-disable-next-line no-console
-        console.log('Updating vehicle with data:', updateData)
         await updateVehicle(id, updateData)
         toast.success('Véhicule mis à jour avec succès')
       }
@@ -232,8 +221,6 @@ export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogP
       onOpenChange(false)
       form.reset()
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error in onSubmit:', error)
       // Error handled by store
     } finally {
       setLoading(false)
@@ -350,8 +337,6 @@ export function VehicleEditDialog({ id, open, onOpenChange }: VehicleEditDialogP
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-            // eslint-disable-next-line no-console
-            console.log('Form validation errors:', errors)
           })} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from 'react'
 import {
   flexRender,
@@ -160,6 +161,7 @@ export function DataTable() {
       
       <AssignmentTypeMutateDialog
         id={selectedAssignmentType?.id || null}
+        assignmentType={selectedAssignmentType}
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
       />

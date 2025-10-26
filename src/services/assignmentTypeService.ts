@@ -63,24 +63,24 @@ class AssignmentTypeService {
    * Récupérer un type d'assignation par son ID
    */
   async getAssignmentType(id: number): Promise<AssignmentType> {
-    const response = await axiosInstance.get<AssignmentType>(`${API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES}/${id}`)
-    return response.data
+    const response = await axiosInstance.get<{status: number, message: string | null, data: AssignmentType}>(`${API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES}/${id}`)
+    return response.data.data
   }
 
   /**
    * Créer un nouveau type d'assignation
    */
   async createAssignmentType(assignmentTypeData: CreateAssignmentTypeData): Promise<AssignmentType> {
-    const response = await axiosInstance.post<AssignmentType>(API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES, assignmentTypeData)
-    return response.data
+    const response = await axiosInstance.post<{status: number, message: string | null, data: AssignmentType}>(API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES, assignmentTypeData)
+    return response.data.data
   }
 
   /**
    * Mettre à jour un type d'assignation
    */
   async updateAssignmentType(id: number, assignmentTypeData: UpdateAssignmentTypeData): Promise<AssignmentType> {
-    const response = await axiosInstance.put<AssignmentType>(`${API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES}/${id}`, assignmentTypeData)
-    return response.data
+    const response = await axiosInstance.put<{status: number, message: string | null, data: AssignmentType}>(`${API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES}/${id}`, assignmentTypeData)
+    return response.data.data
   }
 
   /**

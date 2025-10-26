@@ -82,21 +82,21 @@ export interface Vehicle {
 export interface VehicleCreate {
   license_plate: string
   usage?: string
-  type: string
-  option: string
-  bodywork_id: string
-  mileage: number
-  serial_number: string
-  first_entry_into_circulation_date?: string
-  technical_visit_date?: string
-  fiscal_power: number
-  nb_seats: number
-  new_market_value?: number
-  payload?: number
+  type: string | null | undefined
+  option: string | null | undefined
+  bodywork_id: string | null | undefined
+  mileage: number | null | undefined
+  serial_number: string | null | undefined
+  first_entry_into_circulation_date?: string | null | undefined
+  technical_visit_date?: string | null | undefined
+  fiscal_power: number | null | undefined
+  nb_seats: number | null | undefined
+  new_market_value?: number | null | undefined
+  payload?: number | null | undefined
   vehicle_model_id: string
-  color_id: string
-  vehicle_genre_id?: string
-  vehicle_energy_id?: string
+  color_id: string | null | undefined
+  vehicle_genre_id?: string | null | undefined
+  vehicle_energy_id?: string | null | undefined
 }
 
 export interface VehicleUpdate {

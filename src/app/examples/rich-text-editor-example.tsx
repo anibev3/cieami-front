@@ -11,7 +11,6 @@ export default function RichTextEditorExample() {
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent)
-    console.log('Nouveau contenu HTML:', newContent)
   }
 
   const clearContent = () => {

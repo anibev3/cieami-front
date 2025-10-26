@@ -30,11 +30,9 @@ function ExampleComponent() {
         shocks={shocks}
         onCreateShockPoint={() => {
           // Logique pour créer un nouveau point de choc
-          console.log('Créer un nouveau point de choc')
         }}
         onAddShock={(shockPointId) => {
           // Logique pour ajouter le point de choc sélectionné
-          console.log('Ajouter point de choc:', shockPointId)
         }}
       />
     </>

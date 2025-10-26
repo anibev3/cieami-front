@@ -53,8 +53,6 @@ export function DataTable() {
   }
 
   const handleEdit = (vehicle: Vehicle) => {
-    // eslint-disable-next-line no-console
-    console.log('handleEdit called with vehicle:', vehicle)
     navigate({ to: `/administration/vehicle/${vehicle.id}/edit` })
   }
 
@@ -81,11 +79,6 @@ export function DataTable() {
     onEdit: handleEdit,
     onDelete: handleDelete,
   })
-
-  // eslint-disable-next-line no-console
-  console.log('DataTable - vehicles count:', vehicles.length)
-  // eslint-disable-next-line no-console
-  console.log('DataTable - selectedVehicle:', selectedVehicle)
 
   const table = useReactTable({
     data: vehicles,
