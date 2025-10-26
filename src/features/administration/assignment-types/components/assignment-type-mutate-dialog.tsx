@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -22,26 +23,27 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { AssignmentTypeCreate, AssignmentTypeUpdate } from '@/types/assignment-types'
+import { AssignmentTypeCreate, AssignmentTypeUpdate, AssignmentType } from '@/types/assignment-types'
 import { useAssignmentTypesStore } from '@/stores/assignmentTypes'
 
 const assignmentTypeSchema = z.object({
-  code: z.string().min(1, 'Le code est requis'),
+  code: z.string().optional(),
   label: z.string().min(1, 'Le libellé est requis'),
-  description: z.string().min(1, 'La description est requise'),
+  description: z.string().optional(),
 })
 
 type AssignmentTypeFormData = z.infer<typeof assignmentTypeSchema>
 
 interface AssignmentTypeMutateDialogProps {
   id: number | null
+  assignmentType?: AssignmentType | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function AssignmentTypeMutateDialog({ id, open, onOpenChange }: AssignmentTypeMutateDialogProps) {
+export function AssignmentTypeMutateDialog({ id, assignmentType, open, onOpenChange }: AssignmentTypeMutateDialogProps) {
   const [loading, setLoading] = useState(false)
-  const { createAssignmentType, updateAssignmentType, currentAssignmentType, fetchAssignmentType } = useAssignmentTypesStore()
+  const { createAssignmentType, updateAssignmentType } = useAssignmentTypesStore()
 
   const form = useForm<AssignmentTypeFormData>({
     resolver: zodResolver(assignmentTypeSchema),
@@ -54,25 +56,24 @@ export function AssignmentTypeMutateDialog({ id, open, onOpenChange }: Assignmen
 
   const isEditing = !!id
 
-  // Charger les données pour l'édition
-  useEffect(() => {
-    if (id && open) {
-      fetchAssignmentType(id)
-    }
-  }, [id, open, fetchAssignmentType])
-
   // Mettre à jour le formulaire avec les données du type d'affectation
   useEffect(() => {
-    if (currentAssignmentType && isEditing) {
+    if (assignmentType && isEditing) {
       form.reset({
-        code: currentAssignmentType.code,
-        label: currentAssignmentType.label,
-        description: currentAssignmentType.description,
+        code: assignmentType.code,
+        label: assignmentType.label,
+        description: assignmentType.description,
       })
     }
-  }, [currentAssignmentType, isEditing, form])
+  }, [assignmentType, isEditing, form])
 
   const onSubmit = async (data: AssignmentTypeFormData) => {
+
+    if (!data.label) {
+      form.setError('label', { message: 'Le libellé est requis' })
+      return
+    }
+
     setLoading(true)
     
     try {
@@ -84,7 +85,9 @@ export function AssignmentTypeMutateDialog({ id, open, onOpenChange }: Assignmen
         toast.success('Type d\'affectation mis à jour avec succès')
       } else {
         const createData: AssignmentTypeCreate = {
-          ...data,
+          code: data.code || '',
+          label: data.label,
+          description: data.description || '',
         }
         await createAssignmentType(createData)
         toast.success('Type d\'affectation créé avec succès')
@@ -106,7 +109,7 @@ export function AssignmentTypeMutateDialog({ id, open, onOpenChange }: Assignmen
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Modifier le type d\'affectation' : 'Créer un type d\'affectation'}
@@ -121,7 +124,7 @@ export function AssignmentTypeMutateDialog({ id, open, onOpenChange }: Assignmen
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
+            {/* <FormField
               control={form.control}
               name="code"
               render={({ field }) => (
@@ -133,14 +136,14 @@ export function AssignmentTypeMutateDialog({ id, open, onOpenChange }: Assignmen
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             <FormField
               control={form.control}
               name="label"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Libellé</FormLabel>
+                  <FormLabel>Libellé<span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Ex: Expertise judiciaire" />
                   </FormControl>

@@ -467,37 +467,29 @@ export default function CreateAssignmentPage() {
             })) || [{ expert_id: '', date: '', observation: '' }]
           }
           
-          console.log('Données du formulaire à pré-remplir:', formData)
           form.reset(formData)
 
           // Mettre à jour les états des entités sélectionnées
           if (assignment.client) {
             setSelectedClient(assignment.client)
-            console.log('Client sélectionné:', assignment.client)
           }
           if (assignment.vehicle) {
             setSelectedVehicle(assignment.vehicle)
-            console.log('Véhicule sélectionné:', assignment.vehicle)
           }
           if (assignment.insurer) {
             setSelectedInsurer(assignment.insurer)
-            console.log('Assureur sélectionné:', assignment.insurer)
           }
           if (assignment.repairer) {
             setSelectedRepairer(assignment.repairer)
-            console.log('Réparateur sélectionné:', assignment.repairer)
           }
           if (assignment.assignment_type) {
             setSelectedAssignmentType(assignment.assignment_type)
-            console.log('Type d\'assignation sélectionné:', assignment.assignment_type)
           }
           if (assignment.expertise_type) {
             setSelectedExpertiseType(assignment.expertise_type)
-            console.log('Type d\'expertise sélectionné:', assignment.expertise_type)
           }
           if (assignment.document_transmitted) {
             setSelectedDocuments(assignment.document_transmitted)
-            console.log('Documents sélectionnés:', assignment.document_transmitted)
           }
 
           // Mettre à jour la liste des experts
@@ -508,12 +500,8 @@ export default function CreateAssignmentPage() {
           })) || [{ expert_id: '', date: '', observation: '' }]
           
           setExperts(expertsData)
-          console.log('Experts mis à jour:', expertsData)
-
-          console.log('Formulaire pré-rempli avec succès')
 
         } catch (error: any) {
-          console.error('Erreur lors du chargement du dossier:', error)
           handleApiError(error, 'le chargement du dossier')
         } finally {
           setLoadingData(false)
@@ -548,7 +536,6 @@ export default function CreateAssignmentPage() {
       ])
       setBaseDataLoaded(true)
     } catch (error: any) {
-      console.error('Erreur lors du chargement des données de base:', error)
       // Ne pas afficher d'erreur pour le chargement des données de base
       // car cela pourrait être géré individuellement par chaque store
     }
@@ -785,11 +772,6 @@ export default function CreateAssignmentPage() {
     setShowCreatingModal(true)
     
     try {
-      console.log('Données du formulaire à soumettre:', values)
-      console.log('assignment_type_id:', values.assignment_type_id, 'type:', typeof values.assignment_type_id)
-      console.log('expertise_type_id:', values.expertise_type_id, 'type:', typeof values.expertise_type_id)
-      console.log('vehicle_id:', values.vehicle_id, 'type:', typeof values.vehicle_id)
-
       
       
       // Préparer les données pour l'API - transmission des données telles quelles
@@ -822,8 +804,6 @@ export default function CreateAssignmentPage() {
         })),
       } as AssignmentCreatePayload
 
-      console.log('Données préparées pour l\'API:', assignmentData)
-
       if (isEditMode && assignmentId) {
         // Mode modification
         const updateData: AssignmentUpdatePayload = {
@@ -831,20 +811,17 @@ export default function CreateAssignmentPage() {
           id: assignmentId
         }
         
-        console.log('Mise à jour du dossier avec les données:', updateData)
-        const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_SUFIX}${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData, {
+          const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_SUFIX}${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('expert_0001_auth_token')}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           }
         })
-        console.log('Réponse de la mise à jour:', response.data)
         toast.success('Dossier modifié avec succès')
         navigate({ to: `/assignments/${assignmentId}` })
       } else {
         // Mode création
-        console.log('Création du dossier avec les données:', assignmentData)
         const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_SUFIX}${API_CONFIG.ENDPOINTS.ASSIGNMENTS}`, assignmentData, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('expert_0001_auth_token')}`,
@@ -852,13 +829,11 @@ export default function CreateAssignmentPage() {
             'Accept': 'application/json',
           }
         })
-        console.log('Réponse de la création:', response.data)
         toast.success('Dossier créé avec succès')
         setCreatedAssignmentId(response.data.data.id)
         setShowSuccessModal(true)
       }
     } catch (error: any) {
-      console.error('Erreur lors de la sauvegarde:', error)
       
       // Gestion complète des erreurs
       let errorMessages: ApiError[] = []
@@ -954,7 +929,6 @@ export default function CreateAssignmentPage() {
 
   // Fonction utilitaire pour gérer les erreurs de manière uniforme
   const handleApiError = (error: any, context: string = 'opération') => {
-    console.error(`Erreur lors de ${context}:`, error)
     
     let errorMessages: ApiError[] = []
     let toastMessage = `Une erreur inattendue est survenue lors de ${context}`
