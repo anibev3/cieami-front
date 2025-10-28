@@ -46,11 +46,11 @@ export default function UsersPage() {
   }, [setFilters])
 
   const handleEntityFilter = useCallback((entity: string) => {
-    setFilters({ entity })
+    setFilters({ entity: entity === "all" ? "" : entity })
   }, [setFilters])
 
   const handleRoleFilter = useCallback((role: string) => {
-    setFilters({ role })
+    setFilters({ role: role === "all" ? "" : role })
   }, [setFilters])
 
   // Callbacks pour les actions

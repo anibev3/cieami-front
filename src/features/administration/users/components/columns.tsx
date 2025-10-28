@@ -123,7 +123,7 @@ export const createColumns = ({ onView, onEdit, onDelete, onEnable, onDisable, o
       const email = row.getValue('email') as string
       return (
         <div className="flex items-center space-x-2">
-          <Mail className="h-4 w-4 text-muted-foreground" />
+          {/* <Mail className="h-4 w-4 text-muted-foreground" /> */}
           <span className="text-sm">{email}</span>
         </div>
       )

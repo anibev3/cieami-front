@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Trash2, Plus } from 'lucide-react'
 import { PaintType } from '@/types/paint-types'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -38,9 +38,10 @@ interface DataTableProps {
   onView: (paintType: PaintType) => void
   onEdit: (paintType: PaintType) => void
   onDelete: (paintType: PaintType) => void
+  onCreateClick: () => void
 }
 
-export function DataTable({ data, onView, onEdit, onDelete }: DataTableProps) {
+export function DataTable({ data, onView, onEdit, onDelete, onCreateClick }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -169,7 +170,7 @@ export function DataTable({ data, onView, onEdit, onDelete }: DataTableProps) {
           }
           className="max-w-sm"
         />
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
               Colonnes
@@ -194,7 +195,11 @@ export function DataTable({ data, onView, onEdit, onDelete }: DataTableProps) {
                 )
               })}
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
+        <Button onClick={onCreateClick} size="sm" className="ml-auto h-8">
+        <Plus className="mr-2 h-4 w-4" />
+        Nouveau type
+      </Button>
       </div>
       <div className="rounded-md border">
         <Table>

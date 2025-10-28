@@ -3,4 +3,4 @@ import TarificationHonorairePage from '@/features/reparation/tarification-honora
 
 export const Route = createFileRoute('/_authenticated/reparation/tarification-honoraire')({
   component: TarificationHonorairePage,
-}) 
+})

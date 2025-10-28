@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -44,13 +44,56 @@ export function StatusesDialogs({
     label: '',
     description: '',
   })
+  const [errors, setErrors] = useState<{code?: string, label?: string, description?: string}>({})
+
+  // Préremplir les champs lors de l'ouverture du modal d'édition
+  useEffect(() => {
+    if (isEditOpen && selectedStatus) {
+      setFormData({
+        code: selectedStatus.code || '',
+        label: selectedStatus.label || '',
+        description: selectedStatus.description || '',
+      })
+    }
+  }, [isEditOpen, selectedStatus])
+
+  // Nettoyer les champs lors de l'ouverture du modal de création
+  useEffect(() => {
+    if (isCreateOpen) {
+      setFormData({ code: '', label: '', description: '' })
+      setErrors({})
+    }
+  }, [isCreateOpen])
+
+  // Validation des champs
+  const validateForm = (isEdit: boolean = false) => {
+    const newErrors: {code?: string, label?: string, description?: string} = {}
+    
+    if (!isEdit) {
+      if (!formData.code || formData.code.trim() === '') {
+        newErrors.code = 'Le code est requis'
+      }
+    }
+    if (!formData.label || formData.label.trim() === '') {
+      newErrors.label = 'Le libellé est requis'
+    }
+    if (!formData.description || formData.description.trim() === '') {
+      newErrors.description = 'La description est requise'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   // Gérer la création
   const handleCreate = async () => {
+    if (!validateForm(false)) return
+    
     try {
       await createStatus(formData)
-      onCloseCreate()
       setFormData({ code: '', label: '', description: '' })
+      setErrors({})
+      onCloseCreate()
     } catch (_error) {
       // Erreur gérée par le store
     }
@@ -60,12 +103,16 @@ export function StatusesDialogs({
   const handleEdit = async () => {
     if (!selectedStatus) return
     
+    if (!validateForm(true)) return
+    
     try {
       const updateData: UpdateStatusData = {
         label: formData.label,
         description: formData.description,
       }
       await updateStatus(selectedStatus.id, updateData)
+      setFormData({ code: '', label: '', description: '' })
+      setErrors({})
       onCloseEdit()
     } catch (_error) {
       // Erreur gérée par le store
@@ -98,7 +145,7 @@ export function StatusesDialogs({
     <>
       {/* Dialog de création */}
       <Dialog open={isCreateOpen} onOpenChange={onCloseCreate}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[425px]">
           <DialogHeader>
             <DialogTitle>Créer un nouveau statut</DialogTitle>
             <DialogDescription>
@@ -107,28 +154,34 @@ export function StatusesDialogs({
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Code</label>
+              <label className="text-sm font-medium">Code<span className="text-red-500">*</span></label>
               <Input
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 placeholder="ex: active"
+                className={errors.code ? 'border-red-500' : ''}
               />
+              {errors.code && <p className="text-sm text-red-500 mt-1">{errors.code}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium">Libellé</label>
+              <label className="text-sm font-medium">Libellé<span className="text-red-500">*</span></label>
               <Input
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                 placeholder="ex: Actif(ve)"
+                className={errors.label ? 'border-red-500' : ''}
               />
+              {errors.label && <p className="text-sm text-red-500 mt-1">{errors.label}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-sm font-medium">Description<span className="text-red-500">*</span></label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Description du statut..."
+                className={errors.description ? 'border-red-500' : ''}
               />
+              {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
             </div>
           </div>
           <DialogFooter>
@@ -157,20 +210,24 @@ export function StatusesDialogs({
               <Input value={selectedStatus?.code || ''} disabled />
             </div>
             <div>
-              <label className="text-sm font-medium">Libellé</label>
+              <label className="text-sm font-medium">Libellé<span className="text-red-500">*</span></label>
               <Input
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                 placeholder="ex: Actif(ve)"
+                className={errors.label ? 'border-red-500' : ''}
               />
+              {errors.label && <p className="text-sm text-red-500 mt-1">{errors.label}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-sm font-medium">Description<span className="text-red-500">*</span></label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Description du statut..."
+                className={errors.description ? 'border-red-500' : ''}
               />
+              {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
             </div>
           </div>
           <DialogFooter>

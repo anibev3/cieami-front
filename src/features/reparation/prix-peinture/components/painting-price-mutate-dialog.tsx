@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
@@ -40,6 +41,8 @@ const paintingPriceSchema = z.object({
   hourly_rate_id: z.string().min(1, 'Le taux horaire est requis'),
   paint_type_id: z.string().min(1, 'Le type de peinture est requis'),
   number_paint_element_id: z.string().min(1, 'L\'élément de peinture est requis'),
+  param_1: z.string().min(1, 'Le paramètre 1 est requis').regex(/^\d+(?:[.,]\d+)?$/, 'Le paramètre 1 doit être un nombre'),
+  param_2: z.string().min(1, 'Le paramètre 2 est requis').regex(/^\d+(?:[.,]\d+)?$/, 'Le paramètre 2 doit être un nombre'),
 })
 
 type PaintingPriceFormData = z.infer<typeof paintingPriceSchema>
@@ -70,6 +73,8 @@ export function PaintingPriceMutateDialog({
       hourly_rate_id: '',
       paint_type_id: '',
       number_paint_element_id: '',
+      param_1: '',
+      param_2: '',
     },
   })
 
@@ -105,12 +110,16 @@ export function PaintingPriceMutateDialog({
         hourly_rate_id: paintingPrice.hourly_rate.id.toString(),
         paint_type_id: paintingPrice.paint_type.id.toString(),
         number_paint_element_id: paintingPrice.number_paint_element.id.toString(),
+        param_1: '',
+        param_2: '',
       })
     } else {
       form.reset({
         hourly_rate_id: '',
         paint_type_id: '',
         number_paint_element_id: '',
+        param_1: '',
+        param_2: '',
       })
     }
   }, [paintingPrice, mode, form])
@@ -126,6 +135,8 @@ export function PaintingPriceMutateDialog({
           hourly_rate_id: data.hourly_rate_id,
           paint_type_id: data.paint_type_id,
           number_paint_element_id: data.number_paint_element_id,
+          param_1: parseFloat(String(data.param_1).replace(',', '.')),
+          param_2: parseFloat(String(data.param_2).replace(',', '.')),
         }
         success = await createPaintingPrice(createData)
       } else if (paintingPrice) {
@@ -133,6 +144,8 @@ export function PaintingPriceMutateDialog({
           hourly_rate_id: data.hourly_rate_id,
           paint_type_id: data.paint_type_id,
           number_paint_element_id: data.number_paint_element_id,
+          param_1: parseFloat(String(data.param_1).replace(',', '.')),
+          param_2: parseFloat(String(data.param_2).replace(',', '.')),
         }
         success = await updatePaintingPrice(paintingPrice.id, updateData)
       }
@@ -155,7 +168,7 @@ export function PaintingPriceMutateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[625px]">
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? 'Créer un prix' : 'Modifier le prix'}
@@ -169,6 +182,36 @@ export function PaintingPriceMutateDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="param_1"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Paramètre 1</FormLabel>
+                    <FormControl>
+                      <Input type="number" inputMode="decimal" placeholder="Ex: 10" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="param_2"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Paramètre 2</FormLabel>
+                    <FormControl>
+                      <Input type="number" inputMode="decimal" placeholder="Ex: 20" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="hourly_rate_id"
@@ -177,7 +220,7 @@ export function PaintingPriceMutateDialog({
                   <FormLabel>Taux horaire</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionnez un taux horaire" />
                       </SelectTrigger>
                     </FormControl>
@@ -202,7 +245,7 @@ export function PaintingPriceMutateDialog({
                   <FormLabel>Type de peinture</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionnez un type de peinture" />
                       </SelectTrigger>
                     </FormControl>
@@ -227,7 +270,7 @@ export function PaintingPriceMutateDialog({
                   <FormLabel>Élément de peinture</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionnez un élément de peinture" />
                       </SelectTrigger>
                     </FormControl>

@@ -58,12 +58,16 @@ export interface PaintingPriceCreate {
   hourly_rate_id: string | number
   paint_type_id: string | number
   number_paint_element_id: string | number
+  param_1?: number
+  param_2?: number
 }
 
 export interface PaintingPriceUpdate {
   hourly_rate_id?: string | number
   paint_type_id?: string | number
   number_paint_element_id?: string | number
+  param_1?: number
+  param_2?: number
 }
 
 export interface PaintingPricesResponse {

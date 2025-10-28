@@ -335,12 +335,6 @@ export const sidebarData: SidebarData = {
           // requiredPermission: Permission.VIEW_ASSIGNMENT,
         },
         {
-          title: 'Documents transmis',
-          url: '/gestion/documents',
-          icon: IconFileText,
-          // requiredPermission: Permission.VIEW_ASSIGNMENT,
-        },
-        {
           title: 'Nature des sinistres',
           url: '/gestion/sinistre/nature-sinistre',
           icon: IconFileText,
@@ -488,11 +482,6 @@ export const sidebarData: SidebarData = {
             {
               title: 'Document transmis',
               url: '/administration/documents',
-              icon: IconFileText,
-            },
-            {
-              title: 'Documents transmis (Gestion)',
-              url: '/gestion/documents',
               icon: IconFileText,
             },
           ],

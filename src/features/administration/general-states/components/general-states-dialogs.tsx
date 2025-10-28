@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -46,19 +46,37 @@ export function GeneralStatesDialogs({
     description: '',
   })
 
+  // Préremplir les champs lors de l'ouverture du modal d'édition
+  useEffect(() => {
+    if (isEditOpen && selectedGeneralState) {
+      setFormData({
+        code: selectedGeneralState.code || '',
+        label: selectedGeneralState.label || '',
+        description: selectedGeneralState.description || '',
+      })
+    }
+  }, [isEditOpen, selectedGeneralState])
+
+  // Nettoyer les champs lors de l'ouverture du modal de création
+  useEffect(() => {
+    if (isCreateOpen) {
+      setFormData({ code: '', label: '', description: '' })
+    }
+  }, [isCreateOpen])
+
   // Gérer la création
   const handleCreate = async () => {
     try {
       await createGeneralState(formData)
-      onCloseCreate()
       setFormData({ code: '', label: '', description: '' })
+      onCloseCreate()
     } catch (_error) {
       // Erreur gérée par le store
     }
   }
 
   // Gérer la modification
-  const handleEdit = async () => {
+  const handleEdit = async () => {  
     if (!selectedGeneralState) return
     
     try {
@@ -67,6 +85,7 @@ export function GeneralStatesDialogs({
         description: formData.description,
       }
       await updateGeneralState(selectedGeneralState.id, updateData)
+      setFormData({ code: '', label: '', description: '' })
       onCloseEdit()
     } catch (_error) {
       // Erreur gérée par le store
@@ -107,14 +126,14 @@ export function GeneralStatesDialogs({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            {/* <div>
               <label className="text-sm font-medium">Code</label>
               <Input
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 placeholder="ex: new"
               />
-            </div>
+            </div> */}
             <div>
               <label className="text-sm font-medium">Libellé</label>
               <Input

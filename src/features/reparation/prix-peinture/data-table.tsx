@@ -175,7 +175,7 @@ export function DataTable({ data, onView, onEdit, onDelete }: DataTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      {/* <div className="flex items-center py-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -202,7 +202,7 @@ export function DataTable({ data, onView, onEdit, onDelete }: DataTableProps) {
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div> */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>

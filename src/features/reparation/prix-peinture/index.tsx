@@ -6,6 +6,11 @@ import { DataTable } from './data-table'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { PaintingPriceDialogs } from './components/painting-price-dialogs'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Search } from '@/components/search'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 
 export default function PaintingPricesPage() {
   const {
@@ -99,38 +104,50 @@ export default function PaintingPricesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Prix de peinture</CardTitle>
-          <CardDescription>
-            Gérez les prix de peinture avec leurs paramètres et relations.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <DataTableToolbar onCreateClick={handleCreateClick} />
-            <DataTable
-              data={paintingPrices}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </div>
-        </CardContent>
-      </Card>
+    <>
+      <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
 
-      <PaintingPriceDialogs
-        createDialogOpen={createDialogOpen}
-        editDialogOpen={editDialogOpen}
-        viewDialogOpen={viewDialogOpen}
-        deleteDialogOpen={deleteDialogOpen}
-        onCreateDialogChange={handleCreateDialogChange}
-        onEditDialogChange={handleEditDialogChange}
-        onViewDialogChange={handleViewDialogChange}
-        onDeleteDialogChange={handleDeleteDialogChange}
-        selectedPaintingPrice={selectedPaintingPrice}
-      />
-    </div>
+      <Main>
+        <div className="space-y-4">
+          <Card className='p-0 shadow-none border-0'>
+            <CardHeader className='p-0'>
+              <CardTitle>Prix de peinture</CardTitle>
+              <CardDescription>
+                Gérez les prix de peinture avec leurs paramètres et relations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className='p-0'>
+              <div className="space-y-4">
+                <DataTableToolbar onCreateClick={handleCreateClick} />
+                <DataTable
+                  data={paintingPrices}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <PaintingPriceDialogs
+            createDialogOpen={createDialogOpen}
+            editDialogOpen={editDialogOpen}
+            viewDialogOpen={viewDialogOpen}
+            deleteDialogOpen={deleteDialogOpen}
+            onCreateDialogChange={handleCreateDialogChange}
+            onEditDialogChange={handleEditDialogChange}
+            onViewDialogChange={handleViewDialogChange}
+            onDeleteDialogChange={handleDeleteDialogChange}
+            selectedPaintingPrice={selectedPaintingPrice}
+          />
+        </div>
+      </Main>
+    </>
   )
 } 

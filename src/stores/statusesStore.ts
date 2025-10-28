@@ -44,11 +44,13 @@ export const useStatusesStore = create<StatusesState>((set) => ({
   createStatus: async (data: CreateStatusData) => {
     try {
       set({ loading: true })
-      const newStatus = await statusService.create(data)
-      set(state => ({ 
-        statuses: [...state.statuses, newStatus], 
-        loading: false 
-      }))
+      await statusService.create(data)
+      // Recharger la liste pour avoir les données à jour
+      const response = await statusService.getAll()
+      set({
+        statuses: response.data,
+        loading: false
+      })
       toast.success('Statut créé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
@@ -63,13 +65,13 @@ export const useStatusesStore = create<StatusesState>((set) => ({
   updateStatus: async (id: number, data: UpdateStatusData) => {
     try {
       set({ loading: true })
-      const updatedStatus = await statusService.update(id, data)
-      set(state => ({
-        statuses: state.statuses.map(status =>
-          status.id === id ? updatedStatus : status
-        ),
+      await statusService.update(id, data)
+      // Recharger la liste pour avoir les données à jour
+      const response = await statusService.getAll()
+      set({
+        statuses: response.data,
         loading: false
-      }))
+      })
       toast.success('Statut mis à jour avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
@@ -85,10 +87,12 @@ export const useStatusesStore = create<StatusesState>((set) => ({
     try {
       set({ loading: true })
       await statusService.delete(id)
-      set(state => ({
-        statuses: state.statuses.filter(status => status.id !== id),
+      // Recharger la liste pour avoir les données à jour
+      const response = await statusService.getAll()
+      set({
+        statuses: response.data,
         loading: false
-      }))
+      })
       toast.success('Statut supprimé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'

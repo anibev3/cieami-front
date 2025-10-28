@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination } from '@/features/gestion/documents/components/data-table-pagination'
+import { DataTablePagination } from '@/features/administration/documents/components/data-table-pagination'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { WorkFee } from './types'
 
