@@ -6,6 +6,11 @@ import { DataTable } from './data-table'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { PaintTypeDialogs } from './components/paint-type-dialogs'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Search } from '@/components/search'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 
 export default function PaintTypesPage() {
   const { 
@@ -107,26 +112,37 @@ export default function PaintTypesPage() {
   }
 
   return (
+        <>
+      <Header fixed>
+        <Search />
+        <div className='ml-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main>
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
+      <Card className='p-0 shadow-none border-0'>
+        <CardHeader className='p-0'>
           <CardTitle>Types de peinture</CardTitle>
           <CardDescription>
             Gérez les différents types de peinture disponibles dans le système.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className='p-0'>
           <div className="space-y-4">
-            <DataTableToolbar
+            {/* <DataTableToolbar
               searchValue={searchValue}
               onSearchChange={handleSearchChange}
               onCreateClick={handleCreateClick}
-            />
+            /> */}
             <DataTable
               data={paintTypes}
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onCreateClick={handleCreateClick}
             />
           </div>
         </CardContent>
@@ -143,6 +159,8 @@ export default function PaintTypesPage() {
         onDeleteDialogChange={handleDeleteDialogChange}
         selectedPaintType={selectedPaintType}
       />
-    </div>
+        </div>
+      </Main>
+      </>
   )
 } 

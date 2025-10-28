@@ -47,16 +47,16 @@ class DocumentTransmittedService {
    * Créer un nouveau document transmis
    */
   async create(data: CreateDocumentTransmittedData): Promise<DocumentTransmitted> {
-    const response = await axiosInstance.post<DocumentTransmitted>(this.baseUrl, data)
-    return response.data
+    const response = await axiosInstance.post<{status: number, message: string, data: DocumentTransmitted}>(this.baseUrl, data)
+    return response.data.data
   }
 
   /**
    * Mettre à jour un document transmis
    */
   async update(id: number, data: UpdateDocumentTransmittedData): Promise<DocumentTransmitted> {
-    const response = await axiosInstance.put<DocumentTransmitted>(`${this.baseUrl}/${id}`, data)
-    return response.data
+    const response = await axiosInstance.put<{status: number, message: string, data: DocumentTransmitted}>(`${this.baseUrl}/${id}`, data)
+    return response.data.data
   }
 
   /**

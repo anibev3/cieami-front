@@ -44,16 +44,16 @@ class StatusService {
    * Créer un nouveau statut
    */
   async create(data: CreateStatusData): Promise<Status> {
-    const response = await axiosInstance.post<Status>(this.baseUrl, data)
-    return response.data
+    const response = await axiosInstance.post<{status: number, message: string, data: Status}>(this.baseUrl, data)
+    return response.data.data
   }
 
   /**
    * Mettre à jour un statut
    */
   async update(id: number, data: UpdateStatusData): Promise<Status> {
-    const response = await axiosInstance.put<Status>(`${this.baseUrl}/${id}`, data)
-    return response.data
+    const response = await axiosInstance.put<{status: number, message: string, data: Status}>(`${this.baseUrl}/${id}`, data)
+    return response.data.data
   }
 
   /**

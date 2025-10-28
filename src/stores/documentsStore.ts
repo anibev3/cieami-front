@@ -44,11 +44,13 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   createDocument: async (data: CreateDocumentTransmittedData) => {
     try {
       set({ loading: true })
-      const newDocument = await documentTransmittedService.create(data)
-      set(state => ({ 
-        documents: [...state.documents, newDocument], 
-        loading: false 
-      }))
+      await documentTransmittedService.create(data)
+      // Recharger la liste pour avoir les données à jour
+      const response = await documentTransmittedService.getAll()
+      set({
+        documents: response.data,
+        loading: false
+      })
       toast.success('Document créé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création'
@@ -63,13 +65,13 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
   updateDocument: async (id: number, data: UpdateDocumentTransmittedData) => {
     try {
       set({ loading: true })
-      const updatedDocument = await documentTransmittedService.update(id, data)
-      set(state => ({
-        documents: state.documents.map(doc =>
-          doc.id === id ? updatedDocument : doc
-        ),
+      await documentTransmittedService.update(id, data)
+      // Recharger la liste pour avoir les données à jour
+      const response = await documentTransmittedService.getAll()
+      set({
+        documents: response.data,
         loading: false
-      }))
+      })
       toast.success('Document mis à jour avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour'
@@ -85,10 +87,12 @@ export const useDocumentsStore = create<DocumentsState>((set) => ({
     try {
       set({ loading: true })
       await documentTransmittedService.delete(id)
-      set(state => ({
-        documents: state.documents.filter(doc => doc.id !== id),
+      // Recharger la liste pour avoir les données à jour
+      const response = await documentTransmittedService.getAll()
+      set({
+        documents: response.data,
         loading: false
-      }))
+      })
       toast.success('Document supprimé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la suppression'

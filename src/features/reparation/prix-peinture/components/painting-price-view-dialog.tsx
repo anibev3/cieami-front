@@ -27,15 +27,15 @@ export function PaintingPriceViewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
+      <DialogContent className="w-[600px] h-[600px]">
+        <DialogHeader className="p-0">
           <DialogTitle>Détails du prix de peinture</DialogTitle>
           <DialogDescription>
             Informations détaillées sur le prix sélectionné.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">ID</label>

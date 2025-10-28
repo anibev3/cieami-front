@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender, SortingState, ColumnFiltersState } from '@tanstack/react-table'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useUsersStore } from '@/stores/usersStore'
+import { useEntitiesStore } from '@/stores/entitiesStore'
+import { useRoleStore } from '@/stores/roleStore'
 import { createColumns } from './columns'
 import { User } from '@/types/administration'
 
@@ -49,9 +52,17 @@ export function DataTable({
   filters
 }: DataTableProps) {
   const { users, loading } = useUsersStore()
+  const { entities, fetchEntities } = useEntitiesStore()
+  const { roles, fetchRoles } = useRoleStore()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = useState({})
+
+  // Charger les entités et rôles au montage du composant
+  useEffect(() => {
+    fetchEntities()
+    fetchRoles()
+  }, [fetchEntities, fetchRoles])
 
   const columns = createColumns({ onView, onEdit, onDelete, onEnable, onDisable, onReset })
 
@@ -85,20 +96,40 @@ export function DataTable({
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Input
-                placeholder="Filtrer par entité..."
-                value={filters.entity}
-                onChange={(event) => onEntityFilter(event.target.value)}
-                className="h-8 w-[120px]"
-              />
+              <Select
+                value={filters.entity || "all"}
+                onValueChange={onEntityFilter}
+              >
+                <SelectTrigger className="h-8 w-[150px]">
+                  <SelectValue placeholder="Filtrer par entité" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les entités</SelectItem>
+                  {entities.map((entity) => (
+                    <SelectItem key={entity.id} value={entity.name}>
+                      {entity.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center space-x-2">
-              <Input
-                placeholder="Filtrer par rôle..."
-                value={filters.role}
-                onChange={(event) => onRoleFilter(event.target.value)}
-                className="h-8 w-[120px]"
-              />
+              <Select
+                value={filters.role || "all"}
+                onValueChange={onRoleFilter}
+              >
+                <SelectTrigger className="h-8 w-[150px]">
+                  <SelectValue placeholder="Filtrer par rôle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les rôles</SelectItem>
+                  {roles.map((role) => (
+                    <SelectItem key={role.name} value={role.name}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -151,20 +182,40 @@ export function DataTable({
             />
           </div>
           <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Filtrer par entité..."
-              value={filters.entity}
-              onChange={(event) => onEntityFilter(event.target.value)}
-              className="h-8 w-[120px]"
-            />
+            <Select
+              value={filters.entity || "all"}
+              onValueChange={onEntityFilter}
+            >
+              <SelectTrigger className="h-8 w-[150px]">
+                <SelectValue placeholder="Filtrer par entité" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les entités</SelectItem>
+                {entities.map((entity) => (
+                  <SelectItem key={entity.id} value={entity.name}>
+                    {entity.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Filtrer par rôle..."
-              value={filters.role}
-              onChange={(event) => onRoleFilter(event.target.value)}
-              className="h-8 w-[120px]"
-            />
+            <Select
+              value={filters.role || "all"}
+              onValueChange={onRoleFilter}
+            >
+              <SelectTrigger className="h-8 w-[150px]">
+                <SelectValue placeholder="Filtrer par rôle" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les rôles</SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role.name} value={role.name}>
+                    {role.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

@@ -57,6 +57,13 @@ export function GeneralStatesDialogs({
     }
   }, [isEditOpen, selectedGeneralState])
 
+  // Nettoyer les champs lors de l'ouverture du modal de création
+  useEffect(() => {
+    if (isCreateOpen) {
+      setFormData({ code: '', label: '', description: '' })
+    }
+  }, [isCreateOpen])
+
   // Gérer la création
   const handleCreate = async () => {
     try {
@@ -69,7 +76,7 @@ export function GeneralStatesDialogs({
   }
 
   // Gérer la modification
-  const handleEdit = async () => {
+  const handleEdit = async () => {  
     if (!selectedGeneralState) return
     
     try {
