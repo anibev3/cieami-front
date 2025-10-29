@@ -1423,7 +1423,7 @@ export default function CreateAssignmentPage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <div className="flex items-center gap-2 justify-between">
-                                    <FormLabel>Rattachement Assureur <span className="text-red-500">*</span></FormLabel>
+                                    <FormLabel> Assureur <span className="text-red-500">*</span></FormLabel>
                                   </div>
                                   <div className="flex gap-2">
                                     <ExpertFirmSelect
@@ -1456,7 +1456,7 @@ export default function CreateAssignmentPage() {
                               render={({ field }) => (
                                 <FormItem>
                                 <div className="flex items-center gap-2 justify-between">
-                                  <FormLabel>Rattachement Assureur</FormLabel>
+                                  <FormLabel> Assureur</FormLabel>
                                 </div>
                                   <div className="flex gap-2">
                                     <InsurerRelationshipSelect
@@ -1546,7 +1546,7 @@ export default function CreateAssignmentPage() {
                               render={({ field }) => (
                                 <FormItem>
                                 <div className="flex items-center gap-2 justify-between">
-                                  <FormLabel>Rattachement Réparateur</FormLabel>
+                                  <FormLabel> Réparateur</FormLabel>
                                 </div>
                                   <div className="flex gap-2">
                                     {isInsurer ? (
