@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -640,6 +640,10 @@ export default function EditReportPage() {
   
   const [sheetFocusShockId, setSheetFocusShockId] = useState<number | null>(null)
 
+  // Refs pour éviter les requêtes multiples
+  const referenceDataFetchedRef = useRef(false)
+  const assignmentFetchedRef = useRef<number | null>(null)
+
   // Fonction pour changer d'onglet et mettre à jour l'URL
   const changeActiveTab = (tab: string) => {
     setActiveTab(tab)
@@ -733,10 +737,20 @@ export default function EditReportPage() {
 
   // Charger les données du dossier
   useEffect(() => {
+    const assignmentId = Number(id)
+    
+    // Éviter de recharger si on a déjà chargé cet assignment
+    if (assignmentFetchedRef.current === assignmentId) {
+      return
+    }
+    
+    // Marquer comme en cours de chargement
+    assignmentFetchedRef.current = assignmentId
+    
     const fetchAssignment = async () => {
       try {
         setLoading(true)
-        const response = await assignmentService.getAssignment(Number(id))
+        const response = await assignmentService.getAssignment(assignmentId)
         
         if (response && typeof response === 'object' && 'data' in response) {
           setAssignment(response.data as unknown as Assignment)
@@ -753,6 +767,8 @@ export default function EditReportPage() {
         console.log(err)
         setError('Erreur lors du chargement du dossier')
         toast.error('Erreur lors du chargement du dossier')
+        // En cas d'erreur, réinitialiser la ref pour permettre un nouvel essai
+        assignmentFetchedRef.current = null
       } finally {
         setLoading(false)
       }
@@ -763,75 +779,88 @@ export default function EditReportPage() {
 
   // Charger les données de référence
   useEffect(() => {
+    // Éviter de recharger si les données ont déjà été chargées
+    if (referenceDataFetchedRef.current) {
+      return
+    }
+    
+    // Marquer comme chargées
+    referenceDataFetchedRef.current = true
+    
     const fetchReferenceData = async () => {
       try {
-        // Charger les fournitures
-        const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=5`)
+        // Charger en parallèle toutes les données de référence
+        const [
+          suppliesResponse,
+          workforceTypesResponse,
+          otherCostTypesResponse,
+          shockPointsResponse,
+          paintTypesResponse,
+          hourlyRatesResponse,
+          generalStatesResponse,
+          claimNaturesResponse,
+          technicalConclusionsResponse,
+          remarksResponse
+        ] = await Promise.all([
+          axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=5`),
+          axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.BASE_URL}/general-states?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.BASE_URL}/claim-natures?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.BASE_URL}/technical-conclusions?per_page=50`),
+          axiosInstance.get(`${API_CONFIG.BASE_URL}/remarks?per_page=50`)
+        ])
+        
+        // Traiter les réponses
         if (suppliesResponse.status === 200) {
           setSupplies(suppliesResponse.data.data)
         }
 
-        // Charger les types de main d'œuvre
-        const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=50`)
         if (workforceTypesResponse.data.status === 200) {
           setWorkforceTypes(workforceTypesResponse.data.data)
         }
 
-        // Charger les types d'autres coûts
-        const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}?per_page=50`)
         if (otherCostTypesResponse.status === 200 && Array.isArray(otherCostTypesResponse.data.data)) {
           setOtherCostTypes(otherCostTypesResponse.data.data)
         } else {
           setOtherCostTypes([])
         }
 
-        // Charger les points de choc
-        const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}?per_page=50`)
-
-        console.log("================> shockPointsResponse", shockPointsResponse.status)
         if (shockPointsResponse.status === 200) {
           setShockPoints(shockPointsResponse.data.data)
         }
 
-        // Charger les types de peinture
-        const paintTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.PAINT_TYPES}?per_page=50`)
         if (paintTypesResponse.status === 200) {
           setPaintTypes(paintTypesResponse.data.data)
-        } else {
-          console.error('Erreur lors du chargement des types de peinture:', paintTypesResponse.status)
         }
 
-        // Charger les taux horaires
-        const hourlyRatesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.HOURLY_RATES}?per_page=50`)
         if (hourlyRatesResponse.status === 200) {
           setHourlyRates(hourlyRatesResponse.data.data)
-        } else {
-          console.error('Erreur lors du chargement des taux horaires:', hourlyRatesResponse.status)
         }
         
-        // Charger les données pour les informations additionnelles
-        const generalStatesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/general-states?per_page=50`)
         if (generalStatesResponse.status === 200) {
           setGeneralStates(generalStatesResponse.data.data)
         }
         
-        const claimNaturesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/claim-natures?per_page=50`)
         if (claimNaturesResponse.status === 200) {
           setClaimNatures(claimNaturesResponse.data.data)
         }
         
-        const technicalConclusionsResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/technical-conclusions?per_page=50`)
         if (technicalConclusionsResponse.status === 200) {
           setTechnicalConclusions(technicalConclusionsResponse.data.data)
         }
         
-        const remarksResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/remarks?per_page=50`)
         if (remarksResponse.status === 200) {
           setRemarks(remarksResponse.data.data)
         }
       } catch (err) {
         console.error('Erreur lors du chargement des données de référence:', err)
         setOtherCostTypes([])
+        // En cas d'erreur, permettre un nouvel essai
+        referenceDataFetchedRef.current = false
       }
     }
 
