@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 // import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
 import { SupplyMutateDialog } from '@/features/expertise/fournitures/components/supply-mutate-dialog'
@@ -329,6 +329,10 @@ export function ShockSuppliesEditTable({
   const [tableExpanded, setTableExpanded] = useState(true)
   // État pour les fournitures récupérées dynamiquement
   const [fetchedSupplies, setFetchedSupplies] = useState<Map<number, Supply>>(new Map())
+  // Utiliser useRef pour suivre les IDs en cours de récupération et éviter les boucles
+  const fetchingIdsRef = useRef<Set<number>>(new Set())
+  // Utiliser un ref pour suivre les IDs déjà traités (récupérés + en cours)
+  const processedIdsRef = useRef<Set<number>>(new Set())
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -341,34 +345,114 @@ export function ShockSuppliesEditTable({
   // Mettre à jour les données locales quand les props changent
   useEffect(() => {
     setLocalShockWorks(shockWorks)
+    // Reset modifiedRows et newRows quand les données changent depuis l'extérieur
+    setModifiedRows(new Set())
+    setNewRows(new Set())
   }, [shockWorks])
 
-  // Récupérer automatiquement les fournitures manquantes
+  // Synchroniser processedIdsRef avec fetchedSupplies
   useEffect(() => {
-    const fetchMissingSupplies = async () => {
-      const missingSupplyIds = new Set<number>()
-      
-      // Identifier les fournitures manquantes
-      localShockWorks.forEach(work => {
-        const id = Number(work?.supply_id || 0)
-        if (id && !supplies.find(s => s.id === id) && !fetchedSupplies.has(id)) {
-          missingSupplyIds.add(id)
-        }
-      })
-      
-      // Récupérer les fournitures manquantes
-      for (const supplyId of missingSupplyIds) {
-        try {
-          const supply = await fetchSupplyById(supplyId)
-          setFetchedSupplies(prev => new Map(prev).set(supplyId, supply))
-        } catch (error) {
-          console.error(`Erreur lors de la récupération de la fourniture ${supplyId}:`, error)
-        }
+    fetchedSupplies.forEach((_, id) => {
+      processedIdsRef.current.add(id)
+    })
+  }, [fetchedSupplies])
+
+  // Calculer les IDs de fournitures requises depuis localShockWorks
+  const requiredSupplyIds = useMemo(() => {
+    const ids = new Set<number>()
+    localShockWorks.forEach(work => {
+      const id = Number(work?.supply_id || 0)
+      if (id > 0) {
+        ids.add(id)
       }
+    })
+    return Array.from(ids).sort() // Trier pour une comparaison stable
+  }, [localShockWorks])
+
+  // Calculer les IDs de fournitures disponibles (supplies uniquement)
+  const availableSupplyIds = useMemo(() => {
+    return new Set(supplies.map(s => s.id))
+  }, [supplies])
+
+  // Calculer les IDs manquants uniquement basés sur les IDs requis vs disponibles
+  // (sans inclure fetchedSupplies pour éviter les boucles)
+  const missingSupplyIds = useMemo(() => {
+    const missing: number[] = []
+    requiredSupplyIds.forEach(id => {
+      if (!availableSupplyIds.has(id)) {
+        missing.push(id)
+      }
+    })
+    return missing
+  }, [requiredSupplyIds, availableSupplyIds])
+
+  // Récupérer automatiquement les fournitures manquantes une seule fois
+  useEffect(() => {
+    // Si aucune fourniture manquante, ne rien faire
+    if (missingSupplyIds.length === 0) {
+      return
     }
     
-    fetchMissingSupplies()
-  }, [localShockWorks, supplies, fetchedSupplies, fetchSupplyById])
+    let isMounted = true
+    
+    // Filtrer les IDs qui ne sont pas déjà traités (récupérés ou en cours)
+    const idsToFetch = missingSupplyIds.filter(
+      id => !processedIdsRef.current.has(id)
+    )
+    
+    // Si aucun ID à récupérer, sortir
+    if (idsToFetch.length === 0) {
+      return
+    }
+    
+    // Marquer les IDs comme en cours de récupération et traités
+    idsToFetch.forEach(id => {
+      fetchingIdsRef.current.add(id)
+      processedIdsRef.current.add(id)
+    })
+    
+    // Récupérer les fournitures manquantes une seule fois
+    Promise.all(
+      idsToFetch.map(async (supplyId) => {
+        if (!isMounted) {
+          fetchingIdsRef.current.delete(supplyId)
+          return null
+        }
+        try {
+          const supply = await fetchSupplyById(supplyId)
+          return { id: supplyId, supply }
+        } catch (error) {
+          console.error(`Erreur lors de la récupération de la fourniture ${supplyId}:`, error)
+          return null
+        } finally {
+          fetchingIdsRef.current.delete(supplyId)
+        }
+      })
+    ).then(results => {
+      if (!isMounted) return
+      
+      setFetchedSupplies(latestFetched => {
+        const newMap = new Map(latestFetched)
+        let hasChanges = false
+        
+        results.forEach(result => {
+          if (result && result.supply && !newMap.has(result.id)) {
+            newMap.set(result.id, result.supply)
+            hasChanges = true
+          }
+        })
+        
+        // Retourner la nouvelle Map seulement si quelque chose a changé
+        return hasChanges ? newMap : latestFetched
+      })
+    }).catch(error => {
+      console.error('Erreur lors de la récupération des fournitures:', error)
+    })
+    
+    return () => {
+      isMounted = false
+    }
+  }, [missingSupplyIds, fetchSupplyById]) // Dépendre de missingSupplyIds calculé avec useMemo
 
   // Fonction de mise à jour locale
   const updateLocalShockWork = async (index: number, field: keyof ShockWork, value: any) => {
