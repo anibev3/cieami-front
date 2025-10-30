@@ -228,7 +228,7 @@ interface CalculationResult {
 export default function ReportEditPage() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
-  const assignmentId = parseInt(id)
+  const assignmentId = id
   
   // Utilisation des hooks personnalisés
   const { 

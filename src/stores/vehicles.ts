@@ -19,10 +19,10 @@ interface VehiclesState {
 interface VehiclesActions {
   // Actions
   fetchVehicles: (page?: number, filters?: VehicleFilters) => Promise<void>
-  fetchVehicle: (id: number) => Promise<void>
+  fetchVehicle: (id: string) => Promise<void>
   createVehicle: (vehicleData: VehicleCreate) => Promise<void>
-  updateVehicle: (id: number, vehicleData: VehicleUpdate) => Promise<void>
-  deleteVehicle: (id: number) => Promise<void>
+  updateVehicle: (id: string, vehicleData: VehicleUpdate) => Promise<void>
+  deleteVehicle: (id: string) => Promise<void>
   setCurrentVehicle: (vehicle: Vehicle | null) => void
   clearError: () => void
 }

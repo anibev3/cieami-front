@@ -37,9 +37,9 @@ export default function CheckDetailPage() {
   useEffect(() => {
     const fetchCheckDetail = async () => {
       try {
-        const checkData = await fetchCheckById(parseInt(id))
+        const checkData = await fetchCheckById(id)
         setCheck(checkData)
-      } catch (_) {
+      } catch (_error) {
         // Error handled by store
       }
     }

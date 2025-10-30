@@ -23,7 +23,7 @@ class VehicleService {
   /**
    * Récupérer un véhicule par son ID
    */
-  async getVehicle(id: number): Promise<Vehicle> {
+  async getVehicle(id: string): Promise<Vehicle> {
     const response = await axiosInstance.get<{ status: number; message: string | null; data: Vehicle }>(`${API_CONFIG.ENDPOINTS.VEHICLES}/${id}`)
     return response.data.data
   }
@@ -45,7 +45,7 @@ class VehicleService {
   /**
    * Mettre à jour un véhicule
    */
-  async updateVehicle(id: number, vehicleData: VehicleUpdate): Promise<Vehicle> {
+  async updateVehicle(id: string, vehicleData: VehicleUpdate): Promise<Vehicle> {
     const response = await axiosInstance.put<{ status: number; message: string | null; data: Vehicle }>(`${API_CONFIG.ENDPOINTS.VEHICLES}/${id}`, vehicleData)
     return response.data.data
   }
@@ -53,7 +53,7 @@ class VehicleService {
   /**
    * Supprimer un véhicule
    */
-  async deleteVehicle(id: number): Promise<void> {
+  async deleteVehicle(id: string): Promise<void> {
     await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.VEHICLES}/${id}`)
   }
 }

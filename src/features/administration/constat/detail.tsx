@@ -22,7 +22,7 @@ export default function AscertainmentDetailPage() {
 
   useEffect(() => {
     if (id) {
-      fetchAscertainmentById(parseInt(id))
+      fetchAscertainmentById(id)
     }
   }, [id, fetchAscertainmentById])
 

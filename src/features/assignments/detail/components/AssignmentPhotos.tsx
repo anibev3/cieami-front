@@ -36,6 +36,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useACL } from '@/hooks/useACL'
+import { UserRole } from '@/types/auth'
 
 interface AssignmentPhotosProps {
   assignmentId: string
@@ -99,6 +101,8 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [showDetails, setShowDetails] = useState(false)
+  const { hasAnyRole } = useACL()
+  const isInsurerReadOnly = hasAnyRole([UserRole.INSURER_ADMIN, UserRole.INSURER_STANDARD_USER])
 
   // Capteurs pour le drag & drop
   const sensors = useSensors(
@@ -217,6 +221,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   }
 
   const handleStartReorder = () => {
+    if (isInsurerReadOnly) return
     const currentPhotos = getCurrentTabData()?.photos || []
     setReorderPhotosList([...currentPhotos])
     setIsReorderMode(true)
@@ -228,6 +233,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
   }
 
   const handleSaveReorder = async () => {
+    if (isInsurerReadOnly) return
     if (reorderPhotosList.length === 0) return
 
     setLoadingReorder(true)
@@ -565,75 +571,78 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                       <p>Voir la photo</p>
                     </TooltipContent>
                   </Tooltip>
+                  {!isInsurerReadOnly && (
+                    <>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openEditDialog(photo)
+                            }}
+                            className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                          >
+                            <Edit className="h-5 w-5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Modifier la photo</p>
+                        </TooltipContent>
+                      </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openEditDialog(photo)
-                        }}
-                        className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Modifier la photo</p>
-                    </TooltipContent>
-                  </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleSetAsCover(photo.id)
+                            }}
+                            disabled={photo.is_cover}
+                            className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                          >
+                            <Star className="h-5 w-5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Mettre en couverture</p>
+                        </TooltipContent>
+                      </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleSetAsCover(photo.id)
-                        }}
-                        disabled={photo.is_cover}
-                        className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
-                      >
-                        <Star className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Mettre en couverture</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="secondary" 
-                        size="sm"
-                        onClick={(e) => e.stopPropagation()}
-                        className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer la photo</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDelete(photo.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Supprimer
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="secondary" 
+                            size="sm"
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer la photo</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(photo.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </>
+                  )}
                 </>
               )}
               
@@ -725,78 +734,78 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
               </TooltipContent>
             </Tooltip>
 
-            
-            <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    openEditDialog(photo)
-                  }}
-                  className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
-                >
-                  <Edit className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Modifier la photo</p>
-              </TooltipContent>
-            </Tooltip>
+            {!isInsurerReadOnly && (
+              <>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openEditDialog(photo)
+                      }}
+                      className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                    >
+                      <Edit className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Modifier la photo</p>
+                  </TooltipContent>
+                </Tooltip>
 
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleSetAsCover(photo.id)
+                      }}
+                      disabled={photo.is_cover}
+                      className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                    >
+                      <Star className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mettre en couverture</p>
+                  </TooltipContent>
+                </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleSetAsCover(photo.id)
-              }}
-              disabled={photo.is_cover}
-              className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
-            >
-              <Star className="h-5 w-5" />
-            </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Mettre en couverture</p>
-              </TooltipContent>
-            </Tooltip>
-            
-
-
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  onClick={(e) => e.stopPropagation()}
-                  className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Supprimer la photo</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => handleDelete(photo.id)}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Supprimer
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-12 w-12 p-0 rounded-full bg-primary/95 hover:bg-secondary shadow-lg backdrop-blur-sm"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer la photo</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Êtes-vous sûr de vouloir supprimer cette photo ? Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(photo.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
           </div>
         </div>
         
@@ -854,7 +863,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
             </Button>
           )}
           
-          {!isReorderMode && currentPhotos.length > 1 && (
+        {!isInsurerReadOnly && !isReorderMode && currentPhotos.length > 1 && (
             <Button
               variant="outline"
               size="sm"
@@ -893,6 +902,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
               </Button>
             </div>
           )}
+          {!isInsurerReadOnly && (
           <Dialog open={isUploadDialogOpen} onOpenChange={(open) => {
             setIsUploadDialogOpen(open)
             if (!open) {
@@ -1191,6 +1201,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          )}
         </div>
       </div>
 
@@ -1279,6 +1290,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                   <p className="text-xs text-muted-foreground text-center mb-6 max-w-md">
                     Aucune photo de type "{currentTabData?.label}" n'a encore été ajoutée à cette assignation.
                   </p>
+                  {!isInsurerReadOnly && (
                   <Dialog open={isUploadDialogOpen} onOpenChange={(open) => {
                     setIsUploadDialogOpen(open)
                     if (!open) {
@@ -1292,6 +1304,7 @@ export function AssignmentPhotos({ assignmentId, assignmentReference }: Assignme
                       </Button>
                     </DialogTrigger>
                   </Dialog>
+                  )}
                 </CardContent>
               </Card>
             )}

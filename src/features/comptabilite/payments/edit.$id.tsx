@@ -35,7 +35,7 @@ export default function EditPaymentPage() {
     amount: 0
   })
 
-  const payment = payments.find(p => p.id === parseInt(id || '0'))
+  const payment = payments.find(p => p.id === (id || '0'))
 
   useEffect(() => {
     if (payments.length === 0) {
@@ -59,7 +59,7 @@ export default function EditPaymentPage() {
     e.preventDefault()
     if (!id) return
     try {
-      await updatePayment(parseInt(id), formData)
+      await updatePayment(id, formData)
       toast.success('Paiement mis à jour avec succès')
       navigate({ to: '/comptabilite/payments' })
     } catch (_error) {

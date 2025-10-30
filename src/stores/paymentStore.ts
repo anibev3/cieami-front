@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand'
 import { Payment, CreatePaymentData, UpdatePaymentData, PaymentFilters } from '@/types/comptabilite'
 import { paymentService } from '@/services/paymentService'
@@ -24,10 +25,10 @@ interface PaymentState {
   
   // Actions
   fetchPayments: (page?: number, perPage?: number, search?: string, filters?: PaymentFilters) => Promise<void>
-  fetchPaymentById: (id: number) => Promise<Payment | null>
+  fetchPaymentById: (id: string) => Promise<Payment | null>
   createPayment: (data: CreatePaymentData) => Promise<Payment>
-  updatePayment: (id: number, data: UpdatePaymentData) => Promise<void>
-  deletePayment: (id: number) => Promise<void>
+  updatePayment: (id: string, data: UpdatePaymentData) => Promise<void>
+  deletePayment: (id: string) => Promise<void>
   setSelectedPayment: (payment: Payment | null) => void
   clearError: () => void
   setPage: (page: number) => void
@@ -83,7 +84,7 @@ export const usePaymentStore = create<PaymentState>((set) => ({
     }
   },
 
-  fetchPaymentById: async (id: number): Promise<Payment | null> => {
+  fetchPaymentById: async (id: string): Promise<Payment | null> => {
     try {
       set({ loading: true, error: null })
       const payment = await paymentService.getById(id)
@@ -118,7 +119,7 @@ export const usePaymentStore = create<PaymentState>((set) => ({
     }
   },
 
-  updatePayment: async (id: number, data: UpdatePaymentData) => {
+  updatePayment: async (id: string, data: UpdatePaymentData) => {
     try {
       set({ loading: true })
       const updatedPayment = await paymentService.update(id, data)
@@ -139,7 +140,7 @@ export const usePaymentStore = create<PaymentState>((set) => ({
     }
   },
 
-  deletePayment: async (id: number) => {
+  deletePayment: async (id: string) => {
     try {
       set({ loading: true })
       await paymentService.delete(id)

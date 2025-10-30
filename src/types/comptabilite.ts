@@ -26,8 +26,9 @@ export interface User {
 }
 
 export interface Assignment {
-  id: number
+  id: string
   reference: string
+  is_validated: boolean
   policy_number: string | null
   claim_number: string | null
   claim_starts_at: string | null
@@ -232,7 +233,7 @@ export interface BankResponse {
 
 // Paiements
 export interface Payment {
-  id: number
+  id: string
   reference: string
   date: string
   amount: string
@@ -246,6 +247,8 @@ export interface Payment {
   deleted_at: string | null
   created_at: string
   updated_at: string
+  cancelled_at: string | null
+  is_validated: boolean
 }
 
 export interface CreatePaymentData {
@@ -292,7 +295,7 @@ export interface PaymentResponse {
 
 // Chèques
 export interface Check {
-  id: number
+  id: string
   reference: string
   date: string
   amount: string

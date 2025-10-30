@@ -10,6 +10,8 @@ import { ClientsDialogs } from './clients-dialogs'
 import { useClientsStore } from './store'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Client } from './types'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
 
 export default function ClientsPage() {
   const navigate = useNavigate()
@@ -89,7 +91,10 @@ export default function ClientsPage() {
             <h2 className='text-2xl font-bold tracking-tight'>Clients</h2>
             <p className='text-muted-foreground'>Gérez les clients du système</p>
           </div>
-          <button className='btn btn-primary' onClick={handleCreate}>Nouveau client</button>
+          <Button onClick={handleCreate} className='space-x-1'>
+            <span>Nouveau client</span>
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <ClientsDataTable

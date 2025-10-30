@@ -63,7 +63,7 @@ type VehicleEditFormData = z.infer<typeof vehicleEditSchema>
 export default function EditVehiclePage() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
-  const vehicleId = parseInt(id)
+  const vehicleId = id
   
   const [loading, setLoading] = useState(false)
   const [selectedBrandId, setSelectedBrandId] = useState<string>('')
@@ -82,7 +82,7 @@ export default function EditVehiclePage() {
   const isInitialLoading = 
     !baseDataLoaded ||
     !currentVehicle ||
-    currentVehicle.id !== vehicleId ||
+    currentVehicle.id.toString() !== vehicleId ||
     (needsModelLoad ? (loadingVehicleModels || !initialPrefillDone) : false)
   
   // Pour les véhicules, on est toujours en mode édition, donc on garde le modal
@@ -150,7 +150,7 @@ export default function EditVehiclePage() {
   useEffect(() => {
     const prefill = async () => {
       if (!baseDataLoaded) return
-      if (currentVehicle && currentVehicle.id === vehicleId) {
+      if (currentVehicle && currentVehicle.id.toString() === vehicleId) {
         
         // Charger les modèles de la marque du véhicule avant le reset
         if (currentVehicle.brand) {
@@ -195,7 +195,7 @@ export default function EditVehiclePage() {
   // Une fois les modèles de la marque chargés, assurer le pré-remplissage du modèle
   useEffect(() => {
     if (!baseDataLoaded) return
-    if (!currentVehicle || currentVehicle.id !== vehicleId) return
+    if (!currentVehicle || currentVehicle.id.toString() !== vehicleId) return
     if (!selectedBrandId) return
     if (initialPrefillDone) return
     if (loadingVehicleModels) return

@@ -33,9 +33,12 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search as SearchComponent } from '@/components/search'
+import { useACL } from '@/hooks/useACL'
+import { UserRole } from '@/types/auth'
 
 export default function AssignmentsPage() {
   const navigate = useNavigate()
+  const { hasRole } = useACL()
   const {
     loading,
     error,
@@ -79,6 +82,8 @@ export default function AssignmentsPage() {
     goToNextPage,
     goToPreviousPage,
   } = useAssignmentsStore()
+
+  
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['all'])
@@ -469,13 +474,15 @@ export default function AssignmentsPage() {
                   Gérez vos dossiers d'expertise automobile
                 </p>
               </div>
-              <Button 
-                onClick={handleCreateAssignment}
-                className=" text-white px-6 py-2.5 font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Nouveau dossier
-              </Button>
+              {!hasRole(UserRole.REPAIRER_ADMIN) && (
+                <Button 
+                  onClick={handleCreateAssignment}
+                  className=" text-white px-6 py-2.5 font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nouveau dossier
+                </Button>
+              )}
             </div>
           </div>
 

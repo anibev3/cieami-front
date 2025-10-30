@@ -4,7 +4,7 @@
 import { useParams, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
@@ -79,6 +79,7 @@ import {
   ShockDetailTable, 
 } from './components'
 import { useACL } from '@/hooks/useACL'
+import { UserRole } from '@/types/auth'
 
 interface AssignmentDetail {
   id: number
@@ -653,7 +654,7 @@ export default function AssignmentDetailPage() {
   const [unvalidating, setUnvalidating] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
-  const { isCEO, isValidator, isExpertManager } = useACL()
+  const { isCEO, isValidator, isExpertManager, hasAnyRole } = useACL()
 
   // États pour les modales d'actions
   const [receiptModalOpen, setReceiptModalOpen] = useState(false)
@@ -685,7 +686,7 @@ export default function AssignmentDetailPage() {
 
   // Synchroniser l'état local avec le store quand les données sont mises à jour
   useEffect(() => {
-    if (storeAssignment && storeAssignment.id === parseInt(id)) {
+    if (storeAssignment && storeAssignment.id === id) {
       // Convertir les types pour assurer la compatibilité
       const assignmentDetail = storeAssignment as any as AssignmentDetail
       setAssignment(assignmentDetail)
@@ -2207,6 +2208,29 @@ export default function AssignmentDetailPage() {
     const statusCode = assignment.status.code
     
     const actions = []
+
+    // Restreindre certains rôles à uniquement "Générer le rapport"
+    const isRestrictedRole = hasAnyRole([
+      UserRole.REPAIRER_ADMIN,
+      UserRole.REPAIRER_STANDARD_USER,
+      UserRole.INSURER_ADMIN,
+      UserRole.INSURER_STANDARD_USER
+    ])
+
+    if (isRestrictedRole) {
+      return [
+        {
+          key: 'generate-report',
+          label: 'Générer le rapport',
+          icon: Download,
+          onClick: async () => {
+            await generateReport(assignment.id)
+          },
+          variant: 'default' as const,
+          loading: loadingGenerate
+        }
+      ]
+    }
 
     // Actions selon le statut
     switch (statusCode) {

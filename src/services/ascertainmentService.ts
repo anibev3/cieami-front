@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosInstance from '@/lib/axios'
 
 export interface User {
-  id: number
+  id: string
   hash_id: string
   email: string
   username: string
@@ -17,7 +18,7 @@ export interface User {
 }
 
 export interface Status {
-  id: number
+  id: string
   code: string
   label: string
   description: string | null
@@ -217,7 +218,7 @@ class AscertainmentService {
   /**
    * Récupérer un constat par ID
    */
-  async getById(id: number): Promise<{ status: number; message: string | null; data: Ascertainment }> {
+  async getById(id: string): Promise<{ status: number; message: string | null; data: Ascertainment }> {
     const response = await axiosInstance.get<{ status: number; message: string | null; data: Ascertainment }>(`${this.baseUrl}/${id}`)
     return response.data
   }
@@ -233,7 +234,7 @@ class AscertainmentService {
   /**
    * Mettre à jour un constat
    */
-  async update(id: number, data: UpdateAscertainmentData): Promise<{ status: number; message: string; data: Ascertainment }> {
+  async update(id: string, data: UpdateAscertainmentData): Promise<{ status: number; message: string; data: Ascertainment }> {
     const response = await axiosInstance.put<{ status: number; message: string; data: Ascertainment }>(`${this.baseUrl}/${id}`, data)
     return response.data
   }
@@ -241,7 +242,7 @@ class AscertainmentService {
   /**
    * Supprimer un constat
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await axiosInstance.delete(`${this.baseUrl}/${id}`)
   }
 

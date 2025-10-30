@@ -35,7 +35,10 @@ import {
   DollarSign,
 } from 'lucide-react'
 import { UserSelect } from '@/features/widgets/user-select'
-import { RepairerSelect } from '@/features/widgets/repairer-select'
+import { RepairerRelationshipSelect } from '@/features/widgets'
+import { repairerRelationshipService } from '@/services/repairerRelationshipService'
+import { useUser } from '@/stores/authStore'
+import { UserRole } from '@/types/auth'
 import { useAssignmentRealizationStore } from '@/stores/assignmentRealizationStore'
 
 
@@ -48,7 +51,7 @@ const realizeSchema = z.object({
   expertise_place: z.string().optional(),
   point_noted: z.string().optional(),
   directed_by: z.string().min(1, 'L\'expert responsable est requis'),
-  repairer_id: z.string().optional(),
+  repairer_relationship_id: z.string().optional(),
 })
 
 // Interface déplacée vers le service
@@ -57,7 +60,9 @@ import { RealizeAssignmentPayload as RealizePayload } from '@/services/assignmen
 export default function RealizeAssignmentPage() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
-  const assignmentId = parseInt(id)
+  const assignmentId = id
+  const user = useUser()
+  const isInsurer = user?.role?.name === UserRole.INSURER_ADMIN || user?.role?.name === UserRole.INSURER_STANDARD_USER
   
   // Utilisation du store dédié
   const { 
@@ -77,7 +82,7 @@ export default function RealizeAssignmentPage() {
       expertise_place: '',
       point_noted: '',
       directed_by: '',
-      repairer_id: '',
+      repairer_relationship_id: '',
     }
   })
 
@@ -90,34 +95,38 @@ export default function RealizeAssignmentPage() {
 
   // Pré-remplir le formulaire quand les données sont chargées
   useEffect(() => {
-    if (assignment) {
-      // Gérer la date d'expertise
-      let expertiseDate = new Date()
-      // let timeString = '09:00'
-      
-      if (assignment.expertise_date) {
-        expertiseDate = new Date(assignment.expertise_date)
-        // Si la date contient une heure, l'extraire
-        // if (assignment.expertise_date.includes('T')) {
-        //   const dateTime = new Date(assignment.expertise_date)
-        //   const hours = String(dateTime.getHours()).padStart(2, '0')
-        //   const minutes = String(dateTime.getMinutes()).padStart(2, '0')
-        //   timeString = `${hours}:${minutes}`
-        // } else {
-        //   // Si c'est juste une date, utiliser l'heure par défaut
-        //   timeString = '09:00'
-        // }
+    const prefill = async () => {
+      if (assignment) {
+        // Gérer la date d'expertise
+        let expertiseDate = new Date()
+        
+        if (assignment.expertise_date) {
+          expertiseDate = new Date(assignment.expertise_date)
+        }
+        
+        // Tentative de retrouver le rattachement réparateur à partir du réparateur si présent
+        let repairerRelationshipId = ''
+        try {
+          if (assignment.repairer?.id) {
+            const response = await repairerRelationshipService.list(1)
+            const relationship = response.data.find((rel: any) => rel.repairer?.id?.toString() === assignment.repairer!.id.toString())
+            repairerRelationshipId = relationship?.id?.toString() || ''
+          }
+        } catch (_e) {
+          // ignore fallback
+        }
+
+        form.reset({
+          expertise_date: expertiseDate,
+          // expertise_time: timeString,
+          expertise_place: assignment.expertise_place || '',
+          point_noted: assignment.point_noted || '',
+          directed_by: assignment.directed_by?.id?.toString() || '',
+          repairer_relationship_id: repairerRelationshipId,
+        })
       }
-      
-      form.reset({
-        expertise_date: expertiseDate,
-        // expertise_time: timeString,
-        expertise_place: assignment.expertise_place || '',
-        point_noted: assignment.point_noted || '',
-        directed_by: assignment.directed_by?.id?.toString() || '',
-        repairer_id: assignment.repairer?.id?.toString() || '',
-      })
     }
+    prefill()
   }, [assignment, form])
 
   // Les utilisateurs et réparateurs sont maintenant chargés automatiquement par les composants dédiés
@@ -162,7 +171,7 @@ export default function RealizeAssignmentPage() {
         expertise_place: values.expertise_place || null,
         point_noted: values.point_noted || null,
         directed_by: values.directed_by,
-        repairer_id: values.repairer_id || null,
+        repairer_relationship_id: values.repairer_relationship_id || null,
       }      
 
       if (isEditRealization) {
@@ -416,9 +425,9 @@ export default function RealizeAssignmentPage() {
                         <FormItem>
                           <FormLabel>Expert responsable <span className="text-red-500">*</span></FormLabel>
                             <UserSelect
-                              value={field.value ? Number(field.value) : null}
+                              value={field.value as unknown as number | null}
                               onValueChange={(value: number | null) => {
-                                field.onChange(value?.toString() || '')
+                                field.onChange(value || '')
                               }}
                               placeholder="Sélectionner un expert"
                               filterRole="expert,expert_manager"
@@ -431,19 +440,21 @@ export default function RealizeAssignmentPage() {
 
                     <FormField
                       control={form.control}
-                      name="repairer_id"
+                      name="repairer_relationship_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Réparateur</FormLabel>
-                                                      <RepairerSelect
-                              value={field.value ? Number(field.value) : null}
-                              onValueChange={(value: number | null) => {
-                                field.onChange(value?.toString() || '')
-                              }}
-                              placeholder="Sélectionner un garage"
-                              showStatus={true}
-                            />
-                         <FormMessage />
+                          <FormLabel>réparateur</FormLabel>
+                          <RepairerRelationshipSelect
+                            value={field.value || null}
+                            onValueChange={(value: string | null) => {
+                              field.onChange(value || '')
+                            }}
+                            placeholder="Sélectionner un rattachement réparateur"
+                            className="w-full"
+                            showStatus={true}
+                            showExpertFirm={true}
+                          />
+                          <FormMessage />
                         </FormItem>
                       )}
                     />

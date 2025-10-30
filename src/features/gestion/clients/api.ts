@@ -15,7 +15,7 @@ export const getClients = async (filters?: ClientFilters, token?: string): Promi
   return data
 }
 
-export const getClientById = async (id: number, token?: string): Promise<Client> => {
+export const getClientById = async (id: string, token?: string): Promise<Client> => {
   const { data } = await axiosInstance.get(`${API_URL}/${id}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })
@@ -29,14 +29,14 @@ export const createClient = async (client: Partial<Client>, token?: string): Pro
   return data
 }
 
-export const updateClient = async (id: number, client: Partial<Client>, token?: string): Promise<Client> => {
+export const updateClient = async (id: string, client: Partial<Client>, token?: string): Promise<Client> => {
   const { data } = await axiosInstance.put(`${API_URL}/${id}`, client, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })
   return data
 }
 
-export const deleteClient = async (id: number, token?: string): Promise<void> => {
+export const deleteClient = async (id: string, token?: string): Promise<void> => {
   await axiosInstance.delete(`${API_URL}/${id}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })

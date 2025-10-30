@@ -107,7 +107,7 @@ class CheckService {
   /**
    * Supprimer un chèque
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await axiosInstance.delete(`${this.baseUrl}/${id}`)
   }
 

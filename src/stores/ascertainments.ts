@@ -27,10 +27,10 @@ interface AscertainmentState {
   
   // Actions
   fetchAscertainments: (filters?: AscertainmentFilters) => Promise<void>
-  fetchAscertainmentById: (id: number) => Promise<void>
+  fetchAscertainmentById: (id: string) => Promise<void>
   createAscertainment: (data: CreateAscertainmentData) => Promise<boolean>
-  updateAscertainment: (id: number, data: UpdateAscertainmentData) => Promise<boolean>
-  deleteAscertainment: (id: number) => Promise<boolean>
+  updateAscertainment: (id: string, data: UpdateAscertainmentData) => Promise<boolean>
+  deleteAscertainment: (id: string) => Promise<boolean>
   clearError: () => void
   clearCurrentAscertainment: () => void
 }
@@ -72,7 +72,7 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
   },
 
   // Récupérer un constat par ID
-  fetchAscertainmentById: async (id: number) => {
+  fetchAscertainmentById: async (id: string) => {
     set({ loading: true, error: null })
     
     try {
@@ -113,7 +113,7 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
   },
 
   // Mettre à jour un constat
-  updateAscertainment: async (id: number, data: UpdateAscertainmentData): Promise<boolean> => {
+  updateAscertainment: async (id: string, data: UpdateAscertainmentData): Promise<boolean> => {
     set({ loading: true, error: null })
     
     try {
@@ -143,7 +143,7 @@ export const useAscertainmentStore = create<AscertainmentState>((set, _get) => (
   },
 
   // Supprimer un constat
-  deleteAscertainment: async (id: number): Promise<boolean> => {
+  deleteAscertainment: async (id: string): Promise<boolean> => {
     set({ loading: true, error: null })
     
     try {

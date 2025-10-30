@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -381,8 +381,18 @@ export default function CreateAssignmentPage() {
   const { fetchBodyworks, createBodywork, loading: loadingBodyworks } = useBodyworksStore()
   const { createBrand, brands, fetchBrands, loading: loadingBrands } = useBrandsStore()
 
+  const dynamicSchema = useMemo(() => {
+    // Pour les assureurs, rendre obligatoire la sélection du "Cabinet d'expertise"
+    // qui est actuellement mappée sur le champ insurer_relationship_id dans l'UI dédiée assureur
+    return assignmentSchema.extend({
+      insurer_relationship_id: isInsurer
+        ? z.string().min(1, "Le cabinet d'expertise est requis")
+        : z.string().optional(),
+    })
+  }, [isInsurer])
+
   const form = useForm<z.infer<typeof assignmentSchema>>({
-    resolver: zodResolver(assignmentSchema),
+    resolver: zodResolver(dynamicSchema),
     defaultValues: {
       client_id: '',
       vehicle_id: '',
@@ -1423,7 +1433,7 @@ export default function CreateAssignmentPage() {
                               render={({ field }) => (
                                 <FormItem>
                                   <div className="flex items-center gap-2 justify-between">
-                                    <FormLabel> Assureur <span className="text-red-500">*</span></FormLabel>
+                                    <FormLabel> {isInsurer ? 'Cabinet d\'expertise' : 'Assureur'} <span className="text-red-500">*</span></FormLabel>
                                   </div>
                                   <div className="flex gap-2">
                                     <ExpertFirmSelect

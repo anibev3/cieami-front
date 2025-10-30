@@ -6,27 +6,27 @@ export interface RealizeAssignmentPayload {
   expertise_place: string | null
   point_noted: string | null
   directed_by: string
-  repairer_id: string | null
+  repairer_relationship_id: string | null
 }
 
 export interface RealizeAssignmentResponse {
   data: {
-    id: number
+    id: string
     reference: string
     status: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
     realized_at: string
     realized_by: {
-      id: number
+      id: string
       name: string
       email: string
     }
     directed_by: {
-      id: number
+      id: string
       name: string
       email: string
     } | null
@@ -38,7 +38,7 @@ class AssignmentRealizationService {
    * Réaliser un dossier
    */
   async realizeAssignment(
-    assignmentId: number, 
+    assignmentId: string, 
     payload: RealizeAssignmentPayload
   ): Promise<RealizeAssignmentResponse> {
     const response = await axiosInstance.put<RealizeAssignmentResponse>(
@@ -49,7 +49,7 @@ class AssignmentRealizationService {
   }
 
   async updateRealizeAssignment(
-    assignmentId: number, 
+    assignmentId: string, 
     payload: RealizeAssignmentPayload
   ): Promise<RealizeAssignmentResponse> {
     const response = await axiosInstance.put<RealizeAssignmentResponse>(
@@ -62,7 +62,7 @@ class AssignmentRealizationService {
   /**
    * Récupérer les détails d'un dossier pour la réalisation
    */
-  async getAssignmentDetails(assignmentId: number) {
+    async getAssignmentDetails(assignmentId: string) {
     const response = await axiosInstance.get(
       `${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`
     )

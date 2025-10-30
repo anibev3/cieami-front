@@ -50,7 +50,7 @@ class PaymentService {
   /**
    * Récupérer un paiement par ID
    */
-  async getById(id: number): Promise<Payment> {
+  async getById(id: string): Promise<Payment> {
     const response = await axiosInstance.get<{ data: Payment }>(`${this.baseUrl}/${id}`)
     return response.data.data
   }
@@ -66,7 +66,7 @@ class PaymentService {
   /**
    * Mettre à jour un paiement
    */
-  async update(id: number, data: UpdatePaymentData): Promise<Payment> {
+  async update(id: string, data: UpdatePaymentData): Promise<Payment> {
     const response = await axiosInstance.put<{ data: Payment }>(`${this.baseUrl}/${id}`, data)
     return response.data.data
   }
@@ -74,7 +74,7 @@ class PaymentService {
   /**
    * Supprimer un paiement
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await axiosInstance.delete(`${this.baseUrl}/${id}`)
   }
 

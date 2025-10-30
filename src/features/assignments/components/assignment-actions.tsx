@@ -23,6 +23,8 @@ import { useState } from 'react'
 import { AssignmentPreviewModal } from './assignment-preview-modal'
 import { useNavigate } from '@tanstack/react-router'
 import { useAssignmentsStore } from '@/stores/assignments'
+import { useACL } from '@/hooks/useACL'
+import { UserRole } from '@/types/auth'
 
 interface AssignmentActionsProps {
   assignment: Assignment
@@ -40,6 +42,9 @@ export function AssignmentActions({
   const navigate = useNavigate()
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
   const { generateReport, loading } = useAssignmentsStore()
+  const { hasAnyRole } = useACL()
+  const isRepairerReadOnly = hasAnyRole([UserRole.REPAIRER_ADMIN, UserRole.REPAIRER_STANDARD_USER])
+  const isInsurerLimited = hasAnyRole([UserRole.INSURER_ADMIN, UserRole.INSURER_STANDARD_USER])
   
   // Fonction pour déterminer les actions disponibles selon le statut
   const getAvailableActions = (statusCode: string, assignment: Assignment) => {
@@ -291,7 +296,41 @@ export function AssignmentActions({
     ]
   }
 
-  const availableActions = getAvailableActions(assignment.status.code, assignment)
+  const availableActions = isRepairerReadOnly
+    ? [
+        {
+          key: 'view-detail',
+          label: 'Voir le détail',
+          icon: ExternalLink,
+          onClick: () => onViewDetail(assignment.id),
+          show: true,
+          destructive: false,
+        },
+      ]
+    : isInsurerLimited
+    ? [
+        {
+          key: 'view-detail',
+          label: 'Voir le détail',
+          icon: ExternalLink,
+          onClick: () => onViewDetail(assignment.id),
+          show: true,
+          destructive: false,
+        },
+        ...(assignment.status.code === 'opened'
+          ? [
+              {
+                key: 'edit',
+                label: 'Modifier',
+                icon: Edit,
+                onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+                show: true,
+                destructive: false,
+              },
+            ]
+          : []),
+      ]
+    : getAvailableActions(assignment.status.code, assignment)
 
   return (
     <>

@@ -1,5 +1,5 @@
 export interface Assignment {
-  id: number
+  id: string
   reference: string
   policy_number: string
   claim_number: string
@@ -8,8 +8,8 @@ export interface Assignment {
   expertise_date: string
   expertise_place: string | null
   received_at: string
-  insurer_id: number
-  repairer_id: number
+  insurer_id: string
+  repairer_id: string
   administrator: string | null
   circumstance: string
   damage_declared: string
@@ -19,13 +19,13 @@ export interface Assignment {
   seen_during_work_date: string | null
   seen_after_work_date: string | null
   contact_date: string | null
-  assured_value: number | null
+  assured_value: string | null
   salvage_value: number | null
-  new_value: number | null
+  new_value: string | null
   // Nouvelles propriétés de l'API
   new_market_value?: string | null
   depreciation_rate: number | null
-  market_value: number | null
+  market_value: string | null
   work_duration: number | null
   expert_remark: string | null
   shock_amount_excluding_tax: string | null

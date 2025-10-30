@@ -28,7 +28,7 @@ export default function ClientDetailsPage() {
 
   useEffect(() => {
     if (id) {
-      fetchClient(parseInt(id))
+      fetchClient(id)
     }
   }, [id, fetchClient])
 

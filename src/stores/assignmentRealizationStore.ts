@@ -10,9 +10,9 @@ interface AssignmentRealizationState {
   assignment: any | null
 
   // Actions
-  fetchAssignmentDetails: (assignmentId: number) => Promise<void>
-  realizeAssignment: (assignmentId: number, payload: RealizeAssignmentPayload, isEdit?: boolean) => Promise<void>
-  updateRealizeAssignment: (assignmentId: number, payload: RealizeAssignmentPayload, isEdit?: boolean) => Promise<void>
+  fetchAssignmentDetails: (assignmentId: string) => Promise<void>
+  realizeAssignment: (assignmentId: string, payload: RealizeAssignmentPayload, isEdit?: boolean) => Promise<void>
+  updateRealizeAssignment: (assignmentId: string, payload: RealizeAssignmentPayload, isEdit?: boolean) => Promise<void>
   clearError: () => void
   setAssignment: (assignment: any) => void
 }
@@ -49,7 +49,7 @@ export const useAssignmentRealizationStore = create<AssignmentRealizationState>(
   assignment: null,
 
   // Actions
-  fetchAssignmentDetails: async (assignmentId: number) => {
+  fetchAssignmentDetails: async (assignmentId: string) => {
     try {
       set({ loading: true, error: null })
       const response = await assignmentRealizationService.getAssignmentDetails(assignmentId)
@@ -63,7 +63,7 @@ export const useAssignmentRealizationStore = create<AssignmentRealizationState>(
     }
   },
 
-  realizeAssignment: async (assignmentId: number, payload: RealizeAssignmentPayload, isEdit = false) => {
+  realizeAssignment: async (assignmentId: string, payload: RealizeAssignmentPayload, isEdit = false) => {
     try {
       set({ loading: true, error: null })
       
@@ -96,7 +96,7 @@ export const useAssignmentRealizationStore = create<AssignmentRealizationState>(
   },
 
 
-  updateRealizeAssignment: async (assignmentId: number, payload: RealizeAssignmentPayload, isEdit = false) => {
+  updateRealizeAssignment: async (assignmentId: string, payload: RealizeAssignmentPayload, isEdit = false) => {
     try {
       set({ loading: true, error: null })
       

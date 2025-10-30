@@ -65,14 +65,22 @@ class ACLService {
       [UserRole.SYSTEM_ADMIN]: 'Administrateur système',
       [UserRole.ADMIN]: 'Administrateur plateforme',
       [UserRole.CEO]: 'Directeur général',
+      [UserRole.EXPERT_ADMIN]: 'Administrateur expert',
       [UserRole.EXPERT_MANAGER]: 'Responsable expert',
       [UserRole.EXPERT]: 'Expert',
       [UserRole.OPENER]: 'Ouvreur',
+      [UserRole.EDITOR_MANAGER]: 'Responsable édition',
       [UserRole.EDITOR]: 'Éditeur',
       [UserRole.VALIDATOR]: 'Validateur',
+      [UserRole.ACCOUNTANT_MANAGER]: 'Responsable comptable',
       [UserRole.ACCOUNTANT]: 'Comptable',
+      [UserRole.BUSINESS_DEVELOPER]: 'Développeur business',
       [UserRole.INSURER_ADMIN]: 'Administrateur assureur',
-      [UserRole.REPAIRER_ADMIN]: 'Administrateur réparateur'
+      [UserRole.INSURER_STANDARD_USER]: 'Utilisateur assureur',
+      [UserRole.REPAIRER_ADMIN]: 'Administrateur réparateur',
+      [UserRole.REPAIRER_STANDARD_USER]: 'Utilisateur réparateur',
+      [UserRole.CLIENT]: 'Client',
+      [UserRole.UNASSIGNED]: 'Non assigné'
     }
     return roleLabels[role] || role
   }

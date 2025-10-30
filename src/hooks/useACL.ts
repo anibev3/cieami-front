@@ -92,6 +92,7 @@ export const useACL = () => {
       UserRole.ADMIN
     ]),
     
+    // Les rôles en lecture seule (ex: pas de création de dossier)
     isReadOnlyRole: () => aclStore.hasAnyRole([
       UserRole.INSURER_ADMIN,
       UserRole.REPAIRER_ADMIN

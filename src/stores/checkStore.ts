@@ -20,10 +20,10 @@ interface CheckState {
   
   // Actions
   fetchChecks: (filters?: CheckFilters) => Promise<void>
-  fetchCheckById: (id: number) => Promise<Check>
+  fetchCheckById: (id: string) => Promise<Check | null>
   createCheck: (data: CreateCheckData) => Promise<string>
-  updateCheck: (id: number, data: UpdateCheckData) => Promise<string>
-  deleteCheck: (id: number) => Promise<void>
+  updateCheck: (id: string, data: UpdateCheckData) => Promise<string>
+  deleteCheck: (id: string) => Promise<void>
   setSelectedCheck: (check: Check | null) => void
   clearError: () => void
 }
@@ -62,7 +62,7 @@ export const useCheckStore = create<CheckState>((set) => ({
     }
   },
 
-  fetchCheckById: async (id: number) => {
+  fetchCheckById: async (id: string) => {
     try {
       set({ loading: true, error: null })
       const check = await checkService.getById(id)
@@ -110,7 +110,7 @@ export const useCheckStore = create<CheckState>((set) => ({
     }
   },
 
-  deleteCheck: async (id: number) => {
+  deleteCheck: async (id: string) => {
     try {
       set({ loading: true })
       await checkService.delete(id)

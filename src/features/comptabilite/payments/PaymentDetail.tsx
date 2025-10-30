@@ -45,7 +45,7 @@ export default function PaymentDetail() {
 
   useEffect(() => {
     if (id) {
-      fetchPaymentById(parseInt(id))
+      fetchPaymentById(id)
     }
   }, [id, fetchPaymentById])
 

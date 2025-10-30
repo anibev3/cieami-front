@@ -187,7 +187,7 @@ export interface FormattedShockData {
   with_tax: boolean
 }
 
-export function useEditAssignment(assignmentId: number) {
+export function useEditAssignment(assignmentId: string) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [assignment, setAssignment] = useState<Assignment | null>(null)

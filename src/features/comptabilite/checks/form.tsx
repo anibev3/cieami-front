@@ -62,7 +62,7 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
       const loadCheck = async () => {
         try {
           setInitialLoading(true)
-          const checkData = await fetchCheckById(parseInt(id))
+          const checkData = await fetchCheckById(id)
           setCheck(checkData)
           setFormData({
             payment_id: checkData.payment?.id?.toString() || '',
@@ -152,7 +152,7 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
           ...formData,
           photo: selectedFile || undefined
         }
-        const message = await updateCheck(parseInt(id), updateData)
+        const message = await updateCheck(id, updateData)
         toast.success(message)
       } else {
         // Mode création

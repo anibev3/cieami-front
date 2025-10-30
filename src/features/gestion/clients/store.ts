@@ -18,10 +18,10 @@ interface ClientsState {
   }
   filters: ClientFilters
   fetchClients: (filters?: ClientFilters, token?: string) => Promise<void>
-  fetchClient: (id: number, token?: string) => Promise<void>
+  fetchClient: (id: string, token?: string) => Promise<void>
   createClient: (client: Partial<Client>, token?: string) => Promise<void>
-  updateClient: (id: number, client: Partial<Client>, token?: string) => Promise<void>
-  deleteClient: (id: number, token?: string) => Promise<void>
+  updateClient: (id: string, client: Partial<Client>, token?: string) => Promise<void>
+  deleteClient: (id: string, token?: string) => Promise<void>
   setSelectedClient: (client: Client | null) => void
   setFilters: (filters: ClientFilters) => void
 }
