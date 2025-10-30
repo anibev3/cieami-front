@@ -11,15 +11,15 @@ import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 
 interface ShockPoint {
-  id: number
+  id: string
   code: string
   label: string
   description?: string
 }
 
 interface ShockPointSelectProps {
-  value: number
-  onValueChange: (value: number) => void
+  value: string
+  onValueChange: (value: string) => void
   shockPoints?: ShockPoint[] // Optionnel maintenant car on charge depuis l'API
   placeholder?: string
   className?: string
@@ -100,12 +100,14 @@ export function ShockPointSelect({
 
   // Charger le point de choc sélectionné
   useEffect(() => {
-    const loadSelectedShockPoint = async () => {
-      if (value > 0) {
+  const loadSelectedShockPoint = async () => {
+      if (value && String(value).length > 0) {
         try {
           const response = await axiosInstance.get(`${searchEndpoint}/${value}`)
           if (response.status === 200) {
-            setSelectedShockPoint(response.data.data || response.data)
+            const data = response.data.data || response.data
+            // Normaliser l'id en string
+            setSelectedShockPoint({ ...data, id: String(data.id) })
           }
         } catch (error) {
           console.error('Erreur lors du chargement du point de choc sélectionné:', error)
@@ -122,10 +124,12 @@ export function ShockPointSelect({
   // Utiliser les résultats de recherche ou les points de choc fournis
   const availableShockPoints = searchResults.length > 0 ? searchResults : shockPoints
   const validShockPoints = Array.isArray(availableShockPoints) 
-    ? availableShockPoints.filter(point => point != null && typeof point === 'object' && 'id' in point && 'label' in point && 'code' in point)
+    ? availableShockPoints
+        .map((p: any) => ({ ...p, id: String(p.id) }))
+        .filter(point => point != null && typeof point === 'object' && 'id' in point && 'label' in point && 'code' in point)
     : []
   
-  const hasValue = value > 0 && selectedShockPoint != null
+  const hasValue = Boolean(value) && selectedShockPoint != null
 
   return (
     <div className="space-y-3">
@@ -212,7 +216,7 @@ export function ShockPointSelect({
                         key={point.id}
                         value={`${point.label || ''} ${point.code || ''} ${point.description || ''}`}
                         onSelect={() => {
-                          onValueChange(point.id)
+                          onValueChange(String(point.id))
                           setOpen(false)
                         }}
                         className="py-3"
@@ -229,7 +233,7 @@ export function ShockPointSelect({
                             <Badge variant="secondary" className="text-xs">
                               #{point.code || 'N/A'}
                             </Badge>
-                            {value === point.id && (
+                            {String(value) === String(point.id) && (
                               <Check className="h-4 w-4 text-blue-600" />
                             )}
                           </div>

@@ -11,23 +11,23 @@ import { MapPin, Plus } from 'lucide-react'
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 
 interface ShockPoint {
-  id: number
+  id: string
   code: string
   label: string
   description?: string
 }
 
 interface Shock {
-  id?: number
-  shock_point_id: number
+  id?: string | number
+  shock_point_id: string
   [key: string]: any
 }
 
 interface ShockPointCreateModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  selectedShockPointId: number
-  onSelectedShockPointIdChange: (id: number) => void
+  selectedShockPointId: string
+  onSelectedShockPointIdChange: (id: string) => void
   shockPoints: ShockPoint[]
   shocks: Shock[]
   onCreateShockPoint: () => void
@@ -46,7 +46,7 @@ export function ShockPointCreateModal({
 }: ShockPointCreateModalProps) {
   const handleClose = () => {
     onOpenChange(false)
-    onSelectedShockPointIdChange(0)
+    onSelectedShockPointIdChange('')
   }
 
   const handleAdd = () => {
@@ -56,7 +56,7 @@ export function ShockPointCreateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-1/3">
+          <DialogContent className="w-1/3">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <MapPin className="h-6 w-6 text-blue-600" />

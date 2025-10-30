@@ -90,7 +90,7 @@ class AssignmentService {
   /**
    * Récupérer une assignation par son ID
    */
-  async getAssignment(id: number): Promise<Assignment> {
+  async getAssignment(id: number | string): Promise<Assignment> {
     const response = await axiosInstance.get<Assignment>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}`)
     return response.data
   }
@@ -161,7 +161,7 @@ class AssignmentService {
   /**
    * Réorganiser l'ordre des chocs d'une assignation
    */
-  async reorderShocks(assignmentId: number, shockIds: number[]): Promise<{ message: string }> {
+  async reorderShocks(assignmentId: number | string, shockIds: number[]): Promise<{ message: string }> {
     const response = await axiosInstance.put<{ message: string }>(
       `${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}/order-shocks`,
       { shocks: shockIds }

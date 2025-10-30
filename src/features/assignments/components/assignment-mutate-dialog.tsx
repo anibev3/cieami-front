@@ -231,7 +231,7 @@ export function AssignmentMutateDialog({ id, open, onOpenChange }: AssignmentMut
                 name="assignment_type_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type d'assignation</FormLabel>
+                    <FormLabel>Type de mission</FormLabel>
                     <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
                       <FormControl>
                         <SelectTrigger>

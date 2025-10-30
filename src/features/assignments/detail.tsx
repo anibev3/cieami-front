@@ -1230,7 +1230,7 @@ export default function AssignmentDetailPage() {
                             <Badge variant="secondary" className="text-xs">{assignment.expertise_type?.label || 'Non renseigné'}</Badge>
                           </div>
                           <div>
-                            <p className="text-xs font-medium text-muted-foreground">Type d'assignation</p>
+                            <p className="text-xs font-medium text-muted-foreground">Type de mission</p>
                             <Badge variant="secondary" className="text-xs">{assignment.assignment_type?.label || 'Non renseigné'}</Badge>
                           </div>
                         </div>
@@ -2569,6 +2569,11 @@ export default function AssignmentDetailPage() {
               <Badge className={getStatusColor(assignment.status.code)}>
                 {assignment.status.label}
               </Badge>
+              
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}>
+                <FileDown className="h-3 w-3 mr-2" />
+                Voir la fiche d'expertise
+              </Button>
               
               {/* Actions basées sur le statut */}
               <div className="flex flex-wrap gap-2">

@@ -60,7 +60,7 @@ class AssignmentTypeService {
   }
 
   /**
-   * Récupérer un type d'assignation par son ID
+   * Récupérer un Type de mission par son ID
    */
   async getAssignmentType(id: number): Promise<AssignmentType> {
     const response = await axiosInstance.get<{status: number, message: string | null, data: AssignmentType}>(`${API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES}/${id}`)
@@ -68,7 +68,7 @@ class AssignmentTypeService {
   }
 
   /**
-   * Créer un nouveau type d'assignation
+   * Créer un nouveau Type de mission
    */
   async createAssignmentType(assignmentTypeData: CreateAssignmentTypeData): Promise<AssignmentType> {
     const response = await axiosInstance.post<{status: number, message: string | null, data: AssignmentType}>(API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES, assignmentTypeData)
@@ -76,7 +76,7 @@ class AssignmentTypeService {
   }
 
   /**
-   * Mettre à jour un type d'assignation
+   * Mettre à jour un Type de mission
    */
   async updateAssignmentType(id: number, assignmentTypeData: UpdateAssignmentTypeData): Promise<AssignmentType> {
     const response = await axiosInstance.put<{status: number, message: string | null, data: AssignmentType}>(`${API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES}/${id}`, assignmentTypeData)
@@ -84,7 +84,7 @@ class AssignmentTypeService {
   }
 
   /**
-   * Supprimer un type d'assignation
+   * Supprimer un Type de mission
    */
   async deleteAssignmentType(id: number): Promise<void> {
     await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.ASSIGNMENT_TYPES}/${id}`)

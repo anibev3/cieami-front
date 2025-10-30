@@ -114,12 +114,12 @@ export function ViewAssignmentDialog({ assignment, open, onOpenChange }: ViewAss
               </CardContent>
             </Card>
 
-            {/* Type d'assignation */}
+            {/* Type de mission */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <FileText className="h-4 w-4" />
-                  Type d'assignation
+                  Type de mission
                 </CardTitle>
               </CardHeader>
               <CardContent>

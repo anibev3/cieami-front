@@ -221,6 +221,7 @@ export default function RealizeAssignmentPage() {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={handleCancel}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -229,14 +230,18 @@ export default function RealizeAssignmentPage() {
               {isEditRealization ? 'Modifier la réalisation' : 'Réaliser le dossier'}
             </h2>
             <p className="text-muted-foreground">
-              Référence: {assignment.reference} | Statut: {assignment.status.label}
-              {isEditRealization && (
-                <span className="ml-2 text-blue-600">
-                  • Réalisé le {new Date(assignment.realized_at!).toLocaleDateString('fr-FR')} par {assignment.realized_by?.name} 
-                  {assignment.directed_by && ` (Expert: ${assignment.directed_by.name})`}
-                </span>
+                  Référence: {assignment.reference} | Statut: {assignment.status.label}
+                  {isEditRealization && (
+                    <>
+                      <br />
+                      <span className=" text-blue-600">
+                        • Réalisé le {new Date(assignment.realized_at!).toLocaleDateString('fr-FR')} par {assignment.realized_by?.name} 
+                        {assignment.directed_by && ` (Expert: ${assignment.directed_by.name})`}
+                      </span>
+                    </>
               )}
             </p>
+          </div>
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/edit/${assignment.id}` })}>
             Modifier le dossier
