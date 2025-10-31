@@ -12,7 +12,10 @@ export enum AssignmentStatusEnum {
   CANCELLED = 'cancelled',
   DELETED = 'deleted',
   ARCHIVED = 'archived',
-  DRAFT = 'draft'
+  DRAFT = 'draft',
+  PENDING_FOR_REPAIRER_INVOICE = 'pending_for_repairer_invoice',
+  PENDING_FOR_REPAIRER_INVOICE_VALIDATION = 'pending_for_repairer_invoice_validation',
+  IN_EDITING = 'in_editing',
 }
 
 // Rôles des utilisateurs

@@ -31,7 +31,7 @@ interface ShockPointCreateModalProps {
   shockPoints: ShockPoint[]
   shocks: Shock[]
   onCreateShockPoint: () => void
-  onAddShock: (shockPointId: number) => void
+  onAddShock: (shockPointId: string) => void
 }
 
 export function ShockPointCreateModal({

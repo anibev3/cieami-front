@@ -38,14 +38,23 @@ export const useACL = () => {
     // Utilitaires
     isSystemAdmin: () => aclStore.hasRole(UserRole.SYSTEM_ADMIN),
     isAdmin: () => aclStore.hasRole(UserRole.ADMIN),
+    isExpertAdmin: () => aclStore.hasRole(UserRole.EXPERT_ADMIN),
     isExpert: () => aclStore.hasRole(UserRole.EXPERT),
     isExpertManager: () => aclStore.hasRole(UserRole.EXPERT_MANAGER),
+    isEditorManager: () => aclStore.hasRole(UserRole.EDITOR_MANAGER),
     isAccountant: () => aclStore.hasRole(UserRole.ACCOUNTANT),
+    isAccountantManager: () => aclStore.hasRole(UserRole.ACCOUNTANT_MANAGER),
     isValidator: () => aclStore.hasRole(UserRole.VALIDATOR),
     isEditor: () => aclStore.hasRole(UserRole.EDITOR),
     isOpener: () => aclStore.hasRole(UserRole.OPENER),
-    isAccountantManager: () => aclStore.hasRole(UserRole.ACCOUNTANT_MANAGER),
     isCEO: () => aclStore.hasRole(UserRole.CEO),
+    isBusinessDeveloper: () => aclStore.hasRole(UserRole.BUSINESS_DEVELOPER),
+    isInsurerAdmin: () => aclStore.hasRole(UserRole.INSURER_ADMIN),
+    isInsurerStandardUser: () => aclStore.hasRole(UserRole.INSURER_STANDARD_USER),
+    isRepairerAdmin: () => aclStore.hasRole(UserRole.REPAIRER_ADMIN),
+    isRepairerStandardUser: () => aclStore.hasRole(UserRole.REPAIRER_STANDARD_USER),
+    isClient: () => aclStore.hasRole(UserRole.CLIENT),
+    isUnassigned: () => aclStore.hasRole(UserRole.UNASSIGNED),
     
     // Vérifications de permissions courantes
     canViewUsers: () => aclStore.hasPermission(Permission.VIEW_USER),
@@ -84,7 +93,18 @@ export const useACL = () => {
     
     isExpertRole: () => aclStore.hasAnyRole([
       UserRole.EXPERT,
-      UserRole.EXPERT_MANAGER
+      UserRole.EXPERT_MANAGER,
+      UserRole.EXPERT_ADMIN
+    ]),
+
+    isInsurerRole: () => aclStore.hasAnyRole([
+      UserRole.INSURER_ADMIN,
+      UserRole.INSURER_STANDARD_USER,
+    ]),
+
+    isRepairerRole: () => aclStore.hasAnyRole([
+      UserRole.REPAIRER_ADMIN,
+      UserRole.REPAIRER_STANDARD_USER,
     ]),
     
     isFinancialRole: () => aclStore.hasAnyRole([

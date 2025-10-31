@@ -485,6 +485,12 @@ function getStatusVariant(statusCode: string) {
       return 'default'
     case AssignmentStatusEnum.REALIZED:
       return 'warning'
+    case AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE:
+      return 'secondary'
+    case AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION:
+      return 'outline'
+    case AssignmentStatusEnum.IN_EDITING:
+      return 'primary'
     case AssignmentStatusEnum.EDITED:
       return 'outline'
     case AssignmentStatusEnum.VALIDATED:

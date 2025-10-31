@@ -2191,8 +2191,8 @@ export default function EditReportPage() {
                               <ShockSuppliesEditTable
                                 supplies={supplies.map((supply: any) => ({
                                   id: supply?.id,
-                                  label: supply?.label || '**ND**',
-                                  code: supply?.code || '**ND**',
+                                  label: supply?.label || '',
+                                  code: supply?.code || '',
                                   price: supply?.price || 0
                                 }))}
                                 shockWorks={(shock.shock_works || []).map((work: any) => {

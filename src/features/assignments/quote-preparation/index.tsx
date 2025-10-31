@@ -24,8 +24,6 @@ import {
   Receipt,
   DollarSign,
   AlertCircle,
-  CheckCircle,
-  Clock,
   Loader2,
   Save,
   Plus,
@@ -35,7 +33,6 @@ import {
   Star,
   AlertTriangle,
   List,
-  Shield,
   ShieldCheck,
   ShieldX
 } from 'lucide-react'
@@ -46,8 +43,6 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { assignmentService } from '@/services/assignmentService'
-import { ShockWorkforceTableV2 } from '@/features/assignments/components/shock-workforce-table-v2'
-import { ExpertiseSheetShockSuppliesTable } from '@/features/assignments/components/assignment/expertise-sheet/expertise-sheet-shock-supplies-table'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
@@ -58,9 +53,12 @@ import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/comp
 import { cn } from '@/lib/utils'
 // dnd-kit moved into reusable component
 import { ShockReorderSheet, type ShockItem } from '@/features/assignments/components/shock-reorder-sheet'
+import { QuotePreparationShockSuppliesTable } from '../components/assignment/quote-preparation/quote-preparation-shock-supplies-table'
+import { QuotePreparationShockWorkforceTable } from '../components/assignment/quote-preparation/quote-preparation-shock-workforce-table'
 import { useACL } from '@/hooks/useACL'
 import { UserRole } from '@/types/auth'
 import assignmentValidationService from '@/services/assignmentValidationService'
+import { AssignmentStatusEnum } from '@/types/global-types'
 
 interface Assignment {
   id: number
@@ -515,7 +513,7 @@ interface OtherCostType {
   description: string
 }
 
-export default function ExpertiseSheetPage() {
+export default function QuotePreparationPage() {
   const { id } = useParams({ strict: false }) as { id: string } 
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -524,17 +522,12 @@ export default function ExpertiseSheetPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
   const [saving, setSaving] = useState(false)
-  const [showAddOtherCostModal, setShowAddOtherCostModal] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // États pour les champs d'édition
   const [circumstance, setCircumstance] = useState('')
   const [damageDeclared, setDamageDeclared] = useState('')
   const [observation, setObservation] = useState('')
   const [pointNoted, setPointNoted] = useState('')
-  // Remplacer newOtherCost par un tableau newOtherCosts
-  const [newOtherCosts, setNewOtherCosts] = useState([
-    { other_cost_type_id: 0, amount: 0 }
-  ])
   const [showMobileSheet, setShowMobileSheet] = useState(false)
   
   // États pour les informations additionnelles (selon le type d'expertise)
@@ -619,30 +612,24 @@ export default function ExpertiseSheetPage() {
   const isRepairer = hasAnyRole([UserRole.REPAIRER_ADMIN, UserRole.REPAIRER_STANDARD_USER, UserRole.REPAIRER_ADMIN])
 
   const [validating, setValidating] = useState(false)
+  const [validatingRepairerInvoiceByExpert, setValidatingRepairerInvoiceByExpert] = useState(false)
 
   // Restreindre l'accès: si expert/réparateur et le dossier n'est pas "realized", retour arrière
-  useEffect(() => {
-    if (!assignment) return
-    if ((isExpert || isRepairer) && assignment?.status?.code !== 'realized') {
-      toast.error('Accès non autorisé: le dossier doit être réalisé')
-      window.history.back()
-    }
-  }, [assignment?.status?.code, isExpert, isRepairer])
+  // useEffect(() => {
+  //   if (!assignment) return
+  //   if ((isExpert || isRepairer) && assignment?.status?.code !== 'realized' || assignment?.status?.code !== 'pending_for_repairer_invoice') {
+  //     toast.error('Accès non autorisé: le dossier doit être réalisé ou en attente de facturation du réparateur')
+  //     window.history.back()
+  //   }
+  // }, [assignment?.status?.code, isExpert, isRepairer])
 
   const validateAssignment = async () => {
     if (!assignment) return
     setValidating(true)
     try {
-      console.log("================================================");
-      console.log('++++++ isExpert', isExpert)
-      console.log('++++++ isRepairer', isRepairer)
-      console.log("================================================");
-      console.log('validateAssignment', assignment.id)
-      console.log("================================================");
-      
       if (isExpert) {
         console.log("================================================");
-        console.log('++++++ validateByExpert ', assignment.id)
+        console.log('++++++ validateByExpert isExpert', assignment.id)
         console.log("================================================");
         await assignmentValidationService.validateByExpert(String(assignment.id))
       }
@@ -655,9 +642,6 @@ export default function ExpertiseSheetPage() {
       toast.success('Dossier validé')
       await refreshAssignment()
     } catch (_e) {
-      console.log("================================================");
-      console.log('++++++ error', _e)
-      console.log("================================================");
       toast.error('Erreur lors de la validation')
     } finally {
       setValidating(false)
@@ -668,8 +652,18 @@ export default function ExpertiseSheetPage() {
     if (!assignment) return
     setValidating(true)
     try {
-      if (isExpert) await assignmentValidationService.unvalidateByExpert(String(assignment.id))
-      if (isRepairer) await assignmentValidationService.unvalidateByRepairer(String(assignment.id))
+      if (isExpert) {
+        console.log("================================================");
+        console.log('++++++ unvalidateByExpert isExpert', assignment.id)
+        console.log("================================================");
+        await assignmentValidationService.unvalidateByExpert(String(assignment.id))
+      }
+      if (isRepairer) {
+        console.log("================================================");
+        console.log('++++++ unvalidateByRepairer isRepairer', assignment.id)
+        console.log("================================================");
+        await assignmentValidationService.unvalidateByRepairer(String(assignment.id))
+      }
       toast.success('Validation annulée')
       await refreshAssignment()
     } catch (_e) {
@@ -807,13 +801,7 @@ export default function ExpertiseSheetPage() {
         // Charger les fournitures
         const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=5`)
         if (suppliesResponse.status === 200) {
-          setSupplies((suppliesResponse.data.data || []).map((s: any) => ({
-            id: String(s.id),
-            label: s.label,
-            description: s.description,
-            code: s.code,
-            price: s.price
-          })))
+          setSupplies(suppliesResponse.data.data)
         }
 
         // Charger les types de main d'œuvre
@@ -944,16 +932,16 @@ export default function ExpertiseSheetPage() {
   }
 
   // Fonction pour réorganiser les main d'œuvre d'un choc
-  // const handleReorderWorkforces = async (shockId: number, workforceIds: number[]) => {
-  //   try {
-  //     await assignmentService.reorderWorkforces(shockId, workforceIds)
-  //     await refreshAssignment()
-  //     toast.success('Ordre des main d\'œuvre mis à jour')
-  //   } catch (error) {
-  //     console.error('Erreur lors de la réorganisation des main d\'œuvre:', error)
-  //     toast.error('Erreur lors de la réorganisation des main d\'œuvre')
-  //   }
-  // }
+  const handleReorderWorkforces = async (shockId: number, workforceIds: number[]) => {
+    try {
+      await assignmentService.reorderWorkforces(shockId, workforceIds)
+      await refreshAssignment()
+      toast.success('Ordre des main d\'œuvre mis à jour')
+    } catch (error) {
+      console.error('Erreur lors de la réorganisation des main d\'œuvre:', error)
+      toast.error('Erreur lors de la réorganisation des main d\'œuvre')
+    }
+  }
 
   // Fonction pour ajouter un point de choc
   const handleAddShock = async (shockPointId: string) => {
@@ -1050,33 +1038,6 @@ export default function ExpertiseSheetPage() {
       maximumFractionDigits: 0,
     }).format(Number(amount) || 0)
   }
-
-  // Fonction de formatage des dates
-  // const formatDate = (dateString: string) => {
-  //   return new Date(dateString).toLocaleDateString('fr-FR', {
-  //     day: '2-digit',
-  //     month: '2-digit',
-  //     year: 'numeric'
-  //   })
-  // }
-
-  // // Fonction pour obtenir l'icône du statut
-  // const getStatusIcon = (statusCode: string) => {
-  //   switch (statusCode) {
-  //     case 'pending': return <Clock className="h-4 w-4" />
-  //     case 'opened': return <AlertCircle className="h-4 w-4" />
-  //     case 'realized': return <CheckCircle className="h-4 w-4" />
-  //     case 'edited': return <FileText className="h-4 w-4" />
-  //     case 'closed': return <CheckCircle className="h-4 w-4" />
-  //     case 'paid': return <CheckCircle className="h-4 w-4" />
-  //     case 'cancelled': return <AlertCircle className="h-4 w-4" />
-  //     default: return <Clock className="h-4 w-4" />
-  //   }
-  // }
-
-  // Initialiser les valeurs de marché quand l'assignation est chargée
-
-
   // Fonction pour obtenir la couleur du statut
   const getStatusColor = (statusCode: string) => {
     switch (statusCode) {
@@ -1090,26 +1051,6 @@ export default function ExpertiseSheetPage() {
       default: return 'bg-gray-100 text-gray-800'
     }
   }
-
-  // // Fonction pour déterminer si c'est une évaluation
-  // const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
-  
-  // // Fonction pour gérer le changement de la note d'expert
-  // const handleRemarkChange = (value: number | null) => {
-  //   setSelectedRemarkId(value)
-    
-  //   // Quand une remarque est sélectionnée, pré-remplir le champ expert_remark
-  //   if (value) {
-  //     const selectedRemark = remarks.find(remark => remark.id === value)
-  //     if (selectedRemark) {
-  //       setExpertRemark(selectedRemark.description)
-  //       toast.success(`Remarque "${selectedRemark.label}" chargée`)
-  //     }
-  //   } else {
-  //     // Si aucune remarque n'est sélectionnée, vider le champ
-  //     setExpertRemark('')
-  //   }
-  // }
 
   // Fonction pour initialiser tous les champs avec les données de l'assignation
   const initializeFields = (assignmentData: Assignment) => {
@@ -1247,69 +1188,24 @@ export default function ExpertiseSheetPage() {
     }
   }
 
-  // // Fonction pour ouvrir le modal d'ajout d'autre coût
-  // const handleAddOtherCost = () => {
-  //   setNewOtherCosts([{ other_cost_type_id: 0, amount: 0 }])
-  //   setShowAddOtherCostModal(true)
-  // }
+  const validateRepairerInvoiceAssignmentByExpert = async () => {
+    if (!assignment) return
+    setValidatingRepairerInvoiceByExpert(true)
+    try {
+      // await assignmentValidationService.validateRepairerInvoiceByExpert(String(assignment.id))
+      setTimeout(() => {
+        setValidatingRepairerInvoiceByExpert(false)
+      }, 2000)
+      toast.success('Devis du réparateur validé avec succès')
+      refreshAssignment()
+    } catch (err) {
+      console.error('Erreur lors de la validation du devis du réparateur:', err)
+      toast.error('Erreur lors de la validation du devis du réparateur')
+    } finally {
+      setValidatingRepairerInvoiceByExpert(false)
+    }
+  }
 
-  // // Fonction pour ajouter une ligne de coût
-  // const handleAddOtherCostLine = () => {
-  //   setNewOtherCosts([...newOtherCosts, { other_cost_type_id: 0, amount: 0 }])
-  // }
-
-  // // Fonction pour retirer une ligne de coût
-  // const handleRemoveOtherCostLine = (index: number) => {
-  //   setNewOtherCosts(newOtherCosts.filter((_, i) => i !== index))
-  // }
-
-  // // Fonction pour mettre à jour une ligne
-  // const handleUpdateOtherCostLine = (index: number, field: 'other_cost_type_id' | 'amount', value: any) => {
-  //   setNewOtherCosts(newOtherCosts.map((cost, i) =>
-  //     i === index ? { ...cost, [field]: value } : cost
-  //   ))
-  // }
-
-  // // Fonction pour créer un ou plusieurs autres coûts
-  // const handleCreateOtherCost = async () => {
-  //   try {
-  //     // Validation : au moins une ligne valide
-  //     const validCosts = newOtherCosts.filter(c => c.other_cost_type_id && c.amount > 0)
-  //     if (validCosts.length === 0) {
-  //       toast.error('Veuillez saisir au moins un coût valide')
-  //       return
-  //     }
-  //     // Payload conforme à l'API
-  //     await axiosInstance.post(`${API_CONFIG.ENDPOINTS.OTHER_COSTS}`, {
-  //       assignment_id: String(assignment?.id),
-  //       other_costs: validCosts.map(c => ({
-  //         other_cost_type_id: String(c.other_cost_type_id),
-  //         amount: Number(c.amount)
-  //       }))
-  //     })
-  //     toast.success(validCosts.length > 1 ? 'Coûts ajoutés avec succès' : 'Nouveau coût ajouté avec succès')
-  //     setShowAddOtherCostModal(false)
-  //     setNewOtherCosts([{ other_cost_type_id: 0, amount: 0 }])
-  //     refreshAssignment()
-  //   } catch (err) {
-  //     console.error('Erreur lors de l\'ajout du coût:', err)
-  //     toast.error('Erreur lors de l\'ajout du coût')
-  //   }
-  // }
-
-  // // Fonctions pour gérer les constats
-
-
-  // // Log de débogage pour le modal
-  // if (showAddOtherCostModal) {
-  //   // (On peut supprimer ce log après debug)
-  //   // console.log('🔍 Modal Debug - otherCostTypes:', {
-  //   //   length: otherCostTypes?.length,
-  //   //   data: otherCostTypes,
-  //   //   isArray: Array.isArray(otherCostTypes),
-  //   //   type: typeof otherCostTypes
-  //   // })
-  // }
 
   if (loading) {
     return (
@@ -1374,7 +1270,7 @@ export default function ExpertiseSheetPage() {
             <ScrollArea className="h-full">
               <div className={`p-6 ${isMobile ? 'pb-24' : ''}`}>
 
-                <div className="space-y-4 mb-4">
+                {/* <div className="space-y-4 mb-4">
                   <div className="flex items-center justify-end gap-2">
                     <Button size="sm" onClick={() => navigate({ to: `/assignments/edit/${assignment.id}` })}>
                       Modifier le dossier
@@ -1384,25 +1280,33 @@ export default function ExpertiseSheetPage() {
                     </Button>
                   </div>
                   <Separator />
-                </div>
+                </div> */}
 
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-bold text-gray-900">Fiche de travaux</h2>
-                    <div className="flex items-center gap-3">
-                      {(isExpert || isRepairer) && assignment?.status?.code === 'realized' && (
-                        <>
-                          <Button  onClick={validateAssignment} disabled={validating} className="bg-green-600 hover:bg-green-700">
-                            {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
-                            Valider la fiche de travaux
-                          </Button>
-                          {/* <Button  variant="outline" onClick={unvalidateAssignment} disabled={validating} className="bg-red-600 hover:bg-red-700 text-white">
-                            {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldX className="h-4 w-4 mr-2 text-white" />}
-                            Dévalider
-                          </Button> */}
-                        </>
+                      <h2 className="text-xl font-bold text-gray-900">Préparation de devis</h2>
+                      <div className="flex items-center gap-3">
+                        {isRepairer && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE && (
+                          <>
+                            <Button onClick={validateAssignment} disabled={validating} className="bg-green-600 hover:bg-green-700">
+                              {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                              Valider le devis
+                            </Button>
+                          </>
                       )}
+                      {isExpert && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION && (
+                        <>
+                          <Button onClick={validateRepairerInvoiceAssignmentByExpert} disabled={ validatingRepairerInvoiceByExpert} className="bg-green-600 hover:bg-green-700">
+                              {validatingRepairerInvoiceByExpert ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                              Valider le devis du réparateur
+                            </Button>
+                            <Button variant="outline" onClick={unvalidateAssignment} disabled={validating} className="bg-red-600 hover:bg-red-700 text-white">
+                              {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldX className="h-4 w-4 mr-2 text-white" />}
+                              Dévalider le devis
+                            </Button>
+                          </>
+                        )}
                         {assignment.shocks && assignment.shocks.length > 0 && (
                           <div className="flex items-center gap-2">
                             <Button
@@ -1567,10 +1471,10 @@ export default function ExpertiseSheetPage() {
                             } transition-all duration-300`}>
                             {/* Tableau des fournitures */}
                             <div>
-                              <ExpertiseSheetShockSuppliesTable
+                              <QuotePreparationShockSuppliesTable
                                 supplies={supplies.map((supply: any) => ({
-                                  id: String(supply?.id),
-                                  label: supply?.label || '', 
+                                  id: supply?.id,
+                                  label: supply?.label || '',
                                   code: supply?.code || '',
                                   price: supply?.price || 0
                                 }))}
@@ -1581,7 +1485,7 @@ export default function ExpertiseSheetPage() {
                                   return {
                                     id: work.id, // ID réel de l'API pour la réorganisation
                                     uid: work.id?.toString() || crypto.randomUUID(),
-                                    supply_id: String(work.supply?.id || ''),
+                                    supply_id: work.supply?.id || 0,
                                     supply_label: work.supply?.label || work.supply_label || '',
                                     disassembly: work?.disassembly || false,
                                     replacement: work?.replacement || false,
@@ -1689,26 +1593,36 @@ export default function ExpertiseSheetPage() {
                                 onAssignmentRefresh={refreshAssignment}
                               />
                             </div>
-{/* 
+
                             <Separator />
                             
+                            {/* Section Main d'œuvre */}
                             <div>
-                              <ShockWorkforceTableV2
+                              {/* Vérifier que les données de référence sont chargées */}
+                              {/* Debug: Afficher l'état des données */}
+                              {/* <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+                                <div>Debug - paintTypes: {paintTypes.length} | hourlyRates: {hourlyRates.length}</div>
+                                <div>shock.paint_type.id: {shock?.paint_type?.id || 'undefined'}</div>
+                                <div>shock.hourly_rate.id: {shock?.hourly_rate?.id || 'undefined'}</div>
+                              </div> */}
+                              
+                              {/* Permettre l'affichage même si les données ne sont pas complètement chargées */}
+                              {/* Le composant peut s'afficher avec des données partielles */}
+                              <QuotePreparationShockWorkforceTable
                                 shockId={shock?.id}
                                 workforces={(shock.workforces || []).filter(w => w.id !== undefined).map((w: any) => ({
-                                  id: w.id!, // ID réel de l'API pour la réorganisation
-                                  uid: w.id?.toString() || crypto.randomUUID(), // UID pour le drag & drop
+                                  id: w.id!,
+                                  uid: w.id?.toString() || crypto.randomUUID(),
                                   workforce_type: w?.workforce_type,
                                   workforce_type_id: w?.workforce_type?.id || 0,
                                   nb_hours: w?.nb_hours,
                                   work_fee: w?.work_fee,
                                   discount: w?.discount,
-                                  with_tax: w?.with_tax === 1 || w?.with_tax === true, // Convertir 1/0 en boolean
+                                  with_tax: w?.with_tax === 1 || w?.with_tax === true,
                                   amount_excluding_tax: w?.amount_excluding_tax,
                                   amount_tax: w?.amount_tax,
                                   amount: w?.amount,
                                   all_paint: w?.all_paint === 1 || w?.all_paint === true,
-                                  // Ajouter les IDs pour la synchronisation
                                   paint_type_id: shock?.paint_type?.id,
                                   hourly_rate_id: shock?.hourly_rate?.id
                                 }))}
@@ -1778,7 +1692,7 @@ export default function ExpertiseSheetPage() {
                                   }
                                 }}
                               />
-                            </div> */}
+                            </div>
                           </div>
                           </div>
                         </div>

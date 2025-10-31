@@ -9,15 +9,15 @@ import { useSuppliesStore } from '@/stores/supplies'
 import { useDebounce } from '@/hooks/use-debounce'
 
 interface Supply {
-  id: number
+  id: string
   code?: string
   label: string
   description?: string
 }
 
 interface SupplySelectProps {
-  value: number
-  onValueChange: (value: number) => void
+  value: string
+  onValueChange: (value: string) => void
   supplies: Supply[]
   placeholder?: string
   className?: string
@@ -46,20 +46,26 @@ export function SupplySelect({
 
   // Charger l'élément sélectionné s'il n'est pas dans la liste fournie
   useEffect(() => {
-    if (value > 0) {
-      const foundInSupplies = supplies.find(supply => supply.id === value)
+    if (value && String(value).length > 0) {
+      const foundInSupplies = supplies.find(supply => String(supply.id) === String(value))
       if (foundInSupplies) {
         setSelectedSupply(foundInSupplies)
       } else {
         // L'élément n'est pas dans la liste fournie, le récupérer depuis l'API
-        fetchSupplyById(value).then(supply => {
-          if (supply) {
-            setSelectedSupply(supply)
-          }
-        }).catch(() => {
-          // Si l'élément n'existe pas, réinitialiser
+        // Tentative de récupération si l'ID est numérique
+        const numericId = Number(value)
+        if (!Number.isNaN(numericId) && numericId > 0) {
+          fetchSupplyById(numericId).then(supply => {
+            if (supply) {
+              // Normaliser en string
+              setSelectedSupply({ ...supply, id: String(supply.id) })
+            }
+          }).catch(() => {
+            setSelectedSupply(null)
+          })
+        } else {
           setSelectedSupply(null)
-        })
+        }
       }
     } else {
       setSelectedSupply(null)
@@ -86,7 +92,7 @@ export function SupplySelect({
     }
   }, [open])
 
-  const hasValue = value > 0
+  const hasValue = Boolean(value)
   const displaySupplies = searchQuery && searchQuery.trim() !== '' ? apiSupplies : supplies
 
   return (
@@ -141,7 +147,7 @@ export function SupplySelect({
                     key={supply.id}
                     value={`${supply.label} ${supply.code || ''} ${supply.description || ''}`}
                     onSelect={() => {
-                      onValueChange(supply.id)
+                      onValueChange(String(supply.id))
                       setOpen(false)
                     }}
                     className="py-3"
@@ -160,7 +166,7 @@ export function SupplySelect({
                             #{supply.code}
                           </Badge>
                         )}
-                        {value === supply.id && (
+                        {String(value) === String(supply.id) && (
                           <Check className="h-4 w-4 text-blue-600" />
                         )}
                       </div>

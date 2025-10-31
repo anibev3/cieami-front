@@ -216,6 +216,8 @@ export function ShockPointSelect({
                         key={point.id}
                         value={`${point.label || ''} ${point.code || ''} ${point.description || ''}`}
                         onSelect={() => {
+                          const normalized = { ...point, id: String(point.id) }
+                          setSelectedShockPoint(normalized)
                           onValueChange(String(point.id))
                           setOpen(false)
                         }}

@@ -80,6 +80,7 @@ import {
 } from './components'
 import { useACL } from '@/hooks/useACL'
 import { UserRole } from '@/types/auth'
+import { AssignmentStatusEnum } from '@/types/global-types'
 
 interface AssignmentDetail {
   id: number
@@ -654,11 +655,8 @@ export default function AssignmentDetailPage() {
   const [unvalidating, setUnvalidating] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
-  const { isCEO, isValidator, isExpertManager, hasAnyRole } = useACL()
+  const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin } = useACL()
 
-  // États pour les modales d'actions
-  const [receiptModalOpen, setReceiptModalOpen] = useState(false)
-  const [selectedAssignmentForReceipt, setSelectedAssignmentForReceipt] = useState<{ id: number, amount: number } | null>(null)
 
   useEffect(() => {
     const fetchAssignment = async () => {
@@ -2141,16 +2139,6 @@ export default function AssignmentDetailPage() {
     toast.info('Fonction de suppression à implémenter')
   }
 
-  const handleOpenReceiptModal = (assignmentId: number, amount: number) => {
-    setSelectedAssignmentForReceipt({ id: assignmentId, amount })
-    setReceiptModalOpen(true)
-  }
-
-  const handleViewDetail = (assignmentId: number) => {
-    // Déjà sur la page de détail
-    console.log('Déjà sur la page de détail:', assignmentId)
-  }
-
   const handleValidateAssignment = async () => {
     if (!assignment) return
     
@@ -2569,10 +2557,18 @@ export default function AssignmentDetailPage() {
               <Badge className={getStatusColor(assignment.status.code)}>
                 {assignment.status.label}
               </Badge>
+
+
+              {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE && (
+                <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}>
+                  <FileDown className="h-3 w-3 mr-2" />
+                  Redaction de la fiche d'expertise
+                </Button>
+              )}
               
-              <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}>
+              <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
                 <FileDown className="h-3 w-3 mr-2" />
-                Voir la fiche d'expertise
+                Préparation de devis
               </Button>
               
               {/* Actions basées sur le statut */}

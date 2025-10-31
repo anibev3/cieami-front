@@ -301,9 +301,9 @@ function ShockContent({
       <div className="flex justify-between items-center">
         <h4 className="font-semibold text-[15px] flex items-center gap-2">
           <Wrench className="h-4 w-4 text-blue-600" />
-          {shock?.shock_point?.label || '**ND**'}
+          {shock?.shock_point?.label || 'Point de choc inconnu'}
           <Badge variant="outline" className="text-[10px]">
-            {shock?.shock_point?.code || '**ND**'}
+            {shock?.shock_point?.code || 'Code inconnu'}
           </Badge>
         </h4>
         {assignment_status === 'edited' && (
@@ -373,7 +373,7 @@ function ShockContent({
                 {/* Fournitures */}
                 <td className="border px-3 py-2 text-[10px]">
                   <div>
-                    <div className="font-medium text-[10px]">{work?.supply?.label || '**ND**'}</div>
+                    <div className="font-medium text-[10px]">{work?.supply?.label || ''}</div>
                   </div>
                 </td>
                 {/* D/p */}
@@ -458,32 +458,32 @@ function ShockContent({
             <div className="text-lg font-bold text-gray-800">{shock?.shock_works?.length}</div>
           </div>
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté TTC</div>
-            <div className="text-base font-bold text-blue-700">
+            <div className="text-gray-600 font-medium">Vetusté TTC</div>
+            <div className="text-base font-bold text-gray-700">
               {formatCurrency(shock?.shock_works?.reduce((sum, work) => sum + parseFloat(work?.obsolescence_amount), 0))}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Remise TTC</div>
-            <div className="text-base font-bold text-blue-700">
+            <div className="text-gray-600 font-medium">Remise TTC</div>
+            <div className="text-base font-bold text-gray-700">
               {formatCurrency(shock?.shock_works?.reduce((sum, work) => sum + parseFloat(work?.discount_amount || '0'), 0))}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération TTC</div>
-            <div className="text-base font-bold text-green-700">
+              <div className="text-gray-600 font-medium">Récupération TTC</div>
+            <div className="text-base font-bold text-gray-700">
               {formatCurrency(shock?.shock_works?.reduce((sum, work) => sum + parseFloat(work?.recovery_amount), 0))}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-purple-600 font-medium">Montant Final HT</div>
-            <div className={`text-base font-bold ${parseFloat(shock?.amount_excluding_tax) >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+            <div className="text-gray-600 font-medium">Montant Final HT</div>
+            <div className={`text-base font-bold ${parseFloat(shock?.amount_excluding_tax) >= 0 ? 'text-gray-700' : 'text-red-600'}`}>
               {formatCurrency(parseFloat(shock?.amount_excluding_tax))}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-purple-600 font-medium">Montant Final TTC</div>
-            <div className={`text-base font-bold ${parseFloat(shock?.amount) >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+            <div className="text-gray-600 font-medium">Montant Final TTC</div>
+            <div className={`text-base font-bold ${parseFloat(shock?.amount) >= 0 ? 'text-gray-700' : 'text-red-600'}`}>
               {formatCurrency(parseFloat(shock?.amount))}
             </div>
           </div>

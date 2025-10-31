@@ -115,6 +115,7 @@ import { Route as AuthenticatedComptabiliteCheckCreateImport } from './routes/_a
 import { Route as AuthenticatedAssignmentsStatisticsPaymentsImport } from './routes/_authenticated/assignments/statistics.payments'
 import { Route as AuthenticatedAssignmentsStatisticsInvoicesImport } from './routes/_authenticated/assignments/statistics.invoices'
 import { Route as AuthenticatedAssignmentsRealizeIdImport } from './routes/_authenticated/assignments/realize.$id'
+import { Route as AuthenticatedAssignmentsQuotePreparationIdImport } from './routes/_authenticated/assignments/quote-preparation/$id'
 import { Route as AuthenticatedAssignmentsExpertiseSheetIdImport } from './routes/_authenticated/assignments/expertise-sheet/$id'
 import { Route as AuthenticatedAssignmentsEditeReportIdImport } from './routes/_authenticated/assignments/edite-report/$id'
 import { Route as AuthenticatedAssignmentsEditIdImport } from './routes/_authenticated/assignments/edit/$id'
@@ -841,6 +842,13 @@ const AuthenticatedAssignmentsRealizeIdRoute =
   AuthenticatedAssignmentsRealizeIdImport.update({
     id: '/assignments/realize/$id',
     path: '/assignments/realize/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAssignmentsQuotePreparationIdRoute =
+  AuthenticatedAssignmentsQuotePreparationIdImport.update({
+    id: '/assignments/quote-preparation/$id',
+    path: '/assignments/quote-preparation/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1611,6 +1619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssignmentsExpertiseSheetIdImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/assignments/quote-preparation/$id': {
+      id: '/_authenticated/assignments/quote-preparation/$id'
+      path: '/assignments/quote-preparation/$id'
+      fullPath: '/assignments/quote-preparation/$id'
+      preLoaderRoute: typeof AuthenticatedAssignmentsQuotePreparationIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/assignments/realize/$id': {
       id: '/_authenticated/assignments/realize/$id'
       path: '/assignments/realize/$id'
@@ -2007,6 +2022,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsEditIdRoute: typeof AuthenticatedAssignmentsEditIdRoute
   AuthenticatedAssignmentsEditeReportIdRoute: typeof AuthenticatedAssignmentsEditeReportIdRoute
   AuthenticatedAssignmentsExpertiseSheetIdRoute: typeof AuthenticatedAssignmentsExpertiseSheetIdRoute
+  AuthenticatedAssignmentsQuotePreparationIdRoute: typeof AuthenticatedAssignmentsQuotePreparationIdRoute
   AuthenticatedAssignmentsRealizeIdRoute: typeof AuthenticatedAssignmentsRealizeIdRoute
   AuthenticatedAssignmentsStatisticsInvoicesRoute: typeof AuthenticatedAssignmentsStatisticsInvoicesRoute
   AuthenticatedAssignmentsStatisticsPaymentsRoute: typeof AuthenticatedAssignmentsStatisticsPaymentsRoute
@@ -2124,6 +2140,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAssignmentsEditeReportIdRoute,
   AuthenticatedAssignmentsExpertiseSheetIdRoute:
     AuthenticatedAssignmentsExpertiseSheetIdRoute,
+  AuthenticatedAssignmentsQuotePreparationIdRoute:
+    AuthenticatedAssignmentsQuotePreparationIdRoute,
   AuthenticatedAssignmentsRealizeIdRoute:
     AuthenticatedAssignmentsRealizeIdRoute,
   AuthenticatedAssignmentsStatisticsInvoicesRoute:
@@ -2294,6 +2312,7 @@ export interface FileRoutesByFullPath {
   '/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/expertise-sheet/$id': typeof AuthenticatedAssignmentsExpertiseSheetIdRoute
+  '/assignments/quote-preparation/$id': typeof AuthenticatedAssignmentsQuotePreparationIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/assignments/statistics/invoices': typeof AuthenticatedAssignmentsStatisticsInvoicesRoute
   '/assignments/statistics/payments': typeof AuthenticatedAssignmentsStatisticsPaymentsRoute
@@ -2414,6 +2433,7 @@ export interface FileRoutesByTo {
   '/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/assignments/expertise-sheet/$id': typeof AuthenticatedAssignmentsExpertiseSheetIdRoute
+  '/assignments/quote-preparation/$id': typeof AuthenticatedAssignmentsQuotePreparationIdRoute
   '/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/assignments/statistics/invoices': typeof AuthenticatedAssignmentsStatisticsInvoicesRoute
   '/assignments/statistics/payments': typeof AuthenticatedAssignmentsStatisticsPaymentsRoute
@@ -2540,6 +2560,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments/edit/$id': typeof AuthenticatedAssignmentsEditIdRoute
   '/_authenticated/assignments/edite-report/$id': typeof AuthenticatedAssignmentsEditeReportIdRoute
   '/_authenticated/assignments/expertise-sheet/$id': typeof AuthenticatedAssignmentsExpertiseSheetIdRoute
+  '/_authenticated/assignments/quote-preparation/$id': typeof AuthenticatedAssignmentsQuotePreparationIdRoute
   '/_authenticated/assignments/realize/$id': typeof AuthenticatedAssignmentsRealizeIdRoute
   '/_authenticated/assignments/statistics/invoices': typeof AuthenticatedAssignmentsStatisticsInvoicesRoute
   '/_authenticated/assignments/statistics/payments': typeof AuthenticatedAssignmentsStatisticsPaymentsRoute
@@ -2666,6 +2687,7 @@ export interface FileRouteTypes {
     | '/assignments/edit/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/expertise-sheet/$id'
+    | '/assignments/quote-preparation/$id'
     | '/assignments/realize/$id'
     | '/assignments/statistics/invoices'
     | '/assignments/statistics/payments'
@@ -2785,6 +2807,7 @@ export interface FileRouteTypes {
     | '/assignments/edit/$id'
     | '/assignments/edite-report/$id'
     | '/assignments/expertise-sheet/$id'
+    | '/assignments/quote-preparation/$id'
     | '/assignments/realize/$id'
     | '/assignments/statistics/invoices'
     | '/assignments/statistics/payments'
@@ -2909,6 +2932,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments/edit/$id'
     | '/_authenticated/assignments/edite-report/$id'
     | '/_authenticated/assignments/expertise-sheet/$id'
+    | '/_authenticated/assignments/quote-preparation/$id'
     | '/_authenticated/assignments/realize/$id'
     | '/_authenticated/assignments/statistics/invoices'
     | '/_authenticated/assignments/statistics/payments'
@@ -3061,6 +3085,7 @@ export const routeTree = rootRoute
         "/_authenticated/assignments/edit/$id",
         "/_authenticated/assignments/edite-report/$id",
         "/_authenticated/assignments/expertise-sheet/$id",
+        "/_authenticated/assignments/quote-preparation/$id",
         "/_authenticated/assignments/realize/$id",
         "/_authenticated/assignments/statistics/invoices",
         "/_authenticated/assignments/statistics/payments",
@@ -3471,6 +3496,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/assignments/expertise-sheet/$id": {
       "filePath": "_authenticated/assignments/expertise-sheet/$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/assignments/quote-preparation/$id": {
+      "filePath": "_authenticated/assignments/quote-preparation/$id.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/assignments/realize/$id": {
