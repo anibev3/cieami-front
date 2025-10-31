@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { MapPin, Plus } from 'lucide-react'
+import { MapPin, Plus, Loader2 } from 'lucide-react'
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 
 interface ShockPoint {
@@ -32,6 +32,7 @@ interface ShockPointCreateModalProps {
   shocks: Shock[]
   onCreateShockPoint: () => void
   onAddShock: (shockPointId: string) => void
+  loading?: boolean
 }
 
 export function ShockPointCreateModal({
@@ -43,15 +44,19 @@ export function ShockPointCreateModal({
   shocks,
   onCreateShockPoint,
   onAddShock,
+  loading = false,
 }: ShockPointCreateModalProps) {
   const handleClose = () => {
-    onOpenChange(false)
-    onSelectedShockPointIdChange('')
+    if (!loading) {
+      onOpenChange(false)
+      onSelectedShockPointIdChange('')
+    }
   }
 
   const handleAdd = () => {
-    onAddShock(selectedShockPointId)
-    handleClose()
+    if (!loading && selectedShockPointId) {
+      onAddShock(selectedShockPointId)
+    }
   }
 
   return (
@@ -114,16 +119,26 @@ export function ShockPointCreateModal({
             variant="outline" 
             onClick={handleClose}
             className="px-6"
+            disabled={loading}
           >
             Annuler
           </Button>
           <Button 
-            disabled={!selectedShockPointId} 
+            disabled={!selectedShockPointId || loading} 
             onClick={handleAdd}
             className="px-6 bg-blue-600 hover:bg-blue-700"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter le point
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Ajout en cours...
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter le point
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

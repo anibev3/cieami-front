@@ -11,6 +11,7 @@ export const useACLStore = create<ACLStore>()(
       // État initial
       userRole: null,
       userPermissions: [],
+      userEntityType: null,
       isInitialized: false,
 
       // Actions
@@ -20,6 +21,10 @@ export const useACLStore = create<ACLStore>()(
 
       setUserPermissions: (permissions: Permission[]) => {
         set({ userPermissions: permissions })
+      },
+
+      setUserEntityType: (entityType: string) => {
+        set({ userEntityType: entityType })
       },
 
       hasPermission: (permission: Permission): boolean => {
@@ -52,10 +57,21 @@ export const useACLStore = create<ACLStore>()(
         return userRole ? roles.includes(userRole) : false
       },
 
+      hasEntityType: (entityType: string): boolean => {
+        const { userEntityType } = get()
+        return userEntityType === entityType
+      },
+
+      hasAnyEntityType: (entityTypes: string[]): boolean => {
+        const { userEntityType } = get()
+        return userEntityType ? entityTypes.includes(userEntityType) : false
+      },
+
       clearACL: () => {
         set({
           userRole: null,
           userPermissions: [],
+          userEntityType: null,
           isInitialized: false
         })
       },
@@ -67,9 +83,13 @@ export const useACLStore = create<ACLStore>()(
         // Convertir les permissions string en enum Permission
         const userPermissions = user.permissions?.map(p => p as Permission) || []
         
+        // Déterminer le type d'entité de l'utilisateur
+        const userEntityType = user.entity?.entity_type?.code || null
+        
         set({
           userRole,
           userPermissions,
+          userEntityType,
           isInitialized: true
         })
       }
@@ -79,6 +99,7 @@ export const useACLStore = create<ACLStore>()(
       partialize: (state) => ({
         userRole: state.userRole,
         userPermissions: state.userPermissions,
+        userEntityType: state.userEntityType,
         isInitialized: state.isInitialized
       })
     }
@@ -117,5 +138,17 @@ export const useHasAllRoles = (roles: UserRole[]) => {
   return useACLStore((state) => state.hasAllRoles(roles))
 }
 
+// Hooks pour vérifier les types d'entités
+export const useUserEntityType = () => useACLStore((state) => state.userEntityType)
+
+export const useHasEntityType = (entityType: string) => {
+  return useACLStore((state) => state.hasEntityType(entityType))
+}
+
+export const useHasAnyEntityType = (entityTypes: string[]) => {
+  return useACLStore((state) => state.hasAnyEntityType(entityTypes))
+}
+
 // Re-exports des types pour faciliter l'import
-export { Permission, UserRole } from '@/types/auth' 
+export { Permission, UserRole } from '@/types/auth'
+export { EntityTypeEnum } from '@/types/global-types' 

@@ -902,13 +902,13 @@ export function QuotePreparationShockSuppliesTable({
             <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence_tva)}</div>
           </div> */}
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Vetusté TTC</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.obsolescence)}</div>
+            <div className="text-gray-600 font-medium">Vetusté TTC</div>
+            <div className="text-base font-bold text-gray-700">{formatCurrency(totals.obsolescence)}</div>
           </div>
 
           <div className="text-center">
-            <div className="text-blue-600 font-medium">Remise TTC</div>
-            <div className="text-base font-bold text-blue-700">{formatCurrency(totals.discount_amount)}</div>
+            <div className="text-gray-600 font-medium">Remise TTC</div>
+            <div className="text-base font-bold text-gray-700">{formatCurrency(totals.discount_amount)}</div>
           </div>
           {/* <div className="text-center">
             <div className="text-green-600 font-medium">Récupération HT</div>
@@ -919,18 +919,18 @@ export function QuotePreparationShockSuppliesTable({
             <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery_tva)}</div>
           </div> */}
           <div className="text-center">
-            <div className="text-green-600 font-medium">Récupération TTC</div>
-            <div className="text-base font-bold text-green-700">{formatCurrency(totals.recovery)}</div>
+            <div className="text-gray-600 font-medium">Récupération TTC</div>
+            <div className="text-base font-bold text-gray-700">{formatCurrency(totals.recovery)}</div>
           </div>
           <div className="text-center">
-            <div className="text-purple-600 font-medium">Montant Final HT</div>
-            <div className={`text-base font-bold ${totals.new_ht >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+            <div className="text-gray-600 font-medium">Montant Final HT</div>
+            <div className={`text-base font-bold ${totals.new_ht >= 0 ? 'text-gray-700' : 'text-red-600'}`}>
               {formatCurrency(totals.new_ht)}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-purple-600 font-medium">Montant Final TTC</div>
-            <div className={`text-base font-bold ${totals.new >= 0 ? 'text-purple-700' : 'text-red-600'}`}>
+            <div className="text-gray-600 font-medium">Montant Final TTC</div>
+            <div className={`text-base font-bold ${totals.new >= 0 ? 'text-gray-700' : 'text-red-600'}`}>
               {formatCurrency(totals.new)}
             </div>
           </div>

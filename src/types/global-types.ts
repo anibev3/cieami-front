@@ -40,3 +40,10 @@ export enum OfficeTypeEnum {
   SUB_OFFICE = 'sub_office'
 }
 
+// Types d'entités
+export enum EntityTypeEnum {
+  MAIN_ORGANIZATION = 'main_organization',   // "Chambre des experts automobiles de Côte d'Ivoire"
+  ORGANIZATION = 'organization',             // "Cabinet d'expertise"
+  INSURER = 'insurer',                       // "Compagnie d'assurance"
+  REPAIRER = 'repairer',                     // "Réparateur"
+}

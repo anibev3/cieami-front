@@ -9,8 +9,28 @@ export interface LoginResponse {
   expires_at: string
 }
 
+export interface EntityType {
+  id: string
+  code: string
+  label: string
+  description: string
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Status {
+  id: string
+  code: string
+  label: string
+  description: string
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Entity {
-  id: number
+  id: string
   code: string
   name: string
   prefix: string | null | undefined
@@ -18,27 +38,15 @@ export interface Entity {
   email: string
   telephone: string | null | undefined
   address: string | null | undefined
+  taxpayer_account_number: string | null | undefined
+  service_description: string | null | undefined
+  footer_description: string | null | undefined
   description: string | null | undefined
   logo: string | null | undefined
+  entity_type: EntityType
   created_at: string | null | undefined
   updated_at: string | null | undefined
 }
-
-
-        // "entity": {
-        //     "id": 4,
-        //     "code": "NSIA",
-        //     "name": "NSIA",
-        //     "prefix": "A",
-        //     "suffix": null,
-        //     "email": "support@nsia.com",
-        //     "telephone": null,
-        //     "address": null,
-        //     "description": null,
-        //     "logo": null,
-        //     "created_at": "2025-09-24 23:14:07",
-        //     "updated_at": "2025-09-24 23:14:07"
-        // },
 
 export interface Role {
   name: string
@@ -47,7 +55,7 @@ export interface Role {
 }
 
 export interface User {
-  id: number
+  id: string
   code: string
   hash_id: string
   email: string
@@ -61,6 +69,8 @@ export interface User {
   pending_verification: boolean
   role: Role
   permissions: string[]
+  signature: string | null
+  status: Status
   created_at: string
   updated_at: string
 }
@@ -166,18 +176,22 @@ export interface RolePermissions {
 export interface ACLState {
   userRole: UserRole | null
   userPermissions: Permission[]
+  userEntityType: string | null
   isInitialized: boolean
 }
 
 export interface ACLActions {
   setUserRole: (role: UserRole) => void
   setUserPermissions: (permissions: Permission[]) => void
+  setUserEntityType: (entityType: string) => void
   hasPermission: (permission: Permission) => boolean
   hasAnyPermission: (permissions: Permission[]) => boolean
   hasAllPermissions: (permissions: Permission[]) => boolean
   hasRole: (role: UserRole) => boolean
   hasAnyRole: (roles: UserRole[]) => boolean
   hasAllRoles: (roles: UserRole[]) => boolean
+  hasEntityType: (entityType: string) => boolean
+  hasAnyEntityType: (entityTypes: string[]) => boolean
   clearACL: () => void
   initializeACL: (user: User) => void
 } 

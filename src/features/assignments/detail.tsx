@@ -82,6 +82,7 @@ import { useACL } from '@/hooks/useACL'
 import { UserRole } from '@/types/auth'
 import { AssignmentStatusEnum } from '@/types/global-types'
 import assignmentValidationService from '@/services/assignmentValidationService'
+import { useUser } from '@/stores/authStore'
 
 interface AssignmentDetail {
   id: number
@@ -657,7 +658,18 @@ export default function AssignmentDetailPage() {
   const [validatingEdition, setValidatingEdition] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
-  const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin } = useACL()
+  const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin, isMainOrganization, isInsurerEntity, isRepairerEntity } = useACL()
+  const currentUser = useUser()
+  
+  // Vérifier le type d'entité de l'utilisateur connecté
+  const currentUserEntityTypeCode = currentUser?.entity?.entity_type?.code
+  
+  // Utilisateurs en lecture seule (chambre ou assureur) : aucun bouton, juste les informations
+  const isReadOnlyUser = isMainOrganization() || isInsurerEntity() || 
+    currentUserEntityTypeCode === 'main_organization' || currentUserEntityTypeCode === 'insurer'
+  
+  // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
+  const isRepairerUser = isRepairerEntity() || currentUserEntityTypeCode === 'repairer'
 
 
   useEffect(() => {
@@ -2135,11 +2147,11 @@ export default function AssignmentDetailPage() {
   }
 
   // Fonctions de gestion des actions
-  const handleDeleteAssignment = (assignment: AssignmentDetail) => {
-    // TODO: Implémenter la suppression
-    console.log('Supprimer le dossier:', assignment.id)
-    toast.info('Fonction de suppression à implémenter')
-  }
+  // const handleDeleteAssignment = (assignment: AssignmentDetail) => {
+  //   // TODO: Implémenter la suppression
+  //   console.log('Supprimer le dossier:', assignment.id)
+  //   toast.info('Fonction de suppression à implémenter')
+  // }
 
   const handleValidateAssignment = async () => {
     if (!assignment) return
@@ -2232,7 +2244,7 @@ export default function AssignmentDetailPage() {
     const canRealize = statusCode === 'opened'
     const canEditRealization = statusCode === 'realized' || statusCode === 'edited' || statusCode === 'in_payment'
     const canWriteReport = statusCode === 'realized'
-    const canEditReport = statusCode === 'edited' || statusCode === 'in_payment'
+    const canEditReport = statusCode === 'edited' || statusCode === 'in_payment' || statusCode === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION
     const canGenerateReport = true
     const canDelete = statusCode === 'pending'
     const canValidate = (isCEO() || isValidator() || isExpertManager()) && ['edited', 'in_payment'].includes(statusCode)
@@ -2244,68 +2256,68 @@ export default function AssignmentDetailPage() {
     }
 
     const actions = [
-      {
-        key: 'edit',
+          {
+            key: 'edit',
         label: 'Modifier le dossier',
-        icon: Edit,
-        onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
         variant: 'outline' as const,
         loading: false,
         disabled: !canEdit || alwaysDisableForRestricted('edit')
       },
-      {
-        key: 'realize',
-        label: 'Réaliser le dossier',
-        icon: CheckCircle,
-        onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+          {
+            key: 'realize',
+            label: 'Réaliser le dossier',
+            icon: CheckCircle,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
         variant: 'default' as const,
         loading: false,
         disabled: !canRealize || alwaysDisableForRestricted('realize')
       },
-      {
-        key: 'edit-realization',
-        label: 'Modifier la réalisation',
-        icon: Edit,
-        onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+          {
+            key: 'edit-realization',
+            label: 'Modifier la réalisation',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
         variant: 'outline' as const,
         loading: false,
         disabled: !canEditRealization || alwaysDisableForRestricted('edit-realization')
-      },
-      {
-        key: 'write-report',
-        label: 'Rédiger le rapport',
-        icon: FileText,
-        onClick: () => navigate({ to: `/assignments/edite-report/${assignment.id}` }),
-        variant: 'default' as const,
-        loading: false,
-        disabled: !canWriteReport || alwaysDisableForRestricted('write-report')
-      },
-      {
-        key: 'edit-report',
-        label: 'Modifier la rédaction',
-        icon: Edit,
-        onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+          },
+      //     {
+      //       key: 'write-report',
+      //       label: 'Rédiger le rapport',
+      //       icon: FileText,
+      //       onClick: () => navigate({ to: `/assignments/edite-report/${assignment.id}` }),
+      //   variant: 'default' as const,
+      //   loading: false,
+      //   disabled: !canWriteReport || alwaysDisableForRestricted('write-report')
+      // },
+          {
+            key: 'edit-report',
+            label: 'Rédiger le rapport',
+            icon: Edit,
+            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
         variant: 'outline' as const,
         loading: false,
         disabled: !canEditReport || alwaysDisableForRestricted('edit-report')
       },
-      {
-        key: 'generate-report',
-        label: 'Générer le rapport',
-        icon: Download,
-        onClick: async () => {
-          await generateReport(assignment.id)
-        },
-        variant: 'default' as const,
+          {
+            key: 'generate-report',
+            label: 'Générer le rapport',
+            icon: Download,
+            onClick: async () => {
+              await generateReport(assignment.id)
+            },
+            variant: 'default' as const,
         loading: loadingGenerate,
         disabled: !canGenerateReport
       },
       {
-        key: 'validate',
-        label: 'Valider le dossier',
-        icon: Shield,
-        onClick: () => setValidateModalOpen(true),
-        variant: 'default' as const,
+            key: 'validate',
+            label: 'Valider le dossier',
+            icon: Shield,
+            onClick: () => setValidateModalOpen(true),
+            variant: 'default' as const,
         className: 'bg-green-600 hover:bg-green-700',
         loading: false,
         disabled: !canValidate || alwaysDisableForRestricted('validate')
@@ -2320,18 +2332,92 @@ export default function AssignmentDetailPage() {
         loading: false,
         disabled: !canUnvalidate || alwaysDisableForRestricted('unvalidate')
       },
-      {
-        key: 'delete',
-        label: 'Supprimer',
-        icon: Trash2,
-        onClick: () => handleDeleteAssignment(assignment),
-        variant: 'destructive' as const,
-        loading: false,
-        disabled: !canDelete || alwaysDisableForRestricted('delete')
-      }
+      // {
+      //   key: 'delete',
+      //   label: 'Supprimer',
+      //   icon: Trash2,
+      //   onClick: () => handleDeleteAssignment(assignment),
+      //   variant: 'destructive' as const,
+      //   loading: false,
+      //   disabled: !canDelete || alwaysDisableForRestricted('delete')
+      // }
     ]
 
     return actions
+  }
+
+  // Barre d'actions: affichage propre, groupé et responsive sur plusieurs lignes si nécessaire
+  const renderActionsToolbar = (actions: any[]) => {
+    // Filtrer les actions pour ne garder que celles qui ne sont pas désactivées
+    const enabledActions = actions.filter(action => !(action.loading || action.disabled))
+    
+    // Si aucune action n'est disponible, ne rien afficher
+    if (enabledActions.length === 0) {
+      return null
+    }
+    
+    const primaryKeys = new Set(['generate-report', 'validate', 'realize', 'write-report'])
+    const secondaryKeys = new Set(['edit', 'edit-realization', 'edit-report'])
+    const dangerKeys = new Set(['unvalidate', 'delete'])
+
+    const sortOrder: Record<string, number> = {
+      'validate': 1,
+      'generate-report': 2,
+      'realize': 3,
+      'write-report': 4,
+      'edit': 5,
+      'edit-realization': 6,
+      'edit-report': 7,
+      'unvalidate': 8,
+      'delete': 9,
+    }
+
+    const primary = enabledActions.filter(a => primaryKeys.has(a.key)).sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
+    const secondary = enabledActions.filter(a => secondaryKeys.has(a.key)).sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
+    const danger = enabledActions.filter(a => dangerKeys.has(a.key)).sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
+
+    const renderButton = (action: any) => {
+      const IconComponent = action.icon
+      return (
+        <Button
+          key={action.key}
+          variant={action.variant}
+          onClick={action.onClick}
+          disabled={action.loading}
+          className={action.className}
+          size="sm"
+          title={action.label}
+          aria-label={action.label}
+        >
+          <IconComponent className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">{action.loading ? 'Chargement...' : action.label}</span>
+          <span className="sm:hidden">{action.loading ? '...' : action.label.split(' ')[0]}</span>
+        </Button>
+      )
+    }
+
+    return (
+      <>
+        {/* Actions primaires */}
+        {primary.map(renderButton)}
+        
+        {/* Séparateur après primaires si nécessaire */}
+        {primary.length > 0 && (secondary.length > 0 || danger.length > 0) && (
+          <Separator orientation="vertical" className="h-6 hidden lg:block" />
+        )}
+        
+        {/* Actions secondaires */}
+        {secondary.map(renderButton)}
+        
+        {/* Séparateur avant danger si nécessaire */}
+        {secondary.length > 0 && danger.length > 0 && (
+          <Separator orientation="vertical" className="h-6 hidden lg:block" />
+        )}
+        
+        {/* Actions de danger */}
+        {danger.map(renderButton)}
+      </>
+    )
   }
 
   if (loading) {
@@ -2374,77 +2460,79 @@ export default function AssignmentDetailPage() {
       <Main>
             <div className="w-full space-y-4 lg:space-y-6 pb-28 lg:pb-0">
           {/* En-tête */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
               <Button variant="outline" size="icon" onClick={() => navigate({ to: '/assignments' })}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate">Dossier {assignment.reference}</h1>
                 <p className="text-xs text-muted-foreground">Détails complets du dossier d'expertise</p>
-              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className={getStatusColor(assignment.status.code)}>
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Statut : </p>
+              </div>
+ <Badge className={getStatusColor(assignment.status.code) + ' text-lg'}>
                 {assignment.status.label}
               </Badge>
-
-
-              {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE && (
-                <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}>
-                  <FileDown className="h-3 w-3 mr-2" />
-                  Redaction de la fiche d'expertise
-                </Button>
-              )}
-
-              {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={handleValidateEdition}
-                  disabled={validatingEdition}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {validatingEdition ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
-                      Validation...
-                    </>
+            </div>
+             
+            </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+            {/* Gestion des boutons selon le type d'entité */}
+            {!isReadOnlyUser && (
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                <div className="flex items-center gap-2 flex-nowrap min-w-max">
+                  {isRepairerUser ? (
+                    // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
+                    <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
+                      <FileDown className="h-3 w-3 mr-2" />
+                      Préparation de devis
+                    </Button>
                   ) : (
+                    // Autres utilisateurs : tous les boutons disponibles
                     <>
-                      <Shield className="h-3 w-3 mr-2" />
-                      Valider l'édition
+                      {isExpertAdmin() && (assignment?.status?.code === AssignmentStatusEnum.REALIZED) && (
+                        <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}>
+                          <FileDown className="h-3 w-3 mr-2" />
+                          Redaction de la fiche de traveaux
+                        </Button>
+                      )}
+
+                      {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={handleValidateEdition}
+                          disabled={validatingEdition}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {validatingEdition ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                              Validation...
+                            </>
+                          ) : (
+                            <>
+                              <Shield className="h-3 w-3 mr-2" />
+                              Valider l'édition
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      
+                      <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
+                        <FileDown className="h-3 w-3 mr-2" />
+                        Préparation de devis
+                      </Button>
+                      
+                      {/* Actions basées sur le statut */}
+                      {renderActionsToolbar(getAvailableActions(assignment))}
                     </>
                   )}
-                </Button>
-              )}
-              
-              <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
-                <FileDown className="h-3 w-3 mr-2" />
-                Préparation de devis
-              </Button>
-              
-              {/* Actions basées sur le statut */}
-              <div className="flex flex-wrap gap-2">
-                {getAvailableActions(assignment).map((action) => {
-                  const IconComponent = action.icon
-                  return (
-                    <Button
-                      key={action.key}
-                      variant={action.variant}
-                      onClick={action.onClick}
-                      disabled={action.loading || (action as any).disabled}
-                      className={action.className}
-                      size="sm"
-                    >
-                      <IconComponent className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">{action.loading ? 'Chargement...' : action.label}</span>
-                      <span className="sm:hidden">{action.loading ? '...' : action.label.split(' ')[0]}</span>
-                    </Button>
-                  )
-                })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Layout avec sidebar et contenu */}
@@ -2632,7 +2720,7 @@ export default function AssignmentDetailPage() {
               </Card>
               
               <div className="shadow-none mt-4">
-                <ScrollArea className="h-[500px] sm:h-[600px]">
+                <ScrollArea className="h-[500px] sm:h-[600px] mb-30">
                   {renderSection()}
                 </ScrollArea>
               </div>
@@ -2727,15 +2815,18 @@ export default function AssignmentDetailPage() {
       </Dialog>
 
       {/* Bottom Sticky Timeline Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg">
-        <div className="px-3 sm:px-4 py-3">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg ml-70">
+        <div className="px-10 sm:px-10 py-10"> 
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              {(() => {
+                {(() => {
                 const steps = [
                   { code: 'pending', label: 'Création' },
                   { code: 'opened', label: 'Ouvert' },
                   { code: 'realized', label: 'Réalisé' },
+                  { code: 'pending_for_repairer_invoice', label: 'En attente facture réparateur' },
+                  { code: 'pending_for_repairer_invoice_validation', label: 'Facture réparateur validée' },
+                  { code: 'in_editing', label: 'En édition' },
                   { code: 'edited', label: 'Rédigé' },
                   { code: 'in_payment', label: 'En paiement' },
                   { code: 'validated', label: 'Validé' },
@@ -2745,34 +2836,50 @@ export default function AssignmentDetailPage() {
                 const currentIndex = Math.max(0, steps.findIndex(s => s.code === assignment.status.code))
                 return (
                   <div className="w-full">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start gap-0.5 sm:gap-1">
                       {steps.map((step, index) => {
                         const reached = index <= currentIndex
                         const isCurrent = index === currentIndex
+                        const isLast = index === steps.length - 1
                         return (
-                          <div key={step.code} className="flex-1 flex items-center">
-                            <div className="flex flex-col items-center w-min">
-                              <div className={cn(
-                                'h-3 w-3 sm:h-4 sm:w-4 rounded-full border',
-                                reached ? 'bg-primary border-primary' : 'bg-muted border-muted-foreground/20',
-                                isCurrent ? 'ring-2 ring-primary/40' : ''
-                              )} />
+                          <div key={step.code} className="flex-1 flex items-center min-w-0">
+                            {/* Conteneur de l'étape avec point et label */}
+                            <div className="flex flex-col items-center w-full min-w-0">
+                              {/* Ligne de connexion horizontale - positionnée en haut */}
+                              <div className="flex items-center w-full mb-1">
+                                {/* Ligne avant le point (sauf pour le premier) */}
+                                {index > 0 && (
+                                  <div className={cn(
+                                    'h-0.5 sm:h-1 rounded-full flex-1 min-w-[4px] mr-0.5 sm:mr-1',
+                                    index <= currentIndex ? 'bg-primary' : 'bg-muted/50'
+                                  )} />
+                                )}
+                                {/* Point de l'étape */}
+                                <div className={cn(
+                                  'h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full border shrink-0 relative z-10',
+                                  reached ? 'bg-primary border-primary' : 'bg-muted border-muted-foreground/20',
+                                  isCurrent ? 'ring-2 ring-primary/40' : ''
+                                )} />
+                                {/* Ligne après le point (sauf pour le dernier) */}
+                                {!isLast && (
+                                  <div className={cn(
+                                    'h-0.5 sm:h-1 rounded-full flex-1 min-w-[4px] ml-0.5 sm:ml-1',
+                                    index < currentIndex ? 'bg-primary' : 'bg-muted/50'
+                                  )} />
+                                )}
+                              </div>
+                              {/* Label de l'étape */}
                               <span className={cn(
-                                'mt-1 text-[10px] sm:text-xs whitespace-nowrap',
-                                reached ? 'text-primary' : 'text-muted-foreground'
-                              )}>{step.label}</span>
+                                'text-[9px] sm:text-[10px] text-center leading-tight px-0.5',
+                                reached ? 'text-primary font-medium' : 'text-muted-foreground',
+                                'truncate w-full'
+                              )} title={step.label}>{step.label}</span>
                             </div>
-                            {index < steps.length - 1 && (
-                              <div className={cn(
-                                'mx-1 sm:mx-2 h-[2px] sm:h-[3px] rounded flex-1',
-                                index < currentIndex ? 'bg-primary' : 'bg-muted'
-                              )} />
-                            )}
                           </div>
                         )
                       })}
                     </div>
-                    {(assignment.edition_status || assignment.recovery_status) && (
+                    {/* {(assignment.edition_status || assignment.recovery_status) && (
                       <div className="mt-2 grid grid-cols-2 gap-3">
                         {assignment.edition_status && (
                           <div className="flex items-center gap-2">
@@ -2795,22 +2902,22 @@ export default function AssignmentDetailPage() {
                           </div>
                         )}
                       </div>
-                    )}
+                    )} */}
                   </div>
                 )
               })()}
             </div>
-            <div className="shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setBottomSheetOpen(true)}
-              >
-                <Menu className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Navigation</span>
-                <span className="sm:hidden">Menu</span>
-              </Button>
-            </div>
+            {/* <div className="shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBottomSheetOpen(true)}
+            >
+              <Menu className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Navigation</span>
+              <span className="sm:hidden">Menu</span>
+            </Button>
+            </div> */}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useACLStore, useHasPermission, useHasAnyPermission, useHasAllPermissions, useHasRole, useHasAnyRole, useHasAllRoles, Permission, UserRole } from '@/stores/aclStore'
+import { useACLStore, useHasPermission, useHasAnyPermission, useHasAllPermissions, useHasRole, useHasAnyRole, useHasAllRoles, useHasEntityType, useHasAnyEntityType, useUserEntityType, Permission, UserRole, EntityTypeEnum } from '@/stores/aclStore'
 
 /**
  * Hook personnalisé pour gérer l'ACL (Access Control List)
@@ -11,11 +11,13 @@ export const useACL = () => {
     // État
     userRole: aclStore.userRole,
     userPermissions: aclStore.userPermissions,
+    userEntityType: aclStore.userEntityType,
     isInitialized: aclStore.isInitialized,
     
     // Actions
     setUserRole: aclStore.setUserRole,
     setUserPermissions: aclStore.setUserPermissions,
+    setUserEntityType: aclStore.setUserEntityType,
     clearACL: aclStore.clearACL,
     initializeACL: aclStore.initializeACL,
     
@@ -26,6 +28,8 @@ export const useACL = () => {
     hasRole: aclStore.hasRole,
     hasAnyRole: aclStore.hasAnyRole,
     hasAllRoles: aclStore.hasAllRoles,
+    hasEntityType: aclStore.hasEntityType,
+    hasAnyEntityType: aclStore.hasAnyEntityType,
     
     // Hooks réactifs
     useHasPermission,
@@ -34,6 +38,9 @@ export const useACL = () => {
     useHasRole,
     useHasAnyRole,
     useHasAllRoles,
+    useHasEntityType,
+    useHasAnyEntityType,
+    useUserEntityType,
     
     // Utilitaires
     isSystemAdmin: () => aclStore.hasRole(UserRole.SYSTEM_ADMIN),
@@ -116,9 +123,26 @@ export const useACL = () => {
     isReadOnlyRole: () => aclStore.hasAnyRole([
       UserRole.INSURER_ADMIN,
       UserRole.REPAIRER_ADMIN
+    ]),
+    
+    // Vérifications de types d'entités
+    isMainOrganization: () => aclStore.hasEntityType(EntityTypeEnum.MAIN_ORGANIZATION),
+    isOrganization: () => aclStore.hasEntityType(EntityTypeEnum.ORGANIZATION),
+    isInsurerEntity: () => aclStore.hasEntityType(EntityTypeEnum.INSURER),
+    isRepairerEntity: () => aclStore.hasEntityType(EntityTypeEnum.REPAIRER),
+    
+    // Vérifications combinées de types d'entités
+    isExpertEntity: () => aclStore.hasAnyEntityType([
+      EntityTypeEnum.MAIN_ORGANIZATION,
+      EntityTypeEnum.ORGANIZATION
+    ]),
+    
+    isExternalEntity: () => aclStore.hasAnyEntityType([
+      EntityTypeEnum.INSURER,
+      EntityTypeEnum.REPAIRER
     ])
   }
 }
 
 // Re-exports pour faciliter l'import
-export { Permission, UserRole } from '@/stores/aclStore' 
+export { Permission, UserRole, EntityTypeEnum } from '@/stores/aclStore' 

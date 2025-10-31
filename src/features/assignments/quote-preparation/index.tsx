@@ -609,7 +609,7 @@ export default function QuotePreparationPage() {
   const [sheetFocusShockId, setSheetFocusShockId] = useState<number | null>(null)
   const { hasAnyRole } = useACL()
   const isExpert = hasAnyRole([UserRole.EXPERT, UserRole.EXPERT_MANAGER, UserRole.EXPERT_ADMIN])
-  const isRepairer = hasAnyRole([UserRole.REPAIRER_ADMIN, UserRole.REPAIRER_STANDARD_USER, UserRole.REPAIRER_ADMIN])
+  const isRepairer = hasAnyRole([UserRole.REPAIRER_ADMIN, UserRole.REPAIRER_STANDARD_USER])
 
   const [validating, setValidating] = useState(false)
   const [validatingRepairerInvoiceByExpert, setValidatingRepairerInvoiceByExpert] = useState(false)
@@ -1361,352 +1361,418 @@ export default function QuotePreparationPage() {
                       </div>
                     </div>
 
-                    {assignment.shocks && assignment.shocks.length > 0 ? (
-                      assignment.shocks.map((shock, index) => (
-                        <div 
-                          key={shock?.id || `shock-${index}`}
-                          data-shock-id={shock?.id || ''}
-                          className={cn(
-                            "border rounded-lg transition-all duration-200",
-                            highlightedShockId === shock?.id
-                              ? "ring-2 ring-blue-500 bg-blue-50"
-                              : "bg-white hover:bg-gray-50",
-                            collapsedShocks.has(shock?.id || 0)
-                              ? "border-gray-200"
-                              : "border-blue-200"
-                          )}
-                        >
-                          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3 flex-1">
-                                {/* Bouton de collapse */}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => shock?.id && toggleShockCollapse(shock.id)}
-                                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
-                                  title={collapsedShocks.has(shock?.id || 0) ? "Développer" : "Réduire"}
-                                >
-                                  <ChevronDown 
-                                    className={cn(
-                                      "h-4 w-4 transition-transform duration-200",
-                                      collapsedShocks.has(shock?.id || 0) ? 'rotate-0' : 'rotate-0'
-                                    )} 
-                                  />
-                                </Button>
-                                
-                                {/* Sélecteur de point de choc modifiable */}
-                                <div className="flex-1">
-                                  <ShockPointSelect
-                                    className='w-1/2'
-                                    value={String(shock?.shock_point?.id || '')}  
-                                    onValueChange={async (newShockPointId) => {
-                                      try {
-                                        await axiosInstance.put(`/shocks/${shock?.id}`, {
-                                          shock_point_id: String(newShockPointId)
-                                        })
-                                        toast.success('Point de choc modifié')
-                                        refreshAssignment()
-                                      } catch (err) {
-                                        toast.error('Erreur lors de la modification du point de choc')
-                                      }
-                                    }}
-                                    showSelectedInfo={true}
-                                    onCreateNew={handleCreateShockPoint}
-                                  />
-                                </div>
-
-                                {/* Bouton discret pour ouvrir la réorganisation centré sur ce choc */}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="p-1 text-gray-600 hover:text-gray-900"
-                                  title="Réorganiser (centrer sur ce choc)"
-                                  onClick={() => handleOpenReorderSheet(shock?.id)}
-                                >
-                                  <List className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              
-                              {/* Résumé à droite */}
-                              <div className="text-sm text-gray-600 ml-4 whitespace-nowrap">
-                                <div className="flex items-center gap-4">
-                                  <span className="inline-flex items-center gap-1">
-                                    <Package className="h-3 w-3" />
-                                    {shock?.shock_works?.length || 0}
-                                  </span>
-                                  <span className="inline-flex items-center gap-1">
-                                    <Users className="h-3 w-3" />
-                                    {shock?.workforces?.length || 0}
-                                  </span>
-                                  <span className="font-medium text-gray-900">
-                                    {formatCurrency(shock?.amount || '0')}
-                                  </span>
-                                  {/* Bouton de suppression */}
-                                  <Button
-                                    variant="ghost"
-                                    size="xs"
-                                    onClick={() => shock?.id && handleDeleteShock(shock.id)}
-                                    className="p-1 hover:bg-red-50 text-xs bg-red-100 hover:text-red-600 transition-all duration-200 rounded-md"
-                                    title="Supprimer ce choc"
-                                    disabled={!shock?.id}
-                                  >
-                                    <Trash2 className="h-1 w-1" /> Supprimer
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                  {assignment.shocks && assignment.shocks.length > 0 ? (
+                    <div className="relative">
+                      {/* Timeline verticale continue */}
+                      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-200" />
+                      
+                      {/* Liste des chocs avec timeline */}
+                      <div className="space-y-6">
+                        {assignment.shocks.map((shock, index) => {
+                          const isCollapsed = collapsedShocks.has(shock?.id || 0)
+                          const isHighlighted = highlightedShockId === shock?.id
+                          const isLast = index === assignment.shocks.length - 1
                           
-                          {/* Body collapsible avec animation */}
-                          <div 
-                            className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                              shock?.id && collapsedShocks.has(shock.id)
-                                ? 'max-h-0 opacity-0 border-t-0' 
-                                : 'opacity-100 border-t border-gray-100'
-                            }`}
-                          >
-                            <div className={`space-y-4 ${
-                              shock?.id && collapsedShocks.has(shock.id) ? 'p-0' : 'p-4'
-                            } transition-all duration-300`}>
-                            {/* Tableau des fournitures */}
-                            <div>
-                              <QuotePreparationShockSuppliesTable
-                                supplies={supplies.map((supply: any) => ({
-                                  id: supply?.id,
-                                  label: supply?.label || '',
-                                  code: supply?.code || '',
-                                  price: supply?.price || 0
-                                }))}
-                                shockWorks={(shock.shock_works || []).map((work: any) => {
-                                  // Vérification de sécurité pour work.id
-                                  if (!work?.id) return null
-                                  
-                                  return {
-                                    id: work.id, // ID réel de l'API pour la réorganisation
-                                    uid: work.id?.toString() || crypto.randomUUID(),
-                                    supply_id: work.supply?.id || 0,
-                                    supply_label: work.supply?.label || work.supply_label || '',
-                                    disassembly: work?.disassembly || false,
-                                    replacement: work?.replacement || false,
-                                    repair: work?.repair || false,
-                                    paint: work?.paint || false,
-                                    control: work?.control || false,
-                                    obsolescence: work?.obsolescence || false,
-                                    comment: work?.comment || '',
-                                    obsolescence_rate: Number(work?.obsolescence_rate) || 0,
-                                    recovery_amount: Number(work?.recovery_amount) || 0,
-                                    discount: Number(work?.discount) || 0,
-                                    amount: Number(work?.amount) || 0,
-                                    obsolescence_amount_excluding_tax: Number(work?.obsolescence_amount_excluding_tax) || 0,
-                                    obsolescence_amount_tax: Number(work?.obsolescence_amount_tax) || 0,
-                                    obsolescence_amount: Number(work?.obsolescence_amount) || 0,
-                                    recovery_amount_excluding_tax: Number(work?.recovery_amount_excluding_tax) || 0,
-                                    recovery_amount_tax: Number(work?.recovery_amount_tax) || 0,
-                                    new_amount_excluding_tax: Number(work?.new_amount_excluding_tax) || 0,
-                                    new_amount_tax: Number(work?.new_amount_tax) || 0,
-                                    new_amount: Number(work?.new_amount) || 0,
-                                    discount_amount: Number(work?.discount_amount) || 0,
-                                    discount_amount_excluding_tax: Number(work?.discount_amount_excluding_tax) || 0,
-                                    discount_amount_tax: Number(work?.discount_amount_tax) || 0,
-                                    amount_excluding_tax: Number(work?.amount_excluding_tax) || 0,
-                                    amount_tax: Number(work?.amount_tax) || 0
-                                  }
-                                }).filter((work): work is NonNullable<typeof work> => work !== null)}
-                                onUpdate={async (index, updatedWork) => {
-                                  try {
-                                    const work = shock?.shock_works?.[index]
-                                    if (work && work?.id) {
-                                      // On envoie tout l'objet d'un coup
-                                      await axiosInstance.put(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work?.id}`, {
-                                        supply_id: updatedWork?.supply_id,
-                                        disassembly: updatedWork?.disassembly,
-                                        replacement: updatedWork?.replacement,
-                                        repair: updatedWork?.repair,
-                                        paint: updatedWork?.paint,
-                                        control: updatedWork?.control,
-                                        obsolescence: updatedWork?.obsolescence,
-                                        comment: updatedWork?.comment,
-                                        obsolescence_rate: updatedWork?.obsolescence_rate,
-                                        recovery_amount: updatedWork?.recovery_amount,
-                                        discount: updatedWork?.discount,
-                                        amount: updatedWork?.amount
-                                      })
-                                      toast.success('Fourniture mise à jour')
-                                      refreshAssignment()
-                                    }
-                                  } catch (err) {
-                                    console.error('Erreur mise à jour fourniture:', err)
-                                    toast.error('Erreur lors de la mise à jour')
-                                  }
-                                }}
-                                onAdd={async (shockWorkData?: any) => {
-                                  try {
-                                    // Préparer le payload selon l'API
-                                    const payload = {
-                                      paint_type_id: "1", // Valeur par défaut - à adapter selon tes besoins
-                                      shock_id: String(shock.id || 0),
-                                      shock_works: [{
-                                        supply_id: String(shockWorkData?.supply_id || 0),
-                                        disassembly: Boolean(shockWorkData?.disassembly || false),
-                                        replacement: Boolean(shockWorkData?.replacement || false),
-                                        repair: Boolean(shockWorkData?.repair || false),
-                                        paint: Boolean(shockWorkData?.paint || false),
-                                        control: Boolean(shockWorkData?.control || false),
-                                        obsolescence: Boolean(shockWorkData?.obsolescence || false),
-                                        comment: shockWorkData?.comment || null,
-                                        obsolescence_rate: Number(shockWorkData?.obsolescence_rate || 0),
-                                        recovery_amount: Number(shockWorkData?.recovery_amount || 0),
-                                        discount: Number(shockWorkData?.discount || 0),
-                                        amount: Number(shockWorkData?.amount || 0)
-                                      }]
-                                    }
-                                    
-                                    await axiosInstance.post(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}`, payload)
-                                    toast.success('Fourniture ajoutée')
-                                    refreshAssignment()
-                                  } catch (err) {
-                                    console.error('Erreur lors de l\'ajout de la fourniture:', err)
-                                    toast.error("Erreur lors de l'ajout de la fourniture")
-                                  }
-                                }}
-                                onRemove={async (index: number) => {
-                                  try {
-                                    const work = shock?.shock_works[index]
-                                    if (work && work?.id) {
-                                      await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work?.id}`)
-                                      toast.success('Fourniture supprimée')
-                                      refreshAssignment()
-                                    }
-                                  } catch (err) {
-                                    console.error('Erreur suppression fourniture:', err)
-                                    toast.error('Erreur lors de la suppression')
-                                  }
-                                }}
-                                onValidateRow={async (index: number) => {
-                                  // Validation automatique après modification
-                                  toast.success('Fourniture validée')
-                                }}
-                                shockId={shock?.id}
-                                paintTypeId={shock?.paint_type?.id || 1}
-                                onReorderSave={async (shockWorkIds) => handleReorderShockWorks(shock?.id, shockWorkIds)}
-                                onAssignmentRefresh={refreshAssignment}
-                              />
-                            </div>
-
-                            <Separator />
-                            
-                            {/* Section Main d'œuvre */}
-                            <div>
-                              {/* Vérifier que les données de référence sont chargées */}
-                              {/* Debug: Afficher l'état des données */}
-                              {/* <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
-                                <div>Debug - paintTypes: {paintTypes.length} | hourlyRates: {hourlyRates.length}</div>
-                                <div>shock.paint_type.id: {shock?.paint_type?.id || 'undefined'}</div>
-                                <div>shock.hourly_rate.id: {shock?.hourly_rate?.id || 'undefined'}</div>
-                              </div> */}
+                          return (
+                            <div
+                              key={shock?.id || `shock-${index}`}
+                              data-shock-id={shock?.id || ''}
+                              className={cn(
+                                "relative flex gap-6 transition-all duration-200",
+                                isHighlighted && "z-10"
+                              )}
+                            >
+                              {/* Timeline Node à gauche */}
+                              <div className="relative flex-shrink-0 w-16 flex flex-col items-center">
+                                {/* Ligne de connexion vers le haut (sauf pour le premier) */}
+                                {index > 0 && (
+                                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-blue-300" />
+                                )}
+                                
+                                {/* Point de la timeline */}
+                                <div className={cn(
+                                  "relative z-10 w-8 h-8 rounded-full border-4 transition-all duration-200",
+                                  isHighlighted
+                                    ? "bg-blue-600 border-blue-600 ring-4 ring-blue-200 shadow-lg scale-110"
+                                    : "bg-white border-blue-400 hover:border-blue-500 hover:scale-105",
+                                  "flex items-center justify-center"
+                                )}>
+                                  {isCollapsed ? (
+                                    <ChevronDown className="h-3 w-3 text-blue-600" />
+                                  ) : (
+                                    <ChevronUp className="h-3 w-3 text-blue-600" />
+                                  )}
+                                </div>
+                                
+                                {/* Numéro de choc */}
+                                <div className={cn(
+                                  "mt-2 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center",
+                                  isHighlighted
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-blue-100 text-blue-700"
+                                )}>
+                                  {index + 1}
+                                </div>
+                                
+                                {/* Ligne de connexion vers le bas (sauf pour le dernier) */}
+                                {!isLast && (
+                                  <div className={cn(
+                                    "absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 transition-all duration-200",
+                                    isCollapsed ? "h-8 bg-blue-200" : "h-full bg-blue-300"
+                                  )} />
+                                )}
+                              </div>
                               
-                              {/* Permettre l'affichage même si les données ne sont pas complètement chargées */}
-                              {/* Le composant peut s'afficher avec des données partielles */}
-                              <QuotePreparationShockWorkforceTable
-                                shockId={shock?.id}
-                                workforces={(shock.workforces || []).filter(w => w.id !== undefined).map((w: any) => ({
-                                  id: w.id!,
-                                  uid: w.id?.toString() || crypto.randomUUID(),
-                                  workforce_type: w?.workforce_type,
-                                  workforce_type_id: w?.workforce_type?.id || 0,
-                                  nb_hours: w?.nb_hours,
-                                  work_fee: w?.work_fee,
-                                  discount: w?.discount,
-                                  with_tax: w?.with_tax === 1 || w?.with_tax === true,
-                                  amount_excluding_tax: w?.amount_excluding_tax,
-                                  amount_tax: w?.amount_tax,
-                                  amount: w?.amount,
-                                  all_paint: w?.all_paint === 1 || w?.all_paint === true,
-                                  paint_type_id: shock?.paint_type?.id,
-                                  hourly_rate_id: shock?.hourly_rate?.id
-                                }))}
-                                paintTypes={paintTypes || []}
-                                hourlyRates={hourlyRates || []}
-                                onUpdate={(updatedWorkforces) => {
-                                  // Mettre à jour les données locales
-                                  const updatedAssignment = { ...assignment }
-                                  const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
-                                  if (shockIndex !== -1) {
-                                    updatedAssignment.shocks[shockIndex].workforces = updatedWorkforces as any
-                                    setAssignment(updatedAssignment)
-                                  }
-                                }}
-                                onAdd={async (workforceData?: any) => {
-                                  try {
-                                    // Préparer le payload selon l'API
-                                    const payload = {
-                                      shock_id: String(shock?.id || 0),
-                                      hourly_rate_id: String(shock?.hourly_rate?.id || 1), // Utiliser le taux du shock
-                                      paint_type_id: String(shock?.paint_type?.id || 1), // Utiliser le type du shock
-                                      workforces: [{
-                                        workforce_type_id: String(workforceData?.workforce_type_id || 0),
-                                        nb_hours: Number(workforceData?.nb_hours || 0),
-                                        discount: Number(workforceData?.discount || 0),
-                                        with_tax: workforceData?.with_tax !== undefined ? workforceData.with_tax : true,
-                                        all_paint: workforceData?.all_paint || false
-                                      }]
-                                    }
+                              {/* Contenu du choc à droite */}
+                              <div className={cn(
+                                "flex-1 border rounded-lg transition-all duration-200 overflow-hidden",
+                                isHighlighted
+                                  ? "ring-2 ring-blue-500 bg-blue-50/30 shadow-lg"
+                                  : "bg-white hover:bg-gray-50 hover:shadow-md",
+                                isCollapsed
+                                  ? "border-gray-200"
+                                  : "border-blue-200 shadow-sm"
+                              )}>
+                                {/* En-tête du choc */}
+                                <div className="bg-gradient-to-r from-gray-50 to-white px-4 py-3 border-b border-gray-200">
+                                  <div className="flex items-center justify-between gap-4">
+                                    {/* Section gauche : Sélecteur et actions */}
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                      {/* Bouton de collapse */}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => shock?.id && toggleShockCollapse(shock.id)}
+                                        className="p-1.5 hover:bg-blue-100 rounded-md transition-colors shrink-0"
+                                        title={isCollapsed ? "Développer" : "Réduire"}
+                                      >
+                                        <ChevronDown 
+                                          className={cn(
+                                            "h-4 w-4 text-blue-600 transition-transform duration-200",
+                                            isCollapsed ? 'rotate-0' : 'rotate-180'
+                                          )} 
+                                        />
+                                      </Button>
+                                      
+                                      {/* Sélecteur de point de choc */}
+                                      <div className="flex-1 min-w-0">
+                                        <ShockPointSelect
+                                          className='w-full max-w-md'
+                                          value={String(shock?.shock_point?.id || '')}  
+                                          onValueChange={async (newShockPointId) => {
+                                            try {
+                                              await axiosInstance.put(`/shocks/${shock?.id}`, {
+                                                shock_point_id: String(newShockPointId)
+                                              })
+                                              toast.success('Point de choc modifié')
+                                              refreshAssignment()
+                                            } catch (err) {
+                                              toast.error('Erreur lors de la modification du point de choc')
+                                            }
+                                          }}
+                                          showSelectedInfo={true}
+                                          onCreateNew={handleCreateShockPoint}
+                                        />
+                                      </div>
+
+                                      {/* Bouton de réorganisation */}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-blue-50 shrink-0"
+                                        title="Réorganiser les chocs"
+                                        onClick={() => handleOpenReorderSheet(shock?.id)}
+                                      >
+                                        <List className="h-4 w-4" />
+                                      </Button>
+                                    </div>
                                     
-                                    await axiosInstance.post(`${API_CONFIG.ENDPOINTS.WORKFORCES}`, payload)
-                                    toast.success('Main d\'œuvre ajoutée')
-                                    refreshAssignment()
-                                  } catch (err) {
-                                    toast.error("Erreur lors de l'ajout de la main d'œuvre")
-                                  }
-                                }}
-                                onAssignmentRefresh={refreshAssignment}
-                                // Props pour type de peinture et taux horaire - utiliser les valeurs du shock
-                                paintTypeId={shock?.paint_type?.id}
-                                hourlyRateId={shock?.hourly_rate?.id}
-                                // Prop withTax basée sur la première workforce du shock
-                                withTax={Boolean(shock?.workforces?.[0]?.with_tax)}
-                                onPaintTypeChange={async (value: number) => {
-                                  try {
-                                    // Mettre à jour le type de peinture pour ce shock
-                                    // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
-                                    // qui gère déjà la mise à jour via l'API workforce
-                                    console.log('Type de peinture changé:', value, 'pour shock:', shock?.id || 'unknown')
-                                  } catch (err) {
-                                    toast.error('Erreur lors de la mise à jour du type de peinture')
-                                  }
-                                }}
-                                onHourlyRateChange={async (value: number) => {
-                                  try {
-                                    // Mettre à jour le taux horaire pour ce shock
-                                    // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
-                                    // qui gère déjà la mise à jour via l'API workforce
-                                    console.log('Taux horaire changé:', value, 'pour shock:', shock?.id || 'unknown')
-                                  } catch (err) {
-                                    toast.error('Erreur lors de la mise à jour du taux horaire')
-                                  }
-                                }}
-                                onReorderSave={async (workforceIds) => {
-                                  if (shock?.id) {
-                                    await handleReorderWorkforces(shock.id, workforceIds)
-                                  }
-                                }}
-                              />
+                                    {/* Section droite : Statistiques et actions */}
+                                    <div className="flex items-center gap-4 shrink-0">
+                                      {/* Statistiques */}
+                                      <div className="flex items-center gap-3 text-sm">
+                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 rounded-md">
+                                          <Package className="h-3.5 w-3.5 text-blue-600" />
+                                          <span className="font-medium text-blue-700">{shock?.shock_works?.length || 0}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-green-50 rounded-md">
+                                          <Users className="h-3.5 w-3.5 text-green-600" />
+                                          <span className="font-medium text-green-700">{shock?.workforces?.length || 0}</span>
+                                        </div>
+                                        <div className="px-3 py-1 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-md border border-purple-200">
+                                          <span className="font-bold text-purple-700">
+                                            {formatCurrency(shock?.amount || '0')}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Bouton de suppression */}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => shock?.id && handleDeleteShock(shock.id)}
+                                        className="p-1.5 hover:bg-red-50 text-red-600 hover:text-red-700 transition-all duration-200 shrink-0"
+                                        title="Supprimer ce choc"
+                                        disabled={!shock?.id}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Contenu collapsible */}
+                                <div 
+                                  className={cn(
+                                    "transition-all duration-300 ease-in-out overflow-hidden",
+                                    isCollapsed
+                                      ? 'max-h-0 opacity-0' 
+                                      : 'opacity-100'
+                                  )}
+                                >
+                                  <div className="p-4 space-y-4">
+                                    {/* Tableau des fournitures */}
+                                    <div>
+                                      <QuotePreparationShockSuppliesTable
+                                        supplies={supplies.map((supply: any) => ({
+                                          id: supply?.id,
+                                          label: supply?.label || '',
+                                          code: supply?.code || '',
+                                          price: supply?.price || 0
+                                        }))}
+                                        shockWorks={(shock.shock_works || []).map((work: any) => {
+                                          // Vérification de sécurité pour work.id
+                                          if (!work?.id) return null
+                                          
+                                          return {
+                                            id: work.id, // ID réel de l'API pour la réorganisation
+                                            uid: work.id?.toString() || crypto.randomUUID(),
+                                            supply_id: work.supply?.id || 0,
+                                            supply_label: work.supply?.label || work.supply_label || '',
+                                            disassembly: work?.disassembly || false,
+                                            replacement: work?.replacement || false,
+                                            repair: work?.repair || false,
+                                            paint: work?.paint || false,
+                                            control: work?.control || false,
+                                            obsolescence: work?.obsolescence || false,
+                                            comment: work?.comment || '',
+                                            obsolescence_rate: Number(work?.obsolescence_rate) || 0,
+                                            recovery_amount: Number(work?.recovery_amount) || 0,
+                                            discount: Number(work?.discount) || 0,
+                                            amount: Number(work?.amount) || 0,
+                                            obsolescence_amount_excluding_tax: Number(work?.obsolescence_amount_excluding_tax) || 0,
+                                            obsolescence_amount_tax: Number(work?.obsolescence_amount_tax) || 0,
+                                            obsolescence_amount: Number(work?.obsolescence_amount) || 0,
+                                            recovery_amount_excluding_tax: Number(work?.recovery_amount_excluding_tax) || 0,
+                                            recovery_amount_tax: Number(work?.recovery_amount_tax) || 0,
+                                            new_amount_excluding_tax: Number(work?.new_amount_excluding_tax) || 0,
+                                            new_amount_tax: Number(work?.new_amount_tax) || 0,
+                                            new_amount: Number(work?.new_amount) || 0,
+                                            discount_amount: Number(work?.discount_amount) || 0,
+                                            discount_amount_excluding_tax: Number(work?.discount_amount_excluding_tax) || 0,
+                                            discount_amount_tax: Number(work?.discount_amount_tax) || 0,
+                                            amount_excluding_tax: Number(work?.amount_excluding_tax) || 0,
+                                            amount_tax: Number(work?.amount_tax) || 0
+                                          }
+                                        }).filter((work): work is NonNullable<typeof work> => work !== null)}
+                                        onUpdate={async (index, updatedWork) => {
+                                          try {
+                                            const work = shock?.shock_works?.[index]
+                                            if (work && work?.id) {
+                                              // On envoie tout l'objet d'un coup
+                                              await axiosInstance.put(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work?.id}`, {
+                                                supply_id: updatedWork?.supply_id,
+                                                disassembly: updatedWork?.disassembly,
+                                                replacement: updatedWork?.replacement,
+                                                repair: updatedWork?.repair,
+                                                paint: updatedWork?.paint,
+                                                control: updatedWork?.control,
+                                                obsolescence: updatedWork?.obsolescence,
+                                                comment: updatedWork?.comment,
+                                                obsolescence_rate: updatedWork?.obsolescence_rate,
+                                                recovery_amount: updatedWork?.recovery_amount,
+                                                discount: updatedWork?.discount,
+                                                amount: updatedWork?.amount
+                                              })
+                                              toast.success('Fourniture mise à jour')
+                                              refreshAssignment()
+                                            }
+                                          } catch (err) {
+                                            console.error('Erreur mise à jour fourniture:', err)
+                                            toast.error('Erreur lors de la mise à jour')
+                                          }
+                                        }}
+                                        onAdd={async (shockWorkData?: any) => {
+                                          try {
+                                            // Préparer le payload selon l'API
+                                            const payload = {
+                                              paint_type_id: "1", // Valeur par défaut - à adapter selon tes besoins
+                                              shock_id: String(shock.id || 0),
+                                              shock_works: [{
+                                                supply_id: String(shockWorkData?.supply_id || 0),
+                                                disassembly: Boolean(shockWorkData?.disassembly || false),
+                                                replacement: Boolean(shockWorkData?.replacement || false),
+                                                repair: Boolean(shockWorkData?.repair || false),
+                                                paint: Boolean(shockWorkData?.paint || false),
+                                                control: Boolean(shockWorkData?.control || false),
+                                                obsolescence: Boolean(shockWorkData?.obsolescence || false),
+                                                comment: shockWorkData?.comment || null,
+                                                obsolescence_rate: Number(shockWorkData?.obsolescence_rate || 0),
+                                                recovery_amount: Number(shockWorkData?.recovery_amount || 0),
+                                                discount: Number(shockWorkData?.discount || 0),
+                                                amount: Number(shockWorkData?.amount || 0)
+                                              }]
+                                            }
+                                            
+                                            await axiosInstance.post(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}`, payload)
+                                            toast.success('Fourniture ajoutée')
+                                            refreshAssignment()
+                                          } catch (err) {
+                                            console.error('Erreur lors de l\'ajout de la fourniture:', err)
+                                            toast.error("Erreur lors de l'ajout de la fourniture")
+                                          }
+                                        }}
+                                        onRemove={async (index: number) => {
+                                          try {
+                                            const work = shock?.shock_works[index]
+                                            if (work && work?.id) {
+                                              await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}/${work?.id}`)
+                                              toast.success('Fourniture supprimée')
+                                              refreshAssignment()
+                                            }
+                                          } catch (err) {
+                                            console.error('Erreur suppression fourniture:', err)
+                                            toast.error('Erreur lors de la suppression')
+                                          }
+                                        }}
+                                        onValidateRow={async (index: number) => {
+                                          // Validation automatique après modification
+                                          toast.success('Fourniture validée')
+                                        }}
+                                        shockId={shock?.id}
+                                        paintTypeId={shock?.paint_type?.id || 1}
+                                        onReorderSave={async (shockWorkIds) => handleReorderShockWorks(shock?.id, shockWorkIds)}
+                                        onAssignmentRefresh={refreshAssignment}
+                                      />
+                                </div>
+
+                                <Separator />
+                                
+                                    {/* Section Main d'œuvre */}
+                                    <div>
+                                      {/* Vérifier que les données de référence sont chargées */}
+                                      {/* Debug: Afficher l'état des données */}
+                                      {/* <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+                                        <div>Debug - paintTypes: {paintTypes.length} | hourlyRates: {hourlyRates.length}</div>
+                                        <div>shock.paint_type.id: {shock?.paint_type?.id || 'undefined'}</div>
+                                        <div>shock.hourly_rate.id: {shock?.hourly_rate?.id || 'undefined'}</div>
+                                      </div> */}
+                                      
+                                      {/* Permettre l'affichage même si les données ne sont pas complètement chargées */}
+                                      {/* Le composant peut s'afficher avec des données partielles */}
+                                      <QuotePreparationShockWorkforceTable
+                                        shockId={shock?.id}
+                                        workforces={(shock.workforces || []).filter(w => w.id !== undefined).map((w: any) => ({
+                                          id: w.id!,
+                                          uid: w.id?.toString() || crypto.randomUUID(),
+                                          workforce_type: w?.workforce_type,
+                                          workforce_type_id: w?.workforce_type?.id || 0,
+                                          nb_hours: w?.nb_hours,
+                                          work_fee: w?.work_fee,
+                                          discount: w?.discount,
+                                          with_tax: w?.with_tax === 1 || w?.with_tax === true,
+                                          amount_excluding_tax: w?.amount_excluding_tax,
+                                          amount_tax: w?.amount_tax,
+                                          amount: w?.amount,
+                                          all_paint: w?.all_paint === 1 || w?.all_paint === true,
+                                          paint_type_id: shock?.paint_type?.id,
+                                          hourly_rate_id: shock?.hourly_rate?.id
+                                        }))}
+                                        paintTypes={paintTypes || []}
+                                        hourlyRates={hourlyRates || []}
+                                        onUpdate={(updatedWorkforces) => {
+                                          // Mettre à jour les données locales
+                                          const updatedAssignment = { ...assignment }
+                                          const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
+                                          if (shockIndex !== -1) {
+                                            updatedAssignment.shocks[shockIndex].workforces = updatedWorkforces as any
+                                            setAssignment(updatedAssignment)
+                                          }
+                                        }}
+                                        onAdd={async (workforceData?: any) => {
+                                          try {
+                                            // Préparer le payload selon l'API
+                                            const payload = {
+                                              shock_id: String(shock?.id || 0),
+                                              hourly_rate_id: String(shock?.hourly_rate?.id || 1), // Utiliser le taux du shock
+                                              paint_type_id: String(shock?.paint_type?.id || 1), // Utiliser le type du shock
+                                              workforces: [{
+                                                workforce_type_id: String(workforceData?.workforce_type_id || 0),
+                                                nb_hours: Number(workforceData?.nb_hours || 0),
+                                                discount: Number(workforceData?.discount || 0),
+                                                with_tax: workforceData?.with_tax !== undefined ? workforceData.with_tax : true,
+                                                all_paint: workforceData?.all_paint || false
+                                              }]
+                                            }
+                                            
+                                            await axiosInstance.post(`${API_CONFIG.ENDPOINTS.WORKFORCES}`, payload)
+                                            toast.success('Main d\'œuvre ajoutée')
+                                            refreshAssignment()
+                                          } catch (err) {
+                                            toast.error("Erreur lors de l'ajout de la main d'œuvre")
+                                          }
+                                        }}
+                                        onAssignmentRefresh={refreshAssignment}
+                                        // Props pour type de peinture et taux horaire - utiliser les valeurs du shock
+                                        paintTypeId={shock?.paint_type?.id}
+                                        hourlyRateId={shock?.hourly_rate?.id}
+                                        // Prop withTax basée sur la première workforce du shock
+                                        withTax={Boolean(shock?.workforces?.[0]?.with_tax)}
+                                        onPaintTypeChange={async (value: number) => {
+                                          try {
+                                            // Mettre à jour le type de peinture pour ce shock
+                                            // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
+                                            // qui gère déjà la mise à jour via l'API workforce
+                                            console.log('Type de peinture changé:', value, 'pour shock:', shock?.id || 'unknown')
+                                          } catch (err) {
+                                            toast.error('Erreur lors de la mise à jour du type de peinture')
+                                          }
+                                        }}
+                                        onHourlyRateChange={async (value: number) => {
+                                          try {
+                                            // Mettre à jour le taux horaire pour ce shock
+                                            // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
+                                            // qui gère déjà la mise à jour via l'API workforce
+                                            console.log('Taux horaire changé:', value, 'pour shock:', shock?.id || 'unknown')
+                                          } catch (err) {
+                                            toast.error('Erreur lors de la mise à jour du taux horaire')
+                                          }
+                                        }}
+                                        onReorderSave={async (workforceIds) => {
+                                          if (shock?.id) {
+                                            await handleReorderWorkforces(shock.id, workforceIds)
+                                          }
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <Card className="shadow-none">
+                      <CardContent className="p-6">
+                        <div className="text-center py-8 text-gray-500">
+                          Aucun point de choc enregistré
                         </div>
-                      ))
-                    ) : (
-                      <Card className="shadow-none">
-                        <CardContent className="p-6">
-                          <div className="text-center py-8 text-gray-500">
-                            Aucun point de choc enregistré
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
                 
               </div>
             </ScrollArea>

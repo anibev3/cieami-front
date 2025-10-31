@@ -12,6 +12,8 @@ import { useUsersStore } from '@/stores/usersStore'
 import { useEntitiesStore } from '@/stores/entitiesStore'
 import { User, CreateUserData, UpdateUserData } from '@/types/administration'
 import { toast } from 'sonner'
+import { EntityTypeEnum, useACL } from '@/hooks/useACL'
+import { useUser } from '@/stores/authStore'
 
 interface UsersDialogsProps {
   isCreateOpen: boolean
@@ -38,6 +40,35 @@ export function UsersDialogs({
 }: UsersDialogsProps) {
   const { createUser, updateUser, deleteUser } = useUsersStore()
   const { entities, fetchEntities } = useEntitiesStore()
+  const { isMainOrganization, isOrganization, isInsurerEntity, isRepairerEntity } = useACL()
+  const currentUser = useUser()
+
+  // Logique de contrôle d'accès pour la sélection d'entité :
+  // - Si l'utilisateur connecté est de type MAIN_ORGANIZATION (chambre principale) :
+  //   → Il peut sélectionner n'importe quelle entité dans le select
+  // - Si l'utilisateur connecté est de type organization, insurer ou repairer :
+  //   → L'entité est automatiquement assignée à son entité (pas de sélection)
+  
+  // Récupérer le type d'entité directement depuis l'utilisateur connecté
+  // (plus fiable que l'ACL qui peut ne pas être initialisé immédiatement)
+  const currentUserEntityTypeCode = currentUser?.entity?.entity_type?.code
+  
+  // Vérifier si l'utilisateur peut sélectionner l'entité
+  // Utiliser l'ACL d'abord, puis fallback sur la vérification directe
+  const isMainOrg = isMainOrganization() || currentUserEntityTypeCode === EntityTypeEnum.MAIN_ORGANIZATION
+  const canSelectEntity = isMainOrg // Seule la chambre principale peut sélectionner
+  
+  // Vérifier si l'utilisateur est d'un type externe
+  const isExtEntity = isOrganization() || isInsurerEntity() || isRepairerEntity() || 
+    currentUserEntityTypeCode === EntityTypeEnum.ORGANIZATION || 
+    currentUserEntityTypeCode === EntityTypeEnum.INSURER || 
+    currentUserEntityTypeCode === EntityTypeEnum.REPAIRER
+  const isExternalEntity = isExtEntity
+  
+  // Obtenir l'ID de l'entité de l'utilisateur connecté (l'ID est en string, convertir en number pour le formulaire)
+  const currentUserEntityId = currentUser?.entity?.id 
+    ? (typeof currentUser.entity.id === 'string' ? parseInt(currentUser.entity.id, 10) : currentUser.entity.id)
+    : 0
 
   // États pour les formulaires
   const [createForm, setCreateForm] = useState<CreateUserData>({
@@ -58,36 +89,54 @@ export function UsersDialogs({
     fetchEntities()
   }, [fetchEntities])
 
-  // Réinitialiser les formulaires
+  // Réinitialiser les formulaires et auto-assigner l'entité si nécessaire
   useEffect(() => {
     if (isCreateOpen) {
+      // Si l'utilisateur est d'un type externe (organization, insurer, repairer) :
+      // → Auto-assigner son entité
+      // Si l'utilisateur est de type MAIN_ORGANIZATION :
+      // → Mettre 0 pour permettre la sélection dans le select
+      const initialEntityId = isExternalEntity ? currentUserEntityId : 0
       setCreateForm({
         email: '',
         username: '',
         first_name: '',
         last_name: '',
         telephone: '',
-        entity_id: 0,
+        entity_id: initialEntityId,
         role: ''
         // code: '',
       })
     }
-  }, [isCreateOpen])
+  }, [isCreateOpen, isExternalEntity, currentUserEntityId])
 
   useEffect(() => {
     if (isEditOpen && selectedUser) {
+      // Si l'utilisateur connecté est d'un type externe (organization, insurer, repairer) :
+      // → Forcer l'ID de son entité (il ne peut pas changer)
+      // Si l'utilisateur connecté est de type MAIN_ORGANIZATION :
+      // → Utiliser l'ID de l'utilisateur sélectionné (peut être modifié dans le select)
+      let entityId: number
+      if (isExternalEntity) {
+        entityId = currentUserEntityId
+      } else {
+        // L'ID de l'entité peut être en string, convertir en number si nécessaire
+        entityId = typeof selectedUser.entity.id === 'string' 
+          ? parseInt(selectedUser.entity.id, 10) 
+          : selectedUser.entity.id
+      }
       setEditForm({
         email: selectedUser.email,
         username: selectedUser.username,
         first_name: selectedUser.first_name,
         last_name: selectedUser.last_name,
         telephone: selectedUser.telephone,
-        entity_id: selectedUser.entity.id,
+        entity_id: entityId,
         role: selectedUser.role.name,
         // code: selectedUser.code,
       })
     }
-  }, [isEditOpen, selectedUser])
+  }, [isEditOpen, selectedUser, isExternalEntity, currentUserEntityId])
 
   // Handlers pour la création
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -149,6 +198,7 @@ export function UsersDialogs({
                   required
                 />
               </div> */}
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
                 <Input
@@ -191,22 +241,35 @@ export function UsersDialogs({
             </div>
             <div className="space-y-2">
               <Label htmlFor="entity">Entité *</Label>
-              <Select
-                value={createForm.entity_id ? String(createForm.entity_id) : ''}
-                onValueChange={(value) => setCreateForm({ ...createForm, entity_id: Number(value) })}
-                required
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner une entité" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entities.map((entity) => (
-                    <SelectItem key={entity.id} value={String(entity.id)}>
-                      {entity.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {canSelectEntity ? (
+                <Select
+                  value={createForm.entity_id ? String(createForm.entity_id) : ''}
+                  onValueChange={(value) => setCreateForm({ ...createForm, entity_id: Number(value) })}
+                  required
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner une entité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entities.map((entity) => (
+                      <SelectItem key={entity.id} value={String(entity.id)}>
+                        {entity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    value={currentUser?.entity?.name || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    L'entité est automatiquement assignée ({currentUser?.entity?.entity_type?.label || 'Votre entité'})
+                  </p>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Rôle *</Label>
@@ -274,23 +337,36 @@ export function UsersDialogs({
                 onChange={(e) => setEditForm({ ...editForm, telephone: e.target.value })}
               />
             </div>
-            <div className="space-y-2 grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="edit-entity">Entité</Label>
-              <Select
-                value={editForm.entity_id ? String(editForm.entity_id) : ''}
-                onValueChange={(value) => setEditForm({ ...editForm, entity_id: Number(value) })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner une entité" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entities.map((entity) => (
-                    <SelectItem key={entity.id} value={String(entity.id)}>
-                      {entity.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {canSelectEntity ? (
+                <Select
+                  value={editForm.entity_id ? String(editForm.entity_id) : ''}
+                  onValueChange={(value) => setEditForm({ ...editForm, entity_id: Number(value) })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner une entité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entities.map((entity) => (
+                      <SelectItem key={entity.id} value={String(entity.id)}>
+                        {entity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    value={currentUser?.entity?.name || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    L'entité est automatiquement assignée ({currentUser?.entity?.entity_type?.label || 'Votre entité'})
+                  </p>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-role">Rôle</Label>

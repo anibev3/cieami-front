@@ -33,12 +33,21 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search as SearchComponent } from '@/components/search'
-import { useACL } from '@/hooks/useACL'
+import { EntityTypeEnum, useACL } from '@/hooks/useACL'
 import { UserRole } from '@/types/auth'
+import { useUser } from '@/stores/authStore'
 
 export default function AssignmentsPage() {
   const navigate = useNavigate()
-  const { hasRole } = useACL()
+  const { hasRole, isMainOrganization } = useACL()
+  const currentUser = useUser()
+  
+  // Vérifier si l'utilisateur peut créer un dossier
+  // Les utilisateurs de type chambre (main_organization) ne peuvent pas créer de dossiers
+  const currentUserEntityTypeCode = currentUser?.entity?.entity_type?.code
+  const canCreateAssignment = !isMainOrganization() && 
+    currentUserEntityTypeCode !== EntityTypeEnum.MAIN_ORGANIZATION && 
+    !hasRole(UserRole.REPAIRER_ADMIN)
   const {
     loading,
     error,
@@ -314,8 +323,8 @@ export default function AssignmentsPage() {
     // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }
 
-  const handleClientChange = useCallback((clientId: number | null) => {
-    setSelectedClient(clientId)
+  const handleClientChange = useCallback((clientId: string | null) => {
+    setSelectedClient(clientId ? Number(clientId) : null)
     // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }, [setSelectedClient])
 
@@ -335,8 +344,8 @@ export default function AssignmentsPage() {
     // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }, [setSelectedVehicle])
 
-  const handleInsurerChange = useCallback((insurerId: number | null) => {
-    setSelectedInsurer(insurerId)
+  const handleInsurerChange = useCallback((insurerId: string | number | null) => {
+    setSelectedInsurer(insurerId ? Number(insurerId) : null)
     // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }, [setSelectedInsurer])
 
@@ -345,8 +354,8 @@ export default function AssignmentsPage() {
     // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }, [setSelectedBroker])
 
-  const handleRepairerChange = useCallback((repairerId: number | null) => {
-    setSelectedRepairer(repairerId)
+  const handleRepairerChange = useCallback((repairerId: string | number | null) => {
+    setSelectedRepairer(repairerId ? Number(repairerId) : null)
     // L'API sera appelée automatiquement par le useEffect qui surveille les changements
   }, [setSelectedRepairer])
 
@@ -474,7 +483,7 @@ export default function AssignmentsPage() {
                   Gérez vos dossiers d'expertise automobile
                 </p>
               </div>
-              {!hasRole(UserRole.REPAIRER_ADMIN) && (
+              {canCreateAssignment && (
                 <Button 
                   onClick={handleCreateAssignment}
                   className=" text-white px-6 py-2.5 font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
