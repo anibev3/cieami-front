@@ -81,6 +81,7 @@ import {
 import { useACL } from '@/hooks/useACL'
 import { UserRole } from '@/types/auth'
 import { AssignmentStatusEnum } from '@/types/global-types'
+import assignmentValidationService from '@/services/assignmentValidationService'
 
 interface AssignmentDetail {
   id: number
@@ -653,6 +654,7 @@ export default function AssignmentDetailPage() {
   const [unvalidateModalOpen, setUnvalidateModalOpen] = useState(false)
   const [validating, setValidating] = useState(false)
   const [unvalidating, setUnvalidating] = useState(false)
+  const [validatingEdition, setValidatingEdition] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
   const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin } = useACL()
@@ -1673,9 +1675,9 @@ export default function AssignmentDetailPage() {
                 <CardTitle className="text-xs">Experts assignés</CardTitle>
               </CardHeader>
               <CardContent>
-                {assignment.experts.length > 0 ? (
+                {assignment?.experts && assignment?.experts?.length > 0 ? (
                   <div className="space-y-2">
-                    {assignment.experts.map((expert) => (
+                    {assignment?.experts?.map((expert) => (
                       <div key={expert.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                         <div>
                           <p className="font-medium text-xs">Expert #{expert.id}</p>
@@ -2191,13 +2193,34 @@ export default function AssignmentDetailPage() {
     }
   }
 
+  const handleValidateEdition = async () => {
+    if (!assignment) return
+    
+    setValidatingEdition(true)
+    try {
+      await assignmentValidationService.validateEdition(String(assignment.id))
+      toast.success('Édition validée avec succès')
+      
+      // Mettre à jour tout le dossier avec une requête API de détail
+      try {
+        const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignment.id}`)
+        if (response.status === 200 || response.status === 201) {
+          setAssignment(response.data.data)
+        }
+      } catch (detailError) {
+        console.error('Erreur lors de la récupération des détails:', detailError)
+      }
+    } catch (error) {
+      console.error('Erreur lors de la validation de l\'édition:', error)
+      toast.error('Erreur lors de la validation de l\'édition')
+    } finally {
+      setValidatingEdition(false)
+    }
+  }
+
   // Fonction pour déterminer les actions disponibles selon le statut
   const getAvailableActions = (assignment: AssignmentDetail) => {
     const statusCode = assignment.status.code
-    
-    const actions = []
-
-    // Restreindre certains rôles à uniquement "Générer le rapport"
     const isRestrictedRole = hasAnyRole([
       UserRole.REPAIRER_ADMIN,
       UserRole.REPAIRER_STANDARD_USER,
@@ -2205,300 +2228,108 @@ export default function AssignmentDetailPage() {
       UserRole.INSURER_STANDARD_USER
     ])
 
-    if (isRestrictedRole) {
-      return [
-        {
-          key: 'generate-report',
-          label: 'Générer le rapport',
-          icon: Download,
-          onClick: async () => {
-            await generateReport(assignment.id)
-          },
-          variant: 'default' as const,
-          loading: loadingGenerate
-        }
-      ]
+    const canEdit = !['validated', 'cancelled', 'closed', 'paid'].includes(statusCode)
+    const canRealize = statusCode === 'opened'
+    const canEditRealization = statusCode === 'realized' || statusCode === 'edited' || statusCode === 'in_payment'
+    const canWriteReport = statusCode === 'realized'
+    const canEditReport = statusCode === 'edited' || statusCode === 'in_payment'
+    const canGenerateReport = true
+    const canDelete = statusCode === 'pending'
+    const canValidate = (isCEO() || isValidator() || isExpertManager()) && ['edited', 'in_payment'].includes(statusCode)
+    const canUnvalidate = (isCEO() || isValidator() || isExpertManager()) && ['validated', 'paid'].includes(statusCode)
+
+    const alwaysDisableForRestricted = (key: string) => {
+      if (!isRestrictedRole) return false
+      return key !== 'generate-report'
     }
 
-    // Actions selon le statut
-    switch (statusCode) {
-      case 'pending':
-        actions.push(
-          {
-            key: 'edit',
-            label: 'Modifier',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          // {
-          //   key: 'receipts',
-          //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-          //   icon: Receipt,
-          //   onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
-          //   variant: 'outline' as const
-          // },
-          {
-            key: 'delete',
-            label: 'Supprimer',
-            icon: Trash2,
-            onClick: () => handleDeleteAssignment(assignment),
-            variant: 'destructive' as const
-          }
-        )
-        break
-
-      case 'opened':
-        actions.push(
-          // {
-          //   key: 'edit',
-          //   label: 'Modifier',
-          //   icon: Edit,
-          //   onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
-          //   variant: 'outline' as const
-          // },
-          {
-            key: 'realize',
-            label: 'Réaliser le dossier',
-            icon: CheckCircle,
-            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-            variant: 'default' as const
-          }
-        )
-        break
-
-      case 'realized':
-        actions.push(
-          {
-            key: 'edit-realization',
-            label: 'Modifier la réalisation',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          {
-            key: 'write-report',
-            label: 'Rédiger le rapport',
-            icon: FileText,
-            onClick: () => navigate({ to: `/assignments/edite-report/${assignment.id}` }),
-            variant: 'default' as const
-          }
-        )
-        break
-
-      case 'edited':
-        actions.push(
-          {
-            key: 'edit-report',
-            label: 'Modifier la rédaction',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          {
-            key: 'edit-realization',
-            label: 'Modifier la réalisation',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          // {
-          //   key: 'receipts',
-          //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-          //   icon: Receipt,
-          //   onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
-          //   variant: 'outline' as const
-          // },
-        )
-        
-        // Action de validation - seulement pour CEO et Validator
-        if (isCEO() || isValidator() || isExpertManager()) {
-          actions.push({
-            key: 'validate',
-            label: 'Valider le dossier',
-            icon: Shield,
-            onClick: () => setValidateModalOpen(true),
-            variant: 'default' as const,
-            className: 'bg-green-600 hover:bg-green-700'
-          })
-        }
-
-        break
-      case 'in_payment':
-        actions.push(
-          {
-            key: 'edit-report',
-            label: 'Modifier la rédaction',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          {
-            key: 'edit-realization',
-            label: 'Modifier la réalisation',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          // {
-          //   key: 'receipts',
-          //   label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-          //   icon: Receipt,
-          //   onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
-          //   variant: 'outline' as const
-          // },
-          {
-            key: 'generate-report',
-            label: 'Générer le rapport',
-            icon: Download,
-            onClick: async () => {
-              await generateReport(assignment.id)
-              // Les données seront automatiquement rafraîchies via le store
-            },
-            variant: 'default' as const,
-            loading: loadingGenerate
-          }
-        )
-        
-        // Action de validation - seulement pour CEO et Validator
-        if (isCEO() || isValidator()) {
-          actions.push({
-            key: 'validate',
-            label: 'Valider le dossier',
-            icon: Shield,
-            onClick: () => setValidateModalOpen(true),
-            variant: 'default' as const,
-            className: 'bg-green-600 hover:bg-green-700'
-          })
-        }
-        break
-
-      case 'closed':
-      case 'validated':
-        actions.push(
-        //   {
-        //     key: 'edit-realization',
-        //     label: 'Modifier la réalisation',
-        //     icon: Edit,
-        //     onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-        //     variant: 'outline' as const
-        //   },
-        //   {
-        //     key: 'edit-report',
-        //     label: 'Modifier la rédaction',
-        //     icon: Edit,
-        //     onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
-        //     variant: 'outline' as const
-        //   },
-          {
-            key: 'generate-report',
-            label: 'Générer le rapport',
-            icon: Download,
-            onClick: async () => {
-              await generateReport(assignment.id)
-              // Les données seront automatiquement rafraîchies via le store
-            },
-            variant: 'default' as const,
-            loading: loadingGenerate
-          }
-        )
-        
-        // Action d'annulation de validation - seulement pour CEO et Validator
-        
-        break
-
-      case 'paid':
-        // actions.push(
-        //   {
-        //     key: 'receipts',
-        //     label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
-        //     icon: Receipt,
-        //     onClick: () => handleOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
-        //     variant: 'outline' as const
-        //   }
-        // )
-        // actions.push(
-        //   {
-        //     key: 'edit-realization',
-        //     label: 'Modifier la réalisation',
-        //     icon: Edit,
-        //     onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
-        //     variant: 'outline' as const
-        //   },
-        // )
-        // actions.push(
-        //   {
-        //     key: 'edit-report',
-        //     label: 'Modifier la rédaction',
-        //     icon: Edit,
-        //     onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
-        //     variant: 'outline' as const
-        //   },
-        // )
-        break
-
-      case 'cancelled':
-        // Pas d'actions spécifiques pour les dossiers annulés
-        break
-    }
-
-    // Actions communes (toujours disponibles)
-    // actions.push(
-      // {
-      //   key: 'print',
-      //   label: 'Imprimer',
-      //   icon: Printer,
-      //   onClick: () => window.print(),
-      //   variant: 'outline' as const
-      // }
-      
-      
-        
-      
-    // )
-
-    if (assignment.status.code != 'validated' && assignment.status.code != 'cancelled' && assignment.status.code != 'closed' && assignment.status.code != 'paid') {
-      actions.push(
-            {
-            key: 'edit',
-            label: 'Modifier le dossier',
-            icon: Edit,
-            onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
-            variant: 'outline' as const
-          },
-          {
-            key: 'generate-report',
-            label: 'Générer le rapport',
-            icon: Download,
-            onClick: async () => {
-              await generateReport(assignment.id)
-              // Les données seront automatiquement rafraîchies via le store
-            },
-            variant: 'default' as const,
-            loading: loadingGenerate
-          }
-      )
-    }
-
-    if ((isCEO() || isValidator() || isExpertManager()) && assignment.status.code === 'validated' || assignment.status.code === 'paid') {
-          actions.push({
-            key: 'unvalidate',
-            label: 'Annuler la validation',
-            icon: AlertTriangle,
-            onClick: () => setUnvalidateModalOpen(true),
-            variant: 'destructive' as const,
-            className: 'bg-red-600 hover:bg-red-700'
-          })
-        }
-    // if (isCEO() || isValidator() || isExpertManager()) {
-    //       actions.push({
-    //         key: 'edit-report',
-    //         label: 'Modifier la rédaction',
-    //         icon: Edit,
-    //         onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
-    //         variant: 'outline' as const
-    //       },)
-    //     }
+    const actions = [
+      {
+        key: 'edit',
+        label: 'Modifier le dossier',
+        icon: Edit,
+        onClick: () => navigate({ to: `/assignments/edit/${assignment.id}` }),
+        variant: 'outline' as const,
+        loading: false,
+        disabled: !canEdit || alwaysDisableForRestricted('edit')
+      },
+      {
+        key: 'realize',
+        label: 'Réaliser le dossier',
+        icon: CheckCircle,
+        onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+        variant: 'default' as const,
+        loading: false,
+        disabled: !canRealize || alwaysDisableForRestricted('realize')
+      },
+      {
+        key: 'edit-realization',
+        label: 'Modifier la réalisation',
+        icon: Edit,
+        onClick: () => navigate({ to: `/assignments/realize/${assignment.id}` }),
+        variant: 'outline' as const,
+        loading: false,
+        disabled: !canEditRealization || alwaysDisableForRestricted('edit-realization')
+      },
+      {
+        key: 'write-report',
+        label: 'Rédiger le rapport',
+        icon: FileText,
+        onClick: () => navigate({ to: `/assignments/edite-report/${assignment.id}` }),
+        variant: 'default' as const,
+        loading: false,
+        disabled: !canWriteReport || alwaysDisableForRestricted('write-report')
+      },
+      {
+        key: 'edit-report',
+        label: 'Modifier la rédaction',
+        icon: Edit,
+        onClick: () => navigate({ to: `/assignments/edit-report/${assignment.id}` }),
+        variant: 'outline' as const,
+        loading: false,
+        disabled: !canEditReport || alwaysDisableForRestricted('edit-report')
+      },
+      {
+        key: 'generate-report',
+        label: 'Générer le rapport',
+        icon: Download,
+        onClick: async () => {
+          await generateReport(assignment.id)
+        },
+        variant: 'default' as const,
+        loading: loadingGenerate,
+        disabled: !canGenerateReport
+      },
+      {
+        key: 'validate',
+        label: 'Valider le dossier',
+        icon: Shield,
+        onClick: () => setValidateModalOpen(true),
+        variant: 'default' as const,
+        className: 'bg-green-600 hover:bg-green-700',
+        loading: false,
+        disabled: !canValidate || alwaysDisableForRestricted('validate')
+      },
+      {
+        key: 'unvalidate',
+        label: 'Annuler la validation',
+        icon: AlertTriangle,
+        onClick: () => setUnvalidateModalOpen(true),
+        variant: 'destructive' as const,
+        className: 'bg-red-600 hover:bg-red-700',
+        loading: false,
+        disabled: !canUnvalidate || alwaysDisableForRestricted('unvalidate')
+      },
+      {
+        key: 'delete',
+        label: 'Supprimer',
+        icon: Trash2,
+        onClick: () => handleDeleteAssignment(assignment),
+        variant: 'destructive' as const,
+        loading: false,
+        disabled: !canDelete || alwaysDisableForRestricted('delete')
+      }
+    ]
 
     return actions
   }
@@ -2541,7 +2372,7 @@ export default function AssignmentDetailPage() {
       </Header>
 
       <Main>
-        <div className="w-full space-y-4 lg:space-y-6 pb-20 lg:pb-0">
+            <div className="w-full space-y-4 lg:space-y-6 pb-28 lg:pb-0">
           {/* En-tête */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3 sm:gap-4">
@@ -2565,6 +2396,28 @@ export default function AssignmentDetailPage() {
                   Redaction de la fiche d'expertise
                 </Button>
               )}
+
+              {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={handleValidateEdition}
+                  disabled={validatingEdition}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {validatingEdition ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                      Validation...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="h-3 w-3 mr-2" />
+                      Valider l'édition
+                    </>
+                  )}
+                </Button>
+              )}
               
               <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
                 <FileDown className="h-3 w-3 mr-2" />
@@ -2580,7 +2433,7 @@ export default function AssignmentDetailPage() {
                       key={action.key}
                       variant={action.variant}
                       onClick={action.onClick}
-                      disabled={action.loading}
+                      disabled={action.loading || (action as any).disabled}
                       className={action.className}
                       size="sm"
                     >
@@ -2873,40 +2726,91 @@ export default function AssignmentDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Bottom Navigation Bar - Mobile */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg">
-        <div className="px-2 py-2">
-          <div className="flex items-center justify-between">
-            {/* Section actuelle */}
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <div className="p-2 rounded-lg bg-primary/10">
-                {(() => {
-                  const currentItem = sidebarItems.find(item => item.id === activeSection)
-                  const Icon = currentItem?.icon || FileText
-                  return <Icon className="h-4 w-4 text-primary" />
-                })()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {sidebarItems.find(item => item.id === activeSection)?.label || 'Navigation'}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {sidebarItems.find(item => item.id === activeSection)?.description || ''}
-                </p>
-              </div>
+      {/* Bottom Sticky Timeline Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg">
+        <div className="px-3 sm:px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              {(() => {
+                const steps = [
+                  { code: 'pending', label: 'Création' },
+                  { code: 'opened', label: 'Ouvert' },
+                  { code: 'realized', label: 'Réalisé' },
+                  { code: 'edited', label: 'Rédigé' },
+                  { code: 'in_payment', label: 'En paiement' },
+                  { code: 'validated', label: 'Validé' },
+                  { code: 'paid', label: 'Payé' },
+                  { code: 'closed', label: 'Clôturé' }
+                ]
+                const currentIndex = Math.max(0, steps.findIndex(s => s.code === assignment.status.code))
+                return (
+                  <div className="w-full">
+                    <div className="flex items-center justify-between">
+                      {steps.map((step, index) => {
+                        const reached = index <= currentIndex
+                        const isCurrent = index === currentIndex
+                        return (
+                          <div key={step.code} className="flex-1 flex items-center">
+                            <div className="flex flex-col items-center w-min">
+                              <div className={cn(
+                                'h-3 w-3 sm:h-4 sm:w-4 rounded-full border',
+                                reached ? 'bg-primary border-primary' : 'bg-muted border-muted-foreground/20',
+                                isCurrent ? 'ring-2 ring-primary/40' : ''
+                              )} />
+                              <span className={cn(
+                                'mt-1 text-[10px] sm:text-xs whitespace-nowrap',
+                                reached ? 'text-primary' : 'text-muted-foreground'
+                              )}>{step.label}</span>
+                            </div>
+                            {index < steps.length - 1 && (
+                              <div className={cn(
+                                'mx-1 sm:mx-2 h-[2px] sm:h-[3px] rounded flex-1',
+                                index < currentIndex ? 'bg-primary' : 'bg-muted'
+                              )} />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {(assignment.edition_status || assignment.recovery_status) && (
+                      <div className="mt-2 grid grid-cols-2 gap-3">
+                        {assignment.edition_status && (
+                          <div className="flex items-center gap-2">
+                            <Badge variant={assignment.edition_status === 'in_progress' ? 'default' : 'secondary'} className="text-[10px] sm:text-xs">
+                              Rédaction: {assignment.edition_status === 'in_progress' ? 'En cours' : assignment.edition_status}
+                            </Badge>
+                            {typeof assignment.edition_per_cent === 'number' && (
+                              <span className="text-[10px] sm:text-xs text-muted-foreground">{Math.min(assignment.edition_per_cent, 100)}%</span>
+                            )}
+                          </div>
+                        )}
+                        {assignment.recovery_status && (
+                          <div className="flex items-center gap-2">
+                            <Badge variant={assignment.recovery_status === 'in_progress' ? 'default' : 'secondary'} className="text-[10px] sm:text-xs">
+                              Recouvrement: {assignment.recovery_status === 'in_progress' ? 'En cours' : assignment.recovery_status}
+                            </Badge>
+                            {typeof assignment.recovery_per_cent === 'number' && (
+                              <span className="text-[10px] sm:text-xs text-muted-foreground">{Math.min(assignment.recovery_per_cent, 100)}%</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
-            
-            {/* Bouton pour ouvrir le bottom sheet */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setBottomSheetOpen(true)}
-              className="shrink-0"
-            >
-              <Menu className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Navigation</span>
-              <span className="sm:hidden">Menu</span>
-            </Button>
+            <div className="shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBottomSheetOpen(true)}
+              >
+                <Menu className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Navigation</span>
+                <span className="sm:hidden">Menu</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

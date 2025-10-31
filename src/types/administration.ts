@@ -103,7 +103,7 @@ export interface CreateUserData {
   telephone: string
   entity_id: number
   role: string
-  code: string
+  // code: string
 }
 
 export interface UpdateUserData {
@@ -114,7 +114,7 @@ export interface UpdateUserData {
   telephone?: string
   entity_id?: number
   role?: string
-  code?: string
+  // code?: string
 }
 
 export interface UserFilters {

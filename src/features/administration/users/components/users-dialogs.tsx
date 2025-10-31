@@ -47,8 +47,8 @@ export function UsersDialogs({
     last_name: '',
     telephone: '',
     entity_id: 0,
-    role: '',
-    code: '',
+    role: ''
+    // code: '',
   })
 
   const [editForm, setEditForm] = useState<UpdateUserData>({})
@@ -68,8 +68,8 @@ export function UsersDialogs({
         last_name: '',
         telephone: '',
         entity_id: 0,
-        role: '',
-        code: '',
+        role: ''
+        // code: '',
       })
     }
   }, [isCreateOpen])
@@ -84,7 +84,7 @@ export function UsersDialogs({
         telephone: selectedUser.telephone,
         entity_id: selectedUser.entity.id,
         role: selectedUser.role.name,
-        code: selectedUser.code,
+        // code: selectedUser.code,
       })
     }
   }, [isEditOpen, selectedUser])
@@ -140,7 +140,7 @@ export function UsersDialogs({
           </DialogHeader>
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="code">Code *</Label>
                 <Input
                   id="code"
@@ -148,7 +148,7 @@ export function UsersDialogs({
                   onChange={(e) => setCreateForm({ ...createForm, code: e.target.value })}
                   required
                 />
-              </div>
+              </div> */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
                 <Input
@@ -302,14 +302,14 @@ export function UsersDialogs({
             </div>
 
             {/* code */}
-            <div className="space-y-2 grid grid-cols-2 gap-4">
+            {/* <div className="space-y-2 grid grid-cols-2 gap-4">
               <Label htmlFor="edit-code">Code</Label>
               <Input
                 id="edit-code"
                 value={editForm.code || ''}
                 onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
               />
-            </div>
+            </div> */}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onCloseEdit}>

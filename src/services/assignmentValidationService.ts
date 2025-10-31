@@ -30,6 +30,10 @@ class AssignmentValidationService {
     console.log("================================================");
     return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/unvalidate-by-expert/${assignmentId}`)
   }
+
+  async validateEdition(assignmentId: string) {
+    return axiosInstance.put(`${API_CONFIG.BASE_URL}/validate-edition/${assignmentId}`)
+  }
 }
 
 export const assignmentValidationService = new AssignmentValidationService()
