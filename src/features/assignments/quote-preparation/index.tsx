@@ -1192,7 +1192,7 @@ export default function QuotePreparationPage() {
     if (!assignment) return
     setValidatingRepairerInvoiceByExpert(true)
     try {
-      // await assignmentValidationService.validateRepairerInvoiceByExpert(String(assignment.id))
+      await assignmentValidationService.validateByRepairerInvoiceByExpert(String(assignment.id))
       setTimeout(() => {
         setValidatingRepairerInvoiceByExpert(false)
       }, 2000)

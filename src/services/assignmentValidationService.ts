@@ -31,6 +31,12 @@ class AssignmentValidationService {
     return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/unvalidate-by-expert/${assignmentId}`)
   }
 
+  async validateByRepairerInvoiceByExpert(assignmentId: string) {
+    return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/validate-by-expert/${assignmentId}`)
+  }
+
+
+
   async validateEdition(assignmentId: string) {
     return axiosInstance.put(`${API_CONFIG.BASE_URL}/validate-edition/${assignmentId}`)
   }
