@@ -106,7 +106,7 @@ class AssignmentService {
   /**
    * Mettre à jour une assignation
    */
-  async updateAssignment(id: number, assignmentData: AssignmentUpdate): Promise<Assignment> {
+  async updateAssignment(id: string, assignmentData: AssignmentUpdate): Promise<Assignment> {
     const response = await axiosInstance.put<Assignment>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}`, assignmentData)
     return response.data
   }
@@ -114,14 +114,14 @@ class AssignmentService {
   /**
    * Supprimer une assignation
    */
-  async deleteAssignment(id: number): Promise<void> {
+  async deleteAssignment(id: string): Promise<void> {
     await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}`)
   }
 
   /**
    * Changer le statut d'une assignation
    */
-  async changeAssignmentStatus(id: number, statusId: number): Promise<Assignment> {
+  async changeAssignmentStatus(id: string, statusId: string): Promise<Assignment> {
     const response = await axiosInstance.patch<Assignment>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}/status`, {
       status_id: statusId
     })
@@ -142,7 +142,7 @@ class AssignmentService {
   /**
    * Soumettre l'évaluation d'une assignation
    */
-  async submitEvaluation(assignmentId: number, data: EvaluationSubmissionRequest): Promise<EvaluationSubmissionResponse> {
+  async submitEvaluation(assignmentId: string, data: EvaluationSubmissionRequest): Promise<EvaluationSubmissionResponse> {
     const response = await axiosInstance.post<EvaluationSubmissionResponse>(
       `${API_CONFIG.ENDPOINTS.EVALUATE}/${assignmentId}`, 
       data
@@ -153,7 +153,7 @@ class AssignmentService {
   /**
    * Générer le rapport d'expertise
    */
-  async generateReport(id: number): Promise<{ message: string | null, data: any }> {
+  async generateReport(id: string): Promise<{ message: string | null, data: any }> {
     const response = await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${id}/generate`)
     return response.data
   }
@@ -161,7 +161,7 @@ class AssignmentService {
   /**
    * Réorganiser l'ordre des chocs d'une assignation
    */
-  async reorderShocks(assignmentId: number | string, shockIds: number[]): Promise<{ message: string }> {
+  async reorderShocks(assignmentId: string, shockIds: string[]): Promise<{ message: string }> {
     const response = await axiosInstance.put<{ message: string }>(
       `${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}/order-shocks`,
       { shocks: shockIds }
@@ -172,7 +172,7 @@ class AssignmentService {
   /**
    * Réorganiser les travaux de choc (fournitures)
    */
-  async reorderShockWorks(shockId: number, shockWorkIds: number[]): Promise<{ message: string }> {
+  async reorderShockWorks(shockId: string, shockWorkIds: string[]): Promise<{ message: string }> {
     const response = await axiosInstance.put<{ message: string }>(
       `${API_CONFIG.ENDPOINTS.SHOCKS}/${shockId}/order-shock-works`,
       { shock_works: shockWorkIds }
@@ -183,7 +183,7 @@ class AssignmentService {
   /**
    * Réorganiser les main d'œuvre de choc
    */
-  async reorderWorkforces(shockId: number, workforceIds: number[]): Promise<{ message: string }> {
+  async reorderWorkforces(shockId: string, workforceIds: string[]): Promise<{ message: string }> {
     const response = await axiosInstance.put<{ message: string }>(
       `${API_CONFIG.ENDPOINTS.SHOCKS}/${shockId}/order-workforces`,
       { workforces: workforceIds }
@@ -194,7 +194,7 @@ class AssignmentService {
   /**
    * Supprimer un choc
    */
-  async deleteShock(shockId: number): Promise<{ message: string }> {
+  async deleteShock(shockId: string): Promise<{ message: string }> {
     const response = await axiosInstance.delete<{ message: string }>(
       `${API_CONFIG.ENDPOINTS.DELETE_SHOCK}/${shockId}`
     )

@@ -11,7 +11,7 @@ export interface WorkforceUpdateData {
 }
 
 export interface WorkforceCreateData {
-  shock_id: number
+  shock_id: string
   workforce_type_id: string
   nb_hours: number
   discount: number
@@ -27,17 +27,17 @@ class WorkforceService {
     return response.data
   }
 
-  async updateWorkforce(workforceId: number, data: WorkforceUpdateData) {
+  async updateWorkforce(workforceId: string, data: WorkforceUpdateData) {
     const response = await axiosInstance.put(`/workforces/${workforceId}`, data)
     return response.data
   }
 
-  async getWorkforce(workforceId: number) {
+  async getWorkforce(workforceId: string) {
     const response = await axiosInstance.get(`/workforces/${workforceId}`)
     return response.data
   }
 
-  async deleteWorkforce(workforceId: number) {
+  async deleteWorkforce(workforceId: string) {
     const response = await axiosInstance.delete(`/workforces/${workforceId}`)
     return response.data
   }

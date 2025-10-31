@@ -90,7 +90,7 @@ import { cn } from '@/lib/utils'
 import { ShockReorderSheet, type ShockItem } from '@/features/assignments/components/shock-reorder-sheet'
 
 interface Assignment {
-  id: number
+  id: string
   reference: string
   policy_number: string | null
   claim_number: string | null
@@ -99,8 +99,8 @@ interface Assignment {
   expertise_date: string
   expertise_place: string | null
   received_at: string
-  insurer_id: number | null
-  repairer_id: number | null
+  insurer_id: string | null
+  repairer_id: string | null
   administrator: string | null
   circumstance: string | null
   damage_declared: string | null
@@ -121,7 +121,7 @@ interface Assignment {
   expert_report_remark: string | null
   instructions: string | null
   market_incidence_rate: string | null
-  report_remark_id: number | null
+  report_remark_id: string | null
   shock_amount_excluding_tax: string
   shock_amount_tax: string
   shock_amount: string
@@ -137,7 +137,7 @@ interface Assignment {
   emails: string | null
   qr_codes: string | null
   insurer: {
-    id: number
+    id: string
     code: string
     name: string
     email: string
@@ -145,7 +145,7 @@ interface Assignment {
     address: string | null
   } | null
   repairer: {
-    id: number
+    id: string
     code: string
     name: string
     email: string
@@ -153,7 +153,7 @@ interface Assignment {
     address: string | null
   } | null
   vehicle: {
-    id: number
+    id: string
     license_plate: string
     type: string
     option: string
@@ -165,30 +165,30 @@ interface Assignment {
     nb_seats: number
     new_market_value: string
     brand: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
     vehicle_model: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
     color: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
     bodywork: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
       status: {
-        id: number
+        id: string
         code: string
         label: string
         description: string
@@ -196,47 +196,47 @@ interface Assignment {
     }
   }
   assignment_type: {
-    id: number
+    id: string
     code: string
     label: string
     description: string
     status: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
   }
   expertise_type: {
-    id: number
+    id: string
     code: string
     label: string
     description: string
     status: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
   }
   document_transmitted: Array<{
-    id: number
+    id: string
     code: string
     label: string
   }>
   technical_conclusion: {
-    id: number
+    id: string
     code: string
     label: string
     description: string
   } | null
   claim_nature: {
-    id: number
+    id: string
     code: string
     label: string
     description: string
     status: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
@@ -245,7 +245,7 @@ interface Assignment {
       updated_at: string
     }
     created_by: {
-      id: number
+      id: string
       hash_id: string
       email: string
       username: string
@@ -260,7 +260,7 @@ interface Assignment {
       updated_at: string
     } | null
     updated_by: {
-      id: number
+      id: string
       hash_id: string
       email: string
       username: string
@@ -280,19 +280,19 @@ interface Assignment {
     deleted_at: string | null
   } | null
   general_state: {
-    id: number
+    id: string
     code: string
     label: string
     description: string
     status: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
   } | null
   client: {
-    id: number
+    id: string
     name: string
     email: string
     phone_1: string | null
@@ -300,13 +300,13 @@ interface Assignment {
     address: string
   }
   status: {
-    id: number
+    id: string
     code: string
     label: string
     description: string
   }
   shocks: Array<{
-    id: number
+    id: string
     obsolescence_amount_excluding_tax: string | null
     obsolescence_amount_tax: string | null
     obsolescence_amount: string | null
@@ -323,13 +323,13 @@ interface Assignment {
     amount_tax: string
     amount: string
     shock_point: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
     }
     paint_type?: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
@@ -338,7 +338,7 @@ interface Assignment {
       updated_at: string
     }
     hourly_rate?: {
-      id: number
+      id: string
       value: string
       label: string
       description: string
@@ -347,7 +347,7 @@ interface Assignment {
       updated_at: string
     }
     shock_works: Array<{
-      id: number
+      id: string
       disassembly: boolean
       replacement: boolean
       repair: boolean
@@ -373,13 +373,13 @@ interface Assignment {
       amount_tax: string | null
       amount: string
       supply: {
-        id: number
+        id: string
         label: string
         description: string
       }
     }>
     workforces: Array<{
-      id: number
+      id: string
       nb_hours: string
       work_fee: string
       with_tax: number
@@ -388,7 +388,7 @@ interface Assignment {
       amount_tax: string
       amount: string
       workforce_type: {
-        id: number
+        id: string
         code: string
         label: string
         description: string
@@ -396,32 +396,32 @@ interface Assignment {
     }>
   }>
   other_costs: Array<{
-    id: number
+    id: string
     amount_excluding_tax: string
     amount_tax: string
     amount: string
     other_cost_type_label: string
     other_cost_type: {
-      id: number
+      id: string
       code: string
       label: string
     }
   }>
   receipts: Array<{
-    id: number
+    id: string
     amount_excluding_tax: string
     amount_tax: string
     amount: string
     receipt_type: {
-      id: number
+      id: string
       code: string
       label: string
     }
   }>
   ascertainments: Array<{
-    id: number
+    id: string
     ascertainment_type: {
-      id: number
+      id: string
       code: string
       label: string
       description: string
@@ -443,7 +443,7 @@ interface Assignment {
   evaluations: any
   experts: Array<any>
   created_by: {
-    id: number
+    id: string
     hash_id: string
     email: string
     username: string
@@ -456,7 +456,7 @@ interface Assignment {
     signature: string | null
   }
   updated_by: {
-    id: number
+    id: string
     hash_id: string
     email: string
     username: string
@@ -470,7 +470,7 @@ interface Assignment {
   }
   deleted_by: any
   realized_by: {
-    id: number
+    id: string
     hash_id: string
     email: string
     username: string
@@ -483,7 +483,7 @@ interface Assignment {
     signature: string | null
   } | null
   edited_by: {
-    id: number
+    id: string
     hash_id: string
     email: string
     username: string
@@ -523,20 +523,20 @@ interface Assignment {
 }
 
 interface Supply {
-  id: number
+  id: string
   label: string
   description: string
 }
 
 interface WorkforceType {
-  id: number
+  id: string
   code: string
   label: string
   description: string
 }
 
 interface OtherCostType {
-  id: number
+  id: string
   code: string
   label: string
   description: string
@@ -560,15 +560,15 @@ export default function EditReportPage() {
   const [pointNoted, setPointNoted] = useState('')
   // Remplacer newOtherCost par un tableau newOtherCosts
   const [newOtherCosts, setNewOtherCosts] = useState([
-    { other_cost_type_id: 0, amount: 0 }
+    { other_cost_type_id: '', amount: 0 }
   ])
   const [showMobileSheet, setShowMobileSheet] = useState(false)
   
   // États pour les informations additionnelles (selon le type d'expertise)
-  const [generalStateId, setGeneralStateId] = useState<number | null>(null)
-  const [technicalConclusionId, setTechnicalConclusionId] = useState<number | null>(null)
-  const [claimNatureId, setClaimNatureId] = useState<number | null>(null)
-  const [selectedRemarkId, setSelectedRemarkId] = useState<number | null>(null)
+  const [generalStateId, setGeneralStateId] = useState<string | null>(null)
+  const [technicalConclusionId, setTechnicalConclusionId] = useState<string | null>(null)
+  const [claimNatureId, setClaimNatureId] = useState<string | null>(null)
+  const [selectedRemarkId, setSelectedRemarkId] = useState<string | null>(null)
   const [expertRemark, setExpertRemark] = useState('')
   const [instructions, setInstructions] = useState('')
   const [marketIncidenceRate, setMarketIncidenceRate] = useState<number>(0)
@@ -587,7 +587,7 @@ export default function EditReportPage() {
   const [generalStates, setGeneralStates] = useState<any[]>([])
   const [claimNatures, setClaimNatures] = useState<any[]>([])
   const [technicalConclusions, setTechnicalConclusions] = useState<any[]>([])
-  const [remarks, setRemarks] = useState<Array<{id: number, label: string, description: string}>>([])
+  const [remarks, setRemarks] = useState<Array<{id: string, label: string, description: string}>>([])
   
   // États pour les données de référence
   const [supplies, setSupplies] = useState<Supply[]>([])
@@ -621,26 +621,26 @@ export default function EditReportPage() {
 
   // États pour le modal d'ajout de point de choc
   const [showShockModal, setShowShockModal] = useState(false)
-  const [selectedShockPointId, setSelectedShockPointId] = useState(0)
+  const [selectedShockPointId, setSelectedShockPointId] = useState('')
   const [showCreateShockPointModal, setShowCreateShockPointModal] = useState(false)
   
   // État pour gérer les chocs collapsés (par défaut tous ouverts)
-  const [collapsedShocks, setCollapsedShocks] = useState<Set<number>>(new Set())
+  const [collapsedShocks, setCollapsedShocks] = useState<Set<string>>(new Set())
   
   // États pour la suppression de choc
   const [showDeleteShockDialog, setShowDeleteShockDialog] = useState(false)
-  const [shockToDelete, setShockToDelete] = useState<number | null>(null)
+  const [shockToDelete, setShockToDelete] = useState<string | null>(null)
   const [deletingShock, setDeletingShock] = useState(false)
 
   // États pour le modal d'édition de choc
   const [showEditShockWarning, setShowEditShockWarning] = useState(false)
-  const [highlightedShockId, setHighlightedShockId] = useState<number | null>(null)
+  const [highlightedShockId, setHighlightedShockId] = useState<string | null>(null)
 
   // Reorder shocks sheet state
   const [showReorderSheet, setShowReorderSheet] = useState(false)
   const [reorderShocksList, setReorderShocksList] = useState<ShockItem[]>([])
   
-  const [sheetFocusShockId, setSheetFocusShockId] = useState<number | null>(null)
+  const [sheetFocusShockId, setSheetFocusShockId] = useState<string | null>(null)
 
   // Fonction pour changer d'onglet et mettre à jour l'URL
   const changeActiveTab = (tab: string) => {
@@ -678,22 +678,20 @@ export default function EditReportPage() {
 
     // Gérer la surbrillance du choc
     if (shockId) {
-      const shockIdNum = parseInt(shockId, 10)
-      if (!isNaN(shockIdNum)) {
-        setHighlightedShockId(shockIdNum)
-        // Supprimer le paramètre shock_id de l'URL
-        urlParams.delete('shock_id')
-        const newUrl = new URL(window.location.href)
-        newUrl.search = urlParams.toString()
-        window.history.replaceState({}, '', newUrl.toString())
-        setTimeout(() => {
+      setHighlightedShockId(shockId)
+      // Supprimer le paramètre shock_id de l'URL
+      urlParams.delete('shock_id')
+      const newUrl = new URL(window.location.href)
+      newUrl.search = urlParams.toString()
+      window.history.replaceState({}, '', newUrl.toString())
+      setTimeout(() => {
           // S'assurer que l'onglet shocks est actif et scroller vers le choc
           if (activeTab !== 'shocks') {
             console.log("================> 1 activeTab", activeTab)
             changeActiveTab('shocks')
             // Attendre un peu plus longtemps si on a changé d'onglet
             setTimeout(() => {
-              const shockElement = document.querySelector(`[data-shock-id="${shockIdNum}"]`)
+              const shockElement = document.querySelector(`[data-shock-id="${shockId}"]`)
               console.log("================> 2 shockElement", shockElement)
               if (shockElement) {
                 console.log("================> 3 shockElement", shockElement)
@@ -709,7 +707,7 @@ export default function EditReportPage() {
             // Scroll automatique vers le choc après un court délai pour laisser le DOM se mettre à jour
             setTimeout(() => {
 
-              const shockElement = document.querySelector(`[data-shock-id="${shockIdNum}"]`)
+              const shockElement = document.querySelector(`[data-shock-id="${shockId}"]`)
               console.log("================> 5 shockElement", shockElement)
               if (shockElement) {
                 console.log("================> 6 shockElement", shockElement)
@@ -722,13 +720,12 @@ export default function EditReportPage() {
             }, 500)
           }
           
-          // Retirer la surbrillance après 30 secondes
-          setTimeout(() => {
-            console.log("================> 7 highlightedShockId", highlightedShockId)
-            setHighlightedShockId(null)
-          }, 30000)
-        }, 4000)
-      }
+        // Retirer la surbrillance après 30 secondes
+        setTimeout(() => {
+          console.log("================> 7 highlightedShockId", highlightedShockId)
+          setHighlightedShockId(null)
+        }, 30000)
+      }, 4000)
     }
   }, [])
 
@@ -738,7 +735,7 @@ export default function EditReportPage() {
     const fetchAssignment = async () => {
       try {
         setLoading(true)
-        const response = await assignmentService.getAssignment(Number(id))
+        const response = await assignmentService.getAssignment(id)
         
         if (response && typeof response === 'object' && 'data' in response) {
           setAssignment(response.data as unknown as Assignment)
@@ -853,15 +850,15 @@ export default function EditReportPage() {
     }
   }, [showReorderSheet, assignment?.shocks])
 
-  const handleOpenReorderSheet = (focusShockId?: number) => {
+  const handleOpenReorderSheet = (focusShockId?: string) => {
     if (focusShockId) setSheetFocusShockId(focusShockId)
     setShowReorderSheet(true)
   }
 
-  const handleConfirmReorderShocks = async (orderedIds?: number[]) => {
+  const handleConfirmReorderShocks = async (orderedIds?: string[]) => {
     if (!assignment) return
     try {
-      await assignmentService.reorderShocks(assignment.id, (orderedIds && orderedIds.length ? orderedIds : reorderShocksList.map((s) => s.id)))
+      await assignmentService.reorderShocks(assignment.id, (orderedIds && orderedIds.length ? orderedIds : reorderShocksList.map((s) => String(s.id))))
       toast.success('Ordre des chocs mis à jour')
       setShowReorderSheet(false)
       setSheetFocusShockId(null)
@@ -875,7 +872,7 @@ export default function EditReportPage() {
   // Fonction pour rafraîchir les données du dossier
   const refreshAssignment = async () => {
     try {
-      const response = await assignmentService.getAssignment(Number(id))
+      const response = await assignmentService.getAssignment(id)
       
       if (response && typeof response === 'object' && 'data' in response) {
         setAssignment(response.data as unknown as Assignment)
@@ -889,7 +886,7 @@ export default function EditReportPage() {
   }
 
   // Fonction pour réorganiser les fournitures d'un choc
-  const handleReorderShockWorks = async (shockId: number, shockWorkIds: number[]) => {
+  const handleReorderShockWorks = async (shockId: string, shockWorkIds: string[]) => {
     try {
       await assignmentService.reorderShockWorks(shockId, shockWorkIds)
       await refreshAssignment()
@@ -901,7 +898,7 @@ export default function EditReportPage() {
   }
 
   // Fonction pour réorganiser les main d'œuvre d'un choc
-  const handleReorderWorkforces = async (shockId: number, workforceIds: number[]) => {
+  const handleReorderWorkforces = async (shockId: string, workforceIds: string[]) => {
     try {
       await assignmentService.reorderWorkforces(shockId, workforceIds)
       await refreshAssignment()
@@ -913,15 +910,15 @@ export default function EditReportPage() {
   }
 
   // Fonction pour ajouter un point de choc
-  const handleAddShock = async (shockPointId: number) => {
+  const handleAddShock = async (shockPointId: string) => {
     if (!assignment) return
 
     try {
       const payload = {
-        assignment_id: assignment.id.toString(),
+        assignment_id: assignment.id,
         shocks: [
           {
-            shock_point_id: shockPointId.toString()
+            shock_point_id: shockPointId
           }
         ]
       }
@@ -948,7 +945,7 @@ export default function EditReportPage() {
   }
 
   // Fonction pour toggle le collapse d'un choc
-  const toggleShockCollapse = (shockId: number) => {
+  const toggleShockCollapse = (shockId: string) => {
     setCollapsedShocks(prev => {
       const newSet = new Set(prev)
       if (newSet.has(shockId)) {
@@ -961,7 +958,7 @@ export default function EditReportPage() {
   }
 
   // Fonction pour ouvrir le dialogue de suppression de choc
-  const handleDeleteShock = (shockId: number) => {
+  const handleDeleteShock = (shockId: string) => {
     setShockToDelete(shockId)
     setShowDeleteShockDialog(true)
   }
@@ -1052,12 +1049,12 @@ export default function EditReportPage() {
   const isEvaluation = assignment?.expertise_type?.code === 'evaluation'
   
   // Fonction pour gérer le changement de la note d'expert
-  const handleRemarkChange = (value: number | null) => {
+  const handleRemarkChange = (value: string | null) => {
     setSelectedRemarkId(value)
     
     // Quand une remarque est sélectionnée, pré-remplir le champ expert_remark
     if (value) {
-      const selectedRemark = remarks.find(remark => remark.id === value)
+      const selectedRemark = remarks.find((remark: { id: string }) => remark.id === value)
       if (selectedRemark) {
         setExpertRemark(selectedRemark.description)
         toast.success(`Remarque "${selectedRemark.label}" chargée`)
@@ -1144,10 +1141,10 @@ export default function EditReportPage() {
           point_noted: pointNoted,
           
           // Champs pour tous les types de dossiers (évaluation et non-évaluation)
-          general_state_id: generalStateId?.toString(),
-          technical_conclusion_id: technicalConclusionId?.toString(),
-          claim_nature_id: claimNatureId?.toString(),
-          report_remark_id: selectedRemarkId?.toString(),
+          general_state_id: generalStateId,
+          technical_conclusion_id: technicalConclusionId,
+          claim_nature_id: claimNatureId,
+          report_remark_id: selectedRemarkId,
           expert_report_remark: expertRemark,
           instructions: instructions,
           market_incidence_rate: marketIncidenceRate ? Number(marketIncidenceRate) : undefined,
@@ -1192,7 +1189,7 @@ export default function EditReportPage() {
           Object.entries(payload).filter(([_, value]) => value !== undefined && value !== null && value !== '')
         )
 
-        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITE_ELEMENTS}/${assignment.id}`, cleanPayload)
+        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITE_ELEMENTS}/${String(assignment.id)}`, cleanPayload)
       }
       toast.success('Modifications sauvegardées avec succès')
       refreshAssignment()
@@ -1206,13 +1203,13 @@ export default function EditReportPage() {
 
   // Fonction pour ouvrir le modal d'ajout d'autre coût
   const handleAddOtherCost = () => {
-    setNewOtherCosts([{ other_cost_type_id: 0, amount: 0 }])
+    setNewOtherCosts([{ other_cost_type_id: '', amount: 0 }])
     setShowAddOtherCostModal(true)
   }
 
   // Fonction pour ajouter une ligne de coût
   const handleAddOtherCostLine = () => {
-    setNewOtherCosts([...newOtherCosts, { other_cost_type_id: 0, amount: 0 }])
+    setNewOtherCosts([...newOtherCosts, { other_cost_type_id: '', amount: 0 }])
   }
 
   // Fonction pour retirer une ligne de coût
@@ -1238,15 +1235,15 @@ export default function EditReportPage() {
       }
       // Payload conforme à l'API
       await axiosInstance.post(`${API_CONFIG.ENDPOINTS.OTHER_COSTS}`, {
-        assignment_id: String(assignment?.id),
+        assignment_id: assignment?.id,
         other_costs: validCosts.map(c => ({
-          other_cost_type_id: String(c.other_cost_type_id),
+          other_cost_type_id: c.other_cost_type_id,
           amount: Number(c.amount)
         }))
       })
       toast.success(validCosts.length > 1 ? 'Coûts ajoutés avec succès' : 'Nouveau coût ajouté avec succès')
       setShowAddOtherCostModal(false)
-      setNewOtherCosts([{ other_cost_type_id: 0, amount: 0 }])
+      setNewOtherCosts([{ other_cost_type_id: '', amount: 0 }])
       refreshAssignment()
     } catch (err) {
       console.error('Erreur lors de l\'ajout du coût:', err)
@@ -2088,7 +2085,7 @@ export default function EditReportPage() {
                             highlightedShockId === shock?.id
                               ? "ring-2 ring-blue-500 bg-blue-50"
                               : "bg-white hover:bg-gray-50",
-                            collapsedShocks.has(shock?.id || 0)
+                            collapsedShocks.has(shock?.id || '')
                               ? "border-gray-200"
                               : "border-blue-200"
                           )}
@@ -2102,12 +2099,12 @@ export default function EditReportPage() {
                                   size="sm"
                                   onClick={() => shock?.id && toggleShockCollapse(shock.id)}
                                   className="p-1 hover:bg-gray-100 rounded-md transition-colors"
-                                  title={collapsedShocks.has(shock?.id || 0) ? "Développer" : "Réduire"}
+                                  title={collapsedShocks.has(shock?.id || '') ? "Développer" : "Réduire"}
                                 >
                                   <ChevronDown 
                                     className={cn(
                                       "h-4 w-4 transition-transform duration-200",
-                                      collapsedShocks.has(shock?.id || 0) ? 'rotate-0' : 'rotate-0'
+                                      collapsedShocks.has(shock?.id || '') ? 'rotate-0' : 'rotate-0'
                                     )} 
                                   />
                                 </Button>
@@ -2116,11 +2113,11 @@ export default function EditReportPage() {
                                 <div className="flex-1">
                                   <ShockPointSelect
                                     className='w-1/2'
-                                    value={shock?.shock_point?.id || 0}  
+                                    value={shock?.shock_point?.id || ''}  
                                     onValueChange={async (newShockPointId) => {
                                       try {
                                         await axiosInstance.put(`/shocks/${shock?.id}`, {
-                                          shock_point_id: String(newShockPointId)
+                                          shock_point_id: newShockPointId
                                         })
                                         toast.success('Point de choc modifié')
                                         refreshAssignment()
@@ -2202,7 +2199,7 @@ export default function EditReportPage() {
                                   return {
                                     id: work.id, // ID réel de l'API pour la réorganisation
                                     uid: work.id?.toString() || crypto.randomUUID(),
-                                    supply_id: work.supply?.id || 0,
+                                    supply_id: work.supply?.id || '',
                                     supply_label: work.supply?.label || work.supply_label || '',
                                     disassembly: work?.disassembly || false,
                                     replacement: work?.replacement || false,
@@ -2262,9 +2259,9 @@ export default function EditReportPage() {
                                     // Préparer le payload selon l'API
                                     const payload = {
                                       paint_type_id: "1", // Valeur par défaut - à adapter selon tes besoins
-                                      shock_id: String(shock.id || 0),
+                                      shock_id: shock.id || '',
                                       shock_works: [{
-                                        supply_id: String(shockWorkData?.supply_id || 0),
+                                        supply_id: shockWorkData?.supply_id || '',
                                         disassembly: Boolean(shockWorkData?.disassembly || false),
                                         replacement: Boolean(shockWorkData?.replacement || false),
                                         repair: Boolean(shockWorkData?.repair || false),
@@ -2305,7 +2302,7 @@ export default function EditReportPage() {
                                   toast.success('Fourniture validée')
                                 }}
                                 shockId={shock?.id}
-                                paintTypeId={shock?.paint_type?.id || 1}
+                                paintTypeId={shock?.paint_type?.id || ''}
                                 onReorderSave={async (shockWorkIds) => handleReorderShockWorks(shock?.id, shockWorkIds)}
                                 onAssignmentRefresh={refreshAssignment}
                               />
@@ -2331,7 +2328,7 @@ export default function EditReportPage() {
                                   id: w.id!, // ID réel de l'API pour la réorganisation
                                   uid: w.id?.toString() || crypto.randomUUID(), // UID pour le drag & drop
                                   workforce_type: w?.workforce_type,
-                                  workforce_type_id: w?.workforce_type?.id || 0,
+                                  workforce_type_id: w?.workforce_type?.id || '',
                                   nb_hours: w?.nb_hours,
                                   work_fee: w?.work_fee,
                                   discount: w?.discount,
@@ -2359,11 +2356,11 @@ export default function EditReportPage() {
                                   try {
                                     // Préparer le payload selon l'API
                                     const payload = {
-                                      shock_id: String(shock?.id || 0),
-                                      hourly_rate_id: String(shock?.hourly_rate?.id || 1), // Utiliser le taux du shock
-                                      paint_type_id: String(shock?.paint_type?.id || 1), // Utiliser le type du shock
+                                      shock_id: shock?.id || '',
+                                      hourly_rate_id: shock?.hourly_rate?.id || '', // Utiliser le taux du shock
+                                      paint_type_id: shock?.paint_type?.id || '', // Utiliser le type du shock
                                       workforces: [{
-                                        workforce_type_id: String(workforceData?.workforce_type_id || 0),
+                                        workforce_type_id: workforceData?.workforce_type_id || '',
                                         nb_hours: Number(workforceData?.nb_hours || 0),
                                         discount: Number(workforceData?.discount || 0),
                                         with_tax: workforceData?.with_tax !== undefined ? workforceData.with_tax : true,
@@ -2458,8 +2455,8 @@ export default function EditReportPage() {
                             onUpdate={async (field, value) => {
                               try {
                                 await axiosInstance.put(`${API_CONFIG.ENDPOINTS.OTHER_COSTS}/${cost.id}`, {
-                                  assignment_id: String(assignment.id),
-                                  other_cost_type_id: String(field === 'other_cost_type_id' ? value : cost.other_cost_type?.id),
+                                  assignment_id: assignment.id,
+                                  other_cost_type_id: field === 'other_cost_type_id' ? value : cost.other_cost_type?.id,
                                   amount: Number(field === 'amount' ? value : cost.amount)
                                 })
                                 toast.success('Coût mis à jour')
@@ -2767,7 +2764,7 @@ export default function EditReportPage() {
                               <div className="space-y-2">
                                <Label htmlFor="general-state">État général *</Label>
                                <GeneralStateSelect
-                                 value={generalStateId || 0}
+                                 value={generalStateId || ''}
                                  onValueChange={setGeneralStateId}
                                  generalStates={generalStates}
                                  placeholder="Sélectionner un état général"
@@ -2777,7 +2774,7 @@ export default function EditReportPage() {
                                 <div className="space-y-2">
                                  <Label htmlFor="technical-conclusion">Conclusion technique *</Label>
                                  <TechnicalConclusionSelect
-                                   value={technicalConclusionId || 0}
+                                   value={technicalConclusionId || ''}
                                    onValueChange={setTechnicalConclusionId}
                                    technicalConclusions={technicalConclusions}
                                    placeholder="Sélectionner une conclusion technique"
@@ -3526,8 +3523,8 @@ export default function EditReportPage() {
         onSelectedShockPointIdChange={setSelectedShockPointId}
         shockPoints={shockPoints}
         shocks={assignment?.shocks?.map(shock => ({
-          id: shock?.id || 0,
-          shock_point_id: shock?.shock_point?.id || 0
+          id: shock?.id || '',
+          shock_point_id: shock?.shock_point?.id || ''
         })) || []}
         onCreateShockPoint={handleCreateShockPoint}
         onAddShock={handleAddShock}
@@ -3638,7 +3635,7 @@ function OtherCostItem({
 }) {
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
-    other_cost_type_id: cost.other_cost_type?.id || 0,
+    other_cost_type_id: cost.other_cost_type?.id || '',
     amount: cost.amount || 0,
   })
 

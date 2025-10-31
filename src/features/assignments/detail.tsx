@@ -2240,11 +2240,35 @@ export default function AssignmentDetailPage() {
       UserRole.INSURER_STANDARD_USER
     ])
 
+    // Ordre des statuts pour déterminer si un statut vient après un autre
+    const statusOrder = [
+      'pending',
+      'opened',
+      'realized',
+      'pending_for_repairer_invoice',
+      'pending_for_repairer_invoice_validation',
+      'in_editing',
+      'edited',
+      'in_payment',
+      'validated',
+      'paid',
+      'closed'
+    ]
+
+    const getStatusIndex = (code: string) => statusOrder.indexOf(code)
+    const isAfterStatus = (currentCode: string, targetCode: string) => {
+      const currentIndex = getStatusIndex(currentCode)
+      const targetIndex = getStatusIndex(targetCode)
+      return currentIndex >= 0 && targetIndex >= 0 && currentIndex >= targetIndex
+    }
+
     const canEdit = !['validated', 'cancelled', 'closed', 'paid'].includes(statusCode)
     const canRealize = statusCode === 'opened'
-    const canEditRealization = statusCode === 'realized' || statusCode === 'edited' || statusCode === 'in_payment'
+    // Modifier la réalisation : disponible pour tous les statuts après "realized"
+    const canEditRealization = isAfterStatus(statusCode, 'realized')
     const canWriteReport = statusCode === 'realized'
-    const canEditReport = statusCode === 'edited' || statusCode === 'in_payment' || statusCode === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION
+    // Rédiger le rapport : disponible à partir du statut "in_editing"
+    const canEditReport = isAfterStatus(statusCode, 'in_editing')
     const canGenerateReport = true
     const canDelete = statusCode === 'pending'
     const canValidate = (isCEO() || isValidator() || isExpertManager()) && ['edited', 'in_payment'].includes(statusCode)
@@ -2472,7 +2496,7 @@ export default function AssignmentDetailPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Statut : </p>
               </div>
- <Badge className={getStatusColor(assignment.status.code) + ' text-lg'}>
+                <Badge className={getStatusColor(assignment.status.code) + ' text-lg'}>
                 {assignment.status.label}
               </Badge>
             </div>
@@ -2485,10 +2509,13 @@ export default function AssignmentDetailPage() {
                 <div className="flex items-center gap-2 flex-nowrap min-w-max">
                   {isRepairerUser ? (
                     // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
-                    <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
-                      <FileDown className="h-3 w-3 mr-2" />
-                      Préparation de devis
-                    </Button>
+                    // Masquer ce bouton aux statuts : 'in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed'
+                    !['in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed'].includes(assignment.status.code) ? (
+                      <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
+                        <FileDown className="h-3 w-3 mr-2" />
+                        Préparation de devis
+                      </Button>
+                    ) : null
                   ) : (
                     // Autres utilisateurs : tous les boutons disponibles
                     <>
@@ -2521,10 +2548,13 @@ export default function AssignmentDetailPage() {
                         </Button>
                       )}
                       
-                      <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
-                        <FileDown className="h-3 w-3 mr-2" />
-                        Préparation de devis
-                      </Button>
+                      {/* Bouton "Préparation de devis" : masquer aux statuts 'in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed' */}
+                      {!['in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed'].includes(assignment.status.code) && (
+                        <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
+                          <FileDown className="h-3 w-3 mr-2" />
+                          Préparation de devis
+                        </Button>
+                      )}
                       
                       {/* Actions basées sur le statut */}
                       {renderActionsToolbar(getAvailableActions(assignment))}
@@ -2828,7 +2858,7 @@ export default function AssignmentDetailPage() {
                   { code: 'pending_for_repairer_invoice_validation', label: 'Facture réparateur validée' },
                   { code: 'in_editing', label: 'En édition' },
                   { code: 'edited', label: 'Rédigé' },
-                  { code: 'in_payment', label: 'En paiement' },
+                  // { code: 'in_payment', label: 'En paiement' },
                   { code: 'validated', label: 'Validé' },
                   { code: 'paid', label: 'Payé' },
                   { code: 'closed', label: 'Clôturé' }
