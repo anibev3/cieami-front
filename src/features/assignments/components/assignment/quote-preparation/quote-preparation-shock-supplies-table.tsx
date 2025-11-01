@@ -118,6 +118,8 @@ function QuotePreparationSortableSupplyRow({
   onRemove,
   _formatCurrency
 }: QuotePreparationSortableSupplyRowProps) {
+  // Convertir les IDs en string pour SupplySelect
+  const normalizedSupplies = supplies.map(s => ({ ...s, id: String(s.id) }))
   const {
     attributes,
     listeners,
@@ -152,9 +154,9 @@ function QuotePreparationSortableSupplyRow({
       {/* Fournitures */}
       <td className="border px-3 py-2 text-[10px]">
         <SupplySelect
-          value={row.supply_id}
-          onValueChange={(value) => updateLocalShockWork(index, 'supply_id', value)}
-          supplies={supplies}
+          value={row.supply_id ? String(row.supply_id) : ''}
+          onValueChange={(value) => updateLocalShockWork(index, 'supply_id', value ? Number(value) : 0)}
+          supplies={normalizedSupplies}
           placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
           onCreateNew={() => handleCreateSupply(index)}
         />
@@ -378,9 +380,10 @@ export function QuotePreparationShockSuppliesTable({
     setModifiedRows(prev => new Set([...prev, index]))
     
     // Si c'est une sélection de fourniture, récupérer ses détails si nécessaire
-    if (field === 'supply_id' && value && typeof value === 'number') {
-      const supplyId = value
-      if (!supplies.find(s => s.id === supplyId) && !fetchedSupplies.has(supplyId)) {
+    if (field === 'supply_id' && value) {
+      // Convertir en number pour la comparaison et l'API
+      const supplyId = typeof value === 'string' ? Number(value) : value
+      if (supplyId && !supplies.find(s => s.id === supplyId) && !fetchedSupplies.has(supplyId)) {
         try {
           const supply = await fetchSupplyById(supplyId)
           setFetchedSupplies(prev => new Map(prev).set(supplyId, supply))
@@ -631,12 +634,18 @@ export function QuotePreparationShockSuppliesTable({
     
     // D'abord, ajouter toutes les fournitures existantes
     ;(supplies || []).forEach((s) => {
-      if (s && typeof s.id === 'number') byId.set(s.id, s)
+      if (s) {
+        const id = typeof s.id === 'string' ? Number(s.id) : s.id
+        if (id && typeof id === 'number') byId.set(id, { ...s, id })
+      }
     })
     
     // Ajouter les fournitures récupérées dynamiquement
-    fetchedSupplies.forEach((supply, id) => {
-      byId.set(id, supply)
+    fetchedSupplies.forEach((supply, _id) => {
+      const normalizedId = typeof supply.id === 'string' ? Number(supply.id) : supply.id
+      if (normalizedId && typeof normalizedId === 'number') {
+        byId.set(normalizedId, { ...supply, id: normalizedId })
+      }
     })
     
     // Ensuite, traiter les fournitures des lignes de travail
@@ -646,11 +655,14 @@ export function QuotePreparationShockSuppliesTable({
         // Si la fourniture n'existe pas encore dans la liste, la créer
         if (!byId.has(id)) {
           // Essayer de trouver la fourniture dans la liste des fournitures disponibles
-          const foundSupply = supplies.find(s => s.id === id)
+          const foundSupply = supplies.find(s => {
+            const sId = typeof s.id === 'string' ? Number(s.id) : s.id
+            return sId === id
+          })
           
           if (foundSupply) {
             // Utiliser les données de la fourniture trouvée
-            byId.set(id, foundSupply)
+            byId.set(id, { ...foundSupply, id })
           } else {
             // Fallback : utiliser les données disponibles dans work ou créer un placeholder
             const label = work?.supply_label || work?.supply?.label || `Fourniture #${id}`

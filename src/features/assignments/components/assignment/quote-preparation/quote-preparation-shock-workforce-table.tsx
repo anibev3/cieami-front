@@ -37,19 +37,19 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 
 interface PaintType {
-  id: number
+  id: string
   label: string
 }
 
 interface HourlyRate {
-  id: number
+  id: string
   label: string
 }
 
 interface Workforce {
   uid?: string
-  id?: number
-  workforce_type_id: number
+  id?: string | number
+  workforce_type_id: string | number
   workforce_type_label?: string
   nb_hours: number | string
   work_fee?: string | number
@@ -63,20 +63,20 @@ interface Workforce {
   amount_ht?: number | string
   amount_tva?: number | string
   amount_ttc?: number | string
-  hourly_rate_id?: string | number
-  paint_type_id?: string | number
+  hourly_rate_id?: string
+  paint_type_id?: string
   // Champ pour la peinture partielle/totale (workforce_type_id = 1)
   all_paint?: boolean
   // Additional fields for display
   workforce_type?: {
-    id: number
+    id: string | number
     code: string
     label: string
     description?: string
   }
   // Nouvelles clés de l'API
   paint_type?: {
-    id: number
+    id: string
     code: string
     label: string
     description: string
@@ -85,7 +85,7 @@ interface Workforce {
     updated_at: string
   }
   hourly_rate?: {
-    id: number
+    id: string
     value: string
     label: string
     description: string
@@ -96,7 +96,7 @@ interface Workforce {
 }
 
 interface QuotePreparationShockWorkforceTableV2Props {
-  shockId: number
+  shockId: string | number
   workforces: Workforce[]
   onUpdate: (updatedWorkforces: Workforce[]) => void
   onAdd?: (workforceData?: any) => Promise<void> // Prop optionnelle - maintenant géré en interne
@@ -105,15 +105,15 @@ interface QuotePreparationShockWorkforceTableV2Props {
   workforceTypes?: any[]
   paintTypes?: PaintType[]
   hourlyRates?: HourlyRate[]
-  paintTypeId?: number
-  hourlyRateId?: number
+  paintTypeId?: string
+  hourlyRateId?: string
   withTax?: boolean
-  onPaintTypeChange?: (value: number) => void
-  onHourlyRateChange?: (value: number) => void
+  onPaintTypeChange?: (value: string) => void
+  onHourlyRateChange?: (value: string) => void
   onWithTaxChange?: (value: boolean) => void
   onWorkforceTypeCreated?: (newWorkforceType: any) => void
   // Props pour la réorganisation
-  onReorderSave?: (workforceIds: number[]) => Promise<void>
+  onReorderSave?: (workforceIds: string[] | number[]) => Promise<void>
   hasReorderChanges?: boolean
 }
 
@@ -131,8 +131,8 @@ interface QuotePreparationSortableWorkforceRowProps {
   cancelChanges: (index: number) => void
   hasChanges: (index: number) => boolean
   formatCurrency: (amount: number | string) => string
-  getWorkforceTypeId: (workforce: Workforce) => number
-  updatingId: number | null
+  getWorkforceTypeId: (workforce: Workforce) => string | number
+  updatingId: string | number | null
 }
 
 function QuotePreparationSortableWorkforceRow({
@@ -185,15 +185,19 @@ function QuotePreparationSortableWorkforceRow({
       {/* Désignation */}
       <td className="border px-3 py-2 text-[10px]">
         <WorkforceTypeSelect
-          value={getWorkforceTypeId(row)}
-          onValueChange={(value) => updateLocalWorkforce(index, 'workforce_type_id', value)}
+          value={(() => {
+            const idVal = getWorkforceTypeId(row)
+            if (!idVal || idVal === '' || idVal === 0 || String(idVal) === '0') return ''
+            return String(idVal)
+          })()}
+          onValueChange={(value) => updateLocalWorkforce(index, 'workforce_type_id', String(value))}
           workforceTypes={workforceTypes as any}
           placeholder={!getWorkforceTypeId(row) ? "⚠️ Sélectionner un type" : "Sélectionner..."}
           onCreateNew={() => handleCreateWorkforceType(index)}
         />
       </td>
             {/* Colonne peinture partielle/totale si workforce_type_id = 1 */}
-      {row.workforce_type_id === 1 ? (
+      {(row.workforce_type_id === 1 || String(row.workforce_type_id) === '1') ? (
         <td className="border px-2 py-2 text-center text-[10px]">
           <div className="flex items-center justify-center gap-2">
             <Checkbox
@@ -264,11 +268,11 @@ function QuotePreparationSortableWorkforceRow({
               size="icon"
               variant="ghost"
               onClick={() => handleValidateRow(index)}
-              disabled={updatingId === (row.id || index)}
+              disabled={updatingId === String(row.id || index)}
               className="h-5 w-5 hover:bg-green-50 hover:text-green-600"
               title={newRows.has(index) ? "Valider l'ajout" : "Sauvegarder"}
             >
-              {updatingId === (row.id || index) ? (
+              {String(updatingId) === String(row.id || index) ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <Check className="h-3 w-3" />
@@ -321,8 +325,8 @@ export function QuotePreparationShockWorkforceTable({
   hasReorderChanges = false
 }: QuotePreparationShockWorkforceTableV2Props) {
   const [localWorkforces, setLocalWorkforces] = useState<Workforce[]>(workforces)
-  const [updatingId, setUpdatingId] = useState<number | null>(null)
-  const [originalValues, setOriginalValues] = useState<Record<number, Partial<Workforce>>>({})
+  const [updatingId, setUpdatingId] = useState<string | number | null>(null)
+  const [originalValues, setOriginalValues] = useState<Record<string | number, Partial<Workforce>>>({})
   const [newRows, setNewRows] = useState<Set<number>>(new Set()) // Lignes nouvellement ajoutées
   const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set()) // Lignes modifiées
   const [showCreateWorkforceTypeModal, setShowCreateWorkforceTypeModal] = useState(false)
@@ -437,14 +441,20 @@ export function QuotePreparationShockWorkforceTable({
   }, [refreshTimeout])
 
   // Fonction pour obtenir l'ID du type de main d'œuvre
-  const getWorkforceTypeId = (workforce: Workforce): number => {
-    if (workforce.workforce_type_id && workforce.workforce_type_id > 0) {
-      return workforce.workforce_type_id
+  const getWorkforceTypeId = (workforce: Workforce): string | number => {
+    if (workforce.workforce_type_id) {
+      const idStr = String(workforce.workforce_type_id)
+      if (idStr && idStr !== '0' && idStr !== '') {
+        return workforce.workforce_type_id
+      }
     }
     if (workforce.workforce_type?.id) {
-      return workforce.workforce_type.id
+      const idStr = String(workforce.workforce_type.id)
+      if (idStr && idStr !== '0' && idStr !== '') {
+        return workforce.workforce_type.id
+      }
     }
-    return 0
+    return ''
   }
 
   // Fonction de formatage des montants
@@ -541,8 +551,8 @@ export function QuotePreparationShockWorkforceTable({
     if (!onReorderSave) return
     
     const workforceIds = localWorkforces
-      .filter(workforce => workforce.id && workforce.id > 0) // Seulement les éléments avec un ID valide (pas les nouveaux)
-      .map(workforce => workforce.id!)
+      .filter(workforce => workforce.id) // Seulement les éléments avec un ID valide (pas les nouveaux)
+      .map(workforce => String(workforce.id!))
     
     if (workforceIds.length === 0) {
       toast.error('Aucun élément à réorganiser trouvé')
@@ -591,19 +601,19 @@ export function QuotePreparationShockWorkforceTable({
       
       // Préparer les données pour l'API
       const updateData = {
-        workforce_type_id: getWorkforceTypeId(workforce).toString(),
+        workforce_type_id: String(getWorkforceTypeId(workforce)),
         nb_hours: Number(workforce.nb_hours),
         discount: Number(workforce.discount),
-        // hourly_rate_id: workforce.hourly_rate_id?.toString() || (hourlyRates.length > 0 ? hourlyRates[0].id.toString() : "1"),
-        hourly_rate_id: hourlyRateId?.toString(),
-        // paint_type_id: workforce.paint_type_id?.toString() || (paintTypes.length > 0 ? paintTypes[0].id.toString() : "1"),
-        paint_type_id: paintTypeId?.toString(),
+        // hourly_rate_id: workforce.hourly_rate_id || (hourlyRates.length > 0 ? hourlyRates[0].id : ""),
+        hourly_rate_id: hourlyRateId || '',
+        // paint_type_id: workforce.paint_type_id || (paintTypes.length > 0 ? paintTypes[0].id : ""),
+        paint_type_id: paintTypeId || '',
         with_tax: localWithTax,
         all_paint: workforce.all_paint || false
       }
 
       // Appel API pour mettre à jour
-      await workforceService.updateWorkforce(workforce.id, updateData)
+      await workforceService.updateWorkforce(String(workforce.id), updateData)
       
       // Mettre à jour les données parent avec les nouvelles propriétés
       const updatedWorkforces = [...localWorkforces]
@@ -655,9 +665,9 @@ export function QuotePreparationShockWorkforceTable({
 
   // Fonction pour ajouter une nouvelle ligne localement
   const handleAddNewRow = () => {
-    const newWorkforce: Workforce = {
+      const newWorkforce: Workforce = {
       uid: crypto.randomUUID(),
-      workforce_type_id: 0,
+      workforce_type_id: '',
       nb_hours: 0,
       discount: 0,
       with_tax: localWithTax,
@@ -665,13 +675,13 @@ export function QuotePreparationShockWorkforceTable({
       amount_excluding_tax: 0,
       amount_tax: 0,
       amount: 0,
-      // hourly_rate_id: hourlyRates.length > 0 ? hourlyRates[0].id : 0,
-      hourly_rate_id: hourlyRateId?.toString(),
-      // paint_type_id: paintTypes.length > 0 ? paintTypes[0].id : 0,
-      paint_type_id: paintTypeId?.toString(),
+      // hourly_rate_id: hourlyRates.length > 0 ? hourlyRates[0].id : '',
+      hourly_rate_id: hourlyRateId || '',
+      // paint_type_id: paintTypes.length > 0 ? paintTypes[0].id : '',
+      paint_type_id: paintTypeId || '',
       // Initialiser les nouvelles propriétés
       paint_type: paintTypes.length > 0 ? {
-        id: paintTypes[0].id,
+        id: String(paintTypes[0].id),
         code: paintTypes[0].label,
         label: paintTypes[0].label,
         description: paintTypes[0].label,
@@ -680,7 +690,7 @@ export function QuotePreparationShockWorkforceTable({
         updated_at: new Date().toISOString()
       } : undefined,
       hourly_rate: hourlyRates.length > 0 ? {
-        id: hourlyRates[0].id,
+        id: String(hourlyRates[0].id),
         value: hourlyRates[0].label,
         label: hourlyRates[0].label,
         description: hourlyRates[0].label,
@@ -709,13 +719,13 @@ export function QuotePreparationShockWorkforceTable({
         
         // Construire le payload selon l'API
         const payload = {
-          shock_id: shockId.toString(),
-          hourly_rate_id: hourlyRateId?.toString() || "1",
+          shock_id: String(shockId),
+          hourly_rate_id: hourlyRateId || "1",
           with_tax: localWithTax ? 1 : 0,
-          paint_type_id: paintTypeId?.toString() || "1",
+          paint_type_id: paintTypeId || "1",
           workforces: [
             {
-              workforce_type_id: getWorkforceTypeId(workforce).toString(),
+              workforce_type_id: String(getWorkforceTypeId(workforce)),
               nb_hours: Number(workforce.nb_hours),
               discount: Number(workforce.discount),
               all_paint: workforce.all_paint || false
@@ -776,7 +786,7 @@ export function QuotePreparationShockWorkforceTable({
     } else if (workforce.id) {
       // Ligne existante, la supprimer via l'API
       try {
-        await workforceService.deleteWorkforce(workforce.id)
+        await workforceService.deleteWorkforce(String(workforce.id))
         const updated = localWorkforces.filter((_, i) => i !== index)
         setLocalWorkforces(updated)
         onUpdate(updated)
@@ -813,8 +823,8 @@ export function QuotePreparationShockWorkforceTable({
         updateLocalWorkforce(index, 'nb_hours', original.nb_hours)
         updateLocalWorkforce(index, 'discount', original.discount)
         updateLocalWorkforce(index, 'workforce_type_id', original.workforce_type_id)
-        updateLocalWorkforce(index, 'hourly_rate_id', original.hourly_rate?.id)
-        updateLocalWorkforce(index, 'paint_type_id', original.paint_type?.id)
+        updateLocalWorkforce(index, 'hourly_rate_id', original.hourly_rate?.id ? String(original.hourly_rate.id) : undefined)
+        updateLocalWorkforce(index, 'paint_type_id', original.paint_type?.id ? String(original.paint_type.id) : undefined)
         updateLocalWorkforce(index, 'paint_type', original.paint_type)
         updateLocalWorkforce(index, 'hourly_rate', original.hourly_rate)
         updateLocalWorkforce(index, 'all_paint', original.all_paint)
@@ -835,17 +845,30 @@ export function QuotePreparationShockWorkforceTable({
   }
 
   // Fonction pour gérer le changement de type de peinture
-  const handlePaintTypeChange = async (value: number) => {
+  const handlePaintTypeChange = async (value: string) => {
+    console.log('🎨 handlePaintTypeChange called with value:', value)
+    console.log('🎨 paintTypes:', paintTypes)
+    console.log('🎨 paintTypeId before:', paintTypeId)
+    
+    // Appeler le callback parent en premier pour mettre à jour la prop
     onPaintTypeChange?.(value)
     
     // Mettre à jour toutes les workforces locales avec le nouveau paint_type
-    const selectedPaintType = paintTypes.find(pt => pt.id === value)
+    // Normaliser les IDs pour la comparaison (peut être string ou number selon la source)
+    const selectedPaintType = paintTypes.find(pt => {
+      const ptId = String(pt.id || '')
+      const valueNormalized = String(value || '')
+      return ptId === valueNormalized
+    })
+    
+    console.log('🎨 selectedPaintType found:', selectedPaintType)
+    
     if (selectedPaintType) {
       const updatedWorkforces = localWorkforces.map(workforce => ({
         ...workforce,
         paint_type_id: value,
         paint_type: {
-          id: selectedPaintType.id,
+          id: String(selectedPaintType.id),
           code: selectedPaintType.label,
           label: selectedPaintType.label,
           description: selectedPaintType.label,
@@ -875,16 +898,16 @@ export function QuotePreparationShockWorkforceTable({
           const batch = existingWorkforces.slice(i, i + batchSize)
           await Promise.all(batch.map(async (workforce) => {
             const updateData = {
-              workforce_type_id: getWorkforceTypeId(workforce).toString(),
+              workforce_type_id: String(getWorkforceTypeId(workforce)),
               nb_hours: Number(workforce.nb_hours),
               discount: Number(workforce.discount),
-              hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
-              paint_type_id: value.toString(),
+              hourly_rate_id: hourlyRateId || workforce.hourly_rate_id || "1",
+              paint_type_id: value,
               with_tax: localWithTax,
               all_paint: workforce.all_paint || false
             }
 
-            await workforceService.updateWorkforce(workforce.id!, updateData)
+            await workforceService.updateWorkforce(String(workforce.id!), updateData)
           }))
           
           // Petite pause entre les lots pour éviter la surcharge
@@ -910,18 +933,31 @@ export function QuotePreparationShockWorkforceTable({
   }
 
   // Fonction pour gérer le changement de taux horaire
-  const handleHourlyRateChange = async (value: number) => {
+  const handleHourlyRateChange = async (value: string) => {
+    console.log('⏰ handleHourlyRateChange called with value:', value)
+    console.log('⏰ hourlyRates:', hourlyRates)
+    console.log('⏰ hourlyRateId before:', hourlyRateId)
+    
+    // Appeler le callback parent en premier pour mettre à jour la prop
     onHourlyRateChange?.(value)
     
     // Mettre à jour toutes les workforces locales avec le nouveau hourly_rate
-    const selectedHourlyRate = hourlyRates.find(hr => hr.id === value)
+    // Normaliser les IDs pour la comparaison (peut être string ou number selon la source)
+    const selectedHourlyRate = hourlyRates.find(hr => {
+      const hrId = String(hr.id || '')
+      const valueNormalized = String(value || '')
+      return hrId === valueNormalized
+    })
+    
+    console.log('⏰ selectedHourlyRate found:', selectedHourlyRate)
+    
     if (selectedHourlyRate) {
       const updatedWorkforces = localWorkforces.map(workforce => ({
         ...workforce,
         hourly_rate_id: value,
         work_fee: selectedHourlyRate.label, // Mettre à jour le work_fee avec la nouvelle valeur
         hourly_rate: {
-          id: selectedHourlyRate.id,
+          id: String(selectedHourlyRate.id),
           value: selectedHourlyRate.label,
           label: selectedHourlyRate.label,
           description: selectedHourlyRate.label,
@@ -951,16 +987,16 @@ export function QuotePreparationShockWorkforceTable({
           const batch = existingWorkforces.slice(i, i + batchSize)
           await Promise.all(batch.map(async (workforce) => {
             const updateData = {
-              workforce_type_id: getWorkforceTypeId(workforce).toString(),
+              workforce_type_id: String(getWorkforceTypeId(workforce)),
               nb_hours: Number(workforce.nb_hours),
               discount: Number(workforce.discount),
-              hourly_rate_id: value.toString(),
-              paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
+              hourly_rate_id: value,
+              paint_type_id: paintTypeId || workforce.paint_type_id || "1",
               with_tax: localWithTax,
               all_paint: workforce.all_paint || false
             }
 
-            await workforceService.updateWorkforce(workforce.id!, updateData)
+            await workforceService.updateWorkforce(String(workforce.id!), updateData)
           }))
           
           // Petite pause entre les lots pour éviter la surcharge
@@ -1000,16 +1036,16 @@ export function QuotePreparationShockWorkforceTable({
           const batch = existingWorkforces.slice(i, i + batchSize)
           await Promise.all(batch.map(async (workforce) => {
             const updateData = {
-              workforce_type_id: getWorkforceTypeId(workforce).toString(),
+              workforce_type_id: String(getWorkforceTypeId(workforce)),
               nb_hours: Number(workforce.nb_hours),
               discount: Number(workforce.discount),
-              hourly_rate_id: hourlyRateId?.toString() || workforce.hourly_rate_id?.toString() || "1",
-              paint_type_id: paintTypeId?.toString() || workforce.paint_type_id?.toString() || "1",
+              hourly_rate_id: hourlyRateId || workforce.hourly_rate_id || "1",
+              paint_type_id: paintTypeId || workforce.paint_type_id || "1",
               with_tax: checked,
               all_paint: workforce.all_paint || false
             }
 
-            await workforceService.updateWorkforce(workforce.id!, updateData)
+            await workforceService.updateWorkforce(String(workforce.id!), updateData)
           }))
           
           // Petite pause entre les lots pour éviter la surcharge
@@ -1041,7 +1077,7 @@ export function QuotePreparationShockWorkforceTable({
                    paintTypes.length === 0 || hourlyRates.length === 0
 
   // Vérifier si on a des lignes avec workforce_type_id = 1 pour afficher la colonne peinture
-  const hasPaintWorkforce = localWorkforces.some(workforce => workforce.workforce_type_id === 1)
+  const hasPaintWorkforce = localWorkforces.some(workforce => workforce.workforce_type_id === 1 || String(workforce.workforce_type_id) === '1')
 
   return (
     <div className="space-y-4">
@@ -1117,8 +1153,8 @@ export function QuotePreparationShockWorkforceTable({
               <div className="relative bg-white p-2 rounded-lg border border-grey-200">
                 <Label className="text-xs font-medium mb-2">Type de peinture</Label>
                 <Select 
-                  value={paintTypeId ? paintTypeId.toString() : ''} 
-                  onValueChange={(value) => handlePaintTypeChange(Number(value))}
+                  value={paintTypeId || ''} 
+                  onValueChange={(value) => handlePaintTypeChange(value)}
                   disabled={updatingPaintType || paintTypes.length === 0}
                 >
                   <SelectTrigger className={`w-full border rounded p-2 ${!paintTypeId ? 'border-red-300 bg-red-50' : ''} ${updatingPaintType ? 'opacity-50' : ''}`}>
@@ -1127,7 +1163,7 @@ export function QuotePreparationShockWorkforceTable({
                   <SelectContent>
                     {paintTypes.length > 0 ? (
                       paintTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id.toString()}>
+                        <SelectItem key={type.id} value={String(type.id)}>
                           {type.label}
                         </SelectItem>
                       ))
@@ -1157,8 +1193,8 @@ export function QuotePreparationShockWorkforceTable({
               <div className="relative bg-white p-2 rounded-lg border border-grey-200">
                 <Label className="text-xs font-medium mb-2">Taux horaire</Label>
                 <Select 
-                  value={hourlyRateId ? hourlyRateId.toString() : ''} 
-                  onValueChange={(value) => handleHourlyRateChange(Number(value))}
+                  value={hourlyRateId || ''} 
+                  onValueChange={(value) => handleHourlyRateChange(value)}
                   disabled={updatingHourlyRate || hourlyRates.length === 0}
                 >
                   <SelectTrigger className={`w-full border rounded p-2 ${!hourlyRateId ? 'border-red-300 bg-red-50' : ''} ${updatingHourlyRate ? 'opacity-50' : ''}`}>
@@ -1167,7 +1203,7 @@ export function QuotePreparationShockWorkforceTable({
                   <SelectContent>
                     {hourlyRates.length > 0 ? (
                       hourlyRates.map((rate) => (
-                        <SelectItem key={rate.id} value={rate.id.toString()}>
+                        <SelectItem key={rate.id} value={String(rate.id)}>
                           {rate.label}
                         </SelectItem>
                       ))

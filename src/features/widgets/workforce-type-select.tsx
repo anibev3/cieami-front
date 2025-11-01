@@ -7,15 +7,15 @@ import { Users, ChevronsUpDown, Plus, Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface WorkforceType {
-  id: number
+  id: string | number
   label: string
   code: string
   hourly_rate: number
 }
 
 interface WorkforceTypeSelectProps {
-  value: number
-  onValueChange: (value: number) => void
+  value: string | number
+  onValueChange: (value: string | number) => void
   workforceTypes: WorkforceType[]
   placeholder?: string
   className?: string
@@ -35,8 +35,10 @@ export function WorkforceTypeSelect({
   onCreateNew
 }: WorkforceTypeSelectProps) {
   const [open, setOpen] = useState(false)
-  const selectedWorkforceType = workforceTypes.find(type => type.id === value)
-  const hasValue = value > 0
+  // Normaliser les IDs pour la comparaison (string ou number)
+  const normalizedValue = String(value || '')
+  const selectedWorkforceType = workforceTypes.find(type => String(type.id) === normalizedValue)
+  const hasValue = normalizedValue !== '' && normalizedValue !== '0'
 
   return (
     <div className="space-y-3">
@@ -107,7 +109,7 @@ export function WorkforceTypeSelect({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        value === workforceType.id ? "opacity-100" : "opacity-0"
+                        String(value || '') === String(workforceType.id || '') ? "opacity-100" : "opacity-0"
                       )}
                     />
                     <div className="flex items-center gap-2">

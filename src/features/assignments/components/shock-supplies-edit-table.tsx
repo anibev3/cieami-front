@@ -34,7 +34,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 
 interface Supply {
-  id: number
+  id: string
   label: string
   code?: string
   description?: string
@@ -42,21 +42,21 @@ interface Supply {
 }
 
 interface PaintType {
-  id: number
+  id: string
   label: string
 }
 
 interface HourlyRate {
-  id: number
+  id: string
   label: string
 }
 
 interface ShockWork {
-  id?: number
+  id?: string
   uid: string
-  supply_id: number
+  supply_id: string
   supply?: {
-    id: number
+    id: string
     label: string
     code?: string
     price?: number
@@ -152,7 +152,7 @@ function SortableSupplyRow({
       {/* Fournitures */}
       <td className="border px-3 py-2 text-[10px]">
         <SupplySelect
-          value={row.supply_id}
+          value={String(row.supply_id || '')}
           onValueChange={(value) => updateLocalShockWork(index, 'supply_id', value)}
           supplies={supplies}
           placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
@@ -305,13 +305,13 @@ export function ShockSuppliesEditTable({
   // Nouvelles props pour type de peinture et taux horaire
   paintTypes?: PaintType[]
   hourlyRates?: HourlyRate[]
-  paintTypeId?: number
-  hourlyRateId?: number
-  onPaintTypeChange?: (value: number) => void
-  onHourlyRateChange?: (value: number) => void
+  paintTypeId?: string
+  hourlyRateId?: string
+  onPaintTypeChange?: (value: string) => void
+  onHourlyRateChange?: (value: string) => void
   // Props pour la réorganisation
-  shockId?: number
-  onReorderSave?: (shockWorkIds: number[]) => Promise<void>
+  shockId?: string
+  onReorderSave?: (shockWorkIds: string[]) => Promise<void>
   hasReorderChanges?: boolean
   // Callback pour rafraîchir les données du dossier
   onAssignmentRefresh?: () => void
@@ -328,7 +328,7 @@ export function ShockSuppliesEditTable({
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
   const [tableExpanded, setTableExpanded] = useState(true)
   // État pour les fournitures récupérées dynamiquement
-  const [fetchedSupplies, setFetchedSupplies] = useState<Map<number, Supply>>(new Map())
+  const [fetchedSupplies, setFetchedSupplies] = useState<Map<string, Supply>>(new Map())
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -346,12 +346,12 @@ export function ShockSuppliesEditTable({
   // Récupérer automatiquement les fournitures manquantes
   useEffect(() => {
     const fetchMissingSupplies = async () => {
-      const missingSupplyIds = new Set<number>()
+      const missingSupplyIds = new Set<string>()
       
       // Identifier les fournitures manquantes
       localShockWorks.forEach(work => {
-        const id = Number(work?.supply_id || 0)
-        if (id && !supplies.find(s => s.id === id) && !fetchedSupplies.has(id)) {
+        const id = String(work?.supply_id || '')
+        if (id && !supplies.find(s => String(s.id) === id) && !fetchedSupplies.has(id)) {
           missingSupplyIds.add(id)
         }
       })
@@ -359,8 +359,14 @@ export function ShockSuppliesEditTable({
       // Récupérer les fournitures manquantes
       for (const supplyId of missingSupplyIds) {
         try {
-          const supply = await fetchSupplyById(supplyId)
-          setFetchedSupplies(prev => new Map(prev).set(supplyId, supply))
+          // fetchSupplyById peut encore attendre un number, convertir si nécessaire
+          const numericId = Number(supplyId)
+          if (!Number.isNaN(numericId) && numericId > 0) {
+            const supply = await fetchSupplyById(numericId)
+            // Normaliser l'ID en string
+            const normalizedSupply = { ...supply, id: String(supply.id) }
+            setFetchedSupplies(prev => new Map(prev).set(supplyId, normalizedSupply))
+          }
         } catch (error) {
           console.error(`Erreur lors de la récupération de la fourniture ${supplyId}:`, error)
         }
@@ -378,12 +384,18 @@ export function ShockSuppliesEditTable({
     setModifiedRows(prev => new Set([...prev, index]))
     
     // Si c'est une sélection de fourniture, récupérer ses détails si nécessaire
-    if (field === 'supply_id' && value && typeof value === 'number') {
-      const supplyId = value
-      if (!supplies.find(s => s.id === supplyId) && !fetchedSupplies.has(supplyId)) {
+    if (field === 'supply_id' && value) {
+      const supplyId = String(value)
+      if (!supplies.find(s => String(s.id) === supplyId) && !fetchedSupplies.has(supplyId)) {
         try {
-          const supply = await fetchSupplyById(supplyId)
-          setFetchedSupplies(prev => new Map(prev).set(supplyId, supply))
+          // fetchSupplyById peut encore attendre un number, convertir si nécessaire
+          const numericId = Number(supplyId)
+          if (!Number.isNaN(numericId) && numericId > 0) {
+            const supply = await fetchSupplyById(numericId)
+            // Normaliser l'ID en string
+            const normalizedSupply = { ...supply, id: String(supply.id) }
+            setFetchedSupplies(prev => new Map(prev).set(supplyId, normalizedSupply))
+          }
         } catch (error) {
           console.error(`Erreur lors de la récupération de la fourniture ${supplyId}:`, error)
         }
@@ -442,8 +454,8 @@ export function ShockSuppliesEditTable({
     if (!onReorderSave || !shockId) return
     
     const shockWorkIds = localShockWorks
-      .filter(work => work.id && work.id > 0) // Seulement les éléments avec un ID valide (pas les nouveaux)
-      .map(work => work.id!)
+      .filter(work => work.id && work.id) // Seulement les éléments avec un ID valide (pas les nouveaux)
+      .map(work => String(work.id!))
     
     if (shockWorkIds.length === 0) {
       toast.error('Aucun élément à réorganiser trouvé')
@@ -458,7 +470,7 @@ export function ShockSuppliesEditTable({
   const handleAddNewRow = () => {
     const newWork: ShockWork = {
       uid: crypto.randomUUID(),
-      supply_id: 0,
+      supply_id: '',
       disassembly: false,
       replacement: false,
       repair: false,
@@ -486,7 +498,7 @@ export function ShockSuppliesEditTable({
   const handleSupplyCreated = (newSupply: any) => {
     if (currentSupplyIndex !== null) {
       // Sélectionner automatiquement la nouvelle fourniture dans la ligne existante
-      updateLocalShockWork(currentSupplyIndex, 'supply_id', newSupply.id)
+      updateLocalShockWork(currentSupplyIndex, 'supply_id', String(newSupply.id))
       setCurrentSupplyIndex(null)
     } else {
       // Si créé depuis le bouton principal, ajouter une nouvelle ligne avec la fourniture
@@ -494,7 +506,7 @@ export function ShockSuppliesEditTable({
       // La nouvelle ligne sera ajoutée avec la fourniture sélectionnée
       setTimeout(() => {
         const newIndex = localShockWorks.length
-        updateLocalShockWork(newIndex, 'supply_id', newSupply.id)
+        updateLocalShockWork(newIndex, 'supply_id', String(newSupply.id))
       }, 100)
     }
     onSupplyCreated?.(newSupply)
@@ -515,11 +527,11 @@ export function ShockSuppliesEditTable({
         }
         
         const payload = {
-          shock_id: shockId.toString(),
-          paint_type_id: paintTypeId.toString(),
+          shock_id: shockId,
+          paint_type_id: paintTypeId || '',
           shock_works: [
             {
-              supply_id: shockWork.supply_id.toString(),
+              supply_id: String(shockWork.supply_id || ''),
               disassembly: shockWork.disassembly,
               replacement: shockWork.replacement,
               repair: shockWork.repair,
@@ -627,30 +639,33 @@ export function ShockSuppliesEditTable({
 
   // Construire une liste de fournitures qui inclut celles manquantes présentes dans les lignes pré-remplies
   const combinedSupplies: Supply[] = useMemo(() => {
-    const byId = new Map<number, Supply>()
+    const byId = new Map<string, Supply>()
     
     // D'abord, ajouter toutes les fournitures existantes
     ;(supplies || []).forEach((s) => {
-      if (s && typeof s.id === 'number') byId.set(s.id, s)
+      if (s && s.id) {
+        const idStr = String(s.id)
+        byId.set(idStr, { ...s, id: idStr })
+      }
     })
     
     // Ajouter les fournitures récupérées dynamiquement
     fetchedSupplies.forEach((supply, id) => {
-      byId.set(id, supply)
+      byId.set(id, { ...supply, id: String(supply.id) })
     })
     
     // Ensuite, traiter les fournitures des lignes de travail
     ;(localShockWorks || []).forEach((work) => {
-      const id = Number(work?.supply_id || 0)
+      const id = String(work?.supply_id || '')
       if (id) {
         // Si la fourniture n'existe pas encore dans la liste, la créer
         if (!byId.has(id)) {
           // Essayer de trouver la fourniture dans la liste des fournitures disponibles
-          const foundSupply = supplies.find(s => s.id === id)
+          const foundSupply = supplies.find(s => String(s.id) === id)
           
           if (foundSupply) {
             // Utiliser les données de la fourniture trouvée
-            byId.set(id, foundSupply)
+            byId.set(id, { ...foundSupply, id: String(foundSupply.id) })
           } else {
             // Fallback : utiliser les données disponibles dans work ou créer un placeholder
             const label = work?.supply_label || work?.supply?.label || `Fourniture #${id}`

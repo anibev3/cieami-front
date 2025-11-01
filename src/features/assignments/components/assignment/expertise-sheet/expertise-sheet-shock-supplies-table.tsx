@@ -42,17 +42,17 @@ interface Supply {
 }
 
 interface PaintType {
-  id: number
+  id: string
   label: string
 }
 
 interface HourlyRate {
-  id: number
+  id: string
   label: string
 }
 
 interface ShockWork {
-  id?: number
+  id?: string
   uid: string
   supply_id: string
   supply?: {
@@ -152,7 +152,7 @@ function ExpertiseSheetSortableSupplyRow({
       {/* Fournitures */}
       <td className="border px-3 py-2 text-[10px]">
         <SupplySelect
-          value={row.supply_id}
+          value={String(row.supply_id || '')}
           onValueChange={(value) => updateLocalShockWork(index, 'supply_id', value)}
           supplies={supplies}
           placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
@@ -305,13 +305,13 @@ export function ExpertiseSheetShockSuppliesTable({
   // Nouvelles props pour type de peinture et taux horaire
   paintTypes?: PaintType[]
   hourlyRates?: HourlyRate[]
-  paintTypeId?: number
-  hourlyRateId?: number
-  onPaintTypeChange?: (value: number) => void
-  onHourlyRateChange?: (value: number) => void
+  paintTypeId?: string
+  hourlyRateId?: string
+  onPaintTypeChange?: (value: string) => void
+  onHourlyRateChange?: (value: string) => void
   // Props pour la réorganisation
-  shockId?: number
-  onReorderSave?: (shockWorkIds: number[]) => Promise<void>
+  shockId?: string
+  onReorderSave?: (shockWorkIds: string[]) => Promise<void>
   hasReorderChanges?: boolean
   // Callback pour rafraîchir les données du dossier
   onAssignmentRefresh?: () => void
@@ -448,8 +448,8 @@ export function ExpertiseSheetShockSuppliesTable({
     if (!onReorderSave || !shockId) return
     
     const shockWorkIds = localShockWorks
-      .filter(work => work.id && work.id > 0) // Seulement les éléments avec un ID valide (pas les nouveaux)
-      .map(work => work.id!)
+      .filter(work => work.id && work.id) // Seulement les éléments avec un ID valide (pas les nouveaux)
+      .map(work => String(work.id!))
     
     if (shockWorkIds.length === 0) {
       toast.error('Aucun élément à réorganiser trouvé')
@@ -464,7 +464,7 @@ export function ExpertiseSheetShockSuppliesTable({
   const handleAddNewRow = () => {
     const newWork: ShockWork = {
       uid: crypto.randomUUID(),
-      supply_id: 0,
+      supply_id: '',
       disassembly: false,
       replacement: false,
       repair: false,
@@ -492,7 +492,7 @@ export function ExpertiseSheetShockSuppliesTable({
   const handleSupplyCreated = (newSupply: any) => {
     if (currentSupplyIndex !== null) {
       // Sélectionner automatiquement la nouvelle fourniture dans la ligne existante
-      updateLocalShockWork(currentSupplyIndex, 'supply_id', newSupply.id)
+      updateLocalShockWork(currentSupplyIndex, 'supply_id', String(newSupply.id))
       setCurrentSupplyIndex(null)
     } else {
       // Si créé depuis le bouton principal, ajouter une nouvelle ligne avec la fourniture
@@ -500,7 +500,7 @@ export function ExpertiseSheetShockSuppliesTable({
       // La nouvelle ligne sera ajoutée avec la fourniture sélectionnée
       setTimeout(() => {
         const newIndex = localShockWorks.length
-        updateLocalShockWork(newIndex, 'supply_id', newSupply.id)
+        updateLocalShockWork(newIndex, 'supply_id', String(newSupply.id))
       }, 100)
     }
     onSupplyCreated?.(newSupply)
@@ -521,11 +521,11 @@ export function ExpertiseSheetShockSuppliesTable({
         }
         
         const payload = {
-          shock_id: shockId.toString(),
-          paint_type_id: paintTypeId.toString(),
+          shock_id: shockId,
+          paint_type_id: paintTypeId || '',
           shock_works: [
             {
-              supply_id: shockWork.supply_id.toString(),
+              supply_id: String(shockWork.supply_id || ''),
               disassembly: shockWork.disassembly,
               replacement: shockWork.replacement,
               repair: shockWork.repair,

@@ -596,8 +596,8 @@ export default function EditReportPage() {
   // Ajoute un state pour shockPoints
   const [shockPoints, setShockPoints] = useState([])
   // États pour les types de peinture et taux horaires
-  const [paintTypes, setPaintTypes] = useState([])
-  const [hourlyRates, setHourlyRates] = useState([])
+  const [paintTypes, setPaintTypes] = useState<Array<{ id: string | number; label: string; code?: string; description?: string }>>([])
+  const [hourlyRates, setHourlyRates] = useState<Array<{ id: string | number; label: string; value?: string; description?: string }>>([])
   
   // États pour les nouveaux champs de valeur de marché
   const [newMarketValue, setNewMarketValue] = useState<number | null>(null)
@@ -2341,8 +2341,8 @@ export default function EditReportPage() {
                                   paint_type_id: shock?.paint_type?.id,
                                   hourly_rate_id: shock?.hourly_rate?.id
                                 }))}
-                                paintTypes={paintTypes || []}
-                                hourlyRates={hourlyRates || []}
+                                paintTypes={(paintTypes || []).map(pt => ({ ...pt, id: String(pt.id) }))}
+                                hourlyRates={(hourlyRates || []).map(hr => ({ ...hr, id: String(hr.id) }))}
                                 onUpdate={(updatedWorkforces) => {
                                   // Mettre à jour les données locales
                                   const updatedAssignment = { ...assignment }
@@ -2377,26 +2377,60 @@ export default function EditReportPage() {
                                 }}
                                 onAssignmentRefresh={refreshAssignment}
                                 // Props pour type de peinture et taux horaire - utiliser les valeurs du shock
-                                paintTypeId={shock?.paint_type?.id}
-                                hourlyRateId={shock?.hourly_rate?.id}
+                                paintTypeId={shock?.paint_type?.id ? String(shock.paint_type.id) : undefined}
+                                hourlyRateId={shock?.hourly_rate?.id ? String(shock.hourly_rate.id) : undefined}
                                 // Prop withTax basée sur la première workforce du shock
                                 withTax={Boolean(shock?.workforces?.[0]?.with_tax)}
-                                onPaintTypeChange={async (value: number) => {
+                                onPaintTypeChange={async (value: string) => {
                                   try {
-                                    // Mettre à jour le type de peinture pour ce shock
-                                    // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
-                                    // qui gère déjà la mise à jour via l'API workforce
-                                    console.log('Type de peinture changé:', value, 'pour shock:', shock?.id || 'unknown')
+                                    // Mettre à jour l'état local du shock pour que le Select affiche la nouvelle valeur
+                                    const updatedAssignment = { ...assignment }
+                                    const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
+                                    if (shockIndex !== -1 && updatedAssignment.shocks[shockIndex]) {
+                                      // Trouver le paint type sélectionné dans la liste
+                                      const selectedPaintType = paintTypes?.find(pt => String(pt.id) === value)
+                                      if (selectedPaintType) {
+                                        updatedAssignment.shocks[shockIndex].paint_type = {
+                                          id: String(selectedPaintType.id),
+                                          code: selectedPaintType.code || selectedPaintType.label,
+                                          label: selectedPaintType.label,
+                                          description: selectedPaintType.description || selectedPaintType.label,
+                                          deleted_at: null,
+                                          created_at: new Date().toISOString(),
+                                          updated_at: new Date().toISOString()
+                                        }
+                                        setAssignment(updatedAssignment)
+                                      }
+                                    }
+                                    // Note: La mise à jour via l'API se fait déjà dans le composant ShockWorkforceTableV2
+                                    // via handlePaintTypeChange qui met à jour toutes les workforces
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du type de peinture')
                                   }
                                 }}
-                                onHourlyRateChange={async (value: number) => {
+                                onHourlyRateChange={async (value: string) => {
                                   try {
-                                    // Mettre à jour le taux horaire pour ce shock
-                                    // Note: Cette mise à jour se fait via le composant ShockWorkforceTableV2
-                                    // qui gère déjà la mise à jour via l'API workforce
-                                    console.log('Taux horaire changé:', value, 'pour shock:', shock?.id || 'unknown')
+                                    // Mettre à jour l'état local du shock pour que le Select affiche la nouvelle valeur
+                                    const updatedAssignment = { ...assignment }
+                                    const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
+                                    if (shockIndex !== -1 && updatedAssignment.shocks[shockIndex]) {
+                                      // Trouver le taux horaire sélectionné dans la liste
+                                      const selectedHourlyRate = hourlyRates?.find(hr => String(hr.id) === value)
+                                      if (selectedHourlyRate) {
+                                        updatedAssignment.shocks[shockIndex].hourly_rate = {
+                                          id: String(selectedHourlyRate.id),
+                                          value: selectedHourlyRate.value || selectedHourlyRate.label,
+                                          label: selectedHourlyRate.label,
+                                          description: selectedHourlyRate.description || selectedHourlyRate.label,
+                                          deleted_at: null,
+                                          created_at: new Date().toISOString(),
+                                          updated_at: new Date().toISOString()
+                                        }
+                                        setAssignment(updatedAssignment)
+                                      }
+                                    }
+                                    // Note: La mise à jour via l'API se fait déjà dans le composant ShockWorkforceTableV2
+                                    // via handleHourlyRateChange qui met à jour toutes les workforces
                                   } catch (err) {
                                     toast.error('Erreur lors de la mise à jour du taux horaire')
                                   }

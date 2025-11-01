@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
@@ -185,8 +186,17 @@ function SortableWorkforceRow({
       {/* Désignation */}
       <td className="border px-3 py-2 text-[10px]">
         <WorkforceTypeSelect
-          value={Number(getWorkforceTypeId(row)) || 0}
-          onValueChange={(value) => updateLocalWorkforce(index, 'workforce_type_id', String(value))}
+          value={(() => {
+            const idStr = getWorkforceTypeId(row)
+            if (!idStr || idStr === '' || idStr === '0') return ''
+            // Vérifier que le type existe dans workforceTypes pour éviter les valeurs orphelines
+            const typeExists = workforceTypes.some(type => String(type.id) === idStr)
+            return typeExists ? idStr : ''
+          })()}
+          onValueChange={(value) => {
+            // Value peut être string ou number, normaliser en string pour le stockage interne
+            updateLocalWorkforce(index, 'workforce_type_id', String(value))
+          }}
           workforceTypes={workforceTypes as any}
           placeholder={!getWorkforceTypeId(row) ? "⚠️ Sélectionner un type" : "Sélectionner..."}
           onCreateNew={() => handleCreateWorkforceType(index)}
@@ -438,11 +448,19 @@ export function ShockWorkforceTableV2({
 
   // Fonction pour obtenir l'ID du type de main d'œuvre
   const getWorkforceTypeId = (workforce: Workforce): string => {
-    if (workforce.workforce_type_id && workforce.workforce_type_id) {
-      return String(workforce.workforce_type_id)
+    // Priorité 1: workforce_type_id direct (peut être string ou number selon la source)
+    if (workforce.workforce_type_id) {
+      const idStr = String(workforce.workforce_type_id)
+      if (idStr && idStr !== '0' && idStr !== '') {
+        return idStr
+      }
     }
+    // Priorité 2: depuis l'objet workforce_type imbriqué
     if (workforce.workforce_type?.id) {
-      return String(workforce.workforce_type.id)
+      const idStr = String(workforce.workforce_type.id)
+      if (idStr && idStr !== '0' && idStr !== '') {
+        return idStr
+      }
     }
     return ''
   }
@@ -836,10 +854,23 @@ export function ShockWorkforceTableV2({
 
   // Fonction pour gérer le changement de type de peinture
   const handlePaintTypeChange = async (value: string) => {
+    console.log('🎨 handlePaintTypeChange called with value:', value)
+    console.log('🎨 paintTypes:', paintTypes)
+    console.log('🎨 paintTypeId before:', paintTypeId)
+    
+    // Appeler le callback parent en premier pour mettre à jour la prop
     onPaintTypeChange?.(value)
     
     // Mettre à jour toutes les workforces locales avec le nouveau paint_type
-    const selectedPaintType = paintTypes.find(pt => String(pt.id) === value)
+    // Normaliser les IDs pour la comparaison (peut être string ou number selon la source)
+    const selectedPaintType = paintTypes.find(pt => {
+      const ptId = String(pt.id || '')
+      const valueNormalized = String(value || '')
+      return ptId === valueNormalized
+    })
+    
+    console.log('🎨 selectedPaintType found:', selectedPaintType)
+    
     if (selectedPaintType) {
       const updatedWorkforces = localWorkforces.map(workforce => ({
         ...workforce,
@@ -911,10 +942,23 @@ export function ShockWorkforceTableV2({
 
   // Fonction pour gérer le changement de taux horaire
   const handleHourlyRateChange = async (value: string) => {
+    console.log('⏰ handleHourlyRateChange called with value:', value)
+    console.log('⏰ hourlyRates:', hourlyRates)
+    console.log('⏰ hourlyRateId before:', hourlyRateId)
+    
+    // Appeler le callback parent en premier pour mettre à jour la prop
     onHourlyRateChange?.(value)
     
     // Mettre à jour toutes les workforces locales avec le nouveau hourly_rate
-    const selectedHourlyRate = hourlyRates.find(hr => String(hr.id) === value)
+    // Normaliser les IDs pour la comparaison (peut être string ou number selon la source)
+    const selectedHourlyRate = hourlyRates.find(hr => {
+      const hrId = String(hr.id || '')
+      const valueNormalized = String(value || '')
+      return hrId === valueNormalized
+    })
+    
+    console.log('⏰ selectedHourlyRate found:', selectedHourlyRate)
+    
     if (selectedHourlyRate) {
       const updatedWorkforces = localWorkforces.map(workforce => ({
         ...workforce,
