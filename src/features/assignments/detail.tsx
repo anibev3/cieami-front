@@ -989,7 +989,7 @@ export default function AssignmentDetailPage() {
                       <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-semibold text-sm text-primary">Informations personnelles</h4>
-                          <Badge variant="outline" className="text-xs">ID: {assignment.client.id}</Badge>
+                          {/* <Badge variant="outline" className="text-xs">ID: {assignment.client.id}</Badge> */}
                         </div>
                         <div className="space-y-2">
                           <div>
@@ -1080,7 +1080,7 @@ export default function AssignmentDetailPage() {
                     <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-semibold text-sm text-primary">Informations société</h4>
-                        <Badge variant="outline" className="text-xs">{assignment.insurer.code}</Badge>
+                        {/* <Badge variant="outline" className="text-xs">{assignment.insurer.code}</Badge> */}
                       </div>
                       <div className="space-y-2">
                         <div>
@@ -1190,7 +1190,7 @@ export default function AssignmentDetailPage() {
                     <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-semibold text-sm text-primary">Informations garage</h4>
-                        <Badge variant="outline" className="text-xs">{assignment.repairer.code}</Badge>
+                        {/* <Badge variant="outline" className="text-xs">{assignment.repairer.code}</Badge> */}
                       </div>
                       <div className="space-y-2">
                         <div>
@@ -2262,13 +2262,18 @@ export default function AssignmentDetailPage() {
       return currentIndex >= 0 && targetIndex >= 0 && currentIndex >= targetIndex
     }
 
-    const canEdit = !['validated', 'cancelled', 'closed', 'paid'].includes(statusCode)
+    // Modifier le dossier : disponible pour tous les statuts sauf validated, cancelled, closed, paid
+    // Spécifiquement autorisé pour pending_for_repairer_invoice (même si la logique générale l'autorise déjà)
+    const canEdit = statusCode === 'pending_for_repairer_invoice' || !['validated', 'cancelled', 'closed', 'paid'].includes(statusCode)
     const canRealize = statusCode === 'opened'
-    // Modifier la réalisation : disponible pour tous les statuts après "realized"
-    const canEditRealization = isAfterStatus(statusCode, 'realized')
+    // Modifier la réalisation : disponible pour tous les statuts après "realized", y compris pending_for_repairer_invoice
+    const canEditRealization = statusCode === 'pending_for_repairer_invoice' || isAfterStatus(statusCode, 'realized')
     const canWriteReport = statusCode === 'realized'
     // Rédiger le rapport : disponible à partir du statut "in_editing"
-    const canEditReport = isAfterStatus(statusCode, 'in_editing')
+    // Cas spécial : pour les dossiers de type "insurer", disponible dès "pending_for_repairer_invoice"
+    const isInsurerAssignment = assignment.assignment_type?.code === 'insurer'
+    const canEditReport = isAfterStatus(statusCode, 'in_editing') || 
+      (isInsurerAssignment && (statusCode === 'pending_for_repairer_invoice' || isAfterStatus(statusCode, 'pending_for_repairer_invoice')))
     const canGenerateReport = true
     const canDelete = statusCode === 'pending'
     const canValidate = (isCEO() || isValidator() || isExpertManager()) && ['edited', 'in_payment'].includes(statusCode)
@@ -2496,9 +2501,12 @@ export default function AssignmentDetailPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Statut : </p>
               </div>
-                <Badge className={getStatusColor(assignment.status.code) + ' text-lg'}>
+                <Badge className={getStatusColor(assignment.status.code)}>
                 {assignment.status.label}
               </Badge>
+              {/* <Badge className={getStatusColor(assignment.status.code) + ' bg-green-50 text-green-500 border-green-500'}>
+                        {assignment.status.label}
+                      </Badge> */}
             </div>
              
             </div>
@@ -2607,7 +2615,7 @@ export default function AssignmentDetailPage() {
               <Card className={`bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none py-2 ${assignment.status.code === 'validated' ? 'bg-green-50' : ''}`}>
                 <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 items-center px-3 sm:px-6">
                   {/* Si l'un des statuts est "done", afficher seulement "Validé" */}
-                  {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
+                  {/* {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
                     <div className="flex items-center">
                         <div className="bg-gradient-to-r text-white px-4 sm:px-6 border-2 border-green-500 rounded-lg">
                           <div className="flex items-center gap-2 text-green-500">
@@ -2618,14 +2626,9 @@ export default function AssignmentDetailPage() {
                       <Badge className={getStatusColor(assignment.status.code) + ' bg-green-50 text-green-500 border-green-500'}>
                         {assignment.status.label}
                       </Badge>
-                      {/* {assignment.validated_at && (
-                        <span className="text-xs text-green-700 font-medium mt-2">
-                          {formatDate(assignment.validated_at)}
-                        </span>
-                      )} */}
                     </div>
                   ) : (
-                    <>
+                    <> */}
                       {/* Statut d'édition */}
                       {assignment.edition_status && (
                         <div className="flex flex-col items-center">
@@ -2666,8 +2669,8 @@ export default function AssignmentDetailPage() {
                           )}
                         </div>
                       )}
-                    </>
-                  )}
+                    {/* </>
+                  )} */}
                   {/* Validation */}
                   {assignment.validated_at && (
                     <div className="flex flex-col items-center">
@@ -2730,12 +2733,6 @@ export default function AssignmentDetailPage() {
                       </a>
                     </div>
                   )}
-                  {/* {assignment.emails && (
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs text-muted-foreground mb-1">Emails</span>
-                      <span className="text-xs text-blue-900 font-semibold">{assignment.emails.map(email => email.email).join(', ')}</span>
-                    </div>
-                  )} */}
                   {/* Décompte dynamique (alerte si proche de l'expiration) - seulement si pas done */}
                   <div>
                     {assignment.edition_time_expire_at && assignment.edition_status !== 'done' && (

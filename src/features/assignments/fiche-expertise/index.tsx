@@ -654,7 +654,8 @@ export default function ExpertiseSheetPage() {
         await assignmentValidationService.validateByRepairer(String(assignment.id))
       }
       toast.success('Dossier validé')
-      await refreshAssignment()
+      // Naviguer vers la page de détails après validation
+      navigate({ to: `/assignments/details/${assignment.id}` })
     } catch (_e) {
       console.log("================================================");
       console.log('++++++ error', _e)
