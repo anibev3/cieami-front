@@ -112,15 +112,15 @@ export function GeneralStateSelect({
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
                       <span>{state.label}</span>
-                      {state.code && (
+                      {/* {state.code && (
                         <Badge variant="outline" className="text-xs">
                           {state.code}
                         </Badge>
-                      )}
+                      )} */}
                     </div>
-                    <div className="ml-auto text-xs text-muted-foreground">
+                    {/* <div className="ml-auto text-xs text-muted-foreground">
                       {state.description}
-                    </div>
+                    </div> */}
                   </CommandItem>
                 ))}
               </CommandGroup>

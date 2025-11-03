@@ -38,7 +38,7 @@ class AssignmentValidationService {
 
 
   async validateEdition(assignmentId: string) {
-    return axiosInstance.put(`${API_CONFIG.BASE_URL}/validate-edition/${assignmentId}`)
+    return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/validate-edition/${assignmentId}`)
   }
 }
 

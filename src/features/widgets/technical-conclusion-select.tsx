@@ -112,15 +112,15 @@ export function TechnicalConclusionSelect({
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
                       <span>{conclusion.label}</span>
-                      {conclusion.code && (
+                      {/* {conclusion.code && (
                         <Badge variant="outline" className="text-xs">
                           {conclusion.code}
                         </Badge>
-                      )}
+                      )} */}
                     </div>
-                    <div className="ml-auto text-xs text-muted-foreground">
+                    {/* <div className="ml-auto text-xs text-muted-foreground">
                       {conclusion.description}
-                    </div>
+                    </div> */}
                   </CommandItem>
                 ))}
               </CommandGroup>

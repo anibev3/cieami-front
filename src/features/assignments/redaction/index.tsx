@@ -2726,7 +2726,7 @@ export default function EditReportPage() {
                               value={isUp !== null ? (isUp ? 'true' : 'false') : ''}
                               onValueChange={(value) => setIsUp(value === 'true' ? true : value === 'false' ? false : null)}
                             >
-                              <SelectTrigger>
+                              <SelectTrigger className='w-full'>
                                 <SelectValue placeholder="Sélectionner le statut" />
                               </SelectTrigger>
                               <SelectContent>

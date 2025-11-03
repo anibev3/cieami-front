@@ -144,14 +144,14 @@ export function ClaimNatureSelect({
                       />
                       <div className="flex flex-col">
                         <span className="font-medium">{nature.label}</span>
-                        <span className="text-xs text-muted-foreground font-mono">
+                        {/* <span className="text-xs text-muted-foreground font-mono">
                           {nature.code}
-                        </span>
-                        {showDescription && nature.description && (
+                        </span> */}
+                        {/* {showDescription && nature.description && (
                           <span className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {nature.description}
                           </span>
-                        )}
+                        )} */}
                       </div>
                     </div>
                     {showStatus && (
