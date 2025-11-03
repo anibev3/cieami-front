@@ -2480,7 +2480,7 @@ export default function EditReportPage() {
                     </div>
 
                     {assignment.other_costs && assignment.other_costs.length > 0 ? (
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
                         {assignment.other_costs.map((cost) => (
                           <OtherCostItem
                             key={cost.id}
@@ -3152,7 +3152,7 @@ export default function EditReportPage() {
                 <div key={idx} className="flex gap-2 items-end mb-2">
                   <div className="flex-1">
                     <OtherCostTypeSelect
-                      value={cost.other_cost_type_id as any}
+                      value={cost.other_cost_type_id}
                       onValueChange={value => handleUpdateOtherCostLine(idx, 'other_cost_type_id', value)}
                       required={true}
                       showError={!cost.other_cost_type_id}

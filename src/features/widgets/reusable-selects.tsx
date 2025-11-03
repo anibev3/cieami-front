@@ -8,7 +8,7 @@ import { Calculator, Users, Palette, Clock } from 'lucide-react'
 
 // Types d'interfaces
 interface BaseType {
-  id: number
+  id: string
   label: string
   code: string
   description?: string
@@ -16,8 +16,8 @@ interface BaseType {
 
 // Props communes pour tous les composants
 interface BaseSelectProps {
-  value: number
-  onValueChange: (value: number) => void
+  value: string
+  onValueChange: (value: string) => void
   placeholder?: string
   label?: string
   required?: boolean
@@ -56,8 +56,8 @@ export function OtherCostTypeSelect({
       )}
       <div className="flex items-center gap-1">
         <Select
-          value={value?.toString() || ''}
-          onValueChange={val => onValueChange(Number(val))}
+          value={value || ''}
+          onValueChange={val => onValueChange(val)}
           disabled={disabled}
         >
           <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
@@ -65,7 +65,7 @@ export function OtherCostTypeSelect({
           </SelectTrigger>
           <SelectContent>
             {data.map(type => (
-              <SelectItem key={type.id} value={type.id.toString()}>
+              <SelectItem key={type.id} value={String(type.id)}>
                 <div className="flex items-center gap-2">
                   <Calculator className="h-4 w-4 text-purple-600" />
                   <span>{type.label}</span>
@@ -82,7 +82,7 @@ export function OtherCostTypeSelect({
             size="xs"
             className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
             aria-label="Effacer"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange('') }}
           >
             <X className="h-3 w-3" />
           </Button>
@@ -123,8 +123,8 @@ export function WorkforceTypeSelect({
       )}
       <div className="flex items-center gap-1">
         <Select
-          value={value?.toString() || ''}
-          onValueChange={val => onValueChange(Number(val))}
+          value={value || ''}
+          onValueChange={val => onValueChange(val)}
           disabled={disabled}
         >
           <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
@@ -132,7 +132,7 @@ export function WorkforceTypeSelect({
           </SelectTrigger>
           <SelectContent>
             {data.map(type => (
-              <SelectItem key={type.id} value={type.id.toString()}>
+              <SelectItem key={type.id} value={String(type.id)}>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-blue-600" />
                   <span>{type.label}</span>
@@ -149,7 +149,7 @@ export function WorkforceTypeSelect({
             size="xs"
             className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
             aria-label="Effacer"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange('') }}
           >
             <X className="h-3 w-3" />
           </Button>
@@ -190,8 +190,8 @@ export function PaintTypeSelect({
       )}
       <div className="flex items-center gap-1">
         <Select
-          value={value?.toString() || ''}
-          onValueChange={val => onValueChange(Number(val))}
+          value={value || ''}
+          onValueChange={val => onValueChange(val)}
           disabled={disabled}
         >
           <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
@@ -199,7 +199,7 @@ export function PaintTypeSelect({
           </SelectTrigger>
           <SelectContent>
             {data.map(type => (
-              <SelectItem key={type.id} value={type.id.toString()}>
+              <SelectItem key={type.id} value={String(type.id)}>
                 <div className="flex items-center gap-2">
                   <Palette className="h-4 w-4 text-green-600" />
                   <span>{type.label}</span>
@@ -216,7 +216,7 @@ export function PaintTypeSelect({
             size="xs"
             className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
             aria-label="Effacer"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange('') }}
           >
             <X className="h-3 w-3" />
           </Button>
@@ -257,8 +257,8 @@ export function HourlyRateSelect({
       )}
       <div className="flex items-center gap-1">
         <Select
-          value={value?.toString() || ''}
-          onValueChange={val => onValueChange(Number(val))}
+          value={value || ''}
+          onValueChange={val => onValueChange(val)}
           disabled={disabled}
         >
           <SelectTrigger className={`w-full ${!value ? 'border-red-300 bg-red-50' : ''} ${showError ? 'border-red-300 bg-red-50' : ''}`}>
@@ -266,7 +266,7 @@ export function HourlyRateSelect({
           </SelectTrigger>
           <SelectContent>
             {data.map(rate => (
-              <SelectItem key={rate.id} value={rate.id.toString()}>
+              <SelectItem key={rate.id} value={String(rate.id)}>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-orange-600" />
                   <span>{rate.label}</span>
@@ -287,7 +287,7 @@ export function HourlyRateSelect({
             size="xs"
             className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
             aria-label="Effacer"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange('') }}
           >
             <X className="h-3 w-3" />
           </Button>
@@ -308,11 +308,11 @@ export function SelectedItemInfo({
   className = ""
 }: {
   type: 'otherCost' | 'workforce' | 'paint' | 'hourlyRate'
-  selectedId: number
+  selectedId: string
   items: BaseType[]
   className?: string
 }) {
-  const selectedItem = items.find(item => item.id === selectedId)
+  const selectedItem = items.find(item => String(item.id) === selectedId)
   
   if (!selectedItem) return null
 
