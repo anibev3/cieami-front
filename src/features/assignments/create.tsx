@@ -394,27 +394,27 @@ export default function CreateAssignmentPage() {
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(dynamicSchema),
     defaultValues: {
-      client_id: '',
-      vehicle_id: '',
-      vehicle_mileage: '',
-      insurer_relationship_id: '',
-      repairer_relationship_id: '',
+      client_id: '', //
+      vehicle_id: '', //
+      vehicle_mileage: '', //
+      insurer_relationship_id: '', //
+      repairer_relationship_id: '', //
       expert_firm_id: '',
-      assignment_type_id: '',
-      expertise_type_id: '',
-      document_transmitted_id: [],
-      policy_number: '',
-      claim_number: '',
-      claim_starts_at: '',
-      claim_ends_at: '',
-      expertise_date: '',
-      expertise_place: '',
-      received_at: '',
+      assignment_type_id: '', //
+      expertise_type_id: '', //
+      document_transmitted_id: [], //
+      policy_number: '', //
+      claim_number: '', //
+      claim_starts_at: '', //
+      claim_ends_at: '', //
+      expertise_date: '', //
+      expertise_place: '', //
+      received_at: '', //
       administrator: '',
-      circumstance: '',
-      damage_declared: '',
-      observation: '',
-      experts: [{ expert_id: '', date: '', observation: '' }]
+      circumstance: '', //
+      damage_declared: '', //
+      observation: '', //
+      experts: [{ expert_id: '', date: '', observation: '' }] //
     }
   })
 

@@ -5,9 +5,9 @@ import { API_CONFIG } from '@/config/api'
 type ApiResponse = { status: number; message: string; data: null } | { errors: Array<{ status: number; title: string; detail: string }> }
 
 interface ReceiptApiResponse {
-  id: number
-  assignment_id: number
-  receipt_type_id: number
+  id: string
+  assignment_id: string
+  receipt_type_id: string
   amount: number
   created_at: string
   updated_at: string
@@ -49,11 +49,11 @@ class ReceiptService {
   /**
    * Créer une nouvelle quittance
    */
-  async createReceipt(assignmentId: number, receiptData: { receipt_type_id: number; amount: number }): Promise<ApiResponse> {
+  async createReceipt(assignmentId: number, receiptData: { receipt_type_id: string; amount: number }): Promise<ApiResponse> {
     const response = await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
       assignment_id: assignmentId.toString(),
       receipts: [{
-        receipt_type_id: receiptData.receipt_type_id.toString(),
+        receipt_type_id: receiptData.receipt_type_id,
         amount: receiptData.amount
       }]
     })
@@ -63,12 +63,12 @@ class ReceiptService {
   /**
    * Mettre à jour une quittance
    */
-  async updateReceipt(receiptId: number, receiptData: { assignment_id: number, receipt_type_id: number; amount: number }): Promise<Receipt> {
+  async updateReceipt(receiptId: string, receiptData: { assignment_id: number, receipt_type_id: string; amount: number }): Promise<Receipt> {
     const response = await axiosInstance.put<ReceiptApiResponse>(`${API_CONFIG.ENDPOINTS.RECEIPTS}/${receiptId}`, receiptData)
     
     return {
-      id: response.data.id,
-      assignment_id: response.data.assignment_id,
+      id: response.data.id as unknown as number, // maintain external Receipt typing if needed
+      assignment_id: response.data.assignment_id as unknown as number,
       amount: response.data.amount,
       type: 'receipt',
       reference: `REC-${response.data.id}`,
@@ -81,18 +81,18 @@ class ReceiptService {
   /**
    * Supprimer une quittance
    */
-  async deleteReceipt(receiptId: number): Promise<void> {
+  async deleteReceipt(receiptId: string): Promise<void> {
     await axiosInstance.delete(`${API_CONFIG.ENDPOINTS.RECEIPTS}/${receiptId}`)
   }
 
   /**
    * Créer plusieurs quittances en une fois
    */
-  async createMultipleReceipts(assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]): Promise<ApiResponse> {
+  async createMultipleReceipts(assignmentId: number, receipts: { receipt_type_id: string; amount: number }[]): Promise<ApiResponse> {
     const response = await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
       assignment_id: assignmentId.toString(),
       receipts: receipts.map(r => ({
-        receipt_type_id: r.receipt_type_id.toString(),
+        receipt_type_id: r.receipt_type_id,
         amount: r.amount
       }))
     })

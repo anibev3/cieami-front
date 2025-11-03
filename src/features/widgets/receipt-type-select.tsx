@@ -35,15 +35,15 @@ import { toast } from 'sonner'
 import { receiptTypeService } from '@/services/receiptTypeService'
 
 interface ReceiptType {
-  id: number
+  id: string
   label: string
   code: string
   description?: string
 }
 
 interface ReceiptTypeSelectProps {
-  value?: number | null
-  onValueChange: (value: number | null) => void
+  value?: string | null
+  onValueChange: (value: string | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string
@@ -80,7 +80,14 @@ export function ReceiptTypeSelect({
     try {
       setLoading(true)
       const response = await receiptTypeService.getAll()
-      setReceiptTypes(response.data)
+      setReceiptTypes(
+        response.data.map((rt) => ({
+          id: String(rt.id),
+          label: rt.label,
+          code: rt.code,
+          description: rt.description,
+        }))
+      )
     } catch (_error) {
       toast.error('Erreur lors du chargement des types de quittances')
     } finally {
@@ -105,15 +112,21 @@ export function ReceiptTypeSelect({
       
       toast.success('Type de quittance créé avec succès')
       
-      // Ajouter le nouveau type à la liste
-      setReceiptTypes([...receiptTypes, response])
+      // Ajouter le nouveau type à la liste (en forçant l'id en string)
+      const created: ReceiptType = {
+        id: String(response.id),
+        label: response.label,
+        code: response.code,
+        description: response.description,
+      }
+      setReceiptTypes([...receiptTypes, created])
       
       // Réinitialiser le formulaire
       setCreateForm({ code: '', label: '', description: '' })
       setShowCreateModal(false)
       
       // Sélectionner automatiquement le nouveau type
-      onValueChange(response.id)
+      onValueChange(String(response.id))
       setOpen(false)
       loadReceiptTypes()
     } catch (_error) {
@@ -124,8 +137,8 @@ export function ReceiptTypeSelect({
   }
 
   // Vérifier si le type est automatique (ID = 1)
-  const isAutomaticReceiptType = (receiptTypeId: number) => {
-    return receiptTypeId === 1
+  const isAutomaticReceiptType = (receiptTypeId: string) => {
+    return receiptTypeId === '1'
   }
 
   const selectedType = receiptTypes.find(type => type.id === value)
@@ -158,7 +171,7 @@ export function ReceiptTypeSelect({
               ) : selectedType ? (
                 <div className="flex items-center gap-2">
                   <span>{selectedType.label}</span>
-                  {isAutomaticReceiptType(selectedType.id) && (
+                  {selectedType && isAutomaticReceiptType(selectedType.id) && (
                     <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
                       Auto
                     </Badge>

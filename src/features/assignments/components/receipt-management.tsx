@@ -32,25 +32,25 @@ import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 
 interface ReceiptType {
-  id: number
+  id: string
   label: string
   code: string
 }
 
 interface Receipt {
-  id: number
+  id: string
   amount_excluding_tax: string
   amount_tax: string
   amount: string
   receipt_type: {
-    id: number
+    id: string
     code: string
     label: string
   }
 }
 
 interface ReceiptFormData {
-  receipt_type_id: number
+  receipt_type_id: string
   amount: number
 }
 
@@ -84,7 +84,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null)
   const [receiptToDelete, setReceiptToDelete] = useState<Receipt | null>(null)
   const [formData, setFormData] = useState<ReceiptFormData>({
-    receipt_type_id: 0,
+    receipt_type_id: '',
     amount: 0
   })
   const [receiptsToCreate, setReceiptsToCreate] = useState<ReceiptFormData[]>([])
@@ -107,7 +107,13 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
     try {
       setLoading(true)
       const response = await receiptTypeService.getAll()
-      setReceiptTypes(response.data)
+      setReceiptTypes(
+        response.data.map((rt) => ({
+          id: String(rt.id),
+          label: rt.label,
+          code: rt.code,
+        }))
+      )
     } catch (_error) {
       toast.error('Erreur lors du chargement des types de quittances')
     } finally {
@@ -119,7 +125,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
 
   // Ouvrir le modal de création
   const openCreateModal = () => {
-    setFormData({ receipt_type_id: 0, amount: 0 })
+    setFormData({ receipt_type_id: '', amount: 0 })
     setReceiptsToCreate([])
     setCalculationResult(null)
     setShowCalculationResults(false)
@@ -141,7 +147,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
         assignment_id: String(assignmentId),
         receipts: receiptsToCreate.map(receipt => ({
           amount: receipt.amount,
-          receipt_type_id: String(receipt.receipt_type_id)
+          receipt_type_id: receipt.receipt_type_id
         }))
       }
 
@@ -170,7 +176,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
       
       // Créer les quittances avec les montants calculés
       const receiptsToCreateWithCalculatedAmounts = calculationResult.receipts.map(calculatedReceipt => ({
-        receipt_type_id: Number(calculatedReceipt.receipt_type_id),
+        receipt_type_id: calculatedReceipt.receipt_type_id,
         amount: calculatedReceipt.amount_excluding_tax
       }))
 
@@ -192,8 +198,8 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
   }
 
   // Vérifier si le type de quittance est automatique (ID = 1)
-  const isAutomaticReceiptType = (receiptTypeId: number) => {
-    return receiptTypeId === 1
+  const isAutomaticReceiptType = (receiptTypeId: string) => {
+    return receiptTypeId === 'rec_eLgoNjw3jE0MB'
   }
 
   // Ouvrir le modal de modification
@@ -269,7 +275,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
     }
     
     setReceiptsToCreate([...receiptsToCreate, receiptToAdd])
-    setFormData({ receipt_type_id: 0, amount: 0 })
+    setFormData({ receipt_type_id: '', amount: 0 })
   }
 
   // Supprimer une quittance de la liste de création
@@ -464,7 +470,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                   <ReceiptTypeSelect
                     value={formData.receipt_type_id || null}
                     onValueChange={(value) => {
-                      const newReceiptTypeId = value || 0
+                      const newReceiptTypeId = value || ''
                       setFormData({ 
                         receipt_type_id: newReceiptTypeId,
                         amount: isAutomaticReceiptType(newReceiptTypeId) ? 0 : formData.amount
@@ -599,13 +605,13 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                       </TableHeader>
                       <TableBody>
                         {calculationResult.receipts.map((calculatedReceipt, index) => {
-                          const receiptType = receiptTypes.find(type => type && type.id === Number(calculatedReceipt.receipt_type_id))
+                          const receiptType = receiptTypes.find(type => type && type.id === calculatedReceipt.receipt_type_id)
                           return (
                             <TableRow key={index}>
                               <TableCell className="font-medium">
                                 <div className="flex items-center gap-2">
                                   <span>{receiptType?.label || 'Type inconnu'}</span>
-                                  {isAutomaticReceiptType(Number(calculatedReceipt.receipt_type_id)) && (
+                                  {isAutomaticReceiptType(calculatedReceipt.receipt_type_id) && (
                                     <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
                                       Auto
                                     </Badge>
@@ -726,7 +732,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
               <Label className="text-sm font-medium text-gray-700 mb-2">Type de quittance</Label>
               <ReceiptTypeSelect
                 value={formData.receipt_type_id || null}
-                onValueChange={(value) => setFormData({ ...formData, receipt_type_id: value || 0 })}
+                onValueChange={(value) => setFormData({ ...formData, receipt_type_id: value || '' })}
                 placeholder="Sélectionner un type"
                 className={!formData.receipt_type_id ? 'border-red-300 bg-red-50' : ''}
                 showCreateOption={false}
