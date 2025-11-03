@@ -41,9 +41,9 @@ class EntityService {
   /**
    * Récupérer une entité par ID
    */
-  async getById(id: number): Promise<Entity> {
-    const response = await axiosInstance.get<Entity>(`${this.baseUrl}/${id}`)
-    return response.data
+  async getById(id: string | number): Promise<Entity> {
+    const response = await axiosInstance.get<{ status: number; message: string | null; data: Entity }>(`${this.baseUrl}/${id}`)
+    return response.data.data
   }
 
   /**
@@ -57,7 +57,7 @@ class EntityService {
   /**
    * Mettre à jour une entité
    */
-  async update(id: number, data: UpdateEntityData): Promise<Entity> {
+  async update(id: string | number, data: UpdateEntityData): Promise<Entity> {
     const response = await axiosInstance.put<Entity>(`${this.baseUrl}/${id}`, data)
     return response.data
   }
@@ -65,14 +65,14 @@ class EntityService {
   /**
    * Supprimer une entité
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: string | number): Promise<void> {
     await axiosInstance.delete(`${this.baseUrl}/${id}`)
   }
 
   /**
    * Activer une entité
    */
-  async enable(id: number): Promise<Entity> {
+  async enable(id: string | number): Promise<Entity> {
     const response = await axiosInstance.put<Entity>(`${this.baseUrl}/${id}/enable`)
     return response.data
   }
@@ -80,7 +80,7 @@ class EntityService {
   /**
    * Désactiver une entité
    */
-  async disable(id: number): Promise<Entity> {
+  async disable(id: string | number): Promise<Entity> {
     const response = await axiosInstance.put<Entity>(`${this.baseUrl}/${id}/disable`)
     return response.data
   }

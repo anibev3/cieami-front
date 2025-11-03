@@ -8,7 +8,6 @@ const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 })
@@ -43,6 +42,21 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // Gestion du Content-Type :
+    // - Pour FormData : laisser axios définir automatiquement avec la bonne boundary
+    // - Pour les méthodes avec body (POST, PUT, PATCH) : définir application/json si pas déjà défini
+    // - Pour GET/DELETE : ne pas définir de Content-Type (pas nécessaire)
+    const methodsWithBody = ['post', 'put', 'patch']
+    const hasBody = config.data !== undefined && config.data !== null
+    const isFormData = config.data instanceof FormData
+    const method = config.method?.toLowerCase() || ''
+    const hasContentType = config.headers['Content-Type'] !== undefined
+    
+    if (hasBody && !isFormData && methodsWithBody.includes(method) && !hasContentType) {
+      config.headers['Content-Type'] = 'application/json'
+    }
+    
     return config
   },
   (error) => {

@@ -14,10 +14,10 @@ interface EntitiesState {
   // Actions
   fetchEntities: (filters?: EntityFilters) => Promise<void>
   createEntity: (data: CreateEntityData) => Promise<void>
-  updateEntity: (id: number, data: UpdateEntityData) => Promise<void>
-  deleteEntity: (id: number) => Promise<void>
-  enableEntity: (id: number) => Promise<void>
-  disableEntity: (id: number) => Promise<void>
+  updateEntity: (id: string | number, data: UpdateEntityData) => Promise<void>
+  deleteEntity: (id: string | number) => Promise<void>
+  enableEntity: (id: string | number) => Promise<void>
+  disableEntity: (id: string | number) => Promise<void>
   setSelectedEntity: (entity: Entity | null) => void
   clearError: () => void
 }
@@ -72,13 +72,13 @@ export const useEntitiesStore = create<EntitiesState>((set, get) => ({
     }
   },
 
-  updateEntity: async (id: number, data: UpdateEntityData) => {
+  updateEntity: async (id: string | number, data: UpdateEntityData) => {
     try {
       set({ loading: true })
       const updatedEntity = await entityService.update(id, data)
       set(state => ({
         entities: state.entities.map(entity =>
-          entity.id === id ? updatedEntity : entity
+          String(entity.id) === String(id) ? updatedEntity : entity
         ),
         loading: false
       }))
@@ -93,12 +93,12 @@ export const useEntitiesStore = create<EntitiesState>((set, get) => ({
     }
   },
 
-  deleteEntity: async (id: number) => {
+  deleteEntity: async (id: string | number) => {
     try {
       set({ loading: true })
       await entityService.delete(id)
       set(state => ({
-        entities: state.entities.filter(entity => entity.id !== id),
+        entities: state.entities.filter(entity => String(entity.id) !== String(id)),
         loading: false
       }))
       toast.success('Entité supprimée avec succès')
@@ -112,13 +112,13 @@ export const useEntitiesStore = create<EntitiesState>((set, get) => ({
     }
   },
 
-  enableEntity: async (id: number) => {
+  enableEntity: async (id: string | number) => {
     try {
       set({ loading: true })
       const enabledEntity = await entityService.enable(id)
       set(state => ({
         entities: state.entities.map(entity =>
-          entity.id === id ? enabledEntity : entity
+          String(entity.id) === String(id) ? enabledEntity : entity
         ),
         loading: false
       }))
@@ -133,13 +133,13 @@ export const useEntitiesStore = create<EntitiesState>((set, get) => ({
     }
   },
 
-  disableEntity: async (id: number) => {
+  disableEntity: async (id: string | number) => {
     try {
       set({ loading: true })
       const disabledEntity = await entityService.disable(id)
       set(state => ({
         entities: state.entities.map(entity =>
-          entity.id === id ? disabledEntity : entity
+          String(entity.id) === String(id) ? disabledEntity : entity
         ),
         loading: false
       }))

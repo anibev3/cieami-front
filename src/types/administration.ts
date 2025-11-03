@@ -233,16 +233,18 @@ export interface StatusActions {
 
 // Types pour les entités (entities)
 export interface Entity {
-  id: number
+  id: string | number
   code: string
   name: string
   email: string
   telephone: string | null
   address: string | null
-  status: Status
-  entity_type: EntityType
+  status?: Status
+  entity_type?: EntityType
   created_at: string
   updated_at: string
+  logo?: string | null
+  entity_type_code?: string
 }
 
 export interface EntityResponse {

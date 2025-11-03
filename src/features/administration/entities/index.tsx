@@ -9,8 +9,10 @@ import { EntitiesDialogs } from './components/entities-dialogs'
 import { EntitiesPrimaryButtons } from './components/entities-primary-buttons'
 import { useEntitiesStore } from '@/stores/entitiesStore'
 import { Entity } from '@/types/administration'
+import { useNavigate } from '@tanstack/react-router'
 
 export default function EntitiesPage() {
+  const navigate = useNavigate()
   const { fetchEntities } = useEntitiesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -25,8 +27,9 @@ export default function EntitiesPage() {
 
   // Callbacks pour les actions
   const handleCreate = () => {
-    setSelectedEntity(null)
-    setIsCreateOpen(true)
+    // setSelectedEntity(null)
+    // setIsCreateOpen(true)
+    navigate({ to: '/administration/entities/new' })
   }
 
   const handleView = (entity: Entity) => {
@@ -35,8 +38,7 @@ export default function EntitiesPage() {
   }
 
   const handleEdit = (entity: Entity) => {
-    setSelectedEntity(entity)
-    setIsEditOpen(true)
+    navigate({ to: `/administration/entities/${String(entity.id)}/edit` })
   }
 
   const handleDelete = (entity: Entity) => {

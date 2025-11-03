@@ -13,6 +13,7 @@ import { useStatusesStore } from '@/stores/statusesStore'
 import { useEntityTypesStore } from '@/stores/entityTypesStore'
 import { Entity, CreateEntityData, UpdateEntityData } from '@/types/administration'
 import { toast } from 'sonner'
+import { useNavigate } from '@tanstack/react-router'
 
 interface EntitiesDialogsProps {
   isCreateOpen: boolean
@@ -37,6 +38,7 @@ export function EntitiesDialogs({
   onCloseView,
   onCloseDelete,
 }: EntitiesDialogsProps) {
+  const navigate = useNavigate()
   const { createEntity, updateEntity, deleteEntity } = useEntitiesStore()
   const { fetchStatuses } = useStatusesStore()
   const { entityTypes, fetchEntityTypes } = useEntityTypesStore()
@@ -89,23 +91,13 @@ export function EntitiesDialogs({
     }
   }, [isEditOpen, selectedEntity])
 
-  // Handlers pour la création
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Validation
-    if (!createForm.entity_type_code) {
-      toast.error('Veuillez sélectionner un type d\'entité')
-      return
-    }
-    
-    try {
-      await createEntity(createForm)
+  // Rediriger vers la page de création lorsque l'ancien modal de création est demandé
+  useEffect(() => {
+    if (isCreateOpen) {
       onCloseCreate()
-    } catch (_error) {
-      // Erreur gérée par le store
+      navigate({ to: '/administration/entities/new' })
     }
-  }
+  }, [isCreateOpen])
 
   // Handlers pour la modification
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -134,92 +126,7 @@ export function EntitiesDialogs({
 
   return (
     <>
-      {/* Dialog de création */}
-      <Dialog open={isCreateOpen} onOpenChange={onCloseCreate}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Créer une nouvelle entité</DialogTitle>
-            <DialogDescription>
-              Remplissez les informations pour créer une nouvelle entité.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreateSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">Code *</Label>
-                <Input
-                  id="code"
-                  value={createForm.code}
-                  onChange={(e) => setCreateForm({ ...createForm, code: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom *</Label>
-                <Input
-                  id="name"
-                  value={createForm.name}
-                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={createForm.email}
-                onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="telephone">Téléphone</Label>
-              <Input
-                id="telephone"
-                value={createForm.telephone}
-                onChange={(e) => setCreateForm({ ...createForm, telephone: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Adresse</Label>
-              <Textarea
-                id="address"
-                value={createForm.address}
-                onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="entity_type">Type d'entité *</Label>
-              <Select
-                value={createForm.entity_type_code || ''}
-                onValueChange={(value) => setCreateForm({ ...createForm, entity_type_code: value })}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entityTypes
-                    .filter(type => type.code && type.code.trim() !== '')
-                    .map((type) => (
-                      <SelectItem key={type.id} value={type.code}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onCloseCreate}>
-                Annuler
-              </Button>
-              <Button type="submit">Créer</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Création déplacée vers la page /administration/entities/new */}
 
       {/* Dialog de modification */}
       <Dialog open={isEditOpen} onOpenChange={onCloseEdit}>

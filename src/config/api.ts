@@ -4,6 +4,7 @@ export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_SUFIX,
   TIMEOUT: 180000,
   ENDPOINTS: {
+    ENTITIES: '/entities',
     AUTH: {
       LOGIN: '/auth/tokens',
       USER_INFO: '/auth/user',

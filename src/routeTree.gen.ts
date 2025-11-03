@@ -87,7 +87,6 @@ import { Route as AuthenticatedAdministrationStatusesImport } from './routes/_au
 import { Route as AuthenticatedAdministrationGeneralStatesImport } from './routes/_authenticated/administration/general-states'
 import { Route as AuthenticatedAdministrationEtatsImport } from './routes/_authenticated/administration/etats'
 import { Route as AuthenticatedAdministrationEntityTypesImport } from './routes/_authenticated/administration/entity-types'
-import { Route as AuthenticatedAdministrationEntitiesImport } from './routes/_authenticated/administration/entities'
 import { Route as AuthenticatedAdministrationDocumentsImport } from './routes/_authenticated/administration/documents'
 import { Route as AuthenticatedAdministrationColorsImport } from './routes/_authenticated/administration/colors'
 import { Route as AuthenticatedAdministrationBrandsImport } from './routes/_authenticated/administration/brands'
@@ -99,6 +98,7 @@ import { Route as AuthenticatedComptabiliteInvoicesIndexImport } from './routes/
 import { Route as AuthenticatedAssignmentsRecoveryExpiredIndexImport } from './routes/_authenticated/assignments/recovery-expired/index'
 import { Route as AuthenticatedAssignmentsEditionExpiredIndexImport } from './routes/_authenticated/assignments/edition-expired/index'
 import { Route as AuthenticatedAssignmentsCostOfSupplyIndexImport } from './routes/_authenticated/assignments/cost-of-supply/index'
+import { Route as AuthenticatedAdministrationEntitiesIndexImport } from './routes/_authenticated/administration/entities/index'
 import { Route as AuthenticatedAdministrationConstatIndexImport } from './routes/_authenticated/administration/constat/index'
 import { Route as AuthenticatedGestionSinistreNatureSinistreImport } from './routes/_authenticated/gestion/sinistre/nature-sinistre'
 import { Route as AuthenticatedGestionDepreciationTablesTheoreticalValueImport } from './routes/_authenticated/gestion/depreciation-tables/theoretical-value'
@@ -125,6 +125,7 @@ import { Route as AuthenticatedAdministrationVehiculeGenreImport } from './route
 import { Route as AuthenticatedAdministrationVehiculeEnergieImport } from './routes/_authenticated/administration/vehicule/energie'
 import { Route as AuthenticatedAdministrationVehiculeAgeImport } from './routes/_authenticated/administration/vehicule/age'
 import { Route as AuthenticatedAdministrationVehicleCreateImport } from './routes/_authenticated/administration/vehicle/create'
+import { Route as AuthenticatedAdministrationEntitiesNewImport } from './routes/_authenticated/administration/entities/new'
 import { Route as AuthenticatedAdministrationConstatTypeImport } from './routes/_authenticated/administration/constat/type'
 import { Route as AuthenticatedAdministrationConstatCreateIndexImport } from './routes/_authenticated/administration/constat/create/index'
 import { Route as AuthenticatedComptabilitePaymentEditIdImport } from './routes/_authenticated/comptabilite/payment/edit.$id'
@@ -133,6 +134,7 @@ import { Route as AuthenticatedComptabiliteChecksEditIdImport } from './routes/_
 import { Route as AuthenticatedComptabiliteCheckEditIdImport } from './routes/_authenticated/comptabilite/check/edit/$id'
 import { Route as AuthenticatedComptabiliteCheckDetailIdImport } from './routes/_authenticated/comptabilite/check/detail/$id'
 import { Route as AuthenticatedAdministrationVehicleIdEditImport } from './routes/_authenticated/administration/vehicle/$id.edit'
+import { Route as AuthenticatedAdministrationEntitiesIdEditImport } from './routes/_authenticated/administration/entities/$id.edit'
 import { Route as AuthenticatedAdministrationConstatDetailsIdImport } from './routes/_authenticated/administration/constat/details/$id'
 
 // Create/Update Routes
@@ -649,13 +651,6 @@ const AuthenticatedAdministrationEntityTypesRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
-const AuthenticatedAdministrationEntitiesRoute =
-  AuthenticatedAdministrationEntitiesImport.update({
-    id: '/administration/entities',
-    path: '/administration/entities',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-
 const AuthenticatedAdministrationDocumentsRoute =
   AuthenticatedAdministrationDocumentsImport.update({
     id: '/administration/documents',
@@ -730,6 +725,13 @@ const AuthenticatedAssignmentsCostOfSupplyIndexRoute =
   AuthenticatedAssignmentsCostOfSupplyIndexImport.update({
     id: '/assignments/cost-of-supply/',
     path: '/assignments/cost-of-supply/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAdministrationEntitiesIndexRoute =
+  AuthenticatedAdministrationEntitiesIndexImport.update({
+    id: '/administration/entities/',
+    path: '/administration/entities/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -915,6 +917,13 @@ const AuthenticatedAdministrationVehicleCreateRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedAdministrationEntitiesNewRoute =
+  AuthenticatedAdministrationEntitiesNewImport.update({
+    id: '/administration/entities/new',
+    path: '/administration/entities/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedAdministrationConstatTypeRoute =
   AuthenticatedAdministrationConstatTypeImport.update({
     id: '/administration/constat/type',
@@ -968,6 +977,13 @@ const AuthenticatedAdministrationVehicleIdEditRoute =
   AuthenticatedAdministrationVehicleIdEditImport.update({
     id: '/administration/vehicle/$id/edit',
     path: '/administration/vehicle/$id/edit',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAdministrationEntitiesIdEditRoute =
+  AuthenticatedAdministrationEntitiesIdEditImport.update({
+    id: '/administration/entities/$id/edit',
+    path: '/administration/entities/$id/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1127,13 +1143,6 @@ declare module '@tanstack/react-router' {
       path: '/administration/documents'
       fullPath: '/administration/documents'
       preLoaderRoute: typeof AuthenticatedAdministrationDocumentsImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/administration/entities': {
-      id: '/_authenticated/administration/entities'
-      path: '/administration/entities'
-      fullPath: '/administration/entities'
-      preLoaderRoute: typeof AuthenticatedAdministrationEntitiesImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/administration/entity-types': {
@@ -1556,6 +1565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministrationConstatTypeImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/administration/entities/new': {
+      id: '/_authenticated/administration/entities/new'
+      path: '/administration/entities/new'
+      fullPath: '/administration/entities/new'
+      preLoaderRoute: typeof AuthenticatedAdministrationEntitiesNewImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/administration/vehicle/create': {
       id: '/_authenticated/administration/vehicle/create'
       path: '/administration/vehicle/create'
@@ -1738,6 +1754,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministrationConstatIndexImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/administration/entities/': {
+      id: '/_authenticated/administration/entities/'
+      path: '/administration/entities'
+      fullPath: '/administration/entities'
+      preLoaderRoute: typeof AuthenticatedAdministrationEntitiesIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/assignments/cost-of-supply/': {
       id: '/_authenticated/assignments/cost-of-supply/'
       path: '/assignments/cost-of-supply'
@@ -1792,6 +1815,13 @@ declare module '@tanstack/react-router' {
       path: '/administration/constat/details/$id'
       fullPath: '/administration/constat/details/$id'
       preLoaderRoute: typeof AuthenticatedAdministrationConstatDetailsIdImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/administration/entities/$id/edit': {
+      id: '/_authenticated/administration/entities/$id/edit'
+      path: '/administration/entities/$id/edit'
+      fullPath: '/administration/entities/$id/edit'
+      preLoaderRoute: typeof AuthenticatedAdministrationEntitiesIdEditImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/administration/vehicle/$id/edit': {
@@ -1968,7 +1998,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdministrationBrandsRoute: typeof AuthenticatedAdministrationBrandsRoute
   AuthenticatedAdministrationColorsRoute: typeof AuthenticatedAdministrationColorsRoute
   AuthenticatedAdministrationDocumentsRoute: typeof AuthenticatedAdministrationDocumentsRoute
-  AuthenticatedAdministrationEntitiesRoute: typeof AuthenticatedAdministrationEntitiesRoute
   AuthenticatedAdministrationEntityTypesRoute: typeof AuthenticatedAdministrationEntityTypesRoute
   AuthenticatedAdministrationEtatsRoute: typeof AuthenticatedAdministrationEtatsRoute
   AuthenticatedAdministrationGeneralStatesRoute: typeof AuthenticatedAdministrationGeneralStatesRoute
@@ -2013,6 +2042,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedAdministrationConstatTypeRoute: typeof AuthenticatedAdministrationConstatTypeRoute
+  AuthenticatedAdministrationEntitiesNewRoute: typeof AuthenticatedAdministrationEntitiesNewRoute
   AuthenticatedAdministrationVehicleCreateRoute: typeof AuthenticatedAdministrationVehicleCreateRoute
   AuthenticatedAdministrationVehiculeAgeRoute: typeof AuthenticatedAdministrationVehiculeAgeRoute
   AuthenticatedAdministrationVehiculeEnergieRoute: typeof AuthenticatedAdministrationVehiculeEnergieRoute
@@ -2030,6 +2060,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestionDepreciationTablesTheoreticalValueRoute: typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
   AuthenticatedGestionSinistreNatureSinistreRoute: typeof AuthenticatedGestionSinistreNatureSinistreRoute
   AuthenticatedAdministrationConstatIndexRoute: typeof AuthenticatedAdministrationConstatIndexRoute
+  AuthenticatedAdministrationEntitiesIndexRoute: typeof AuthenticatedAdministrationEntitiesIndexRoute
   AuthenticatedAssignmentsCostOfSupplyIndexRoute: typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   AuthenticatedAssignmentsEditionExpiredIndexRoute: typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   AuthenticatedAssignmentsRecoveryExpiredIndexRoute: typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
@@ -2037,6 +2068,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestionRemarqueIndexRoute: typeof AuthenticatedGestionRemarqueIndexRoute
   AuthenticatedGestionSinistreIndexRoute: typeof AuthenticatedGestionSinistreIndexRoute
   AuthenticatedAdministrationConstatDetailsIdRoute: typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  AuthenticatedAdministrationEntitiesIdEditRoute: typeof AuthenticatedAdministrationEntitiesIdEditRoute
   AuthenticatedAdministrationVehicleIdEditRoute: typeof AuthenticatedAdministrationVehicleIdEditRoute
   AuthenticatedAdministrationConstatCreateIndexRoute: typeof AuthenticatedAdministrationConstatCreateIndexRoute
 }
@@ -2054,8 +2086,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAdministrationColorsRoute,
   AuthenticatedAdministrationDocumentsRoute:
     AuthenticatedAdministrationDocumentsRoute,
-  AuthenticatedAdministrationEntitiesRoute:
-    AuthenticatedAdministrationEntitiesRoute,
   AuthenticatedAdministrationEntityTypesRoute:
     AuthenticatedAdministrationEntityTypesRoute,
   AuthenticatedAdministrationEtatsRoute: AuthenticatedAdministrationEtatsRoute,
@@ -2123,6 +2153,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedAdministrationConstatTypeRoute:
     AuthenticatedAdministrationConstatTypeRoute,
+  AuthenticatedAdministrationEntitiesNewRoute:
+    AuthenticatedAdministrationEntitiesNewRoute,
   AuthenticatedAdministrationVehicleCreateRoute:
     AuthenticatedAdministrationVehicleCreateRoute,
   AuthenticatedAdministrationVehiculeAgeRoute:
@@ -2155,6 +2187,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGestionSinistreNatureSinistreRoute,
   AuthenticatedAdministrationConstatIndexRoute:
     AuthenticatedAdministrationConstatIndexRoute,
+  AuthenticatedAdministrationEntitiesIndexRoute:
+    AuthenticatedAdministrationEntitiesIndexRoute,
   AuthenticatedAssignmentsCostOfSupplyIndexRoute:
     AuthenticatedAssignmentsCostOfSupplyIndexRoute,
   AuthenticatedAssignmentsEditionExpiredIndexRoute:
@@ -2169,6 +2203,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGestionSinistreIndexRoute,
   AuthenticatedAdministrationConstatDetailsIdRoute:
     AuthenticatedAdministrationConstatDetailsIdRoute,
+  AuthenticatedAdministrationEntitiesIdEditRoute:
+    AuthenticatedAdministrationEntitiesIdEditRoute,
   AuthenticatedAdministrationVehicleIdEditRoute:
     AuthenticatedAdministrationVehicleIdEditRoute,
   AuthenticatedAdministrationConstatCreateIndexRoute:
@@ -2242,7 +2278,6 @@ export interface FileRoutesByFullPath {
   '/administration/brands': typeof AuthenticatedAdministrationBrandsRoute
   '/administration/colors': typeof AuthenticatedAdministrationColorsRoute
   '/administration/documents': typeof AuthenticatedAdministrationDocumentsRoute
-  '/administration/entities': typeof AuthenticatedAdministrationEntitiesRoute
   '/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
   '/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
@@ -2303,6 +2338,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
+  '/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
   '/administration/vehicule/age': typeof AuthenticatedAdministrationVehiculeAgeRoute
   '/administration/vehicule/energie': typeof AuthenticatedAdministrationVehiculeEnergieRoute
@@ -2329,6 +2365,7 @@ export interface FileRoutesByFullPath {
   '/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
   '/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
   '/administration/constat': typeof AuthenticatedAdministrationConstatIndexRoute
+  '/administration/entities': typeof AuthenticatedAdministrationEntitiesIndexRoute
   '/assignments/cost-of-supply': typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   '/assignments/edition-expired': typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   '/assignments/recovery-expired': typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
@@ -2337,6 +2374,7 @@ export interface FileRoutesByFullPath {
   '/gestion/remarque': typeof AuthenticatedGestionRemarqueIndexRoute
   '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  '/administration/entities/$id/edit': typeof AuthenticatedAdministrationEntitiesIdEditRoute
   '/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
   '/comptabilite/check/detail/$id': typeof AuthenticatedComptabiliteCheckDetailIdRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
@@ -2363,7 +2401,6 @@ export interface FileRoutesByTo {
   '/administration/brands': typeof AuthenticatedAdministrationBrandsRoute
   '/administration/colors': typeof AuthenticatedAdministrationColorsRoute
   '/administration/documents': typeof AuthenticatedAdministrationDocumentsRoute
-  '/administration/entities': typeof AuthenticatedAdministrationEntitiesRoute
   '/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
   '/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
@@ -2424,6 +2461,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
+  '/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
   '/administration/vehicule/age': typeof AuthenticatedAdministrationVehiculeAgeRoute
   '/administration/vehicule/energie': typeof AuthenticatedAdministrationVehiculeEnergieRoute
@@ -2450,6 +2488,7 @@ export interface FileRoutesByTo {
   '/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
   '/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
   '/administration/constat': typeof AuthenticatedAdministrationConstatIndexRoute
+  '/administration/entities': typeof AuthenticatedAdministrationEntitiesIndexRoute
   '/assignments/cost-of-supply': typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   '/assignments/edition-expired': typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   '/assignments/recovery-expired': typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
@@ -2458,6 +2497,7 @@ export interface FileRoutesByTo {
   '/gestion/remarque': typeof AuthenticatedGestionRemarqueIndexRoute
   '/gestion/sinistre': typeof AuthenticatedGestionSinistreIndexRoute
   '/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  '/administration/entities/$id/edit': typeof AuthenticatedAdministrationEntitiesIdEditRoute
   '/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
   '/comptabilite/check/detail/$id': typeof AuthenticatedComptabiliteCheckDetailIdRoute
   '/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
@@ -2490,7 +2530,6 @@ export interface FileRoutesById {
   '/_authenticated/administration/brands': typeof AuthenticatedAdministrationBrandsRoute
   '/_authenticated/administration/colors': typeof AuthenticatedAdministrationColorsRoute
   '/_authenticated/administration/documents': typeof AuthenticatedAdministrationDocumentsRoute
-  '/_authenticated/administration/entities': typeof AuthenticatedAdministrationEntitiesRoute
   '/_authenticated/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/_authenticated/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
   '/_authenticated/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
@@ -2551,6 +2590,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
+  '/_authenticated/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/_authenticated/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
   '/_authenticated/administration/vehicule/age': typeof AuthenticatedAdministrationVehiculeAgeRoute
   '/_authenticated/administration/vehicule/energie': typeof AuthenticatedAdministrationVehiculeEnergieRoute
@@ -2577,6 +2617,7 @@ export interface FileRoutesById {
   '/_authenticated/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
   '/_authenticated/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
   '/_authenticated/administration/constat/': typeof AuthenticatedAdministrationConstatIndexRoute
+  '/_authenticated/administration/entities/': typeof AuthenticatedAdministrationEntitiesIndexRoute
   '/_authenticated/assignments/cost-of-supply/': typeof AuthenticatedAssignmentsCostOfSupplyIndexRoute
   '/_authenticated/assignments/edition-expired/': typeof AuthenticatedAssignmentsEditionExpiredIndexRoute
   '/_authenticated/assignments/recovery-expired/': typeof AuthenticatedAssignmentsRecoveryExpiredIndexRoute
@@ -2585,6 +2626,7 @@ export interface FileRoutesById {
   '/_authenticated/gestion/remarque/': typeof AuthenticatedGestionRemarqueIndexRoute
   '/_authenticated/gestion/sinistre/': typeof AuthenticatedGestionSinistreIndexRoute
   '/_authenticated/administration/constat/details/$id': typeof AuthenticatedAdministrationConstatDetailsIdRoute
+  '/_authenticated/administration/entities/$id/edit': typeof AuthenticatedAdministrationEntitiesIdEditRoute
   '/_authenticated/administration/vehicle/$id/edit': typeof AuthenticatedAdministrationVehicleIdEditRoute
   '/_authenticated/comptabilite/check/detail/$id': typeof AuthenticatedComptabiliteCheckDetailIdRoute
   '/_authenticated/comptabilite/check/edit/$id': typeof AuthenticatedComptabiliteCheckEditIdRoute
@@ -2617,7 +2659,6 @@ export interface FileRouteTypes {
     | '/administration/brands'
     | '/administration/colors'
     | '/administration/documents'
-    | '/administration/entities'
     | '/administration/entity-types'
     | '/administration/etats'
     | '/administration/general-states'
@@ -2678,6 +2719,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/users'
     | '/administration/constat/type'
+    | '/administration/entities/new'
     | '/administration/vehicle/create'
     | '/administration/vehicule/age'
     | '/administration/vehicule/energie'
@@ -2704,6 +2746,7 @@ export interface FileRouteTypes {
     | '/gestion/depreciation-tables/theoretical-value'
     | '/gestion/sinistre/nature-sinistre'
     | '/administration/constat'
+    | '/administration/entities'
     | '/assignments/cost-of-supply'
     | '/assignments/edition-expired'
     | '/assignments/recovery-expired'
@@ -2712,6 +2755,7 @@ export interface FileRouteTypes {
     | '/gestion/remarque'
     | '/gestion/sinistre'
     | '/administration/constat/details/$id'
+    | '/administration/entities/$id/edit'
     | '/administration/vehicle/$id/edit'
     | '/comptabilite/check/detail/$id'
     | '/comptabilite/check/edit/$id'
@@ -2737,7 +2781,6 @@ export interface FileRouteTypes {
     | '/administration/brands'
     | '/administration/colors'
     | '/administration/documents'
-    | '/administration/entities'
     | '/administration/entity-types'
     | '/administration/etats'
     | '/administration/general-states'
@@ -2798,6 +2841,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/users'
     | '/administration/constat/type'
+    | '/administration/entities/new'
     | '/administration/vehicle/create'
     | '/administration/vehicule/age'
     | '/administration/vehicule/energie'
@@ -2824,6 +2868,7 @@ export interface FileRouteTypes {
     | '/gestion/depreciation-tables/theoretical-value'
     | '/gestion/sinistre/nature-sinistre'
     | '/administration/constat'
+    | '/administration/entities'
     | '/assignments/cost-of-supply'
     | '/assignments/edition-expired'
     | '/assignments/recovery-expired'
@@ -2832,6 +2877,7 @@ export interface FileRouteTypes {
     | '/gestion/remarque'
     | '/gestion/sinistre'
     | '/administration/constat/details/$id'
+    | '/administration/entities/$id/edit'
     | '/administration/vehicle/$id/edit'
     | '/comptabilite/check/detail/$id'
     | '/comptabilite/check/edit/$id'
@@ -2862,7 +2908,6 @@ export interface FileRouteTypes {
     | '/_authenticated/administration/brands'
     | '/_authenticated/administration/colors'
     | '/_authenticated/administration/documents'
-    | '/_authenticated/administration/entities'
     | '/_authenticated/administration/entity-types'
     | '/_authenticated/administration/etats'
     | '/_authenticated/administration/general-states'
@@ -2923,6 +2968,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks/'
     | '/_authenticated/users/'
     | '/_authenticated/administration/constat/type'
+    | '/_authenticated/administration/entities/new'
     | '/_authenticated/administration/vehicle/create'
     | '/_authenticated/administration/vehicule/age'
     | '/_authenticated/administration/vehicule/energie'
@@ -2949,6 +2995,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gestion/depreciation-tables/theoretical-value'
     | '/_authenticated/gestion/sinistre/nature-sinistre'
     | '/_authenticated/administration/constat/'
+    | '/_authenticated/administration/entities/'
     | '/_authenticated/assignments/cost-of-supply/'
     | '/_authenticated/assignments/edition-expired/'
     | '/_authenticated/assignments/recovery-expired/'
@@ -2957,6 +3004,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gestion/remarque/'
     | '/_authenticated/gestion/sinistre/'
     | '/_authenticated/administration/constat/details/$id'
+    | '/_authenticated/administration/entities/$id/edit'
     | '/_authenticated/administration/vehicle/$id/edit'
     | '/_authenticated/comptabilite/check/detail/$id'
     | '/_authenticated/comptabilite/check/edit/$id'
@@ -3031,7 +3079,6 @@ export const routeTree = rootRoute
         "/_authenticated/administration/brands",
         "/_authenticated/administration/colors",
         "/_authenticated/administration/documents",
-        "/_authenticated/administration/entities",
         "/_authenticated/administration/entity-types",
         "/_authenticated/administration/etats",
         "/_authenticated/administration/general-states",
@@ -3076,6 +3123,7 @@ export const routeTree = rootRoute
         "/_authenticated/tasks/",
         "/_authenticated/users/",
         "/_authenticated/administration/constat/type",
+        "/_authenticated/administration/entities/new",
         "/_authenticated/administration/vehicle/create",
         "/_authenticated/administration/vehicule/age",
         "/_authenticated/administration/vehicule/energie",
@@ -3093,6 +3141,7 @@ export const routeTree = rootRoute
         "/_authenticated/gestion/depreciation-tables/theoretical-value",
         "/_authenticated/gestion/sinistre/nature-sinistre",
         "/_authenticated/administration/constat/",
+        "/_authenticated/administration/entities/",
         "/_authenticated/assignments/cost-of-supply/",
         "/_authenticated/assignments/edition-expired/",
         "/_authenticated/assignments/recovery-expired/",
@@ -3100,6 +3149,7 @@ export const routeTree = rootRoute
         "/_authenticated/gestion/remarque/",
         "/_authenticated/gestion/sinistre/",
         "/_authenticated/administration/constat/details/$id",
+        "/_authenticated/administration/entities/$id/edit",
         "/_authenticated/administration/vehicle/$id/edit",
         "/_authenticated/administration/constat/create/"
       ]
@@ -3212,10 +3262,6 @@ export const routeTree = rootRoute
     },
     "/_authenticated/administration/documents": {
       "filePath": "_authenticated/administration/documents.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/administration/entities": {
-      "filePath": "_authenticated/administration/entities.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/administration/entity-types": {
@@ -3462,6 +3508,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/administration/constat/type.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/administration/entities/new": {
+      "filePath": "_authenticated/administration/entities/new.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/administration/vehicle/create": {
       "filePath": "_authenticated/administration/vehicle/create.tsx",
       "parent": "/_authenticated"
@@ -3566,6 +3616,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/administration/constat/index.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/administration/entities/": {
+      "filePath": "_authenticated/administration/entities/index.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/assignments/cost-of-supply/": {
       "filePath": "_authenticated/assignments/cost-of-supply/index.tsx",
       "parent": "/_authenticated"
@@ -3596,6 +3650,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/administration/constat/details/$id": {
       "filePath": "_authenticated/administration/constat/details/$id.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/administration/entities/$id/edit": {
+      "filePath": "_authenticated/administration/entities/$id.edit.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/administration/vehicle/$id/edit": {
