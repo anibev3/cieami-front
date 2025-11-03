@@ -20,8 +20,8 @@ import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 
 interface RemarkSelectProps {
-  value?: number | null
-  onValueChange: (value: number | null) => void
+  value?: string | null
+  onValueChange: (value: string | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string

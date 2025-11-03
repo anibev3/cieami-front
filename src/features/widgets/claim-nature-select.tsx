@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { Check, ChevronsUpDown, Search, X } from 'lucide-react'
+import { Check, ChevronsUpDown, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,8 +19,8 @@ import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 
 interface ClaimNatureSelectProps {
-  value?: number | null
-  onValueChange: (value: number | null) => void
+  value?: string | null
+  onValueChange: (value: string | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string
@@ -36,7 +35,7 @@ export function ClaimNatureSelect({
   disabled = false,
   className,
   showStatus = false,
-  showDescription = false
+  showDescription: _showDescription = false
 }: ClaimNatureSelectProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -50,7 +49,7 @@ export function ClaimNatureSelect({
   }, [claimNatures.length, loading, fetchClaimNatures])
 
   // Trouver la nature sélectionnée
-  const selectedClaimNature = claimNatures.find(nature => nature.id === value)
+  const selectedClaimNature = claimNatures.find(nature => String(nature.id) === value)
 
   // Filtrer les natures basé sur la recherche
   const filteredClaimNatures = claimNatures.filter(nature =>
@@ -128,7 +127,7 @@ export function ClaimNatureSelect({
                   key={nature.id}
                   value={nature.id.toString()}
                   onSelect={() => {
-                    onValueChange(nature.id === value ? null : nature.id)
+                    onValueChange(String(nature.id) === value ? null : String(nature.id))
                     setOpen(false)
                     setSearchTerm('')
                   }}
@@ -139,7 +138,7 @@ export function ClaimNatureSelect({
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          value === nature.id ? "opacity-100" : "opacity-0"
+                          value === String(nature.id) ? "opacity-100" : "opacity-0"
                         )}
                       />
                       <div className="flex flex-col">

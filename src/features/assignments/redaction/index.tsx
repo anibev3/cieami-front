@@ -845,7 +845,7 @@ export default function EditReportPage() {
           id: s.id,
           label: s.shock_point?.label || `Choc ${s.id}`,
           amount: s.amount,
-        }))
+        })) as any
       )
     }
   }, [showReorderSheet, assignment?.shocks])
@@ -2744,12 +2744,16 @@ export default function EditReportPage() {
                 {/* Constats */}
                 {activeTab === 'constatations' && (
                   <AscertainmentEdit
-                    ascertainments={assignment.ascertainments || []}
+                    ascertainments={(assignment.ascertainments || []) as any}
                     onUpdate={(updatedAscertainments) => {
                       // Mettre à jour les constatations dans l'état local
                       setAssignment(prev => prev ? {
                         ...prev,
-                        ascertainments: updatedAscertainments
+                        ascertainments: (updatedAscertainments as any[]).map((a: any) => ({
+                          ...a,
+                          id: String(a.id),
+                          ascertainment_type: a.ascertainment_type ? { ...a.ascertainment_type, id: String(a.ascertainment_type.id) } : a.ascertainment_type
+                        }))
                       } : null)
                     }}
                   />
@@ -3148,7 +3152,7 @@ export default function EditReportPage() {
                 <div key={idx} className="flex gap-2 items-end mb-2">
                   <div className="flex-1">
                     <OtherCostTypeSelect
-                      value={cost.other_cost_type_id}
+                      value={cost.other_cost_type_id as any}
                       onValueChange={value => handleUpdateOtherCostLine(idx, 'other_cost_type_id', value)}
                       required={true}
                       showError={!cost.other_cost_type_id}
@@ -3646,9 +3650,9 @@ export default function EditReportPage() {
       <ShockReorderSheet
         open={showReorderSheet}
         onOpenChange={setShowReorderSheet}
-        shocks={reorderShocksList}
-        focusShockId={sheetFocusShockId}
-        onConfirm={(ids) => handleConfirmReorderShocks(ids)}
+        shocks={reorderShocksList as any}
+        focusShockId={sheetFocusShockId as any}
+        onConfirm={(ids) => handleConfirmReorderShocks(ids?.map(String))}
         title="Réorganiser les points de choc"
       />
     </>

@@ -2242,42 +2242,42 @@ export default function AssignmentDetailPage() {
 
     // Ordre des statuts pour déterminer si un statut vient après un autre
     const statusOrder = [
-      'pending',
-      'opened',
-      'realized',
-      'pending_for_repairer_invoice',
-      'pending_for_repairer_invoice_validation',
-      'in_editing',
-      'edited',
-      'in_payment',
-      'validated',
-      'paid',
-      'closed'
+      AssignmentStatusEnum.PENDING,
+      AssignmentStatusEnum.OPENED,
+      AssignmentStatusEnum.REALIZED,
+      AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE,
+      AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION,
+      AssignmentStatusEnum.IN_EDITING,
+      AssignmentStatusEnum.EDITED,
+      AssignmentStatusEnum.IN_PAYMENT,
+      AssignmentStatusEnum.VALIDATED,
+      AssignmentStatusEnum.PAID,
+      AssignmentStatusEnum.CLOSED,
     ]
 
-    const getStatusIndex = (code: string) => statusOrder.indexOf(code)
+    const getStatusIndex = (code: AssignmentStatusEnum) => statusOrder.indexOf(code)
     const isAfterStatus = (currentCode: string, targetCode: string) => {
-      const currentIndex = getStatusIndex(currentCode)
-      const targetIndex = getStatusIndex(targetCode)
+      const currentIndex = getStatusIndex(currentCode as AssignmentStatusEnum)
+      const targetIndex = getStatusIndex(targetCode as AssignmentStatusEnum)
       return currentIndex >= 0 && targetIndex >= 0 && currentIndex >= targetIndex
     }
 
     // Modifier le dossier : disponible pour tous les statuts sauf validated, cancelled, closed, paid
     // Spécifiquement autorisé pour pending_for_repairer_invoice (même si la logique générale l'autorise déjà)
-    const canEdit = statusCode === 'pending_for_repairer_invoice' || !['validated', 'cancelled', 'closed', 'paid'].includes(statusCode)
-    const canRealize = statusCode === 'opened'
+    const canEdit = statusCode === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE || ![AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.CANCELLED, AssignmentStatusEnum.CLOSED, AssignmentStatusEnum.PAID].includes(statusCode as AssignmentStatusEnum)
+    const canRealize = statusCode === AssignmentStatusEnum.OPENED
     // Modifier la réalisation : disponible pour tous les statuts après "realized", y compris pending_for_repairer_invoice
-    const canEditRealization = statusCode === 'pending_for_repairer_invoice' || isAfterStatus(statusCode, 'realized')
-    const canWriteReport = statusCode === 'realized'
+    const canEditRealization = statusCode === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE || isAfterStatus(statusCode, AssignmentStatusEnum.REALIZED)
+    const canWriteReport = statusCode === AssignmentStatusEnum.REALIZED
     // Rédiger le rapport : disponible à partir du statut "in_editing"
     // Cas spécial : pour les dossiers de type "insurer", disponible dès "pending_for_repairer_invoice"
     const isInsurerAssignment = assignment.assignment_type?.code === 'insurer'
-    const canEditReport = isAfterStatus(statusCode, 'in_editing') || 
-      (isInsurerAssignment && (statusCode === 'pending_for_repairer_invoice' || isAfterStatus(statusCode, 'pending_for_repairer_invoice')))
+    const canEditReport = isAfterStatus(statusCode, AssignmentStatusEnum.IN_EDITING) || 
+      (isInsurerAssignment && (statusCode === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE || isAfterStatus(statusCode, AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE)))
     const canGenerateReport = true
-    const canDelete = statusCode === 'pending'
-    const canValidate = (isCEO() || isValidator() || isExpertManager()) && ['edited', 'in_payment'].includes(statusCode)
-    const canUnvalidate = (isCEO() || isValidator() || isExpertManager()) && ['validated', 'paid'].includes(statusCode)
+    const canDelete = statusCode === AssignmentStatusEnum.PENDING
+    const canValidate = (isCEO() || isValidator() || isExpertManager()) && [AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT].includes(statusCode as AssignmentStatusEnum)
+    const canUnvalidate = (isCEO() || isValidator() || isExpertManager()) && [AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID].includes(statusCode as AssignmentStatusEnum)
 
     const alwaysDisableForRestricted = (key: string) => {
       if (!isRestrictedRole) return false
@@ -2518,7 +2518,7 @@ export default function AssignmentDetailPage() {
                   {isRepairerUser ? (
                     // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
                     // Masquer ce bouton aux statuts : 'in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed'
-                    !['in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed'].includes(assignment.status.code) ? (
+                    ![ AssignmentStatusEnum.IN_EDITING, AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT, AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID, AssignmentStatusEnum.CLOSED ].includes(assignment.status.code as AssignmentStatusEnum) ? (
                       <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
                         <FileDown className="h-3 w-3 mr-2" />
                         Préparation de devis
@@ -2557,10 +2557,10 @@ export default function AssignmentDetailPage() {
                       )}
                       
                       {/* Bouton "Préparation de devis" : masquer aux statuts 'in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed' */}
-                      {!['in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed'].includes(assignment.status.code) && (
+                      {![ AssignmentStatusEnum.IN_EDITING, AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT, AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID, AssignmentStatusEnum.CLOSED ].includes(assignment.status.code as AssignmentStatusEnum) && (
                         <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
                           <FileDown className="h-3 w-3 mr-2" />
-                          Préparation de devis
+                           Voir le devis de réparation
                         </Button>
                       )}
                       

@@ -1,5 +1,6 @@
 // Statuts des dossiers
 export enum AssignmentStatusEnum {
+  PENDING = 'pending',
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   OPENED = 'opened',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -7,15 +7,15 @@ import { FileText, ChevronsUpDown, Plus, Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TechnicalConclusion {
-  id: number
+  id: string
   code: string
   label: string
   description: string
 }
 
 interface TechnicalConclusionSelectProps {
-  value: number
-  onValueChange: (value: number) => void
+  value: string
+  onValueChange: (value: string) => void
   technicalConclusions: TechnicalConclusion[]
   placeholder?: string
   className?: string
@@ -36,7 +36,7 @@ export function TechnicalConclusionSelect({
 }: TechnicalConclusionSelectProps) {
   const [open, setOpen] = useState(false)
   const selectedTechnicalConclusion = technicalConclusions.find(conclusion => conclusion.id === value)
-  const hasValue = value > 0
+  const hasValue = Boolean(value)
 
   return (
     <div className="space-y-3">
@@ -148,7 +148,7 @@ export function TechnicalConclusionSelect({
           size="xs"
           className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
           aria-label="Effacer"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange(0) }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onValueChange('') }}
         >
           <X className="h-3 w-3" />
         </Button>

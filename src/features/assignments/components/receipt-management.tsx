@@ -70,7 +70,7 @@ interface CalculationResult {
 }
 
 interface ReceiptManagementProps {
-  assignmentId: number
+  assignmentId: string
   receipts: Receipt[]
   onRefresh: () => void
 }
@@ -180,7 +180,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
         amount: calculatedReceipt.amount_excluding_tax
       }))
 
-      await receiptService.createMultipleReceipts(assignmentId, receiptsToCreateWithCalculatedAmounts)
+      await receiptService.createMultipleReceipts(Number(assignmentId), receiptsToCreateWithCalculatedAmounts)
       toast.success(`${calculationResult.receipts.length} quittance(s) créée(s) avec succès`)
       
       // Réinitialiser les états
@@ -292,7 +292,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
       if (selectedReceipt) {
         // Modification
         await receiptService.updateReceipt(selectedReceipt.id, {
-          assignment_id: assignmentId,
+          assignment_id: Number(assignmentId),
           receipt_type_id: formData.receipt_type_id,
           amount: formData.amount
         })
@@ -306,7 +306,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
           return
         }
         
-        await receiptService.createMultipleReceipts(assignmentId, receiptsToCreate)
+        await receiptService.createMultipleReceipts(Number(assignmentId), receiptsToCreate)
         toast.success(`${receiptsToCreate.length} quittance(s) créée(s) avec succès`)
         setIsCreateModalOpen(false)
         setReceiptsToCreate([])
