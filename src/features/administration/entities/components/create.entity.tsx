@@ -184,8 +184,8 @@ export function EntityCreatePage() {
       </Header>
 
       <Main>
-        <div className="p-6 max-w-4xl mx-auto">
-          <Card className="shadow-lg">
+        <div className="p-6 mx-auto">
+          <Card className="shadow-none">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
@@ -341,7 +341,7 @@ export function EntityCreatePage() {
                               <img 
                                 src={previewUrl || existingPhotoUrl || ''} 
                                 alt="Logo" 
-                                className="h-32 w-32 object-cover rounded-lg border-2 border-border shadow-md" 
+                                className="h-32 object-cover rounded-lg border-2 border-border shadow-md" 
                               />
                               {previewUrl && (
                                 <Button
