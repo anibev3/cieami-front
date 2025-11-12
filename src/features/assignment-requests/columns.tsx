@@ -2,7 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { AssignmentRequest } from '@/types/assignment-requests'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ExternalLink, Edit, MoreHorizontal, Building, Wrench, User, Car, Calendar, FileText, XCircle } from 'lucide-react'
+import { ExternalLink, Edit, MoreHorizontal, User, FileText, XCircle } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { AssignmentRequestStatusEnum, AssignmentStatusEnum } from '@/types/global-types'
 
 interface ColumnsProps {
   onViewDetail: (id: string) => void
@@ -149,14 +150,18 @@ export const createAssignmentRequestColumns = ({
         const statusCode = request.status.code
         const getStatusColor = (code: string) => {
           switch (code) {
-            case 'active':
+            case AssignmentStatusEnum.ACTIVE:
               return 'bg-green-100 text-green-800 border-green-200'
-            case 'inactive':
+            case AssignmentStatusEnum.INACTIVE:
               return 'bg-gray-100 text-gray-800 border-gray-200'
-            case 'pending':
+            case AssignmentRequestStatusEnum.PENDING:
               return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-            case 'rejected':
+            case AssignmentRequestStatusEnum.ACCEPTED:
+              return 'bg-blue-100 text-blue-800 border-blue-200'
+            case AssignmentRequestStatusEnum.REJECTED:
               return 'bg-red-100 text-red-800 border-red-200'
+            case AssignmentRequestStatusEnum.CANCELLED:
+              return 'bg-gray-100 text-gray-800 border-gray-200'
             default:
               return 'bg-gray-100 text-gray-800 border-gray-200'
           }
@@ -199,11 +204,13 @@ export const createAssignmentRequestColumns = ({
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Voir le détail
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onOpenFolder(request.id)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Ouvrir le dossier
-                </DropdownMenuItem>
-                {canReject && onReject && request.status.code !== 'rejected' && (
+                {request.status.code === AssignmentRequestStatusEnum.PENDING && (
+                  <DropdownMenuItem onClick={() => onOpenFolder(request.id)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Ouvrir le dossier
+                  </DropdownMenuItem>
+                )}
+                {canReject && onReject && request.status.code === AssignmentRequestStatusEnum.PENDING && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem

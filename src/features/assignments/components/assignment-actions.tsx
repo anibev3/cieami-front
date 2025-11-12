@@ -29,8 +29,8 @@ import { UserRole } from '@/types/auth'
 interface AssignmentActionsProps {
   assignment: Assignment
   onDelete: (assignment: Assignment) => void
-  onOpenReceiptModal: (assignmentId: number, amount: number) => void
-  onViewDetail: (assignmentId: number) => void
+  onOpenReceiptModal: (assignmentId: string, amount: number) => void
+  onViewDetail: (assignmentId: string) => void
 }
 
 export function AssignmentActions({
@@ -56,7 +56,7 @@ export function AssignmentActions({
         key: 'view-detail',
         label: 'Voir le détail',
         icon: ExternalLink,
-        onClick: () => onViewDetail(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id),
+        onClick: () => onViewDetail(assignment.id.toString()),
         show: true,
         destructive: false
       },
@@ -85,7 +85,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(assignment.id.toString(), parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -170,7 +170,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(assignment.id.toString(), parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -222,7 +222,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(assignment.id.toString(), parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -253,7 +253,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(assignment.id.toString(), parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -307,7 +307,7 @@ export function AssignmentActions({
         key: 'view-detail',
         label: 'Voir le détail',
         icon: ExternalLink,
-        onClick: () => onViewDetail(assignmentId),
+        onClick: () => onViewDetail(assignmentId.toString()),
         show: true,
         destructive: false,
       },
@@ -360,7 +360,7 @@ export function AssignmentActions({
           key: 'view-detail',
           label: 'Voir le détail',
           icon: ExternalLink,
-          onClick: () => onViewDetail(assignmentIdNum),
+          onClick: () => onViewDetail(assignmentIdNum.toString()),
           show: true,
           destructive: false,
         },
@@ -371,7 +371,7 @@ export function AssignmentActions({
           key: 'view-detail',
           label: 'Voir le détail',
           icon: ExternalLink,
-          onClick: () => onViewDetail(assignmentIdNum),
+          onClick: () => onViewDetail(assignmentIdNum.toString()),
           show: true,
           destructive: false,
         },

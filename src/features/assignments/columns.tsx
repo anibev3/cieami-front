@@ -21,8 +21,8 @@ import { toast } from 'sonner'
 
 interface ColumnsProps {
   onDelete: (assignment: Assignment) => void
-  onOpenReceiptModal: (assignmentId: number, amount: number) => void
-  onViewDetail: (assignmentId: number) => void
+  onOpenReceiptModal: (assignmentId: string, amount: number) => void
+  onViewDetail: (assignmentId: string) => void
   onSearch: (query: string) => void
 }
 

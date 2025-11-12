@@ -40,11 +40,11 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search as SearchComponent } from '@/components/search'
-import { useACL } from '@/hooks/useACL'
+// import { useACL } from '@/hooks/useACL'
 
 export default function AssignmentRequestsPage() {
   const navigate = useNavigate()
-  const { isAdmin, isSystemAdmin } = useACL()
+  // const { isAdmin, isSystemAdmin } = useACL()
   const {
     assignmentRequests,
     loading,
@@ -64,7 +64,8 @@ export default function AssignmentRequestsPage() {
   } = useAssignmentRequestsStore()
   
   // Vérifier si l'utilisateur peut rejeter (admin ou system admin)
-  const canReject = isAdmin() || isSystemAdmin()
+  // const canReject = isAdmin() || isSystemAdmin()
+  const canReject = true
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -124,14 +125,21 @@ export default function AssignmentRequestsPage() {
   }, [navigate])
 
   const handleOpenFolder = useCallback((id: string) => {
-    navigate({ to: `/assignments/edit/${id}?is_assignment_request=true` })
-  }, [navigate])
+    const request = assignmentRequests.find(r => r.id === id)
+    if (request && request.status.code === 'pending') {
+      navigate({ to: `/assignments/edit/${id}?is_assignment_request=true` })
+    } else {
+      toast.error('Seules les demandes au statut "pending" peuvent être converties en dossier')
+    }
+  }, [navigate, assignmentRequests])
 
   const handleReject = useCallback((id: string) => {
     const request = assignmentRequests.find(r => r.id === id)
-    if (request) {
+    if (request && request.status.code === 'pending') {
       setRequestToReject(request)
       setRejectDialogOpen(true)
+    } else {
+      toast.error('Seules les demandes au statut "pending" peuvent être rejetées')
     }
   }, [assignmentRequests])
 

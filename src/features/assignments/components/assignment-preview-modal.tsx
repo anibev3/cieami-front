@@ -41,8 +41,8 @@ interface AssignmentPreviewModalProps {
   assignment: Assignment | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onViewDetail: (assignmentId: number) => void
-  onOpenReceiptModal: (assignmentId: number, totalAmount: number) => void
+  onViewDetail: (assignmentId: string) => void
+  onOpenReceiptModal: (assignmentId: string, totalAmount: number) => void
 }
 
 export function AssignmentPreviewModal({
@@ -127,7 +127,7 @@ export function AssignmentPreviewModal({
           {/* Actions rapides */}
           <div className="flex items-center gap-2 mb-6 p-4 bg-muted/30 rounded-lg">
             <Button
-              onClick={() => onViewDetail(assignment.id)}
+              onClick={() => onViewDetail(assignment.id.toString())}
               className="flex items-center gap-2"
             >
               <ExternalLink className="h-4 w-4" />
@@ -423,7 +423,7 @@ export function AssignmentPreviewModal({
               Fermer
             </Button>
             <Button 
-              onClick={() => onOpenReceiptModal(assignment.id, assignment.total_amount ? parseFloat(assignment.total_amount) : 0)}
+              onClick={() => onOpenReceiptModal(assignment.id.toString(), assignment.total_amount ? parseFloat(assignment.total_amount) : 0)}
               className="flex items-center space-x-2"
             >
               <Receipt className="h-4 w-4" />

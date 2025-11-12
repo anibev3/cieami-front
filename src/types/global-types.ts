@@ -48,3 +48,11 @@ export enum EntityTypeEnum {
   INSURER = 'insurer',                       // "Compagnie d'assurance"
   REPAIRER = 'repairer',                     // "Réparateur"
 }
+
+// Statuts des demandes d'expertise
+export enum AssignmentRequestStatusEnum {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
+}

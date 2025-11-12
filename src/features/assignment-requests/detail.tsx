@@ -25,7 +25,8 @@ import {
   Clock,
   Hash,
   DollarSign,
-  XCircle
+  XCircle,
+  FolderOpen
 } from 'lucide-react'
 import { Search } from '@/components/search'
 import { AssignmentRequest } from '@/types/assignment-requests'
@@ -51,8 +52,11 @@ export default function AssignmentRequestDetailPage() {
   const [rejecting, setRejecting] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   
-  // Vérifier si l'utilisateur peut rejeter (admin ou system admin)
-  const canReject = (isAdmin() || isSystemAdmin()) && request?.status.code !== 'rejected'
+  // Vérifier si l'utilisateur peut rejeter (admin ou system admin) et si le statut est pending
+  const canReject = (isAdmin() || isSystemAdmin()) && request?.status.code === 'pending'
+  
+  // Vérifier si on peut ouvrir le dossier (uniquement si statut est pending)
+  const canOpenFolder = request?.status.code === 'pending'
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -90,8 +94,12 @@ export default function AssignmentRequestDetailPage() {
         return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200'
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200'
+      case 'accepted':
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-200'
       case 'rejected':
         return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200'
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200'
     }
@@ -201,6 +209,16 @@ export default function AssignmentRequestDetailPage() {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
+              {canOpenFolder && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => navigate({ to: `/assignments/edit/${id}?is_assignment_request=true` })}
+                >
+                  <FolderOpen className="h-4 w-4 mr-2" />
+                  Ouvrir le dossier
+                </Button>
+              )}
               {canReject && (
                 <Button
                   variant="outline"
@@ -666,6 +684,16 @@ export default function AssignmentRequestDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {canOpenFolder && (
+                    <Button 
+                      variant="default" 
+                      className="w-full justify-start text-xs h-8" 
+                      onClick={() => navigate({ to: `/assignments/edit/${id}?is_assignment_request=true` })}
+                    >
+                      <FolderOpen className="h-3 w-3 mr-2" />
+                      Ouvrir le dossier
+                    </Button>
+                  )}
                   <Button 
                     variant="outline" 
                     className="w-full justify-start text-xs h-8" 

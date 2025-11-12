@@ -19,6 +19,7 @@ export const API_CONFIG = {
     ASSIGNMENT_TYPES: '/assignment-types',
     ASSIGNMENTS: '/assignments',
     ASSIGNMENT_REQUESTS: '/assignment-requests',
+    ASSIGNMENT_MESSAGES: '/assignment-messages',
     ASSIGNMENTS_EDITE_ELEMENTS: '/assignments/update-edit',
     ASSIGNMENTS_STATISTICS: '/assignments/statistics',
     ASSIGNMENTS_EDITION_EXPIRED: '/assignments/get/assignment-edition-time-to-expired', // get-assignment-edition-time-to-expired
