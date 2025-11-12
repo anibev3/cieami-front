@@ -69,6 +69,7 @@ import axios from 'axios'
 import { useUser } from '@/stores/authStore'
 import { UserRole } from '@/types/auth'
 import { ExpertFirmSelect } from '@/features/widgets'
+import { assignmentRequestService } from '@/services/assignmentRequestService'
 
 // Types pour les erreurs
 interface ApiError {
@@ -119,6 +120,7 @@ interface AssignmentCreatePayload {
   circumstance: string | null
   damage_declared: string | null
   observation: string | null
+  assignment_request_id?: string | null
   experts: {
     expert_id: string
     date: string
@@ -164,12 +166,18 @@ const assignmentSchema = z.object({
 
 export default function CreateAssignmentPage() {
   const navigate = useNavigate()
-    const { id } = useParams({ strict: false }) as { id: string }
+  const { id } = useParams({ strict: false }) as { id: string }
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
   // Indique si les données de base (listes) sont chargées
   const [baseDataLoaded, setBaseDataLoaded] = useState(false)
   const isInitialLoading = loadingData || !baseDataLoaded
+  // ID de la demande d'expertise si on vient d'une demande
+  const [assignmentRequestId, setAssignmentRequestId] = useState<string | null>(null)
+  
+  // Récupérer le paramètre is_assignment_request depuis l'URL
+  const urlParams = new URLSearchParams(window.location.search)
+  const isAssignmentRequestParam = urlParams.get('is_assignment_request') === 'true'
   
   // Récupérer l'utilisateur connecté
   const user = useUser()
@@ -363,8 +371,10 @@ export default function CreateAssignmentPage() {
   const [createdAssignmentId, setCreatedAssignmentId] = useState<number | null>(null)
   
   // Mode édition
-  const isEditMode = !!id
+  const isEditMode = !!id && !isAssignmentRequestParam
   const assignmentId = id || null
+  // Mode création depuis une demande d'expertise
+  const isFromAssignmentRequest = isAssignmentRequestParam && !!id
   
   
   const { fetchUsers } = useUsersStore()
@@ -430,6 +440,106 @@ export default function CreateAssignmentPage() {
       }
     }
   }, [isEditMode, user, isInsurer, isRepairer, form])
+
+  // Charger les données de la demande d'expertise si on vient d'une demande
+  useEffect(() => {
+    const loadAssignmentRequestData = async () => {
+      console.log('loadAssignmentRequestData', isFromAssignmentRequest, id, baseDataLoaded)
+      if (isFromAssignmentRequest && id && baseDataLoaded) {
+        try {
+          setLoadingData(true)
+          setAssignmentRequestId(id)
+          
+          // Récupérer les données de la demande d'expertise
+          const response = await assignmentRequestService.getAssignmentRequestByAssignmentId(id)
+          const request = response.data
+          
+          // Fonction pour trouver l'ID de rattachement basé sur l'entité
+          const findRelationshipId = async (entityId: string, type: 'insurer' | 'repairer') => {
+            try {
+              if (type === 'insurer') {
+                const response = await insurerRelationshipService.list(1)
+                const relationship = response.data.find((rel: any) => rel.insurer?.id?.toString() === entityId)
+                return relationship?.id?.toString() || ''
+              } else {
+                const response = await repairerRelationshipService.list(1)
+                const relationship = response.data.find((rel: any) => rel.repairer?.id?.toString() === entityId)
+                return relationship?.id?.toString() || ''
+              }
+            } catch (error) {
+              console.error(`Erreur lors de la recherche du rattachement ${type}:`, error)
+              return ''
+            }
+          }
+
+          // Trouver les IDs de rattachement
+          let insurerRelationshipId = ''
+          let repairerRelationshipId = ''
+          
+          if (request.insurer?.id) {
+            insurerRelationshipId = await findRelationshipId(request.insurer.id.toString(), 'insurer')
+          }
+          if (request.repairer?.id) {
+            repairerRelationshipId = await findRelationshipId(request.repairer.id.toString(), 'repairer')
+          }
+
+          // Mapper les données de la demande d'expertise vers le formulaire
+          const formData = {
+            client_id: request.client?.id?.toString() || '',
+            vehicle_id: request.vehicle?.id?.toString() || '',
+            vehicle_mileage: request.vehicle?.mileage?.toString() || '',
+            insurer_relationship_id: insurerRelationshipId,
+            repairer_relationship_id: repairerRelationshipId,
+            broker_id: '',
+            additional_insurer_relationship_id: '',
+            assignment_type_id: '',
+            expertise_type_id: '',
+            document_transmitted_id: [],
+            policy_number: request.policy_number || '',
+            claim_number: request.claim_number || '',
+            claim_starts_at: request.claim_date || '',
+            claim_ends_at: '',
+            expertise_date: '',
+            expertise_place: request.expertise_place || '',
+            received_at: new Date().toISOString().split('T')[0], // Date du jour par défaut
+            administrator: '',
+            circumstance: '',
+            damage_declared: '',
+            observation: '',
+            experts: [{ expert_id: '', date: '', observation: '' }]
+          }
+          
+          form.reset(formData)
+
+          // Mettre à jour les états des entités sélectionnées
+          if (request.client) {
+            setSelectedClient(request.client as any)
+            setSelectedClientData(request.client)
+          }
+          if (request.vehicle) {
+            setSelectedVehicle(request.vehicle as any)
+            setSelectedVehicleData(request.vehicle)
+          }
+          if (request.insurer) {
+            setSelectedInsurer(request.insurer as any)
+          }
+          if (request.repairer) {
+            setSelectedRepairer(request.repairer as any)
+          }
+
+          toast.success('Données de la demande d\'expertise chargées avec succès')
+        } catch (error: any) {
+          handleApiError(error, 'le chargement de la demande d\'expertise')
+        } finally {
+          setLoadingData(false)
+        }
+      }
+    }
+
+    if (baseDataLoaded) {
+      loadAssignmentRequestData()
+    }
+  }, [isFromAssignmentRequest, id, baseDataLoaded, form])
 
   // Charger les données existantes en mode édition
   useEffect(() => {
@@ -579,7 +689,7 @@ export default function CreateAssignmentPage() {
         fetchBrands()
       ])
       setBaseDataLoaded(true)
-    } catch (error: any) {
+    } catch (_error: any) {
       // Ne pas afficher d'erreur pour le chargement des données de base
       // car cela pourrait être géré individuellement par chaque store
     }
@@ -841,6 +951,7 @@ export default function CreateAssignmentPage() {
         circumstance: values.circumstance || null,
         damage_declared: values.damage_declared || null,
         observation: values.observation || null,
+        assignment_request_id: assignmentRequestId || null,
         experts: (values.experts || []).filter(expert => expert.expert_id && expert.date).map((expert) => ({
           expert_id: expert.expert_id!,
           date: expert.date!,
@@ -855,7 +966,7 @@ export default function CreateAssignmentPage() {
           id: assignmentId
         }
         
-          const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_SUFIX}${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData, {
+          await axios.put(`${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_API_SUFIX}${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/update/${assignmentId}`, updateData, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('expert_0001_auth_token')}`,
             'Content-Type': 'application/json',
@@ -1202,10 +1313,10 @@ export default function CreateAssignmentPage() {
             </Button>
             <div className="min-w-0 flex-1">
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 truncate">
-                {isEditMode ? 'Modifier le dossier' : 'Nouveau dossier'}
+                {isEditMode ? 'Modifier le dossier' : isFromAssignmentRequest ? 'Créer un dossier depuis une demande' : 'Nouveau dossier'}
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                {isEditMode ? 'Modifiez les informations du dossier' : 'Créez un nouveau dossier d\'expertise'}
+                {isEditMode ? 'Modifiez les informations du dossier' : isFromAssignmentRequest ? '' : 'Créez un nouveau dossier d\'expertise'}
               </p>
               {isEditMode && (
                 <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -1217,6 +1328,20 @@ export default function CreateAssignmentPage() {
                     <div className="flex items-center gap-1">
                       <Loader2 className="h-3 w-3 animate-spin text-gray-600" />
                       <span className="text-xs text-gray-600">Chargement...</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              {isFromAssignmentRequest && (
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                    Depuis une demande d'expertise
+                  </Badge>
+                  <span className="text-xs text-gray-500">Demande ID: {id}</span>
+                  {loadingData && (
+                    <div className="flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin text-gray-600" />
+                      <span className="text-xs text-gray-600">Chargement des données...</span>
                     </div>
                   )}
                 </div>

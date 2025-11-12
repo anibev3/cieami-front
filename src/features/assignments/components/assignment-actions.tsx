@@ -42,9 +42,12 @@ export function AssignmentActions({
   const navigate = useNavigate()
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
   const { generateReport, loading } = useAssignmentsStore()
-  const { hasAnyRole } = useACL()
+  const { hasAnyRole, isSystemAdmin, isAdmin } = useACL()
   const isRepairerReadOnly = hasAnyRole([UserRole.REPAIRER_ADMIN, UserRole.REPAIRER_STANDARD_USER])
   const isInsurerLimited = hasAnyRole([UserRole.INSURER_ADMIN, UserRole.INSURER_STANDARD_USER])
+  const isSystemAdminUser = isSystemAdmin()
+  const isAdminUser = isAdmin()
+  const isLimitedAdmin = isSystemAdminUser || isAdminUser
   
   // Fonction pour déterminer les actions disponibles selon le statut
   const getAvailableActions = (statusCode: string, assignment: Assignment) => {
@@ -53,7 +56,7 @@ export function AssignmentActions({
         key: 'view-detail',
         label: 'Voir le détail',
         icon: ExternalLink,
-        onClick: () => onViewDetail(assignment.id),
+        onClick: () => onViewDetail(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id),
         show: true,
         destructive: false
       },
@@ -82,7 +85,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -167,7 +170,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -176,7 +179,7 @@ export function AssignmentActions({
           label: 'Générer le rapport',
           icon: Download,
           onClick: async () => {
-            await generateReport(assignment.id)
+            await generateReport(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id)
           },
           show: true,
           destructive: false,
@@ -219,7 +222,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -250,7 +253,7 @@ export function AssignmentActions({
           key: 'receipts',
           label: assignment.receipts && assignment.receipts.length > 0 ? 'Modifier les quittances' : 'Ajouter une quittance',
           icon: Receipt,
-          onClick: () => onOpenReceiptModal(assignment.id, parseFloat(assignment.total_amount || '0')),
+          onClick: () => onOpenReceiptModal(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id, parseFloat(assignment.total_amount || '0')),
           show: true,
           destructive: false
         },
@@ -296,13 +299,68 @@ export function AssignmentActions({
     ]
   }
 
+  // Actions limitées pour SYSTEM_ADMIN et ADMIN : seulement Modifier et Générer le rapport
+  const getLimitedAdminActions = (statusCode: string) => {
+    const assignmentId = typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id
+    const actions = [
+      {
+        key: 'view-detail',
+        label: 'Voir le détail',
+        icon: ExternalLink,
+        onClick: () => onViewDetail(assignmentId),
+        show: true,
+        destructive: false,
+      },
+    ]
+
+    // Modifier : disponible pour tous les statuts sauf validated, cancelled, closed, paid
+    if (!['validated', 'cancelled', 'closed', 'paid'].includes(statusCode)) {
+      const editRoute = statusCode === 'pending' 
+        ? `/assignments/edite-report/${assignment.id}`
+        : statusCode === 'opened'
+        ? `/assignments/edit/${assignment.id}`
+        : statusCode === 'realized'
+        ? `/assignments/realize/${assignment.id}`
+        : statusCode === 'edited' || statusCode === 'in_editing'
+        ? `/assignments/edit-report/${assignment.id}`
+        : `/assignments/edit/${assignment.id}`
+      
+      actions.push({
+        key: 'edit',
+        label: statusCode === 'realized' ? 'Modifier la réalisation' : statusCode === 'edited' || statusCode === 'in_editing' ? 'Modifier la rédaction' : 'Modifier',
+        icon: Edit,
+        onClick: () => navigate({ to: editRoute }),
+        show: true,
+        destructive: false,
+      })
+    }
+
+    // Générer le rapport : disponible pour les statuts edited et au-delà
+    if (['edited', 'in_payment', 'validated', 'paid', 'closed'].includes(statusCode)) {
+      actions.push({
+        key: 'generate-report',
+        label: 'Générer le rapport',
+        icon: Download,
+        onClick: async () => {
+          await generateReport(assignmentId)
+        },
+        show: true,
+        destructive: false,
+      })
+    }
+
+    return actions
+  }
+
+  const assignmentIdNum = typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id
+  
   const availableActions = isRepairerReadOnly
     ? [
         {
           key: 'view-detail',
           label: 'Voir le détail',
           icon: ExternalLink,
-          onClick: () => onViewDetail(assignment.id),
+          onClick: () => onViewDetail(assignmentIdNum),
           show: true,
           destructive: false,
         },
@@ -313,7 +371,7 @@ export function AssignmentActions({
           key: 'view-detail',
           label: 'Voir le détail',
           icon: ExternalLink,
-          onClick: () => onViewDetail(assignment.id),
+          onClick: () => onViewDetail(assignmentIdNum),
           show: true,
           destructive: false,
         },
@@ -330,6 +388,8 @@ export function AssignmentActions({
             ]
           : []),
       ]
+    : isLimitedAdmin
+    ? getLimitedAdminActions(assignment.status.code)
     : getAvailableActions(assignment.status.code, assignment)
 
   return (

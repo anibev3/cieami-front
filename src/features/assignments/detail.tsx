@@ -80,7 +80,7 @@ import {
 } from './components'
 import { useACL } from '@/hooks/useACL'
 import { UserRole } from '@/types/auth'
-import { AssignmentStatusEnum } from '@/types/global-types'
+import { AssignmentStatusEnum, EntityTypeEnum } from '@/types/global-types'
 import assignmentValidationService from '@/services/assignmentValidationService'
 import { useUser } from '@/stores/authStore'
 
@@ -658,7 +658,7 @@ export default function AssignmentDetailPage() {
   const [validatingEdition, setValidatingEdition] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
-  const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin, isMainOrganization, isInsurerEntity, isRepairerEntity } = useACL()
+  const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin, isMainOrganization, isInsurerEntity, isRepairerEntity, isSystemAdmin, isAdmin } = useACL()
   const currentUser = useUser()
   
   // Vérifier le type d'entité de l'utilisateur connecté
@@ -666,10 +666,10 @@ export default function AssignmentDetailPage() {
   
   // Utilisateurs en lecture seule (chambre ou assureur) : aucun bouton, juste les informations
   const isReadOnlyUser = isMainOrganization() || isInsurerEntity() || 
-    currentUserEntityTypeCode === 'main_organization' || currentUserEntityTypeCode === 'insurer'
+    currentUserEntityTypeCode === EntityTypeEnum.MAIN_ORGANIZATION || currentUserEntityTypeCode === EntityTypeEnum.INSURER
   
   // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
-  const isRepairerUser = isRepairerEntity() || currentUserEntityTypeCode === 'repairer'
+  const isRepairerUser = isRepairerEntity() || currentUserEntityTypeCode === EntityTypeEnum.REPAIRER
 
 
   useEffect(() => {
@@ -2233,12 +2233,66 @@ export default function AssignmentDetailPage() {
   // Fonction pour déterminer les actions disponibles selon le statut
   const getAvailableActions = (assignment: AssignmentDetail) => {
     const statusCode = assignment.status.code
+    const isSystemAdminUser = isSystemAdmin()
+    const isAdminUser = isAdmin()
+    const isLimitedAdmin = isSystemAdminUser || isAdminUser
     const isRestrictedRole = hasAnyRole([
       UserRole.REPAIRER_ADMIN,
       UserRole.REPAIRER_STANDARD_USER,
       UserRole.INSURER_ADMIN,
       UserRole.INSURER_STANDARD_USER
     ])
+
+    // Actions limitées pour SYSTEM_ADMIN et ADMIN : seulement Modifier et Générer le rapport
+    if (isLimitedAdmin) {
+      const actions = []
+      
+      // Modifier : disponible pour tous les statuts sauf validated, cancelled, closed, paid
+      if (![AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.CANCELLED, AssignmentStatusEnum.CLOSED, AssignmentStatusEnum.PAID].includes(statusCode as AssignmentStatusEnum)) {
+        const editRoute = statusCode === AssignmentStatusEnum.PENDING 
+          ? `/assignments/edite-report/${assignment.id}`
+          : statusCode === AssignmentStatusEnum.OPENED
+          ? `/assignments/edit/${assignment.id}`
+          : statusCode === AssignmentStatusEnum.REALIZED
+          ? `/assignments/realize/${assignment.id}`
+          : statusCode === AssignmentStatusEnum.EDITED || statusCode === AssignmentStatusEnum.IN_EDITING
+          ? `/assignments/edit-report/${assignment.id}`
+          : `/assignments/edit/${assignment.id}`
+        
+        const editLabel = statusCode === AssignmentStatusEnum.REALIZED 
+          ? 'Modifier la réalisation' 
+          : statusCode === AssignmentStatusEnum.EDITED || statusCode === AssignmentStatusEnum.IN_EDITING
+          ? 'Modifier la rédaction'
+          : 'Modifier le dossier'
+        
+        actions.push({
+          key: 'edit',
+          label: editLabel,
+          icon: Edit,
+          onClick: () => navigate({ to: editRoute }),
+          variant: 'outline' as const,
+          loading: false,
+          disabled: false
+        })
+      }
+
+      // Générer le rapport : disponible pour les statuts edited et au-delà
+      if ([AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT, AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID, AssignmentStatusEnum.CLOSED].includes(statusCode as AssignmentStatusEnum)) {
+        actions.push({
+          key: 'generate-report',
+          label: 'Générer le rapport',
+          icon: Download,
+          onClick: async () => {
+            await generateReport(assignment.id)
+          },
+          variant: 'default' as const,
+          loading: loadingGenerate,
+          disabled: false
+        })
+      }
+
+      return actions
+    }
 
     // Ordre des statuts pour déterminer si un statut vient après un autre
     const statusOrder = [
@@ -2271,9 +2325,9 @@ export default function AssignmentDetailPage() {
     const canWriteReport = statusCode === AssignmentStatusEnum.REALIZED
     // Rédiger le rapport : disponible à partir du statut "in_editing"
     // Cas spécial : pour les dossiers de type "insurer", disponible dès "pending_for_repairer_invoice"
-    const isInsurerAssignment = assignment.assignment_type?.code === 'insurer'
-    const canEditReport = isAfterStatus(statusCode, AssignmentStatusEnum.IN_EDITING) || 
-      (isInsurerAssignment && (statusCode === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE || isAfterStatus(statusCode, AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE)))
+    const isInsurerAssignment = assignment.assignment_type?.code === EntityTypeEnum.INSURER
+    const canEditReport = isAfterStatus(statusCode as AssignmentStatusEnum, AssignmentStatusEnum.IN_EDITING) || 
+      (isInsurerAssignment && (statusCode as AssignmentStatusEnum === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE || isAfterStatus(statusCode as AssignmentStatusEnum, AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE)))
     const canGenerateReport = true
     const canDelete = statusCode === AssignmentStatusEnum.PENDING
     const canValidate = (isCEO() || isValidator() || isExpertManager()) && [AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT].includes(statusCode as AssignmentStatusEnum)

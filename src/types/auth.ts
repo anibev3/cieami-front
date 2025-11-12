@@ -125,6 +125,7 @@ export enum UserRole {
   UNASSIGNED = 'unassigned'
 }
 
+
 export enum Permission {
   // User permissions
   VIEW_USER = 'user.view',
@@ -195,3 +196,5 @@ export interface ACLActions {
   clearACL: () => void
   initializeACL: (user: User) => void
 } 
+
+
