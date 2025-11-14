@@ -130,7 +130,7 @@ export function EntityCreatePage() {
       if (form.address) fd.append('address', form.address)
       fd.append('entity_type_code', form.entity_type_code)
       if (photoFile && photoFile instanceof File) {
-        fd.append('photo', photoFile)
+        fd.append('logo', photoFile)
       }
 
       if (isEditMode && entityId) {
