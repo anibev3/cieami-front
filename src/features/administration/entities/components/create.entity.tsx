@@ -134,7 +134,7 @@ export function EntityCreatePage() {
       }
 
       if (isEditMode && entityId) {
-        await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ENTITIES}/${entityId}`, fd)
+        await axiosInstance.post(`${API_CONFIG.ENDPOINTS.ENTITIES}/${entityId}`, fd)
         toast.success('Entité modifiée avec succès')
       } else {
         await axiosInstance.post(API_CONFIG.ENDPOINTS.ENTITIES, fd)

@@ -3,7 +3,7 @@ import { Entity } from '@/types/administration'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Edit, Trash2, Hash, Calendar, Power, PowerOff, Mail, Phone, Building } from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Trash2, Hash, Power, PowerOff } from 'lucide-react'
 import { useEntitiesStore } from '@/stores/entitiesStore'
 
 // Props pour les actions
@@ -17,14 +17,14 @@ interface EntityActionsProps {
 // Composant pour les actions
 function EntityActions({ entity, onView, onEdit, onDelete }: EntityActionsProps) {
   const { enableEntity, disableEntity, loading } = useEntitiesStore()
-  const isActive = !entity.status.deleted_at
+  const isActive = !entity?.status?.deleted_at
 
   const handleToggleStatus = async () => {
     try {
       if (isActive) {
-        await disableEntity(entity.id)
+        await disableEntity(entity?.id)
       } else {
-        await enableEntity(entity.id)
+        await enableEntity(entity?.id)
       }
     } catch (_error) {
       // Erreur gérée par le store
@@ -42,11 +42,11 @@ function EntityActions({ entity, onView, onEdit, onDelete }: EntityActionsProps)
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onView(entity)}>
+        <DropdownMenuItem onClick={() => onView(entity as Entity)}>
           <Eye className="mr-2 h-4 w-4" />
           Voir les détails
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(entity)}>
+        <DropdownMenuItem onClick={() => onEdit(entity as Entity)}>
           <Edit className="mr-2 h-4 w-4" />
           Modifier
         </DropdownMenuItem>
@@ -70,7 +70,7 @@ function EntityActions({ entity, onView, onEdit, onDelete }: EntityActionsProps)
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          onClick={() => onDelete(entity)}
+          onClick={() => onDelete(entity as Entity)}
           className="text-red-600"
         >
           <Trash2 className="mr-2 h-4 w-4" />
@@ -119,7 +119,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const email = row.getValue('email') as string
       return (
         <div className="flex items-center space-x-2">
-          <Mail className="h-4 w-4 text-muted-foreground" />
+          {/* <Mail className="h-4 w-4 text-muted-foreground" /> */}
           <span className="text-sm">{email}</span>
         </div>
       )
@@ -132,7 +132,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const telephone = row.getValue('telephone') as string | null
       return (
         <div className="flex items-center space-x-2">
-          <Phone className="h-4 w-4 text-muted-foreground" />
+          {/* <Phone className="h-4 w-4 text-muted-foreground" /> */}
           <span className="text-sm">{telephone || '-'}</span>
         </div>
       )
@@ -145,9 +145,9 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const entityType = row.original.entity_type
       return (
         <div className="flex items-center space-x-2">
-          <Building className="h-4 w-4 text-muted-foreground" />
+          {/* <Building className="h-4 w-4 text-muted-foreground" /> */}
           <Badge variant="outline">
-            {entityType.label}
+            {entityType?.label || ''}
           </Badge>
         </div>
       )
@@ -159,8 +159,8 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
     cell: ({ row }) => {
       const status = row.original.status
       return (
-        <Badge variant={status.deleted_at ? 'destructive' : 'default'}>
-          {status.deleted_at ? 'Inactif' : 'Actif'}
+        <Badge variant={status?.deleted_at ? 'destructive' : 'default'}>
+          {status?.deleted_at ? 'Inactif' : 'Actif'}
         </Badge>
       )
     },
@@ -172,7 +172,7 @@ export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): Colum
       const date = new Date(row.getValue('created_at'))
       return (
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4" />
+          {/* <Calendar className="h-4 w-4" /> */}
           <span>{date.toLocaleDateString('fr-FR')}</span>
         </div>
       )
