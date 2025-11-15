@@ -23,9 +23,10 @@ interface AssignmentRequestsDataTableProps {
   data: AssignmentRequest[]
   loading?: boolean
   onViewDetail: (id: string) => void
-  onOpenFolder: (id: string) => void
+  onOpenFolder?: (id: string) => void
   onReject?: (id: string) => void
   canReject?: boolean
+  canAccept?: boolean
 }
 
 export function AssignmentRequestsDataTable({ 
@@ -35,6 +36,7 @@ export function AssignmentRequestsDataTable({
   onOpenFolder,
   onReject,
   canReject = false,
+  canAccept = false,
 }: AssignmentRequestsDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -44,6 +46,7 @@ export function AssignmentRequestsDataTable({
     onOpenFolder,
     onReject,
     canReject,
+    canAccept,
   })
 
   const table = useReactTable({

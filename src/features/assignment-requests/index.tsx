@@ -40,11 +40,13 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search as SearchComponent } from '@/components/search'
-// import { useACL } from '@/hooks/useACL'
+import { useACL } from '@/hooks/useACL'
+import { Permission } from '@/types/auth'
+import { PermissionGate } from '@/components/ui/permission-gate'
 
 export default function AssignmentRequestsPage() {
   const navigate = useNavigate()
-  // const { isAdmin, isSystemAdmin } = useACL()
+  const { hasPermission, isInitialized } = useACL()
   const {
     assignmentRequests,
     loading,
@@ -63,11 +65,12 @@ export default function AssignmentRequestsPage() {
     rejectAssignmentRequest,
   } = useAssignmentRequestsStore()
   
-  // Vérifier si l'utilisateur peut rejeter (admin ou system admin)
-  // const canReject = isAdmin() || isSystemAdmin()
-  const canReject = true
+  // Vérifier les permissions
+  const canView = hasPermission(Permission.VIEW_ASSIGNMENT_REQUEST)
+  const canReject = hasPermission(Permission.REJECT_ASSIGNMENT_REQUEST)
+  const canAccept = hasPermission(Permission.ACCEPT_ASSIGNMENT_REQUEST)
 
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [isDataInitialized, setIsDataInitialized] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>({
     from: null,
@@ -85,15 +88,16 @@ export default function AssignmentRequestsPage() {
 
   // Initialiser les données au montage
   useEffect(() => {
-    if (!isInitialized) {
+    // Ne charger que si l'utilisateur a la permission de voir les demandes
+    if (!isDataInitialized && canView) {
       fetchAssignmentRequests(1, {})
-      setIsInitialized(true)
+      setIsDataInitialized(true)
     }
-  }, [isInitialized, fetchAssignmentRequests])
+  }, [isDataInitialized, fetchAssignmentRequests, canView])
 
   // Effectuer la recherche quand le debouncedSearchQuery change
   useEffect(() => {
-    if (isInitialized) {
+    if (isDataInitialized) {
       const currentFilters = {
         ...filters,
         search: debouncedSearchQuery,
@@ -106,7 +110,7 @@ export default function AssignmentRequestsPage() {
       }
       fetchAssignmentRequests(1, currentFilters)
     }
-  }, [debouncedSearchQuery, isInitialized, selectedClient, selectedInsurer, selectedRepairer, selectedVehicle, dateRange, fetchAssignmentRequests, filters])
+  }, [debouncedSearchQuery, isDataInitialized, selectedClient, selectedInsurer, selectedRepairer, selectedVehicle, dateRange, fetchAssignmentRequests, filters])
 
   // Gérer les erreurs
   useEffect(() => {
@@ -183,6 +187,31 @@ export default function AssignmentRequestsPage() {
     dateRange.from || 
     dateRange.to
 
+  // Si l'utilisateur n'a pas la permission de voir les demandes, afficher un message
+  if (isInitialized && !canView) {
+    return (
+      <>
+        <Header fixed>
+          <SearchComponent />
+          <div className='ml-auto flex items-center space-x-4'>
+            <ThemeSwitch />
+            <ProfileDropdown />
+          </div>
+        </Header>
+        <Main>
+          <div className='flex items-center justify-center h-[calc(100vh-200px)]'>
+            <div className='text-center'>
+              <h2 className='text-2xl font-bold tracking-tight mb-2'>Accès refusé</h2>
+              <p className='text-muted-foreground'>
+                Vous n'avez pas la permission de voir les demandes d'expertise.
+              </p>
+            </div>
+          </div>
+        </Main>
+      </>
+    )
+  }
+
   return (
     <>
       <Header fixed>
@@ -194,6 +223,7 @@ export default function AssignmentRequestsPage() {
       </Header>
 
       <Main>
+        <PermissionGate permission={Permission.VIEW_ASSIGNMENT_REQUEST}>
         <div className="space-y-6 p-6">
           {/* En-tête */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -380,9 +410,10 @@ export default function AssignmentRequestsPage() {
               data={assignmentRequests}
               loading={loading}
               onViewDetail={handleViewDetail}
-              onOpenFolder={handleOpenFolder}
-              onReject={canReject ? handleReject : undefined}
+              {...(canAccept && { onOpenFolder: handleOpenFolder })}
+              {...(canReject && { onReject: handleReject })}
               canReject={canReject}
+              canAccept={canAccept}
             />
           </div>
 
@@ -399,9 +430,11 @@ export default function AssignmentRequestsPage() {
             />
           )}
         </div>
+        </PermissionGate>
 
         {/* Dialog de confirmation de rejet */}
-        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <PermissionGate permission={Permission.REJECT_ASSIGNMENT_REQUEST}>
+          <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Rejeter la demande d'expertise</DialogTitle>
@@ -420,6 +453,7 @@ export default function AssignmentRequestsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </PermissionGate>
       </Main>
     </>
   )

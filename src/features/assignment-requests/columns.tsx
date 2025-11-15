@@ -15,9 +15,10 @@ import { AssignmentRequestStatusEnum, AssignmentStatusEnum } from '@/types/globa
 
 interface ColumnsProps {
   onViewDetail: (id: string) => void
-  onOpenFolder: (id: string) => void
+  onOpenFolder?: (id: string) => void
   onReject?: (id: string) => void
   canReject?: boolean
+  canAccept?: boolean
 }
 
 export const createAssignmentRequestColumns = ({
@@ -25,6 +26,7 @@ export const createAssignmentRequestColumns = ({
   onOpenFolder,
   onReject,
   canReject = false,
+  canAccept = false,
 }: ColumnsProps): ColumnDef<AssignmentRequest>[] => {
 
   return [
@@ -204,7 +206,7 @@ export const createAssignmentRequestColumns = ({
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Voir le détail
                 </DropdownMenuItem>
-                {request.status.code === AssignmentRequestStatusEnum.PENDING && (
+                {canAccept && onOpenFolder && request.status.code === AssignmentRequestStatusEnum.PENDING && (
                   <DropdownMenuItem onClick={() => onOpenFolder(request.id)}>
                     <Edit className="mr-2 h-4 w-4" />
                     Ouvrir le dossier

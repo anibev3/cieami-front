@@ -32,33 +32,33 @@ export const PermissionGate = ({
 
   // Vérifier les permissions
   if (permission && !hasPermission) {
-    return <div className="w-full h-full min-h-screen">{fallback}</div>
+    return <div className="">{fallback}</div>
   }
 
   if (permissions && permissions.length > 0) {
     if (requireAllPermissions && !hasAllPermissions) {
-      return <div className="w-full h-full min-h-screen">{fallback}</div>
+      return <div className="">{fallback}</div>
     }
     if (!requireAllPermissions && !hasAnyPermission) {
-      return <div className="w-full h-full min-h-screen">{fallback}</div>
+      return <div className="">{fallback}</div>
     }
   }
 
   // Vérifier les rôles
   if (role && !hasRole) {
-    return <div className="w-full h-full min-h-screen">{fallback}</div>
+    return <div className="">{fallback}</div>
   }
 
   if (roles && roles.length > 0) {
     if (requireAllRoles && !hasAllRoles) {
-      return <div className="w-full h-full min-h-screen">{fallback}</div>
+      return <div className="">{fallback}</div>
     }
     if (!requireAllRoles && !hasAnyRole) {
-      return <div className="w-full h-full min-h-screen">{fallback}</div>
+      return <div className="">{fallback}</div>
     }
   }
 
-  return <div className="w-full h-full min-h-screen">{children}</div>
+  return <div className="">{children}</div>
 }
 
 // Composants utilitaires pour des cas d'usage courants

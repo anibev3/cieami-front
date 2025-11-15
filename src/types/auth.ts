@@ -148,6 +148,15 @@ export enum Permission {
   GENERATE_ASSIGNMENT = 'assignment.generate',
   DELETE_ASSIGNMENT = 'assignment.delete',
   ASSIGNMENT_STATISTICS = 'assignment.statistics',
+  CREATE_WORKSHEET = 'assignment.create_worksheet',
+  CREATE_QUOTE = 'assignment.create_quote',
+  VALIDATE_QUOTE = 'assignment.validate_quote',
+  CANCEL_QUOTE = 'assignment.cancel_quote',
+
+  // Assignment request permissions
+  VIEW_ASSIGNMENT_REQUEST = 'assignment_request.view',
+  ACCEPT_ASSIGNMENT_REQUEST = 'assignment_request.accept',
+  REJECT_ASSIGNMENT_REQUEST = 'assignment_request.reject',
 
   // Invoice permissions
   VIEW_INVOICE = 'invoice.view',

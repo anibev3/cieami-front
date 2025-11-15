@@ -89,14 +89,25 @@ interface ColumnsProps {
 }
 
 export const createColumns = ({ onView, onEdit, onDelete }: ColumnsProps): ColumnDef<Entity>[] => [
+  // {
+  //   accessorKey: 'code',
+  //   header: 'Code',
+  //   cell: ({ row }) => {
+  //     return (
+  //       <div className="flex items-center space-x-2">
+  //         <Hash className="h-4 w-4 text-muted-foreground" />
+  //         <span className="font-mono text-sm">{row.getValue('code')}</span>
+  //       </div>
+  //     )
+  //   },
+  // },
   {
-    accessorKey: 'code',
-    header: 'Code',
+    accessorKey: 'logo',
+    header: 'Logo',
     cell: ({ row }) => {
       return (
         <div className="flex items-center space-x-2">
-          <Hash className="h-4 w-4 text-muted-foreground" />
-          <span className="font-mono text-sm">{row.getValue('code')}</span>
+          <img src={row.original.logo || ''} alt="Logo" className="w-20 h-16 object-contain rounded-md border-1 border-border" />
         </div>
       )
     },

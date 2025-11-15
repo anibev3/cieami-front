@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { MoreHorizontal, Eye, Edit, Trash2, User as UserIcon, Mail, Shield } from 'lucide-react'
+import { useACL } from '@/hooks/useACL'
+import { Permission } from '@/types/auth'
 
 // Props pour les actions
 interface UserActionsProps {
@@ -19,7 +21,21 @@ interface UserActionsProps {
 
 // Composant pour les actions
 function UserActions({ user, onView, onEdit, onDelete, onEnable, onDisable, onReset }: UserActionsProps) {
+  const { hasPermission } = useACL()
   const isActive = user.status?.code === 'active'
+  
+  // Vérifier les permissions
+  const canView = hasPermission(Permission.VIEW_USER)
+  const canEdit = hasPermission(Permission.UPDATE_USER)
+  const canDelete = hasPermission(Permission.DELETE_USER)
+  const canEnable = hasPermission(Permission.ENABLE_USER)
+  const canDisable = hasPermission(Permission.DISABLE_USER)
+  const canReset = hasPermission(Permission.RESET_USER)
+  
+  // Si aucune permission, ne pas afficher le menu
+  if (!canView && !canEdit && !canDelete && !canEnable && !canDisable && !canReset) {
+    return null
+  }
   
   return (
     <DropdownMenu>
@@ -32,18 +48,22 @@ function UserActions({ user, onView, onEdit, onDelete, onEnable, onDisable, onRe
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onView(user)}>
-          <Eye className="mr-2 h-4 w-4" />
-          Voir les détails
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(user)}>
-          <Edit className="mr-2 h-4 w-4" />
-          Modifier
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {canView && (
+          <DropdownMenuItem onClick={() => onView(user)}>
+            <Eye className="mr-2 h-4 w-4" />
+            Voir les détails
+          </DropdownMenuItem>
+        )}
+        {canEdit && (
+          <DropdownMenuItem onClick={() => onEdit(user)}>
+            <Edit className="mr-2 h-4 w-4" />
+            Modifier
+          </DropdownMenuItem>
+        )}
+        {(canEnable || canDisable || canReset) && <DropdownMenuSeparator />}
         
         {/* Options conditionnelles selon le statut */}
-        {!isActive && (
+        {!isActive && canEnable && (
           <DropdownMenuItem 
             onClick={() => onEnable(user)}
             className="text-green-600"
@@ -53,7 +73,7 @@ function UserActions({ user, onView, onEdit, onDelete, onEnable, onDisable, onRe
           </DropdownMenuItem>
         )}
         
-        {isActive && (
+        {isActive && canDisable && (
           <DropdownMenuItem 
             onClick={() => onDisable(user)}
             className="text-orange-600"
@@ -63,22 +83,28 @@ function UserActions({ user, onView, onEdit, onDelete, onEnable, onDisable, onRe
           </DropdownMenuItem>
         )}
         
-        <DropdownMenuItem 
-          onClick={() => onReset(user)}
-          className="text-blue-600"
-        >
-          <Shield className="mr-2 h-4 w-4" />
-          Réinitialiser
-        </DropdownMenuItem>
+        {canReset && (
+          <DropdownMenuItem 
+            onClick={() => onReset(user)}
+            className="text-blue-600"
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            Réinitialiser
+          </DropdownMenuItem>
+        )}
         
-        <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={() => onDelete(user)}
-          className="text-red-600"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Supprimer
-        </DropdownMenuItem>
+        {canDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => onDelete(user)}
+              className="text-red-600"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

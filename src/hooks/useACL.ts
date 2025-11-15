@@ -75,6 +75,10 @@ export const useACL = () => {
     canDeleteAssignments: () => aclStore.hasPermission(Permission.DELETE_ASSIGNMENT),
     canGenerateAssignments: () => aclStore.hasPermission(Permission.GENERATE_ASSIGNMENT),
     
+    canViewAssignmentRequests: () => aclStore.hasPermission(Permission.VIEW_ASSIGNMENT_REQUEST),
+    canAcceptAssignmentRequests: () => aclStore.hasPermission(Permission.ACCEPT_ASSIGNMENT_REQUEST),
+    canRejectAssignmentRequests: () => aclStore.hasPermission(Permission.REJECT_ASSIGNMENT_REQUEST),
+    
     canViewInvoices: () => aclStore.hasPermission(Permission.VIEW_INVOICE),
     canCreateInvoices: () => aclStore.hasPermission(Permission.CREATE_INVOICE),
     canUpdateInvoices: () => aclStore.hasPermission(Permission.UPDATE_INVOICE),
