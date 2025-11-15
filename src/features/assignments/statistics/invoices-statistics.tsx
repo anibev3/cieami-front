@@ -20,8 +20,9 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
 import { toast } from 'sonner'
-import { UserRole } from '@/stores/aclStore'
-import { useUser } from '@/hooks/useAuth'
+import { useACL } from '@/hooks/useACL'
+import { Permission } from '@/types/auth'
+import { PermissionGate } from '@/components/ui/permission-gate'
 
 // Configuration des icônes et labels pour les filtres des factures
 const FILTER_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
@@ -42,7 +43,7 @@ const STORAGE_KEYS = {
 }
 
 export default function InvoicesStatisticsPage() {
-  const user = useUser()
+  const { hasPermission, isInitialized } = useACL()
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
   
@@ -56,12 +57,8 @@ export default function InvoicesStatisticsPage() {
     downloadExport
   } = useStatisticsStore()
 
-  // Définir les rôles autorisés pour voir les statistiques des factures
-  const authorizedRoles = useMemo(() => [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT], [])
-  const hasAccess = useMemo(() => 
-    user?.role && authorizedRoles.includes(user.role.name as UserRole), 
-    [user?.role, authorizedRoles]
-  )
+  // Vérifier la permission pour voir les statistiques des factures
+  const canViewStatistics = hasPermission(Permission.INVOICE_STATISTICS)
 
   const getDefaultFilters = useCallback((): InvoiceStatisticsFilters => {
     return {
@@ -344,7 +341,8 @@ export default function InvoicesStatisticsPage() {
     )
   }
 
-  if (!hasAccess) {
+  // Si l'utilisateur n'a pas la permission, afficher un message
+  if (isInitialized && !canViewStatistics) {
     return (
       <>
         <Header fixed>
@@ -364,7 +362,7 @@ export default function InvoicesStatisticsPage() {
                 </span>
               </div>
               <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                Vous n'avez pas les permissions nécessaires pour accéder aux statistiques des factures.
+                Vous n'avez pas la permission de voir les statistiques des factures.
               </p>
             </CardContent>
           </Card>
@@ -385,6 +383,7 @@ export default function InvoicesStatisticsPage() {
       </Header>
 
       <Main>
+        <PermissionGate permission={Permission.INVOICE_STATISTICS}>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -531,6 +530,7 @@ export default function InvoicesStatisticsPage() {
             </Card>
           )}
         </div>
+        </PermissionGate>
       </Main>
     </>
   )

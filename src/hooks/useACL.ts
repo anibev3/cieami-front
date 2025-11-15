@@ -92,6 +92,10 @@ export const useACL = () => {
     canDeletePayments: () => aclStore.hasPermission(Permission.DELETE_PAYMENT),
     canCancelPayments: () => aclStore.hasPermission(Permission.CANCEL_PAYMENT),
     
+    canViewAssignmentStatistics: () => aclStore.hasPermission(Permission.ASSIGNMENT_STATISTICS),
+    canViewInvoiceStatistics: () => aclStore.hasPermission(Permission.INVOICE_STATISTICS),
+    canViewPaymentStatistics: () => aclStore.hasPermission(Permission.PAYMENT_STATISTICS),
+    
     canManageApp: () => aclStore.hasPermission(Permission.MANAGE_APP),
     
     // Vérifications de rôles courantes

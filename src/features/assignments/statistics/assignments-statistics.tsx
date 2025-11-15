@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,8 +20,9 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
 import { toast } from 'sonner'
-import { UserRole } from '@/stores/aclStore'
-import { useUser } from '@/hooks/useAuth'
+import { useACL } from '@/hooks/useACL'
+import { Permission } from '@/types/auth'
+import { PermissionGate } from '@/components/ui/permission-gate'
 
 // Configuration des icônes et labels pour les filtres des assignations
 const FILTER_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
@@ -49,7 +50,7 @@ const STORAGE_KEYS = {
 }
 
 export default function AssignmentsStatisticsPage() {
-  const user = useUser()
+  const { hasPermission, isInitialized } = useACL()
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
   
@@ -63,12 +64,8 @@ export default function AssignmentsStatisticsPage() {
     downloadExport
   } = useStatisticsStore()
 
-  // Définir les rôles autorisés pour voir les statistiques des assignations
-  const authorizedRoles = useMemo(() => [UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT, UserRole.EXPERT_MANAGER, UserRole.EXPERT], [])
-  const hasAccess = useMemo(() => 
-    user?.role && authorizedRoles.includes(user.role.name as UserRole), 
-    [user?.role, authorizedRoles]
-  )
+  // Vérifier la permission pour voir les statistiques des assignations
+  const canViewStatistics = hasPermission(Permission.ASSIGNMENT_STATISTICS)
 
   const getDefaultFilters = useCallback((): AssignmentStatisticsFilters => {
     return {
@@ -358,7 +355,8 @@ export default function AssignmentsStatisticsPage() {
     )
   }
 
-  if (!hasAccess) {
+  // Si l'utilisateur n'a pas la permission, afficher un message
+  if (isInitialized && !canViewStatistics) {
     return (
       <>
         <Header fixed>
@@ -378,7 +376,7 @@ export default function AssignmentsStatisticsPage() {
                 </span>
               </div>
               <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                Vous n'avez pas les permissions nécessaires pour accéder aux statistiques des assignations.
+                Vous n'avez pas la permission de voir les statistiques des assignations.
               </p>
             </CardContent>
           </Card>
@@ -399,6 +397,7 @@ export default function AssignmentsStatisticsPage() {
       </Header>
 
       <Main>
+        <PermissionGate permission={Permission.ASSIGNMENT_STATISTICS}>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -545,6 +544,7 @@ export default function AssignmentsStatisticsPage() {
             </Card>
           )}
         </div>
+        </PermissionGate>
       </Main>
     </>
   )
