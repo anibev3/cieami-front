@@ -9,8 +9,10 @@ import { ReparateursDialogs } from './components/reparateurs-dialogs'
 import { ReparateursPrimaryButtons } from './components/reparateurs-primary-buttons'
 import ReparateursProvider from './context/reparateurs-context'
 import { useReparateursStore } from './store'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ReparateursPage() {
+function ReparateursPageContent() {
   const { fetchReparateurs, reparateurs, loading } = useReparateursStore()
 
   useEffect(() => {
@@ -42,5 +44,13 @@ export default function ReparateursPage() {
 
       <ReparateursDialogs />
     </ReparateursProvider>
+  )
+}
+
+export default function ReparateursPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ENTITY}>
+      <ReparateursPageContent />
+    </ProtectedRoute>
   )
 } 

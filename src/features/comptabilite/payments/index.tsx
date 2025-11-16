@@ -1,20 +1,16 @@
 /* eslint-disable no-console */
-import { RequireAnyRoleGate } from "@/components/ui/permission-gate";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import PaymentsPage from "./PaymentDisplay";
-import ForbiddenError from "@/features/errors/forbidden";
-import { UserRole } from "@/stores/aclStore";
+import { Permission } from "@/types/auth";
 
-export default function SettingsProfile() {
+export default function PaymentsPageWrapper() {
   return (
-    <div className="h-full w-full overflow-y-auto">
-      <RequireAnyRoleGate
-        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT, UserRole.OPENER]}
-        fallback={<ForbiddenError />}
-      >
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAYMENT}>
+      <div className="h-full w-full overflow-y-auto">
         <PaymentsPage onButtonClick={() => {
           console.log('Nouveau paiement')
-          }} />
-      </RequireAnyRoleGate>
-    </div>
+        }} />
+      </div>
+    </ProtectedRoute>
   )
 }

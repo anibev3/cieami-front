@@ -10,8 +10,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Search, Plus, Edit, Trash2, Camera, Eye, EyeOff } from 'lucide-react'
 import { CreatePhotoTypeData, PhotoType } from '@/types/gestion'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function PhotoTypesPage() {
+function PhotoTypesPageContent() {
   const {
     photoTypes,
     loading,
@@ -308,5 +310,13 @@ export default function PhotoTypesPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function PhotoTypesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PHOTO_TYPE}>
+      <PhotoTypesPageContent />
+    </ProtectedRoute>
   )
 }

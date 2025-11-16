@@ -12,8 +12,10 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { Client } from './types'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ClientsPage() {
+function ClientsPageContent() {
   const navigate = useNavigate()
   const { 
     fetchClients, 
@@ -122,5 +124,13 @@ export default function ClientsPage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>
+  )
+}
+
+export default function ClientsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_CLIENT}>
+      <ClientsPageContent />
+    </ProtectedRoute>
   )
 } 

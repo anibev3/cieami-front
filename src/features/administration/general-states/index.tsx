@@ -9,8 +9,10 @@ import { GeneralStatesDialogs } from './components/general-states-dialogs'
 import { GeneralStatesPrimaryButtons } from './components/general-states-primary-buttons'
 import { useGeneralStatesStore } from '@/stores/generalStatesStore'
 import { GeneralState } from '@/types/administration'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function GeneralStatesPage() {
+function GeneralStatesPageContent() {
   const { fetchGeneralStates } = useGeneralStatesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -85,5 +87,13 @@ export default function GeneralStatesPage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>
+  )
+}
+
+export default function GeneralStatesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_GENERAL_STATE}>
+      <GeneralStatesPageContent />
+    </ProtectedRoute>
   )
 } 

@@ -15,8 +15,10 @@ import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function InsurerRelationshipsPage() {
+function InsurerRelationshipsPageContent() {
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [page, setPage] = useState(1)
@@ -208,4 +210,10 @@ export default function InsurerRelationshipsPage() {
   )
 }
 
-
+export default function InsurerRelationshipsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_INSURER_RELATIONSHIP}>
+      <InsurerRelationshipsPageContent />
+    </ProtectedRoute>
+  )
+}

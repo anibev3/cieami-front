@@ -28,9 +28,8 @@ import { usePaymentTypeStore } from '@/stores/paymentTypeStore'
 import { PaymentType, CreatePaymentTypeData } from '@/types/comptabilite'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
-import ForbiddenError from '@/features/errors/forbidden'
-import { UserRole } from '@/stores/aclStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 function PaymentTypesPageContent() {
   const { 
@@ -410,13 +409,8 @@ function PaymentTypesPageContent() {
 
 export default function PaymentTypesPage() {
   return (
-    <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-      fallback={<ForbiddenError />}
-
-    >
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAYMENT}>
       <PaymentTypesPageContent />
-    </RequireAnyRoleGate>
-
+    </ProtectedRoute>
   )
 }

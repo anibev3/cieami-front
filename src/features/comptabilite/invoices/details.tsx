@@ -23,9 +23,8 @@ import { formatCurrency } from '@/utils/format-currency'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { PdfViewer } from '@/components/ui/PdfViewer'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
-import ForbiddenError from '@/features/errors/forbidden'
-import { UserRole } from '@/stores/aclStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 function InvoiceDetailContent() {
   const { id } = useParams({ strict: false }) as { id: string }
@@ -485,11 +484,8 @@ function InvoiceDetailContent() {
 }
 export default function InvoiceDetailPage() {
   return (
-    <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-      fallback={<ForbiddenError />}
-    >
+    <ProtectedRoute requiredPermission={Permission.VIEW_INVOICE}>
       <InvoiceDetailContent />
-    </RequireAnyRoleGate>
+    </ProtectedRoute>
   )
 }

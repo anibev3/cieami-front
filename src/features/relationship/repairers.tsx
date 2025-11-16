@@ -15,8 +15,10 @@ import { Search } from '@/components/search'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function RepairerRelationshipsPage() {
+function RepairerRelationshipsPageContent() {
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [page, setPage] = useState(1)
@@ -207,4 +209,10 @@ export default function RepairerRelationshipsPage() {
   )
 }
 
-
+export default function RepairerRelationshipsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_REPAIRER_RELATIONSHIP}>
+      <RepairerRelationshipsPageContent />
+    </ProtectedRoute>
+  )
+}

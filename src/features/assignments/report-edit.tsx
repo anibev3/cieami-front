@@ -80,6 +80,8 @@ import type { Shock } from './hooks/use-shock-management'
 import { cn } from '@/lib/utils'
 import { Textarea } from '@/components/ui/textarea'
 import { EvaluationDisplay } from './components/evaluation-display'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 
 interface OtherCostType {
@@ -225,7 +227,7 @@ interface CalculationResult {
   total_amount?: number
 }
 
-export default function ReportEditPage() {
+function ReportEditPageContent() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
   const assignmentId = id
@@ -2643,7 +2645,15 @@ export default function ReportEditPage() {
       </Main>
     </>
   )
-} 
+}
+
+export default function ReportEditPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.EDIT_ASSIGNMENT}>
+      <ReportEditPageContent />
+    </ProtectedRoute>
+  )
+}
 
 // Composant AscertainmentItem
 function AscertainmentItem({ 

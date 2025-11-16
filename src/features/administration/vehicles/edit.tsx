@@ -37,6 +37,8 @@ import { BrandSelect } from '@/features/widgets'
 import { VehicleModelSelect } from '@/features/assignments/cost-of-supply/components/vehicle-model-select'
 import { ColorSelect } from '@/features/widgets/color-select'
 import { BodyworkSelect } from '@/features/widgets/bodywork-select'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 const vehicleEditSchema = z.object({
   license_plate: z.string().min(1, 'La plaque d\'immatriculation est requise'),
@@ -60,7 +62,7 @@ const vehicleEditSchema = z.object({
 
 type VehicleEditFormData = z.infer<typeof vehicleEditSchema>
 
-export default function EditVehiclePage() {
+function EditVehiclePageContent() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
   const vehicleId = id
@@ -608,5 +610,13 @@ export default function EditVehiclePage() {
         </div>
       )}
     </>
+  )
+}
+
+export default function EditVehiclePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.UPDATE_VEHICLE}>
+      <EditVehiclePageContent />
+    </ProtectedRoute>
   )
 } 

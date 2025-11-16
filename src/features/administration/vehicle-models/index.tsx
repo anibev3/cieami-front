@@ -12,8 +12,10 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { Header } from '@/components/layout/header'
 import { useDebounce } from '@/hooks/use-debounce'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function VehicleModelsPage() {
+function VehicleModelsPageContent() {
   const { 
     vehicleModels, 
     loading, 
@@ -91,5 +93,13 @@ export default function VehicleModelsPage() {
         </div>
         </Main>
     </>
+  )
+}
+
+export default function VehicleModelsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_VEHICLE_MODEL}>
+      <VehicleModelsPageContent />
+    </ProtectedRoute>
   )
 } 

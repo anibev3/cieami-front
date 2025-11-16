@@ -10,9 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Search, Plus, Edit, Trash2, CreditCard, Eye, EyeOff, Settings, Activity } from 'lucide-react'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
-import ForbiddenError from '@/features/errors/forbidden'
-import { UserRole } from '@/stores/aclStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 function PaymentMethodsPageContent() {
   const {
@@ -362,12 +361,8 @@ function PaymentMethodsPageContent() {
 
 export default function PaymentMethodsPage() {
   return (
-    <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-      fallback={<ForbiddenError />}
-    >
-    <PaymentMethodsPageContent />
-    </RequireAnyRoleGate>
-
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAYMENT}>
+      <PaymentMethodsPageContent />
+    </ProtectedRoute>
   )
 }

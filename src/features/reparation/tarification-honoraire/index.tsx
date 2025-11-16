@@ -9,8 +9,10 @@ import { TarificationHonoraireDialogs } from './components/tarification-honorair
 import { TarificationHonorairePrimaryButtons } from './components/tarification-honoraire-primary-buttons'
 import { useWorkFeesStore } from './store'
 import { WorkFee } from './types'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function TarificationHonorairePage() {
+function TarificationHonorairePageContent() {
   const { fetchWorkFees, workFees, loading } = useWorkFeesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -88,5 +90,13 @@ export default function TarificationHonorairePage() {
         onSuccess={handleSuccess}
       />
     </>
+  )
+}
+
+export default function TarificationHonorairePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_WORK_FEE}>
+      <TarificationHonorairePageContent />
+    </ProtectedRoute>
   )
 } 

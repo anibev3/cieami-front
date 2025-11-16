@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search as SearchIcon, RefreshCw, X, Filter, Calendar, User, Car, FileText, Hash, Shield, Wrench, FileCheck, CheckCircle, Edit, Play, Target, AlertCircle, Copy } from 'lucide-react'
+import { Search as SearchIcon, RefreshCw, X, Filter, Calendar, User, Car, FileText, Hash, Shield, Wrench, FileCheck, CheckCircle, Edit, Play, Target, Copy, AlertCircle } from 'lucide-react'
 import { 
   StatisticsType, 
   StatisticsFilters, 
@@ -20,9 +20,8 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
 import { toast } from 'sonner'
-import { useACL } from '@/hooks/useACL'
 import { Permission } from '@/types/auth'
-import { PermissionGate } from '@/components/ui/permission-gate'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
 // Configuration des icônes et labels pour les filtres des assignations
 const FILTER_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
@@ -49,8 +48,7 @@ const STORAGE_KEYS = {
   STATISTICS_DATES: 'assignments_statistics_dates'
 }
 
-export default function AssignmentsStatisticsPage() {
-  const { hasPermission, isInitialized } = useACL()
+function AssignmentsStatisticsPageContent() {
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
   
@@ -63,9 +61,6 @@ export default function AssignmentsStatisticsPage() {
     clearError,
     downloadExport
   } = useStatisticsStore()
-
-  // Vérifier la permission pour voir les statistiques des assignations
-  const canViewStatistics = hasPermission(Permission.ASSIGNMENT_STATISTICS)
 
   const getDefaultFilters = useCallback((): AssignmentStatisticsFilters => {
     return {
@@ -355,36 +350,6 @@ export default function AssignmentsStatisticsPage() {
     )
   }
 
-  // Si l'utilisateur n'a pas la permission, afficher un message
-  if (isInitialized && !canViewStatistics) {
-    return (
-      <>
-        <Header fixed>
-          <Search />
-          <div className='ml-auto flex items-center space-x-4'>
-            <ThemeSwitch />
-            <ProfileDropdown />
-          </div>
-        </Header>
-        <Main>
-          <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  Accès refusé
-                </span>
-              </div>
-              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                Vous n'avez pas la permission de voir les statistiques des assignations.
-              </p>
-            </CardContent>
-          </Card>
-        </Main>
-      </>
-    )
-  }
-
   return (
     <>
       {/* ===== Top Heading ===== */}
@@ -397,7 +362,6 @@ export default function AssignmentsStatisticsPage() {
       </Header>
 
       <Main>
-        <PermissionGate permission={Permission.ASSIGNMENT_STATISTICS}>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -544,8 +508,15 @@ export default function AssignmentsStatisticsPage() {
             </Card>
           )}
         </div>
-        </PermissionGate>
       </Main>
     </>
+  )
+}
+
+export default function AssignmentsStatisticsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.ASSIGNMENT_STATISTICS}>
+      <AssignmentsStatisticsPageContent />
+    </ProtectedRoute>
   )
 }

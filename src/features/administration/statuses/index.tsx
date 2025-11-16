@@ -9,8 +9,10 @@ import { StatusesDialogs } from './components/statuses-dialogs'
 import { StatusesPrimaryButtons } from './components/statuses-primary-buttons'
 import { useStatusesStore } from '@/stores/statusesStore'
 import { Status } from '@/types/administration'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function StatusesPage() {
+function StatusesPageContent() {
   const { fetchStatuses } = useStatusesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -85,5 +87,13 @@ export default function StatusesPage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>
+  )
+}
+
+export default function StatusesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_STATUS}>
+      <StatusesPageContent />
+    </ProtectedRoute>
   )
 } 

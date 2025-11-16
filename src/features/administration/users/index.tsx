@@ -13,6 +13,7 @@ import { Main } from '@/components/layout/main'
 import { useACL } from '@/hooks/useACL'
 import { Permission } from '@/types/auth'
 import { PermissionGate } from '@/components/ui/permission-gate'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
 export default function UsersPage() {
   const { fetchUsers, enableUser, disableUser, resetUser, pagination, filters, setFilters } = useUsersStore()
@@ -102,9 +103,8 @@ export default function UsersPage() {
     }
   }
 
-  // Si l'utilisateur n'a pas la permission de voir les utilisateurs, afficher un message
-  if (isInitialized && !hasPermission(Permission.VIEW_USER)) {
-    return (
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_USER}>
       <>
         <Header fixed>
           <Search />
@@ -113,32 +113,8 @@ export default function UsersPage() {
             <ProfileDropdown />
           </div>
         </Header>
+
         <Main>
-          <div className='flex items-center justify-center h-[calc(100vh-200px)]'>
-            <div className='text-center'>
-              <h2 className='text-2xl font-bold tracking-tight mb-2'>Accès refusé</h2>
-              <p className='text-muted-foreground'>
-                Vous n'avez pas la permission de voir les utilisateurs.
-              </p>
-            </div>
-          </div>
-        </Main>
-      </>
-    )
-  }
-
-  return (
-    <>
-      <Header fixed>
-        <Search />
-        <div className='ml-auto flex items-center space-x-4'>
-          <ThemeSwitch />
-          <ProfileDropdown />
-        </div>
-      </Header>
-
-      <Main>
-        <PermissionGate permission={Permission.VIEW_USER}>
           <div className='mb-2 flex flex-wrap items-center justify-between space-y-2 gap-x-4'>
             <div>
               <h2 className='text-2xl font-bold tracking-tight'>Utilisateurs</h2>
@@ -166,20 +142,20 @@ export default function UsersPage() {
               filters={filters}
             />
           </div>
-        </PermissionGate>
 
-        <UsersDialogs 
-          isCreateOpen={isCreateOpen}
-          isEditOpen={isEditOpen}
-          isViewOpen={isViewOpen}
-          isDeleteOpen={isDeleteOpen}
-          selectedUser={selectedUser}
-          onCloseCreate={() => setIsCreateOpen(false)}
-          onCloseEdit={() => setIsEditOpen(false)}
-          onCloseView={() => setIsViewOpen(false)}
-          onCloseDelete={() => setIsDeleteOpen(false)}
-        />
-      </Main>
-    </>
+          <UsersDialogs 
+            isCreateOpen={isCreateOpen}
+            isEditOpen={isEditOpen}
+            isViewOpen={isViewOpen}
+            isDeleteOpen={isDeleteOpen}
+            selectedUser={selectedUser}
+            onCloseCreate={() => setIsCreateOpen(false)}
+            onCloseEdit={() => setIsEditOpen(false)}
+            onCloseView={() => setIsViewOpen(false)}
+            onCloseDelete={() => setIsDeleteOpen(false)}
+          />
+        </Main>
+      </>
+    </ProtectedRoute>
   )
 } 

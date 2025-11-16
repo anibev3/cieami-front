@@ -16,8 +16,10 @@ import { useClientsStore } from '@/features/gestion/clients/store'
 import { Client } from '@/features/gestion/clients/types'
 import { ArrowLeft, Edit, Trash2, User, Mail, Phone, MapPin, Calendar, Save, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ClientDetailsPage() {
+function ClientDetailsPageContent() {
   const { id } = useParams({ strict: false }) as { id: string }
   const navigate = useNavigate()
   const { fetchClient, updateClient, deleteClient, selectedClient, loading, error } = useClientsStore()
@@ -334,5 +336,13 @@ export default function ClientDetailsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  )
+}
+
+export default function ClientDetailsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_CLIENT}>
+      <ClientDetailsPageContent />
+    </ProtectedRoute>
   )
 } 

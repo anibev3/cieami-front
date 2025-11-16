@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Plus, CheckSquare, EyeOff, Activity, ChevronsLeft, ChevronsRight } from 'lucide-react'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
-import ForbiddenError from '@/features/errors/forbidden'
-import { UserRole } from '@/stores/aclStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 import { DataTable } from './components/data-table'
 import { createColumns } from './components/columns'
 import { CheckDialogs } from './components/check-dialogs'
@@ -270,13 +269,8 @@ function ChecksPageContent() {
 
 export default function ChecksPage() {
   return (
-    <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-      fallback={<ForbiddenError />}
-    > 
-    
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAYMENT}>
       <ChecksPageContent />
-    </RequireAnyRoleGate>
-
+    </ProtectedRoute>
   )
 }

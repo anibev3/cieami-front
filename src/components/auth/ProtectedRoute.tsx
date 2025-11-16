@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Navigate } from '@tanstack/react-router'
 import { useIsAuthenticated, useUser } from '@/stores/authStore'
-import { useHasPermission, useHasAnyPermission, useHasAllPermissions, useHasRole, useHasAnyRole, useHasAllRoles, Permission, UserRole } from '@/stores/aclStore'
+import { useHasPermission, useHasAnyPermission, useHasAllPermissions, useHasRole, useHasAnyRole, useHasAllRoles, useHasEntityType, useHasAnyEntityType, Permission, UserRole } from '@/stores/aclStore'
 import Forbidden from '@/features/errors/forbidden'
 
 interface ProtectedRouteProps {
@@ -12,6 +12,9 @@ interface ProtectedRouteProps {
   requiredRole?: UserRole
   requiredRoles?: UserRole[]
   requireAllRoles?: boolean
+  requiredEntityType?: string
+  requiredEntityTypes?: string[]
+  requireAllEntityTypes?: boolean
   fallback?: ReactNode
   redirectTo?: string
 }
@@ -24,6 +27,9 @@ export const ProtectedRoute = ({
   requiredRole,
   requiredRoles,
   requireAllRoles = false,
+  requiredEntityType,
+  requiredEntityTypes,
+  requireAllEntityTypes = false,
   fallback,
   redirectTo = '/sign-in'
 }: ProtectedRouteProps) => {
@@ -37,6 +43,8 @@ export const ProtectedRoute = ({
   const hasRole = useHasRole(requiredRole!)
   const hasAnyRole = useHasAnyRole(requiredRoles || [])
   const hasAllRoles = useHasAllRoles(requiredRoles || [])
+  const hasEntityType = useHasEntityType(requiredEntityType!)
+  const hasAnyEntityType = useHasAnyEntityType(requiredEntityTypes || [])
 
   // Vérifier l'authentification
   if (!isAuthenticated || !user) {
@@ -67,6 +75,20 @@ export const ProtectedRoute = ({
       return fallback ? <>{fallback}</> : <Forbidden />
     }
     if (!requireAllRoles && !hasAnyRole) {
+      return fallback ? <>{fallback}</> : <Forbidden />
+    }
+  }
+
+  // Vérifier les types d'entités
+  if (requiredEntityType && !hasEntityType) {
+    return fallback ? <>{fallback}</> : <Forbidden />
+  }
+
+  if (requiredEntityTypes && requiredEntityTypes.length > 0) {
+    // requireAllEntityTypes = false signifie "au moins un des types" (par défaut)
+    // requireAllEntityTypes = true n'a pas de sens car un utilisateur n'a qu'un seul type d'entité
+    // Donc on traite toujours comme "au moins un des types"
+    if (!hasAnyEntityType) {
       return fallback ? <>{fallback}</> : <Forbidden />
     }
   }

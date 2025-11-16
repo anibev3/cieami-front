@@ -8,8 +8,10 @@ import { DataTable } from './components/data-table'
 import { AssignmentTypeMutateDialog } from './components/assignment-type-mutate-dialog'
 import { AssignmentTypesPrimaryButtons } from './components/assignment-types-primary-buttons'
 import { useAssignmentTypesStore } from '@/stores/assignmentTypes'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function AssignmentTypesPage() {
+function AssignmentTypesPageContent() {
   const { fetchAssignmentTypes } = useAssignmentTypesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
@@ -56,5 +58,13 @@ export default function AssignmentTypesPage() {
         onOpenChange={setIsCreateOpen}
       />
     </>
+  )
+}
+
+export default function AssignmentTypesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT_TYPE}>
+      <AssignmentTypesPageContent />
+    </ProtectedRoute>
   )
 } 

@@ -9,8 +9,10 @@ import { AssureursDialogs } from './components/assureurs-dialogs'
 import { AssureursPrimaryButtons } from './components/assureurs-primary-buttons'
 import AssureursProvider from './context/assureurs-context'
 import { useAssureursStore } from './store'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function AssureursPage() {
+function AssureursPageContent() {
   const { fetchAssureurs, assureurs, loading } = useAssureursStore()
 
   useEffect(() => {
@@ -42,5 +44,13 @@ export default function AssureursPage() {
 
       <AssureursDialogs />
     </AssureursProvider>
+  )
+}
+
+export default function AssureursPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ENTITY}>
+      <AssureursPageContent />
+    </ProtectedRoute>
   )
 } 

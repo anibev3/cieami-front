@@ -9,8 +9,10 @@ import { ReceiptTypesDialogs } from './components/receipt-types-dialogs'
 import { ReceiptTypesPrimaryButtons } from './components/receipt-types-primary-buttons'
 import { useReceiptTypesStore } from '@/stores/receiptTypesStore'
 import { ReceiptType } from '@/types/administration'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-function ReceiptTypesPage() {
+function ReceiptTypesPageContent() {
   const { fetchReceiptTypes } = useReceiptTypesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -79,4 +81,10 @@ function ReceiptTypesPage() {
   )
 }
 
-export default ReceiptTypesPage; 
+export default function ReceiptTypesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_RECEIPT_TYPE}>
+      <ReceiptTypesPageContent />
+    </ProtectedRoute>
+  )
+} 

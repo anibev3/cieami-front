@@ -5,8 +5,10 @@ import { HourlyRate } from '@/types/hourly-rates'
 import { DataTable } from './data-table'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { HourlyRateDialogs } from './components/hourly-rate-dialogs'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function HorairesPeinturePage() {
+function HorairesPeinturePageContent() {
   const {
     hourlyRates,
     loading,
@@ -121,5 +123,13 @@ export default function HorairesPeinturePage() {
         selectedHourlyRate={selectedHourlyRate}
       />
     </div>
+  )
+}
+
+export default function HorairesPeinturePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_HOURLY_RATE}>
+      <HorairesPeinturePageContent />
+    </ProtectedRoute>
   )
 } 

@@ -48,10 +48,12 @@ import { formatDate } from '@/utils/format-date'
 import { formatCurrency } from '@/utils/format-currency'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 import { useDebounce } from '@/hooks/use-debounce'
 import { useIsMobile } from '@/hooks/use-mobile'
 
-export default function CreateInvoicePage() {
+function CreateInvoicePageContent() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
   const { assignments, loading: assignmentsLoading, fetchAssignments } = useAssignmentsStore()
@@ -733,5 +735,13 @@ export default function CreateInvoicePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CreateInvoicePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.CREATE_INVOICE}>
+      <CreateInvoicePageContent />
+    </ProtectedRoute>
   )
 } 

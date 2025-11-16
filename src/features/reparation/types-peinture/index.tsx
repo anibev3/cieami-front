@@ -11,8 +11,10 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function PaintTypesPage() {
+function PaintTypesPageContent() {
   const { 
     paintTypes, 
     loading, 
@@ -162,5 +164,13 @@ export default function PaintTypesPage() {
         </div>
       </Main>
       </>
+  )
+}
+
+export default function PaintTypesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAINT_TYPE}>
+      <PaintTypesPageContent />
+    </ProtectedRoute>
   )
 } 

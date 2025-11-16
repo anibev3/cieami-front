@@ -81,8 +81,9 @@ import {
   ShockDetailTable, 
 } from './components'
 import { useACL } from '@/hooks/useACL'
-import { UserRole } from '@/types/auth'
+import { UserRole, Permission } from '@/types/auth'
 import { AssignmentStatusEnum, EntityTypeEnum } from '@/types/global-types'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import assignmentValidationService from '@/services/assignmentValidationService'
 import { useUser } from '@/stores/authStore'
 
@@ -640,7 +641,7 @@ interface AssignmentDetail {
   work_sheet: string | null
 }
 
-export default function AssignmentDetailPage() {
+function AssignmentDetailPageContent() {
   const { id } = useParams({ strict: false }) as { id: string }
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as { section?: string }
@@ -3101,4 +3102,12 @@ export default function AssignmentDetailPage() {
       <PdfViewer open={pdfViewer.open} onOpenChange={open => setPdfViewer(v => ({ ...v, open }))} url={pdfViewer.url} title={pdfViewer.title} />
     </>
   )
-} 
+}
+
+export default function AssignmentDetailPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT}>
+      <AssignmentDetailPageContent />
+    </ProtectedRoute>
+  )
+}

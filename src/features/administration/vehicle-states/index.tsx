@@ -3,8 +3,10 @@ import { useVehicleStatesStore } from '@/stores/vehicle-states'
 import { DataTable } from './components/data-table'
 import { VehicleStateMutateDialog } from './components/vehicle-state-mutate-dialog'
 import { toast } from 'sonner'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function VehicleStatesPage() {
+function VehicleStatesPageContent() {
   const { vehicleStates, loading, error, fetchVehicleStates } = useVehicleStatesStore()
 
   useEffect(() => {
@@ -25,5 +27,13 @@ export default function VehicleStatesPage() {
         <DataTable data={vehicleStates} loading={loading} />
       </div>
     </div>
+  )
+}
+
+export default function VehicleStatesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_VEHICLE_STATE}>
+      <VehicleStatesPageContent />
+    </ProtectedRoute>
   )
 } 

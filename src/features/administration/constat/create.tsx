@@ -37,8 +37,10 @@ import {
   Clock
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function CreateAscertainmentPage() {
+function CreateAscertainmentPageContent() {
   const navigate = useNavigate()
   const { createAscertainment, loading } = useAscertainmentStore()
   const { ascertainmentTypes, fetchAscertainmentTypes } = useAscertainmentTypeStore()
@@ -545,5 +547,13 @@ export default function CreateAscertainmentPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function CreateAscertainmentPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.CREATE_ASCERTAINMENT}>
+      <CreateAscertainmentPageContent />
+    </ProtectedRoute>
   )
 } 

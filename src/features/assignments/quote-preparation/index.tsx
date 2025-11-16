@@ -42,6 +42,8 @@ import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 import { assignmentService } from '@/services/assignmentService'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
@@ -513,7 +515,7 @@ interface OtherCostType {
   description: string
 }
 
-export default function QuotePreparationPage() {
+function QuotePreparationPageContent() {
   const { id } = useParams({ strict: false }) as { id: string } 
   const navigate = useNavigate()
   const isMobile = useIsMobile()

@@ -13,9 +13,8 @@ import { AssignmentSelect } from '@/features/widgets/assignment-select'
 import { DatePicker } from '@/features/widgets/date-picker'
 import { PaymentTypeSelect } from '@/features/widgets/payment-type-select'
 import { PaymentMethodSelect } from '@/features/widgets/payment-method-select'
-import ForbiddenError from '@/features/errors/forbidden'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
-import { UserRole } from '@/stores/aclStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 export default function EditPaymentPage() {
   const navigate = useNavigate()
@@ -99,10 +98,7 @@ export default function EditPaymentPage() {
     <div className="space-y-6 w-full h-full overflow-y-auto pb-6">
       {/* Enhanced Header */}
 
-      <RequireAnyRoleGate
-        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-        fallback={<ForbiddenError />}
-      >
+      <ProtectedRoute requiredPermission={Permission.UPDATE_PAYMENT}>
         <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/50 dark:to-amber-950/50 rounded-lg border border-orange-200 dark:border-orange-800 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -254,7 +250,7 @@ export default function EditPaymentPage() {
             </Button>
           </div>
         </form>
-      </RequireAnyRoleGate>
+      </ProtectedRoute>
     </div>
   )
 } 

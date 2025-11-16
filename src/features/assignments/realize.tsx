@@ -38,9 +38,9 @@ import { UserSelect } from '@/features/widgets/user-select'
 import { RepairerRelationshipSelect } from '@/features/widgets'
 import { repairerRelationshipService } from '@/services/repairerRelationshipService'
 import { useUser } from '@/stores/authStore'
-import { UserRole } from '@/types/auth'
+import { UserRole, Permission } from '@/types/auth'
 import { useAssignmentRealizationStore } from '@/stores/assignmentRealizationStore'
-
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
 // Schéma de validation pour la réalisation
 const realizeSchema = z.object({
@@ -57,7 +57,7 @@ const realizeSchema = z.object({
 // Interface déplacée vers le service
 import { RealizeAssignmentPayload as RealizePayload } from '@/services/assignmentRealizationService'
 
-export default function RealizeAssignmentPage() {
+function RealizeAssignmentPageContent() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
   const assignmentId = id
@@ -515,5 +515,13 @@ export default function RealizeAssignmentPage() {
         </div>
       </Main>
       </>
+  )
+}
+
+export default function RealizeAssignmentPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.REALIZE_ASSIGNMENT}>
+      <RealizeAssignmentPageContent />
+    </ProtectedRoute>
   )
 } 

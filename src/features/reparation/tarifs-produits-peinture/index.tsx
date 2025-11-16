@@ -5,8 +5,10 @@ import { PaintProductPrice } from '@/types/paint-product-prices'
 import { DataTable } from './data-table'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { PaintProductPriceDialogs } from './components/paint-product-price-dialogs'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function TarifsProduitsPeinturePage() {
+function TarifsProduitsPeinturePageContent() {
   const {
     paintProductPrices,
     loading,
@@ -121,5 +123,13 @@ export default function TarifsProduitsPeinturePage() {
         selectedPaintProductPrice={selectedPaintProductPrice}
       />
     </div>
+  )
+}
+
+export default function TarifsProduitsPeinturePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAINT_PRODUCT_PRICE}>
+      <TarifsProduitsPeinturePageContent />
+    </ProtectedRoute>
   )
 } 

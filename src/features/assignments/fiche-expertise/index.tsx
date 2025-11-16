@@ -45,6 +45,8 @@ import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 import { assignmentService } from '@/services/assignmentService'
 import { ShockWorkforceTableV2 } from '@/features/assignments/components/shock-workforce-table-v2'
 import { ExpertiseSheetShockSuppliesTable } from '@/features/assignments/components/assignment/expertise-sheet/expertise-sheet-shock-supplies-table'
@@ -515,7 +517,7 @@ interface OtherCostType {
   description: string
 }
 
-export default function ExpertiseSheetPage() {
+function ExpertiseSheetPageContent() {
   const { id } = useParams({ strict: false }) as { id: string } 
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -2242,3 +2244,10 @@ export default function ExpertiseSheetPage() {
   )
 }
 
+export default function ExpertiseSheetPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.CREATE_WORKSHEET_ASSIGNMENT}>
+      <ExpertiseSheetPageContent />
+    </ProtectedRoute>
+  )
+}

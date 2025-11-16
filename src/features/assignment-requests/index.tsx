@@ -43,8 +43,9 @@ import { Search as SearchComponent } from '@/components/search'
 import { useACL } from '@/hooks/useACL'
 import { Permission } from '@/types/auth'
 import { PermissionGate } from '@/components/ui/permission-gate'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
-export default function AssignmentRequestsPage() {
+function AssignmentRequestsPageContent() {
   const navigate = useNavigate()
   const { hasPermission, isInitialized } = useACL()
   const {
@@ -456,5 +457,13 @@ export default function AssignmentRequestsPage() {
         </PermissionGate>
       </Main>
     </>
+  )
+}
+
+export default function AssignmentRequestsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT_REQUEST}>
+      <AssignmentRequestsPageContent />
+    </ProtectedRoute>
   )
 }

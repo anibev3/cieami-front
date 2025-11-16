@@ -42,8 +42,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function AssignmentRequestDetailPage() {
+function AssignmentRequestDetailPageContent() {
   const { id } = useParams({ strict: false }) as { id: string }
   const navigate = useNavigate()
   const { isAdmin, isSystemAdmin } = useACL()
@@ -751,3 +753,10 @@ export default function AssignmentRequestDetailPage() {
   )
 }
 
+export default function AssignmentRequestDetailPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT_REQUEST}>
+      <AssignmentRequestDetailPageContent />
+    </ProtectedRoute>
+  )
+}

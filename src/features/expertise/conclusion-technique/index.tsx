@@ -7,8 +7,10 @@ import { DataTable } from './components/data-table'
 import { createColumns } from './components/columns'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ConclusionTechniquePage() {
+function ConclusionTechniquePageContent() {
   const { 
     technicalConclusions, 
     loading, 
@@ -117,7 +119,13 @@ export default function ConclusionTechniquePage() {
       )}
     </div>
   )
-} 
+}
 
-
+export default function ConclusionTechniquePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_TECHNICAL_CONCLUSION}>
+      <ConclusionTechniquePageContent />
+    </ProtectedRoute>
+  )
+}
 

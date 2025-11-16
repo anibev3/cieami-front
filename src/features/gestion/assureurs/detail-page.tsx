@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useAssureursStore } from './store'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function AssureurDetailPage() {
+function AssureurDetailPageContent() {
   const { id } = useParams({ from: '/gestion/assureurs/$id' })
   const navigate = useNavigate()
   const { selectedAssureur, fetchAssureur, deleteAssureur } = useAssureursStore()
@@ -29,5 +31,13 @@ export default function AssureurDetailPage() {
         <button className="btn" onClick={() => navigate({ to: '/gestion/assureurs' })}>Retour</button>
       </div>
     </div>
+  )
+}
+
+export default function AssureurDetailPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ENTITY}>
+      <AssureurDetailPageContent />
+    </ProtectedRoute>
   )
 } 

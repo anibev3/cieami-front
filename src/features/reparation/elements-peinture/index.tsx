@@ -5,8 +5,10 @@ import { NumberPaintElement } from '@/types/number-paint-elements'
 import { DataTable } from './data-table'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { NumberPaintElementDialogs } from './components/number-paint-element-dialogs'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ElementsPeinturePage() {
+function ElementsPeinturePageContent() {
   const {
     numberPaintElements,
     loading,
@@ -121,5 +123,13 @@ export default function ElementsPeinturePage() {
         selectedNumberPaintElement={selectedNumberPaintElement}
       />
     </div>
+  )
+}
+
+export default function ElementsPeinturePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_NUMBER_PAINT_ELEMENT}>
+      <ElementsPeinturePageContent />
+    </ProtectedRoute>
   )
 } 

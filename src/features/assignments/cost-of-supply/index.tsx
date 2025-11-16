@@ -21,8 +21,10 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function CostOfSupplyPage() {
+function CostOfSupplyPageContent() {
   const { supplyPrices, loading, fetchSupplyPrices } = useSupplyPricesStore()
   const { fetchSupplies } = useSuppliesStore()
   
@@ -317,5 +319,13 @@ export default function CostOfSupplyPage() {
         />
       </Main>
     </>
+  )
+}
+
+export default function CostOfSupplyPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT}>
+      <CostOfSupplyPageContent />
+    </ProtectedRoute>
   )
 }

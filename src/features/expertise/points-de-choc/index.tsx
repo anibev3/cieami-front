@@ -8,8 +8,10 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ShockPointsPage() {
+function ShockPointsPageContent() {
   const { shockPoints, loading, error, fetchShockPoints } = useShockPointsStore()
 
   useEffect(() => {
@@ -42,6 +44,13 @@ export default function ShockPointsPage() {
         </div>
         </Main>
         </>
-        
+  )
+}
+
+export default function ShockPointsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_SHOCK_POINT}>
+      <ShockPointsPageContent />
+    </ProtectedRoute>
   )
 } 

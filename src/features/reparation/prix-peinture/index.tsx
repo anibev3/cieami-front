@@ -11,8 +11,10 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function PaintingPricesPage() {
+function PaintingPricesPageContent() {
   const {
     paintingPrices,
     loading,
@@ -149,5 +151,13 @@ export default function PaintingPricesPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function PaintingPricesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAINTING_PRICE}>
+      <PaintingPricesPageContent />
+    </ProtectedRoute>
   )
 } 

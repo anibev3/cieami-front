@@ -53,9 +53,8 @@ import { toast } from 'sonner'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Invoice } from '@/types/comptabilite'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
-import ForbiddenError from '@/features/errors/forbidden'
-import { UserRole } from '@/stores/aclStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 function InvoicesPageContent() {
   const navigate = useNavigate()
@@ -1044,11 +1043,8 @@ function InvoicesPageContent() {
 
 export default function InvoicesPage() {
   return (
-    <RequireAnyRoleGate
-        roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-        fallback={<ForbiddenError />}
-      >
+    <ProtectedRoute requiredPermission={Permission.VIEW_INVOICE}>
       <InvoicesPageContent />
-    </RequireAnyRoleGate>
+    </ProtectedRoute>
   )
 }

@@ -12,8 +12,10 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Calculator } from 'lucide-react'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function WorkforceTypesPage() {
+function WorkforceTypesPageContent() {
   const {
     workforceTypes,
     loading,
@@ -162,5 +164,13 @@ export default function WorkforceTypesPage() {
         </div>
         </Main>
         </>
+  )
+}
+
+export default function WorkforceTypesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_WORKFORCE_TYPE}>
+      <WorkforceTypesPageContent />
+    </ProtectedRoute>
   )
 } 

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { useHasPermission, useHasAnyPermission, useHasAllPermissions, useHasRole, useHasAnyRole, useHasAllRoles, Permission, UserRole } from '@/stores/aclStore'
+import { useHasPermission, useHasAnyPermission, useHasAllPermissions, useHasRole, useHasAnyRole, useHasAllRoles, useHasEntityType, useHasAnyEntityType, Permission, UserRole } from '@/stores/aclStore'
 
 interface PermissionGateProps {
   children: ReactNode
@@ -9,6 +9,9 @@ interface PermissionGateProps {
   role?: UserRole
   roles?: UserRole[]
   requireAllRoles?: boolean
+  requiredEntityType?: string
+  requiredEntityTypes?: string[]
+  requireAllEntityTypes?: boolean
   fallback?: ReactNode
 }
 
@@ -20,6 +23,9 @@ export const PermissionGate = ({
   role,
   roles,
   requireAllRoles = false,
+  requiredEntityType,
+  requiredEntityTypes,
+  requireAllEntityTypes = false,
   fallback = null
 }: PermissionGateProps) => {
   // Hooks ACL
@@ -29,6 +35,8 @@ export const PermissionGate = ({
   const hasRole = useHasRole(role!)
   const hasAnyRole = useHasAnyRole(roles || [])
   const hasAllRoles = useHasAllRoles(roles || [])
+  const hasEntityType = useHasEntityType(requiredEntityType!)
+  const hasAnyEntityType = useHasAnyEntityType(requiredEntityTypes || [])
 
   // Vérifier les permissions
   if (permission && !hasPermission) {
@@ -54,6 +62,20 @@ export const PermissionGate = ({
       return <div className="">{fallback}</div>
     }
     if (!requireAllRoles && !hasAnyRole) {
+      return <div className="">{fallback}</div>
+    }
+  }
+
+  // Vérifier les types d'entités
+  if (requiredEntityType && !hasEntityType) {
+    return <div className="">{fallback}</div>
+  }
+
+  if (requiredEntityTypes && requiredEntityTypes.length > 0) {
+    // requireAllEntityTypes = false signifie "au moins un des types" (par défaut)
+    // requireAllEntityTypes = true n'a pas de sens car un utilisateur n'a qu'un seul type d'entité
+    // Donc on traite toujours comme "au moins un des types"
+    if (!hasAnyEntityType) {
       return <div className="">{fallback}</div>
     }
   }

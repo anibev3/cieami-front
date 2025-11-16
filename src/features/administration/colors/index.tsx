@@ -9,8 +9,10 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ColorsPage() {
+function ColorsPageContent() {
   const { 
     colors, 
     loading, 
@@ -85,5 +87,13 @@ export default function ColorsPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function ColorsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_COLOR}>
+      <ColorsPageContent />
+    </ProtectedRoute>
   )
 } 

@@ -88,6 +88,8 @@ import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/comp
 import { cn } from '@/lib/utils'
 // dnd-kit moved into reusable component
 import { ShockReorderSheet, type ShockItem } from '@/features/assignments/components/shock-reorder-sheet'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 interface Assignment {
   id: string
@@ -3656,6 +3658,14 @@ export default function EditReportPage() {
         title="Réorganiser les points de choc"
       />
     </>
+  )
+}
+
+export default function EditReportPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.EDIT_ASSIGNMENT}>
+      <EditReportPageContent />
+    </ProtectedRoute>
   )
 }
 

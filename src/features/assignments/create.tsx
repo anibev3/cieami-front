@@ -46,6 +46,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -164,7 +166,7 @@ const assignmentSchema = z.object({
   })).optional()
 })
 
-export default function CreateAssignmentPage() {
+function CreateAssignmentPageContent() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
   const [loading, setLoading] = useState(false)
@@ -3880,5 +3882,13 @@ export default function CreateAssignmentPage() {
       </Dialog>
 
     </div>
+  )
+}
+
+export default function CreateAssignmentPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT}>
+      <CreateAssignmentPageContent />
+    </ProtectedRoute>
   )
 } 

@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search as SearchIcon, RefreshCw, X, Filter, Calendar, User, FileText, Hash, CheckCircle, AlertCircle, Copy } from 'lucide-react'
+import { Search as SearchIcon, RefreshCw, X, Filter, Calendar, User, FileText, Hash, CheckCircle, Copy } from 'lucide-react'
 import { 
   StatisticsType, 
   StatisticsFilters, 
@@ -20,9 +20,8 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
 import { toast } from 'sonner'
-import { useACL } from '@/hooks/useACL'
 import { Permission } from '@/types/auth'
-import { PermissionGate } from '@/components/ui/permission-gate'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
 // Configuration des icônes et labels pour les filtres des factures
 const FILTER_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
@@ -42,8 +41,7 @@ const STORAGE_KEYS = {
   STATISTICS_DATES: 'invoices_statistics_dates'
 }
 
-export default function InvoicesStatisticsPage() {
-  const { hasPermission, isInitialized } = useACL()
+function InvoicesStatisticsPageContent() {
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
   const [endDate, setEndDate] = useState<Date | undefined>(new Date())
   
@@ -56,9 +54,6 @@ export default function InvoicesStatisticsPage() {
     clearError,
     downloadExport
   } = useStatisticsStore()
-
-  // Vérifier la permission pour voir les statistiques des factures
-  const canViewStatistics = hasPermission(Permission.INVOICE_STATISTICS)
 
   const getDefaultFilters = useCallback((): InvoiceStatisticsFilters => {
     return {
@@ -341,36 +336,6 @@ export default function InvoicesStatisticsPage() {
     )
   }
 
-  // Si l'utilisateur n'a pas la permission, afficher un message
-  if (isInitialized && !canViewStatistics) {
-    return (
-      <>
-        <Header fixed>
-          <Search />
-          <div className='ml-auto flex items-center space-x-4'>
-            <ThemeSwitch />
-            <ProfileDropdown />
-          </div>
-        </Header>
-        <Main>
-          <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  Accès refusé
-                </span>
-              </div>
-              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                Vous n'avez pas la permission de voir les statistiques des factures.
-              </p>
-            </CardContent>
-          </Card>
-        </Main>
-      </>
-    )
-  }
-
   return (
     <>
       {/* ===== Top Heading ===== */}
@@ -383,7 +348,6 @@ export default function InvoicesStatisticsPage() {
       </Header>
 
       <Main>
-        <PermissionGate permission={Permission.INVOICE_STATISTICS}>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -530,8 +494,15 @@ export default function InvoicesStatisticsPage() {
             </Card>
           )}
         </div>
-        </PermissionGate>
       </Main>
     </>
+  )
+}
+
+export default function InvoicesStatisticsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.INVOICE_STATISTICS}>
+      <InvoicesStatisticsPageContent />
+    </ProtectedRoute>
   )
 }

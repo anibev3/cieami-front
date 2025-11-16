@@ -25,9 +25,8 @@ import { PaymentSelect } from './components/payment-select'
 import { BankSelect } from './components/bank-select'
 import { DatePicker } from '@/features/widgets/date-picker'
 import { toast } from 'sonner'
-import { RequireAnyRoleGate } from '@/components/ui/permission-gate'
-import ForbiddenError from '@/features/errors/forbidden'
-import { UserRole } from '@/stores/aclStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 interface CheckFormProps {
   isEdit?: boolean
@@ -479,23 +478,20 @@ function CheckFormContent({ isEdit = false }: CheckFormProps) {
   )
 }
 
-export default function CheckFormPage() {
-  return (
-    <RequireAnyRoleGate
-      roles={[UserRole.SYSTEM_ADMIN, UserRole.CEO, UserRole.ACCOUNTANT_MANAGER, UserRole.ACCOUNTANT]}
-      fallback={<ForbiddenError />}
-    >
-      <CheckFormContent />
-    </RequireAnyRoleGate>
-  )
-}
-
 // Composant pour la création
 export function CreateCheckPage() {
-  return <CheckFormContent isEdit={false} />
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAYMENT}>
+      <CheckFormContent isEdit={false} />
+    </ProtectedRoute>
+  )
 }
 
 // Composant pour l'édition
 export function EditCheckPage() {
-  return <CheckFormContent isEdit={true} />
+  return (
+    <ProtectedRoute requiredPermission={Permission.UPDATE_PAYMENT}>
+      <CheckFormContent isEdit={true} />
+    </ProtectedRoute>
+  )
 }

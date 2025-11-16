@@ -17,8 +17,10 @@ import { Main } from '@/components/layout/main'
 import { API_CONFIG } from '@/config/api'
 import { entityService } from '@/services/entityService'
 import { Loader2, Building2, Mail, Phone, MapPin, Hash, Image as ImageIcon, X, Upload, FileText } from 'lucide-react'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export function EntityCreatePage() {
+function EntityCreatePageContent() {
   const navigate = useNavigate()
   const params = useParams({ strict: false }) as { id?: string }
   const { entityTypes, fetchEntityTypes } = useEntityTypesStore()
@@ -437,5 +439,13 @@ export function EntityCreatePage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export function EntityCreatePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ENTITY}>
+      <EntityCreatePageContent />
+    </ProtectedRoute>
   )
 }

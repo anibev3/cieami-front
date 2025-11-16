@@ -10,8 +10,10 @@ import { DataTableToolbar } from './components/data-table-toolbar'
 import { Input } from '@/components/ui/input'
 import { useDebounce } from '@/hooks/use-debounce'
 import { toast } from 'sonner'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function FournituresPage() {
+function FournituresPageContent() {
   const { 
     supplies, 
     loading, 
@@ -93,7 +95,13 @@ export default function FournituresPage() {
 
     </>
   )
-} 
+}
 
-
+export default function FournituresPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_SUPPLY}>
+      <FournituresPageContent />
+    </ProtectedRoute>
+  )
+}
 

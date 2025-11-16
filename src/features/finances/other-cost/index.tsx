@@ -9,8 +9,10 @@ import { OtherCostsDialogs } from './components/other-costs-dialogs'
 import { OtherCostsPrimaryButtons } from './components/other-costs-primary-buttons'
 import { useOtherCostsStore } from '@/stores/otherCostsStore'
 import { OtherCost } from '@/types/administration'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-function OtherCostsPage() {
+function OtherCostsPageContent() {
   const { fetchOtherCosts } = useOtherCostsStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -79,4 +81,10 @@ function OtherCostsPage() {
   )
 }
 
-export default OtherCostsPage;
+export default function OtherCostsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_OTHER_COST}>
+      <OtherCostsPageContent />
+    </ProtectedRoute>
+  )
+}

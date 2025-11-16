@@ -8,8 +8,10 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function TheoreticalValuePage() {
+function TheoreticalValuePageContent() {
   const { theoreticalValueResult } = useDepreciationTablesStore()
 
   return (
@@ -49,5 +51,13 @@ export default function TheoreticalValuePage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function TheoreticalValuePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_DEPRECIATION_TABLE}>
+      <TheoreticalValuePageContent />
+    </ProtectedRoute>
   )
 } 

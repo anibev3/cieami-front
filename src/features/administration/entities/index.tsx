@@ -10,8 +10,10 @@ import { EntitiesPrimaryButtons } from './components/entities-primary-buttons'
 import { useEntitiesStore } from '@/stores/entitiesStore'
 import { Entity } from '@/types/administration'
 import { useNavigate } from '@tanstack/react-router'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function EntitiesPage() {
+function EntitiesPageContent() {
   const navigate = useNavigate()
   const { fetchEntities } = useEntitiesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -87,5 +89,13 @@ export default function EntitiesPage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>
+  )
+}
+
+export default function EntitiesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ENTITY}>
+      <EntitiesPageContent />
+    </ProtectedRoute>
   )
 } 

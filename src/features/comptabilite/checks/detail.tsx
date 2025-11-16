@@ -24,8 +24,10 @@ import { Check } from '@/types/comptabilite'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function CheckDetailPage() {
+function CheckDetailPageContent() {
   const { id } = useParams({ strict: false }) as { id: string }
   const navigate = useNavigate()
   const { deleteCheck, fetchCheckById, loading, error } = useCheckStore()
@@ -427,5 +429,13 @@ export default function CheckDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  )
+}
+
+export default function CheckDetailPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAYMENT}>
+      <CheckDetailPageContent />
+    </ProtectedRoute>
   )
 }

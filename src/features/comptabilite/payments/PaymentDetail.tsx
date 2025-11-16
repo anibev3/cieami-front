@@ -30,8 +30,10 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search } from '@/components/search'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function PaymentDetail() {
+function PaymentDetailContent() {
   const { id } = useParams({ strict: false }) as { id: string }
     
   const navigate = useNavigate()
@@ -564,5 +566,13 @@ export default function PaymentDetail() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function PaymentDetail() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PAYMENT}>
+      <PaymentDetailContent />
+    </ProtectedRoute>
   )
 }

@@ -28,16 +28,12 @@ import { Route as ClerkAuthenticatedRouteImport } from './routes/clerk/_authenti
 import { Route as ClerkauthRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedComptabiliteRouteImport } from './routes/_authenticated/comptabilite/route'
-import { Route as AuthenticatedUsersIndexImport } from './routes/_authenticated/users/index'
-import { Route as AuthenticatedTasksIndexImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRelationshipIndexImport } from './routes/_authenticated/relationship/index'
 import { Route as AuthenticatedHelpCenterIndexImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedComptabiliteIndexImport } from './routes/_authenticated/comptabilite/index'
-import { Route as AuthenticatedChatsIndexImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedAssignmentsIndexImport } from './routes/_authenticated/assignments/index'
 import { Route as AuthenticatedAssignmentRequestsIndexImport } from './routes/_authenticated/assignment-requests/index'
-import { Route as AuthenticatedAppsIndexImport } from './routes/_authenticated/apps/index'
 import { Route as ClerkAuthenticatedUserManagementImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInImport } from './routes/clerk/(auth)/sign-in'
@@ -105,8 +101,6 @@ import { Route as AuthenticatedAdministrationConstatIndexImport } from './routes
 import { Route as AuthenticatedGestionSinistreNatureSinistreImport } from './routes/_authenticated/gestion/sinistre/nature-sinistre'
 import { Route as AuthenticatedGestionDepreciationTablesTheoreticalValueImport } from './routes/_authenticated/gestion/depreciation-tables/theoretical-value'
 import { Route as AuthenticatedGestionClientIdImport } from './routes/_authenticated/gestion/client.$id'
-import { Route as AuthenticatedComptabiliteStatisticsAssignmentsImport } from './routes/_authenticated/comptabilite/statistics/assignments'
-import { Route as AuthenticatedComptabiliteReportsTreasuryImport } from './routes/_authenticated/comptabilite/reports/treasury'
 import { Route as AuthenticatedComptabiliteReportsPaymentsImport } from './routes/_authenticated/comptabilite/reports/payments'
 import { Route as AuthenticatedComptabiliteReportsChecksImport } from './routes/_authenticated/comptabilite/reports/checks'
 import { Route as AuthenticatedComptabilitePaymentCreateImport } from './routes/_authenticated/comptabilite/payment/create'
@@ -243,18 +237,6 @@ const AuthenticatedComptabiliteRouteRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
-const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexImport.update({
-  id: '/users/',
-  path: '/users/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
-const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
 const AuthenticatedSettingsIndexRoute = AuthenticatedSettingsIndexImport.update(
   {
     id: '/',
@@ -284,12 +266,6 @@ const AuthenticatedComptabiliteIndexRoute =
     getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
   } as any)
 
-const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexImport.update({
-  id: '/chats/',
-  path: '/chats/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-
 const AuthenticatedAssignmentsIndexRoute =
   AuthenticatedAssignmentsIndexImport.update({
     id: '/assignments/',
@@ -303,12 +279,6 @@ const AuthenticatedAssignmentRequestsIndexRoute =
     path: '/assignment-requests/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-
-const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexImport.update({
-  id: '/apps/',
-  path: '/apps/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 
 const ClerkAuthenticatedUserManagementRoute =
   ClerkAuthenticatedUserManagementImport.update({
@@ -777,20 +747,6 @@ const AuthenticatedGestionClientIdRoute =
     id: '/gestion/client/$id',
     path: '/gestion/client/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-
-const AuthenticatedComptabiliteStatisticsAssignmentsRoute =
-  AuthenticatedComptabiliteStatisticsAssignmentsImport.update({
-    id: '/statistics/assignments',
-    path: '/statistics/assignments',
-    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
-  } as any)
-
-const AuthenticatedComptabiliteReportsTreasuryRoute =
-  AuthenticatedComptabiliteReportsTreasuryImport.update({
-    id: '/reports/treasury',
-    path: '/reports/treasury',
-    getParentRoute: () => AuthenticatedComptabiliteRouteRoute,
   } as any)
 
 const AuthenticatedComptabiliteReportsPaymentsRoute =
@@ -1518,13 +1474,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClerkAuthenticatedUserManagementImport
       parentRoute: typeof ClerkAuthenticatedRouteImport
     }
-    '/_authenticated/apps/': {
-      id: '/_authenticated/apps/'
-      path: '/apps'
-      fullPath: '/apps'
-      preLoaderRoute: typeof AuthenticatedAppsIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
     '/_authenticated/assignment-requests/': {
       id: '/_authenticated/assignment-requests/'
       path: '/assignment-requests'
@@ -1537,13 +1486,6 @@ declare module '@tanstack/react-router' {
       path: '/assignments'
       fullPath: '/assignments'
       preLoaderRoute: typeof AuthenticatedAssignmentsIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/chats/': {
-      id: '/_authenticated/chats/'
-      path: '/chats'
-      fullPath: '/chats'
-      preLoaderRoute: typeof AuthenticatedChatsIndexImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/comptabilite/': {
@@ -1573,20 +1515,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/'
       preLoaderRoute: typeof AuthenticatedSettingsIndexImport
       parentRoute: typeof AuthenticatedSettingsRouteImport
-    }
-    '/_authenticated/tasks/': {
-      id: '/_authenticated/tasks/'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AuthenticatedTasksIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
-    }
-    '/_authenticated/users/': {
-      id: '/_authenticated/users/'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AuthenticatedUsersIndexImport
-      parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/administration/constat/type': {
       id: '/_authenticated/administration/constat/type'
@@ -1740,20 +1668,6 @@ declare module '@tanstack/react-router' {
       path: '/reports/payments'
       fullPath: '/comptabilite/reports/payments'
       preLoaderRoute: typeof AuthenticatedComptabiliteReportsPaymentsImport
-      parentRoute: typeof AuthenticatedComptabiliteRouteImport
-    }
-    '/_authenticated/comptabilite/reports/treasury': {
-      id: '/_authenticated/comptabilite/reports/treasury'
-      path: '/reports/treasury'
-      fullPath: '/comptabilite/reports/treasury'
-      preLoaderRoute: typeof AuthenticatedComptabiliteReportsTreasuryImport
-      parentRoute: typeof AuthenticatedComptabiliteRouteImport
-    }
-    '/_authenticated/comptabilite/statistics/assignments': {
-      id: '/_authenticated/comptabilite/statistics/assignments'
-      path: '/statistics/assignments'
-      fullPath: '/comptabilite/statistics/assignments'
-      preLoaderRoute: typeof AuthenticatedComptabiliteStatisticsAssignmentsImport
       parentRoute: typeof AuthenticatedComptabiliteRouteImport
     }
     '/_authenticated/gestion/client/$id': {
@@ -1939,8 +1853,6 @@ interface AuthenticatedComptabiliteRouteRouteChildren {
   AuthenticatedComptabilitePaymentCreateRoute: typeof AuthenticatedComptabilitePaymentCreateRoute
   AuthenticatedComptabiliteReportsChecksRoute: typeof AuthenticatedComptabiliteReportsChecksRoute
   AuthenticatedComptabiliteReportsPaymentsRoute: typeof AuthenticatedComptabiliteReportsPaymentsRoute
-  AuthenticatedComptabiliteReportsTreasuryRoute: typeof AuthenticatedComptabiliteReportsTreasuryRoute
-  AuthenticatedComptabiliteStatisticsAssignmentsRoute: typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   AuthenticatedComptabiliteInvoicesIndexRoute: typeof AuthenticatedComptabiliteInvoicesIndexRoute
   AuthenticatedComptabiliteCheckDetailIdRoute: typeof AuthenticatedComptabiliteCheckDetailIdRoute
   AuthenticatedComptabiliteCheckEditIdRoute: typeof AuthenticatedComptabiliteCheckEditIdRoute
@@ -1972,10 +1884,6 @@ const AuthenticatedComptabiliteRouteRouteChildren: AuthenticatedComptabiliteRout
       AuthenticatedComptabiliteReportsChecksRoute,
     AuthenticatedComptabiliteReportsPaymentsRoute:
       AuthenticatedComptabiliteReportsPaymentsRoute,
-    AuthenticatedComptabiliteReportsTreasuryRoute:
-      AuthenticatedComptabiliteReportsTreasuryRoute,
-    AuthenticatedComptabiliteStatisticsAssignmentsRoute:
-      AuthenticatedComptabiliteStatisticsAssignmentsRoute,
     AuthenticatedComptabiliteInvoicesIndexRoute:
       AuthenticatedComptabiliteInvoicesIndexRoute,
     AuthenticatedComptabiliteCheckDetailIdRoute:
@@ -2065,14 +1973,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReparationTarificationHonoraireRoute: typeof AuthenticatedReparationTarificationHonoraireRoute
   AuthenticatedReparationTarifsProduitsPeintureRoute: typeof AuthenticatedReparationTarifsProduitsPeintureRoute
   AuthenticatedReparationTypesPeintureRoute: typeof AuthenticatedReparationTypesPeintureRoute
-  AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedAssignmentRequestsIndexRoute: typeof AuthenticatedAssignmentRequestsIndexRoute
   AuthenticatedAssignmentsIndexRoute: typeof AuthenticatedAssignmentsIndexRoute
-  AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedRelationshipIndexRoute: typeof AuthenticatedRelationshipIndexRoute
-  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
-  AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedAdministrationConstatTypeRoute: typeof AuthenticatedAdministrationConstatTypeRoute
   AuthenticatedAdministrationEntitiesNewRoute: typeof AuthenticatedAdministrationEntitiesNewRoute
   AuthenticatedAdministrationVehicleCreateRoute: typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2178,15 +2082,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedReparationTarifsProduitsPeintureRoute,
   AuthenticatedReparationTypesPeintureRoute:
     AuthenticatedReparationTypesPeintureRoute,
-  AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedAssignmentRequestsIndexRoute:
     AuthenticatedAssignmentRequestsIndexRoute,
   AuthenticatedAssignmentsIndexRoute: AuthenticatedAssignmentsIndexRoute,
-  AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedRelationshipIndexRoute: AuthenticatedRelationshipIndexRoute,
-  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
-  AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedAdministrationConstatTypeRoute:
     AuthenticatedAdministrationConstatTypeRoute,
   AuthenticatedAdministrationEntitiesNewRoute:
@@ -2365,16 +2265,12 @@ export interface FileRoutesByFullPath {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
-  '/apps': typeof AuthenticatedAppsIndexRoute
   '/assignment-requests': typeof AuthenticatedAssignmentRequestsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
-  '/chats': typeof AuthenticatedChatsIndexRoute
   '/comptabilite/': typeof AuthenticatedComptabiliteIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/relationship': typeof AuthenticatedRelationshipIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/tasks': typeof AuthenticatedTasksIndexRoute
-  '/users': typeof AuthenticatedUsersIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
   '/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2397,8 +2293,6 @@ export interface FileRoutesByFullPath {
   '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
   '/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
   '/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
-  '/comptabilite/reports/treasury': typeof AuthenticatedComptabiliteReportsTreasuryRoute
-  '/comptabilite/statistics/assignments': typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
   '/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
   '/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
@@ -2490,16 +2384,12 @@ export interface FileRoutesByTo {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
-  '/apps': typeof AuthenticatedAppsIndexRoute
   '/assignment-requests': typeof AuthenticatedAssignmentRequestsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
-  '/chats': typeof AuthenticatedChatsIndexRoute
   '/comptabilite': typeof AuthenticatedComptabiliteIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/relationship': typeof AuthenticatedRelationshipIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
-  '/tasks': typeof AuthenticatedTasksIndexRoute
-  '/users': typeof AuthenticatedUsersIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
   '/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2522,8 +2412,6 @@ export interface FileRoutesByTo {
   '/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
   '/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
   '/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
-  '/comptabilite/reports/treasury': typeof AuthenticatedComptabiliteReportsTreasuryRoute
-  '/comptabilite/statistics/assignments': typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   '/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
   '/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
   '/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
@@ -2621,16 +2509,12 @@ export interface FileRoutesById {
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
-  '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/assignment-requests/': typeof AuthenticatedAssignmentRequestsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
-  '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/comptabilite/': typeof AuthenticatedComptabiliteIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/relationship/': typeof AuthenticatedRelationshipIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
-  '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
   '/_authenticated/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/_authenticated/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2653,8 +2537,6 @@ export interface FileRoutesById {
   '/_authenticated/comptabilite/payment/create': typeof AuthenticatedComptabilitePaymentCreateRoute
   '/_authenticated/comptabilite/reports/checks': typeof AuthenticatedComptabiliteReportsChecksRoute
   '/_authenticated/comptabilite/reports/payments': typeof AuthenticatedComptabiliteReportsPaymentsRoute
-  '/_authenticated/comptabilite/reports/treasury': typeof AuthenticatedComptabiliteReportsTreasuryRoute
-  '/_authenticated/comptabilite/statistics/assignments': typeof AuthenticatedComptabiliteStatisticsAssignmentsRoute
   '/_authenticated/gestion/client/$id': typeof AuthenticatedGestionClientIdRoute
   '/_authenticated/gestion/depreciation-tables/theoretical-value': typeof AuthenticatedGestionDepreciationTablesTheoreticalValueRoute
   '/_authenticated/gestion/sinistre/nature-sinistre': typeof AuthenticatedGestionSinistreNatureSinistreRoute
@@ -2752,16 +2634,12 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
-    | '/apps'
     | '/assignment-requests'
     | '/assignments'
-    | '/chats'
     | '/comptabilite/'
     | '/help-center'
     | '/relationship'
     | '/settings/'
-    | '/tasks'
-    | '/users'
     | '/administration/constat/type'
     | '/administration/entities/new'
     | '/administration/vehicle/create'
@@ -2784,8 +2662,6 @@ export interface FileRouteTypes {
     | '/comptabilite/payment/create'
     | '/comptabilite/reports/checks'
     | '/comptabilite/reports/payments'
-    | '/comptabilite/reports/treasury'
-    | '/comptabilite/statistics/assignments'
     | '/gestion/client/$id'
     | '/gestion/depreciation-tables/theoretical-value'
     | '/gestion/sinistre/nature-sinistre'
@@ -2876,16 +2752,12 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
-    | '/apps'
     | '/assignment-requests'
     | '/assignments'
-    | '/chats'
     | '/comptabilite'
     | '/help-center'
     | '/relationship'
     | '/settings'
-    | '/tasks'
-    | '/users'
     | '/administration/constat/type'
     | '/administration/entities/new'
     | '/administration/vehicle/create'
@@ -2908,8 +2780,6 @@ export interface FileRouteTypes {
     | '/comptabilite/payment/create'
     | '/comptabilite/reports/checks'
     | '/comptabilite/reports/payments'
-    | '/comptabilite/reports/treasury'
-    | '/comptabilite/statistics/assignments'
     | '/gestion/client/$id'
     | '/gestion/depreciation-tables/theoretical-value'
     | '/gestion/sinistre/nature-sinistre'
@@ -3005,16 +2875,12 @@ export interface FileRouteTypes {
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
-    | '/_authenticated/apps/'
     | '/_authenticated/assignment-requests/'
     | '/_authenticated/assignments/'
-    | '/_authenticated/chats/'
     | '/_authenticated/comptabilite/'
     | '/_authenticated/help-center/'
     | '/_authenticated/relationship/'
     | '/_authenticated/settings/'
-    | '/_authenticated/tasks/'
-    | '/_authenticated/users/'
     | '/_authenticated/administration/constat/type'
     | '/_authenticated/administration/entities/new'
     | '/_authenticated/administration/vehicle/create'
@@ -3037,8 +2903,6 @@ export interface FileRouteTypes {
     | '/_authenticated/comptabilite/payment/create'
     | '/_authenticated/comptabilite/reports/checks'
     | '/_authenticated/comptabilite/reports/payments'
-    | '/_authenticated/comptabilite/reports/treasury'
-    | '/_authenticated/comptabilite/statistics/assignments'
     | '/_authenticated/gestion/client/$id'
     | '/_authenticated/gestion/depreciation-tables/theoretical-value'
     | '/_authenticated/gestion/sinistre/nature-sinistre'
@@ -3164,14 +3028,10 @@ export const routeTree = rootRoute
         "/_authenticated/reparation/tarification-honoraire",
         "/_authenticated/reparation/tarifs-produits-peinture",
         "/_authenticated/reparation/types-peinture",
-        "/_authenticated/apps/",
         "/_authenticated/assignment-requests/",
         "/_authenticated/assignments/",
-        "/_authenticated/chats/",
         "/_authenticated/help-center/",
         "/_authenticated/relationship/",
-        "/_authenticated/tasks/",
-        "/_authenticated/users/",
         "/_authenticated/administration/constat/type",
         "/_authenticated/administration/entities/new",
         "/_authenticated/administration/vehicle/create",
@@ -3227,8 +3087,6 @@ export const routeTree = rootRoute
         "/_authenticated/comptabilite/payment/create",
         "/_authenticated/comptabilite/reports/checks",
         "/_authenticated/comptabilite/reports/payments",
-        "/_authenticated/comptabilite/reports/treasury",
-        "/_authenticated/comptabilite/statistics/assignments",
         "/_authenticated/comptabilite/invoices/",
         "/_authenticated/comptabilite/check/detail/$id",
         "/_authenticated/comptabilite/check/edit/$id",
@@ -3522,20 +3380,12 @@ export const routeTree = rootRoute
       "filePath": "clerk/_authenticated/user-management.tsx",
       "parent": "/clerk/_authenticated"
     },
-    "/_authenticated/apps/": {
-      "filePath": "_authenticated/apps/index.tsx",
-      "parent": "/_authenticated"
-    },
     "/_authenticated/assignment-requests/": {
       "filePath": "_authenticated/assignment-requests/index.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/assignments/": {
       "filePath": "_authenticated/assignments/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/chats/": {
-      "filePath": "_authenticated/chats/index.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/comptabilite/": {
@@ -3553,14 +3403,6 @@ export const routeTree = rootRoute
     "/_authenticated/settings/": {
       "filePath": "_authenticated/settings/index.tsx",
       "parent": "/_authenticated/settings"
-    },
-    "/_authenticated/tasks/": {
-      "filePath": "_authenticated/tasks/index.tsx",
-      "parent": "/_authenticated"
-    },
-    "/_authenticated/users/": {
-      "filePath": "_authenticated/users/index.tsx",
-      "parent": "/_authenticated"
     },
     "/_authenticated/administration/constat/type": {
       "filePath": "_authenticated/administration/constat/type.tsx",
@@ -3648,14 +3490,6 @@ export const routeTree = rootRoute
     },
     "/_authenticated/comptabilite/reports/payments": {
       "filePath": "_authenticated/comptabilite/reports/payments.tsx",
-      "parent": "/_authenticated/comptabilite"
-    },
-    "/_authenticated/comptabilite/reports/treasury": {
-      "filePath": "_authenticated/comptabilite/reports/treasury.tsx",
-      "parent": "/_authenticated/comptabilite"
-    },
-    "/_authenticated/comptabilite/statistics/assignments": {
-      "filePath": "_authenticated/comptabilite/statistics/assignments.tsx",
       "parent": "/_authenticated/comptabilite"
     },
     "/_authenticated/gestion/client/$id": {

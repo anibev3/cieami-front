@@ -9,8 +9,10 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ClaimNaturePage() {
+function ClaimNaturePageContent() {
   const { fetchClaimNatures } = useClaimNatureStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -84,6 +86,14 @@ export default function ClaimNaturePage() {
         onCloseView={() => setIsViewOpen(false)}
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
-      </>
+    </>
+  )
+}
+
+export default function ClaimNaturePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_CLAIM_NATURE}>
+      <ClaimNaturePageContent />
+    </ProtectedRoute>
   )
 }

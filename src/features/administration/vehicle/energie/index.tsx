@@ -11,8 +11,10 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function VehicleEnergiePage() {
+function VehicleEnergiePageContent() {
   const { 
     fetchVehicleEnergies, 
     pagination, 
@@ -122,5 +124,13 @@ export default function VehicleEnergiePage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>
+  )
+}
+
+export default function VehicleEnergiePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_VEHICLE_ENERGY}>
+      <VehicleEnergiePageContent />
+    </ProtectedRoute>
   )
 } 

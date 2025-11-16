@@ -13,8 +13,10 @@ import {
 } from './components/ascertainment-dialogs'
 import { Ascertainment } from '@/services/ascertainmentService'
 import { useNavigate } from '@tanstack/react-router'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ConstatPage() {
+function ConstatPageContent() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
@@ -95,5 +97,13 @@ export default function ConstatPage() {
         />
       </Main>
     </>
+  )
+}
+
+export default function ConstatPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASCERTAINMENT}>
+      <ConstatPageContent />
+    </ProtectedRoute>
   )
 } 

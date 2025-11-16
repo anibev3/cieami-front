@@ -16,8 +16,10 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { AssignmentSelect } from '@/features/widgets/AssignmentSelect'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function PhotosPage() {
+function PhotosPageContent() {
   const {
     photos,
     loading,
@@ -1177,5 +1179,13 @@ export default function PhotosPage() {
         )}
             </Main></>
             
+  )
+}
+
+export default function PhotosPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_PHOTO}>
+      <PhotosPageContent />
+    </ProtectedRoute>
   )
 }

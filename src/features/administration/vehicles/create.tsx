@@ -35,6 +35,8 @@ import { BrandSelect } from '@/features/widgets'
 import { VehicleModelSelect } from '@/features/assignments/cost-of-supply/components/vehicle-model-select'
 import { ColorSelect } from '@/features/widgets/color-select'
 import { BodyworkSelect } from '@/features/widgets/bodywork-select'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
 const vehicleCreateSchema = z.object({
   license_plate: z.string().min(1, 'La plaque d\'immatriculation est requise'),
@@ -58,7 +60,7 @@ const vehicleCreateSchema = z.object({
 
 type VehicleCreateFormData = z.infer<typeof vehicleCreateSchema>
 
-export default function CreateVehiclePage() {
+function CreateVehiclePageContent() {
   const navigate = useNavigate()
   
   const [loading, setLoading] = useState(false)
@@ -461,5 +463,13 @@ export default function CreateVehiclePage() {
         </Card>
       </Main>
     </>
+  )
+}
+
+export default function CreateVehiclePage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.CREATE_VEHICLE}>
+      <CreateVehiclePageContent />
+    </ProtectedRoute>
   )
 }

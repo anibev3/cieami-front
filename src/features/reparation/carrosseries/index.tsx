@@ -6,8 +6,10 @@ import { DataTable } from './data-table'
 import { DataTableToolbar } from './components/data-table-toolbar'
 import { BodyworkDialogs } from './components/bodywork-dialogs'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function BodyworksPage() {
+function BodyworksPageContent() {
   const {
     bodyworks,
     loading,
@@ -144,5 +146,13 @@ export default function BodyworksPage() {
         selectedBodywork={selectedBodywork}
       />
     </div>
+  )
+}
+
+export default function BodyworksPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_BODYWORK}>
+      <BodyworksPageContent />
+    </ProtectedRoute>
   )
 } 

@@ -14,8 +14,10 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react'
 import { formatDate } from '@/utils/format-date'
 import { Label } from '@/components/ui/label'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function AscertainmentDetailPage() {
+function AscertainmentDetailPageContent() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false }) as { id: string }
   const { currentAscertainment, loading, fetchAscertainmentById } = useAscertainmentStore()
@@ -408,5 +410,13 @@ export default function AscertainmentDetailPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function AscertainmentDetailPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASCERTAINMENT}>
+      <AscertainmentDetailPageContent />
+    </ProtectedRoute>
   )
 } 

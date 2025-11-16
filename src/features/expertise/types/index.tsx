@@ -8,8 +8,10 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ExpertiseTypesPage() {
+function ExpertiseTypesPageContent() {
   const { expertiseTypes, loading, error, fetchExpertiseTypes } = useExpertiseTypesStore()
 
   useEffect(() => {
@@ -41,5 +43,13 @@ export default function ExpertiseTypesPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function ExpertiseTypesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_EXPERTISE_TYPE}>
+      <ExpertiseTypesPageContent />
+    </ProtectedRoute>
   )
 } 

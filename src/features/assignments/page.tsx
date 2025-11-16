@@ -34,10 +34,11 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Search as SearchComponent } from '@/components/search'
 import { EntityTypeEnum, useACL } from '@/hooks/useACL'
-import { UserRole } from '@/types/auth'
+import { UserRole, Permission } from '@/types/auth'
 import { useUser } from '@/stores/authStore'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
-export default function AssignmentsPage() {
+function AssignmentsPageContent() {
   const navigate = useNavigate()
   const { hasRole, isMainOrganization } = useACL()
   const currentUser = useUser()
@@ -1085,5 +1086,13 @@ export default function AssignmentsPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function AssignmentsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT}>
+      <AssignmentsPageContent />
+    </ProtectedRoute>
   )
 } 

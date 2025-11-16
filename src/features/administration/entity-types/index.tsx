@@ -9,8 +9,10 @@ import { EntityTypesDialogs } from './components/entity-types-dialogs'
 import { EntityTypesPrimaryButtons } from './components/entity-types-primary-buttons'
 import { useEntityTypesStore } from '@/stores/entityTypesStore'
 import { EntityType } from '@/types/administration'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function EntityTypesPage() {
+function EntityTypesPageContent() {
   const { fetchEntityTypes } = useEntityTypesStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -85,5 +87,13 @@ export default function EntityTypesPage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>
+  )
+}
+
+export default function EntityTypesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ENTITY_TYPE}>
+      <EntityTypesPageContent />
+    </ProtectedRoute>
   )
 } 

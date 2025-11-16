@@ -9,8 +9,10 @@ import { DocumentsDialogs } from './components/documents-dialogs'
 import { DocumentsPrimaryButtons } from './components/documents-primary-buttons'
 import { useDocumentsStore } from '@/stores/documentsStore'
 import { DocumentTransmitted } from '@/types/administration'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function DocumentsTransmittedPage() {
+function DocumentsTransmittedPageContent() {
   const { fetchDocuments } = useDocumentsStore()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -85,5 +87,13 @@ export default function DocumentsTransmittedPage() {
         onCloseDelete={() => setIsDeleteOpen(false)}
       />
     </>
+  )
+}
+
+export default function DocumentsTransmittedPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_DOCUMENT_TRANSMITTED}>
+      <DocumentsTransmittedPageContent />
+    </ProtectedRoute>
   )
 } 

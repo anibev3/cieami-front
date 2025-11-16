@@ -6,8 +6,10 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { DataTable } from './components/data-table'
 import { useVehiclesStore } from '@/stores/vehicles'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function VehiclesPage() {
+function VehiclesPageContent() {
   const { fetchVehicles } = useVehiclesStore()
 
   // Charger les véhicules une seule fois au montage du composant
@@ -39,5 +41,13 @@ export default function VehiclesPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function VehiclesPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_VEHICLE}>
+      <VehiclesPageContent />
+    </ProtectedRoute>
   )
 } 

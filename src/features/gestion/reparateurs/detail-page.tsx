@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useReparateursStore } from './store'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function ReparateurDetailPage() {
+function ReparateurDetailPageContent() {
   const { id } = useParams({ from: '/gestion/reparateurs/$id' })
   const navigate = useNavigate()
   const { selectedReparateur, fetchReparateur, deleteReparateur } = useReparateursStore()
@@ -29,5 +31,13 @@ export default function ReparateurDetailPage() {
         <button className="btn" onClick={() => navigate({ to: '/gestion/reparateurs' })}>Retour</button>
       </div>
     </div>
+  )
+}
+
+export default function ReparateurDetailPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ENTITY}>
+      <ReparateurDetailPageContent />
+    </ProtectedRoute>
   )
 } 

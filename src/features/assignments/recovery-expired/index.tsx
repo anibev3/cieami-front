@@ -323,7 +323,10 @@ export default function AssignmentsRecoveryExpiredPage() {
 
                 {/* DataTable */}
                 <div className=" overflow-hidden">
-                  <AssignmentsDataTable data={filteredAssignments} />
+                  <AssignmentsDataTable 
+                    data={filteredAssignments} 
+                    onSearch={setSearchQuery}
+                  />
                 </div>
 
                 <div className=" mt-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">

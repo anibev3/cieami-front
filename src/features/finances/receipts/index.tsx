@@ -10,8 +10,10 @@ import { ReceiptsPrimaryButtons } from './components/receipts-primary-buttons'
 import { ReceiptModalStandalone } from './components/receipt-modal-standalone'
 import { useReceiptsStore } from '@/stores/receiptsStore'
 import { Receipt } from '@/types/administration'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-function ReceiptsPage() {
+function ReceiptsPageContent() {
   const { fetchReceipts } = useReceiptsStore()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -101,4 +103,10 @@ function ReceiptsPage() {
   )
 }
 
-export default ReceiptsPage;
+export default function ReceiptsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_RECEIPT}>
+      <ReceiptsPageContent />
+    </ProtectedRoute>
+  )
+}

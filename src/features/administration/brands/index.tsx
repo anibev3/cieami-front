@@ -12,8 +12,10 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { Button } from '@/components/ui/button'
 import { PlusIcon } from 'lucide-react'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { Permission } from '@/types/auth'
 
-export default function BrandsPage() {
+function BrandsPageContent() {
   const { 
     brands, 
     loading, 
@@ -96,5 +98,13 @@ export default function BrandsPage() {
         </div>
       </Main>
     </>
+  )
+}
+
+export default function BrandsPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_BRAND}>
+      <BrandsPageContent />
+    </ProtectedRoute>
   )
 } 
