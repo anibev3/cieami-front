@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand'
 import { WorkFee, WorkFeeApiResponse } from './types'
 import * as api from './api'

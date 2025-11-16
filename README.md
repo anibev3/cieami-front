@@ -42,6 +42,28 @@ Install dependencies
   pnpm install
 ```
 
+### Configuration des variables d'environnement
+
+Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+
+```env
+# Configuration de l'API
+VITE_API_BASE_URL=https://api.example.com
+VITE_API_SUFIX=/api/v1
+
+# Configuration du rafraîchissement automatique des informations utilisateur
+# Intervalle de rafraîchissement en millisecondes (défaut: 20000 = 20 secondes)
+VITE_USER_REFRESH_INTERVAL=20000
+
+# Activer le rafraîchissement uniquement quand la fenêtre est visible (défaut: true)
+VITE_USER_REFRESH_ONLY_VISIBLE=true
+
+# Activer le rafraîchissement immédiat quand la fenêtre redevient visible (défaut: true)
+VITE_USER_REFRESH_ON_VISIBILITY_CHANGE=true
+```
+
+**Note:** Les variables d'environnement doivent commencer par `VITE_` pour être accessibles dans le code client.
+
 Start the server
 
 ```bash

@@ -2,7 +2,7 @@ import { ReactNode, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/stores/authStore'
 import { authService } from '@/services/authService'
-import { Loader2 } from 'lucide-react'
+import { AuthLoadingIndicator } from './AuthLoadingIndicator'
 
 interface StrictProtectedRouteProps {
   children: ReactNode
@@ -28,25 +28,18 @@ export function StrictProtectedRoute({ children, fallback }: StrictProtectedRout
     }
   }, [isAuthenticated, isLoading, navigate])
 
-  // Affichage d'un loader pendant la vérification
-  if (isLoading) {
-    return (
-      fallback || (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="flex flex-col items-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <p className="text-muted-foreground">Vérification de l'authentification...</p>
-          </div>
-        </div>
-      )
-    )
-  }
-
-  // Si l'utilisateur n'est pas authentifié, ne rien afficher
+  // Si l'utilisateur n'est pas authentifié et que le chargement est terminé, ne rien afficher
   // La redirection est gérée par useEffect
-  if (!isAuthenticated) {
+  if (!isLoading && !isAuthenticated) {
     return null
   }
 
-  return <>{children}</>
+  // Affichage d'un indicateur discret en haut à droite pendant la vérification
+  // Les enfants sont toujours affichés pour éviter le flash de contenu
+  return (
+    <>
+      {isLoading && (fallback || <AuthLoadingIndicator />)}
+      {children}
+    </>
+  )
 } 

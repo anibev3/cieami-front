@@ -7,33 +7,25 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 import SkipToMain from '@/components/skip-to-main'
 import { StrictProtectedRoute } from '@/components/auth'
 import { useAuth } from '@/stores/authStore'
-import { Loader2 } from 'lucide-react'
+import { useUserRefresh } from '@/hooks/useUserRefresh'
+import { USER_REFRESH_CONFIG } from '@/config/userRefresh'
 
 interface Props {
   children?: React.ReactNode
 }
 
 export function AuthenticatedLayout({ children }: Props) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated } = useAuth()
   const defaultOpen = Cookies.get('sidebar_state') !== 'false'
 
-  // Affichage d'un loader pendant la vérification de l'authentification
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Vérification de l'authentification...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Si l'utilisateur n'est pas authentifié, on ne rend rien
-  // La redirection sera gérée par le composant StrictProtectedRoute
-  if (!isAuthenticated) {
-    return null
-  }
+  // Rafraîchir périodiquement les informations utilisateur (permissions, rôles, etc.)
+  // Cela permet de mettre à jour automatiquement les permissions quand elles sont modifiées
+  // sans nécessiter une reconnexion de l'utilisateur
+  useUserRefresh({
+    interval: USER_REFRESH_CONFIG.DEFAULT_INTERVAL,
+    onlyWhenVisible: USER_REFRESH_CONFIG.ONLY_WHEN_VISIBLE,
+    enabled: isAuthenticated, // Activer uniquement si l'utilisateur est authentifié
+  })
 
   return (
     <StrictProtectedRoute>
