@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -197,7 +197,7 @@ function QuotePreparationSortableWorkforceRow({
         />
       </td>
             {/* Colonne peinture partielle/totale si workforce_type_id = 1 */}
-      {(row.workforce_type_id === 1 || String(row.workforce_type_id) === '1') ? (
+      {(row.workforce_type_id === 1 || String(row.workforce_type_id) === 'workforcetype_eLgoNjw3jE0MB') ? (
         <td className="border px-2 py-2 text-center text-[10px]">
           <div className="flex items-center justify-center gap-2">
             <Checkbox
@@ -405,26 +405,47 @@ export function QuotePreparationShockWorkforceTable({
   }, [withTax])
 
   // Charger les données nécessaires seulement si pas fournies en props
+  // Utiliser un ref pour éviter les appels multiples
+  const dataLoadedRef = useRef(false)
+  
   useEffect(() => {
+    // Si les données sont déjà chargées via ref, ne pas recharger
+    if (dataLoadedRef.current) return
+    
     const loadData = async () => {
-      if (!externalWorkforceTypes || !externalHourlyRates || !externalPaintTypes) {
-        try {
-          // Ajouter un timeout pour éviter le blocage
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 10000)
-          )
-          
-          await Promise.race([
-            Promise.all([
-              !externalWorkforceTypes && fetchWorkforceTypes(),
-              !externalHourlyRates && fetchHourlyRates(),
-              !externalPaintTypes && fetchPaintTypes()
-            ].filter(Boolean)),
-            timeoutPromise
-          ])
-        } catch (_error) {
-          toast.error('Erreur lors du chargement des données (timeout)')
+      // Vérifier si les données externes sont fournies ET non vides
+      const hasExternalWorkforceTypes = externalWorkforceTypes && externalWorkforceTypes.length > 0
+      const hasExternalHourlyRates = externalHourlyRates && externalHourlyRates.length > 0
+      const hasExternalPaintTypes = externalPaintTypes && externalPaintTypes.length > 0
+      
+      // Si toutes les données sont fournies, ne pas charger
+      if (hasExternalWorkforceTypes && hasExternalHourlyRates && hasExternalPaintTypes) {
+        dataLoadedRef.current = true
+        return
+      }
+      
+      // Charger seulement les données manquantes
+      try {
+        dataLoadedRef.current = true
+        // Ajouter un timeout pour éviter le blocage
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 10000)
+        )
+        
+        await Promise.race([
+          Promise.all([
+            !hasExternalWorkforceTypes && fetchWorkforceTypes(),
+            !hasExternalHourlyRates && fetchHourlyRates(),
+            !hasExternalPaintTypes && fetchPaintTypes()
+          ].filter(Boolean)),
+          timeoutPromise
+        ])
+      } catch (_error) {
+        // Ne pas afficher d'erreur si les données sont déjà disponibles via les stores
+        if (!hasExternalWorkforceTypes || !hasExternalHourlyRates || !hasExternalPaintTypes) {
+          // toast.error('Erreur lors du chargement des données (timeout)')
         }
+        dataLoadedRef.current = false // Réinitialiser en cas d'erreur
       }
     }
 
@@ -846,9 +867,6 @@ export function QuotePreparationShockWorkforceTable({
 
   // Fonction pour gérer le changement de type de peinture
   const handlePaintTypeChange = async (value: string) => {
-    console.log('🎨 handlePaintTypeChange called with value:', value)
-    console.log('🎨 paintTypes:', paintTypes)
-    console.log('🎨 paintTypeId before:', paintTypeId)
     
     // Appeler le callback parent en premier pour mettre à jour la prop
     onPaintTypeChange?.(value)
@@ -860,8 +878,6 @@ export function QuotePreparationShockWorkforceTable({
       const valueNormalized = String(value || '')
       return ptId === valueNormalized
     })
-    
-    console.log('🎨 selectedPaintType found:', selectedPaintType)
     
     if (selectedPaintType) {
       const updatedWorkforces = localWorkforces.map(workforce => ({
@@ -934,9 +950,6 @@ export function QuotePreparationShockWorkforceTable({
 
   // Fonction pour gérer le changement de taux horaire
   const handleHourlyRateChange = async (value: string) => {
-    console.log('⏰ handleHourlyRateChange called with value:', value)
-    console.log('⏰ hourlyRates:', hourlyRates)
-    console.log('⏰ hourlyRateId before:', hourlyRateId)
     
     // Appeler le callback parent en premier pour mettre à jour la prop
     onHourlyRateChange?.(value)
@@ -948,8 +961,6 @@ export function QuotePreparationShockWorkforceTable({
       const valueNormalized = String(value || '')
       return hrId === valueNormalized
     })
-    
-    console.log('⏰ selectedHourlyRate found:', selectedHourlyRate)
     
     if (selectedHourlyRate) {
       const updatedWorkforces = localWorkforces.map(workforce => ({

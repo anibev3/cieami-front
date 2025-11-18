@@ -9,7 +9,7 @@ import { useSuppliesStore } from '@/stores/supplies'
 import { useDebounce } from '@/hooks/use-debounce'
 
 interface Supply {
-  id: string
+  id: string | number
   code?: string
   label: string
   description?: string
@@ -52,13 +52,13 @@ export function SupplySelect({
         setSelectedSupply(foundInSupplies)
       } else {
         // L'élément n'est pas dans la liste fournie, le récupérer depuis l'API
-        // Tentative de récupération si l'ID est numérique
-        const numericId = Number(value)
-        if (!Number.isNaN(numericId) && numericId > 0) {
-          fetchSupplyById(numericId).then(supply => {
+        // L'ID peut être un string (hash ID) ou un number
+        const supplyId = value
+        if (supplyId) {
+          fetchSupplyById(supplyId).then(supply => {
             if (supply) {
-              // Normaliser en string
-              setSelectedSupply({ ...supply, id: String(supply.id) })
+              // Garder l'ID tel quel (string ou number)
+              setSelectedSupply({ ...supply, id: supply.id })
             }
           }).catch(() => {
             setSelectedSupply(null)

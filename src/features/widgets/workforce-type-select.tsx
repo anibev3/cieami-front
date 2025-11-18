@@ -1,16 +1,17 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, ChevronsUpDown, Plus, Check, X } from 'lucide-react'
+import { Users, ChevronsUpDown, Plus, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface WorkforceType {
   id: string | number
   label: string
   code: string
-  hourly_rate: number
+  hourly_rate?: number
+  description?: string
 }
 
 interface WorkforceTypeSelectProps {
@@ -121,9 +122,11 @@ export function WorkforceTypeSelect({
                         </Badge>
                       )}
                     </div>
-                    <div className="ml-auto text-xs text-muted-foreground">
-                      {workforceType.hourly_rate} FCFA/h
-                    </div>
+                    {workforceType.hourly_rate && (
+                      <div className="ml-auto text-xs text-muted-foreground">
+                        {workforceType.hourly_rate} FCFA/h
+                      </div>
+                    )}
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -169,9 +172,11 @@ export function WorkforceTypeSelect({
               </Badge>
             )}
           </div>
-          <div className="text-xs text-gray-600">
-            Taux horaire: {selectedWorkforceType.hourly_rate} FCFA/h
-          </div>
+          {selectedWorkforceType.hourly_rate && (
+            <div className="text-xs text-gray-600">
+              Taux horaire: {selectedWorkforceType.hourly_rate} FCFA/h
+            </div>
+          )}
         </div>
       )}
     </div>

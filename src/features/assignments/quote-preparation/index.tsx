@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -61,6 +61,7 @@ import { useACL } from '@/hooks/useACL'
 import { UserRole } from '@/types/auth'
 import assignmentValidationService from '@/services/assignmentValidationService'
 import { AssignmentStatusEnum } from '@/types/global-types'
+import { useSuppliesStore } from '@/stores/supplies'
 
 interface Assignment {
   id: number
@@ -496,24 +497,11 @@ interface Assignment {
 }
 
 interface Supply {
-  id: number
+  id: number | string
   label: string
   description: string
 }
 
-interface WorkforceType {
-  id: number
-  code: string
-  label: string
-  description: string
-}
-
-interface OtherCostType {
-  id: number
-  code: string
-  label: string
-  description: string
-}
 
 function QuotePreparationPageContent() {
   const { id } = useParams({ strict: false }) as { id: string } 
@@ -524,7 +512,6 @@ function QuotePreparationPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
   const [saving, setSaving] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // États pour les champs d'édition
   const [circumstance, setCircumstance] = useState('')
   const [damageDeclared, setDamageDeclared] = useState('')
@@ -552,20 +539,13 @@ function QuotePreparationPageContent() {
   const [workDuration, setWorkDuration] = useState('')
   
   // États pour les données de référence
-  const [generalStates, setGeneralStates] = useState<any[]>([])
-  const [claimNatures, setClaimNatures] = useState<any[]>([])
-  const [technicalConclusions, setTechnicalConclusions] = useState<any[]>([])
-  const [remarks, setRemarks] = useState<Array<{id: number, label: string, description: string}>>([])
-  
-  // États pour les données de référence
   const [supplies, setSupplies] = useState<Supply[]>([])
-  const [workforceTypes, setWorkforceTypes] = useState<WorkforceType[]>([])
-  const [otherCostTypes, setOtherCostTypes] = useState<OtherCostType[]>([])
   // Ajoute un state pour shockPoints
   const [shockPoints, setShockPoints] = useState([])
   // États pour les types de peinture et taux horaires
   const [paintTypes, setPaintTypes] = useState<Array<{ id: string | number; label: string; code?: string; description?: string }>>([])
   const [hourlyRates, setHourlyRates] = useState<Array<{ id: string | number; label: string; value?: string; description?: string }>>([])
+  const [workforceTypes, setWorkforceTypes] = useState<Array<{ id: number | string; code: string; label: string; description: string }>>([])
   
   // États pour les nouveaux champs de valeur de marché
   const [newMarketValue, setNewMarketValue] = useState<number | null>(null)
@@ -615,6 +595,10 @@ function QuotePreparationPageContent() {
 
   const [validating, setValidating] = useState(false)
   const [validatingRepairerInvoiceByExpert, setValidatingRepairerInvoiceByExpert] = useState(false)
+  
+  // Refs pour éviter les appels API multiples
+  const referenceDataLoadedRef = useRef(false)
+  const assignmentLoadedRef = useRef(false)
 
   // Restreindre l'accès: si expert/réparateur et le dossier n'est pas "realized", retour arrière
   // useEffect(() => {
@@ -763,13 +747,18 @@ function QuotePreparationPageContent() {
         }, 4000)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 
   // Charger les données du dossier
   useEffect(() => {
+    // Éviter les appels multiples
+    if (assignmentLoadedRef.current || !id) return
+    
     const fetchAssignment = async () => {
       try {
+        assignmentLoadedRef.current = true
         setLoading(true)
         const response = await assignmentService.getAssignment(id)
         
@@ -788,6 +777,7 @@ function QuotePreparationPageContent() {
         console.log(err)
         setError('Erreur lors du chargement du dossier')
         toast.error('Erreur lors du chargement du dossier')
+        assignmentLoadedRef.current = false // Réinitialiser en cas d'erreur
       } finally {
         setLoading(false)
       }
@@ -798,32 +788,22 @@ function QuotePreparationPageContent() {
 
   // Charger les données de référence
   useEffect(() => {
+    // Éviter les appels multiples
+    if (referenceDataLoadedRef.current) return
+    
     const fetchReferenceData = async () => {
       try {
-        // Charger les fournitures
-        const suppliesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SUPPLIES}?per_page=5`)
-        if (suppliesResponse.status === 200) {
-          setSupplies(suppliesResponse.data.data)
-        }
-
-        // Charger les types de main d'œuvre
-        const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=50`)
-        if (workforceTypesResponse.data.status === 200) {
-          setWorkforceTypes(workforceTypesResponse.data.data)
-        }
-
-        // Charger les types d'autres coûts
-        const otherCostTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.OTHER_COST_TYPES}?per_page=50`)
-        if (otherCostTypesResponse.status === 200 && Array.isArray(otherCostTypesResponse.data.data)) {
-          setOtherCostTypes(otherCostTypesResponse.data.data)
-        } else {
-          setOtherCostTypes([])
-        }
+        referenceDataLoadedRef.current = true
+        
+        // Charger les fournitures via le store (charge plus de données)
+        const { fetchSupplies } = useSuppliesStore.getState()
+        await fetchSupplies(1, {})
+        // Récupérer les fournitures du store après chargement
+        const storeSupplies = useSuppliesStore.getState().supplies
+        setSupplies(storeSupplies)
 
         // Charger les points de choc
         const shockPointsResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.SHOCK_POINTS}?per_page=50`)
-
-        console.log("================> shockPointsResponse", shockPointsResponse.status)
         if (shockPointsResponse.status === 200) {
           setShockPoints(shockPointsResponse.data.data)
         }
@@ -843,30 +823,18 @@ function QuotePreparationPageContent() {
         } else {
           console.error('Erreur lors du chargement des taux horaires:', hourlyRatesResponse.status)
         }
-        
-        // Charger les données pour les informations additionnelles
-        const generalStatesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/general-states?per_page=50`)
-        if (generalStatesResponse.status === 200) {
-          setGeneralStates(generalStatesResponse.data.data)
-        }
-        
-        const claimNaturesResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/claim-natures?per_page=50`)
-        if (claimNaturesResponse.status === 200) {
-          setClaimNatures(claimNaturesResponse.data.data)
-        }
-        
-        const technicalConclusionsResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/technical-conclusions?per_page=50`)
-        if (technicalConclusionsResponse.status === 200) {
-          setTechnicalConclusions(technicalConclusionsResponse.data.data)
-        }
-        
-        const remarksResponse = await axiosInstance.get(`${API_CONFIG.BASE_URL}/remarks?per_page=50`)
-        if (remarksResponse.status === 200) {
-          setRemarks(remarksResponse.data.data)
+
+        // Charger les types de main d'œuvre
+        const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=50`)
+        if (workforceTypesResponse.status === 200) {
+          // L'API retourne { data: [...], links: {...}, meta: {...} }
+          setWorkforceTypes(workforceTypesResponse.data.data || [])
+        } else {
+          console.error('Erreur lors du chargement des types de main d\'œuvre:', workforceTypesResponse.status)
         }
       } catch (err) {
         console.error('Erreur lors du chargement des données de référence:', err)
-        setOtherCostTypes([])
+        referenceDataLoadedRef.current = false // Réinitialiser en cas d'erreur
       }
     }
 
@@ -894,7 +862,7 @@ function QuotePreparationPageContent() {
   const handleConfirmReorderShocks = async (orderedIds?: number[]) => {
     if (!assignment) return
     try {
-      await assignmentService.reorderShocks(assignment.id, (orderedIds && orderedIds.length ? orderedIds : reorderShocksList.map((s) => s.id)))
+      await assignmentService.reorderShocks(String(assignment.id), (orderedIds && orderedIds.length ? orderedIds.map(id => String(id)) : reorderShocksList.map((s) => String(s.id))))
       toast.success('Ordre des chocs mis à jour')
       setShowReorderSheet(false)
       setSheetFocusShockId(null)
@@ -908,6 +876,7 @@ function QuotePreparationPageContent() {
   // Fonction pour rafraîchir les données du dossier
   const refreshAssignment = async () => {
     try {
+      // Ne pas réinitialiser le ref car c'est un refresh, pas un chargement initial
       const response = await assignmentService.getAssignment(id)
       
       if (response && typeof response === 'object' && 'data' in response) {
@@ -1005,7 +974,7 @@ function QuotePreparationPageContent() {
     
     setDeletingShock(true)
     try {
-      await assignmentService.deleteShock(shockToDelete)
+      await assignmentService.deleteShock(String(shockToDelete))
       toast.success('Choc supprimé avec succès')
       await refreshAssignment()
     } catch (error) {
@@ -1266,9 +1235,7 @@ function QuotePreparationPageContent() {
         {/* Structure responsive */}
         <div className="flex h-screen">
 
-          <div className={`flex-1 transition-all duration-300 ${
-            sidebarCollapsed && !isMobile ? '' : ''
-          }`}>
+          <div className="flex-1 transition-all duration-300">
             <ScrollArea className="h-full">
               <div className={`p-6 ${isMobile ? 'pb-24' : ''}`}>
 
@@ -1554,7 +1521,7 @@ function QuotePreparationPageContent() {
                                           return {
                                             id: work.id, // ID réel de l'API pour la réorganisation
                                             uid: work.id?.toString() || crypto.randomUUID(),
-                                            supply_id: work.supply?.id || 0,
+                                            supply_id: work.supply?.id || '',
                                             supply_label: work.supply?.label || work.supply_label || '',
                                             disassembly: work?.disassembly || false,
                                             replacement: work?.replacement || false,
@@ -1652,7 +1619,7 @@ function QuotePreparationPageContent() {
                                             toast.error('Erreur lors de la suppression')
                                           }
                                         }}
-                                        onValidateRow={async (index: number) => {
+                                        onValidateRow={async (_index: number) => {
                                           // Validation automatique après modification
                                           toast.success('Fourniture validée')
                                         }}
@@ -1695,6 +1662,7 @@ function QuotePreparationPageContent() {
                                           paint_type_id: shock?.paint_type?.id ? String(shock.paint_type.id) : undefined,
                                           hourly_rate_id: shock?.hourly_rate?.id ? String(shock.hourly_rate.id) : undefined
                                         }))}
+                                        workforceTypes={(workforceTypes || []).map(wt => ({ ...wt, id: String(wt.id) }))}
                                         paintTypes={(paintTypes || []).map(pt => ({ ...pt, id: String(pt.id) }))}
                                         hourlyRates={(hourlyRates || []).map(hr => ({ ...hr, id: String(hr.id) }))}
                                         onUpdate={(updatedWorkforces) => {
@@ -2268,6 +2236,14 @@ function QuotePreparationPageContent() {
         title="Réorganiser les points de choc"
       />
     </>
+  )
+}
+
+export default function QuotePreparationPage() {
+  return (
+    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT}>
+      <QuotePreparationPageContent />
+    </ProtectedRoute>
   )
 }
 

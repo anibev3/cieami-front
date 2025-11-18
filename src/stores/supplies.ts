@@ -30,7 +30,7 @@ interface SuppliesState {
   pagination: SupplyPagination
   filters: SupplyFilters
   fetchSupplies: (page?: number, filters?: SupplyFilters) => Promise<void>
-  fetchSupplyById: (id: number) => Promise<Supply>
+  fetchSupplyById: (id: number | string) => Promise<Supply>
   createSupply: (data: SupplyCreate) => Promise<Supply>
   updateSupply: (id: number | string, data: SupplyUpdate) => Promise<void>
   deleteSupply: (id: number | string) => Promise<void>
@@ -71,8 +71,8 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       const params: Record<string, string | number | undefined> = {
-        // page,
-        per_page: 25, // Pagination par défaut
+        page,
+        per_page: 50, // Augmenter pour charger plus de fournitures par défaut
         ...filters,
       }
       const response = await suppliesService.getSupplies(params)
@@ -103,7 +103,7 @@ export const useSuppliesStore = create<SuppliesState>((set, get) => ({
     set({ pagination: { ...get().pagination, currentPage: page } })
   },
 
-  fetchSupplyById: async (id: number) => {
+  fetchSupplyById: async (id: number | string) => {
     try {
       const supply = await suppliesService.getSupplyById(id)
       return supply

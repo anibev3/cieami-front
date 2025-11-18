@@ -1,7 +1,7 @@
 import { Status } from './painting-prices'
 
 export interface WorkforceType {
-  id: number
+  id: number | string
   code: string
   label: string
   description: string
