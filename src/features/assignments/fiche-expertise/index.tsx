@@ -48,7 +48,6 @@ import { Main } from '@/components/layout/main'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
 import { assignmentService } from '@/services/assignmentService'
-import { ShockWorkforceTableV2 } from '@/features/assignments/components/shock-workforce-table-v2'
 import { ExpertiseSheetShockSuppliesTable } from '@/features/assignments/components/assignment/expertise-sheet/expertise-sheet-shock-supplies-table'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
@@ -624,13 +623,13 @@ function ExpertiseSheetPageContent() {
   const [validating, setValidating] = useState(false)
 
   // Restreindre l'accès: si expert/réparateur et le dossier n'est pas "realized", retour arrière
-  useEffect(() => {
-    if (!assignment) return
-    if ((isExpert || isRepairer) && assignment?.status?.code !== 'realized') {
-      toast.error('Accès non autorisé: le dossier doit être réalisé')
-      window.history.back()
-    }
-  }, [assignment?.status?.code, isExpert, isRepairer])
+  // useEffect(() => {
+  //   if (!assignment) return
+  //   if ((isExpert || isRepairer) && assignment?.status?.code !== 'realized') {
+  //     toast.error('Accès non autorisé: le dossier doit être réalisé')
+  //     window.history.back()
+  //   }
+  // }, [assignment?.status?.code, isExpert, isRepairer])
 
   const validateAssignment = async () => {
     if (!assignment) return
@@ -905,10 +904,10 @@ function ExpertiseSheetPageContent() {
     setShowReorderSheet(true)
   }
 
-  const handleConfirmReorderShocks = async (orderedIds?: number[]) => {
+  const handleConfirmReorderShocks = async (orderedIds?: Array<string>) => {
     if (!assignment) return
     try {
-      await assignmentService.reorderShocks(assignment.id, (orderedIds && orderedIds.length ? orderedIds : reorderShocksList.map((s) => s.id)))
+      await assignmentService.reorderShocks(String(assignment.id), (orderedIds && orderedIds.length ? orderedIds.map(String) : reorderShocksList.map((s) => String(s.id))))
       toast.success('Ordre des chocs mis à jour')
       setShowReorderSheet(false)
       setSheetFocusShockId(null)
@@ -936,9 +935,9 @@ function ExpertiseSheetPageContent() {
   }
 
   // Fonction pour réorganiser les fournitures d'un choc
-  const handleReorderShockWorks = async (shockId: number, shockWorkIds: number[]) => {
+  const handleReorderShockWorks = async (shockId: string, shockWorkIds: string[]) => {
     try {
-      await assignmentService.reorderShockWorks(shockId, shockWorkIds)
+      await assignmentService.reorderShockWorks(shockId, shockWorkIds.map(String))
       await refreshAssignment()
       toast.success('Ordre des fournitures mis à jour')
     } catch (error) {
@@ -1024,7 +1023,7 @@ function ExpertiseSheetPageContent() {
     
     setDeletingShock(true)
     try {
-      await assignmentService.deleteShock(shockToDelete)
+      await assignmentService.deleteShock(String(shockToDelete))
       toast.success('Choc supprimé avec succès')
       await refreshAssignment()
     } catch (error) {
@@ -1763,9 +1762,9 @@ function ExpertiseSheetPageContent() {
                                             // Validation automatique après modification
                                             toast.success('Fourniture validée')
                                           }}
-                                          shockId={shock?.id}
-                                          paintTypeId={shock?.paint_type?.id || 1}
-                                          onReorderSave={async (shockWorkIds) => handleReorderShockWorks(shock?.id, shockWorkIds)}
+                                          shockId={String(shock?.id || '')}
+                                          paintTypeId={String(shock?.paint_type?.id || 1)}
+                                          onReorderSave={async (shockWorkIds) => handleReorderShockWorks(String(shock?.id || ''), shockWorkIds)}
                                           onAssignmentRefresh={refreshAssignment}
                                         />
                                       </div>
@@ -2237,7 +2236,7 @@ function ExpertiseSheetPageContent() {
         onOpenChange={setShowReorderSheet}
         shocks={reorderShocksList}
         focusShockId={sheetFocusShockId}
-        onConfirm={(ids) => handleConfirmReorderShocks(ids)}
+        onConfirm={(ids) => handleConfirmReorderShocks(ids.map(String))}
         title="Réorganiser les points de choc"
       />
     </>
