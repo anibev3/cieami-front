@@ -40,8 +40,12 @@ export const useAssignmentMessagesStore = create<AssignmentMessagesStore>((set, 
     set({ loading: true, error: null })
     try {
       const response = await assignmentMessageService.getMessages(assignmentId, page)
+      // Trier les messages par date croissante (du plus ancien au plus récent)
+      const sortedMessages = [...response.data].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
       set({
-        messages: response.data,
+        messages: sortedMessages,
         pagination: {
           currentPage: response.meta.current_page,
           totalPages: response.meta.last_page,
@@ -61,14 +65,20 @@ export const useAssignmentMessagesStore = create<AssignmentMessagesStore>((set, 
     set({ loading: true, error: null })
     try {
       const newMessage = await assignmentMessageService.createMessage(data)
-      set((state) => ({
-        messages: [newMessage, ...state.messages],
-        pagination: {
-          ...state.pagination,
-          totalItems: state.pagination.totalItems + 1,
-        },
-        loading: false,
-      }))
+      set((state) => {
+        // Ajouter le nouveau message et trier par date croissante
+        const updatedMessages = [...state.messages, newMessage].sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+        return {
+          messages: updatedMessages,
+          pagination: {
+            ...state.pagination,
+            totalItems: state.pagination.totalItems + 1,
+          },
+          loading: false,
+        }
+      })
       toast.success('Message envoyé avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'envoi du message'
@@ -81,10 +91,17 @@ export const useAssignmentMessagesStore = create<AssignmentMessagesStore>((set, 
     set({ loading: true, error: null })
     try {
       const updatedMessage = await assignmentMessageService.updateMessage(id, data)
-      set((state) => ({
-        messages: state.messages.map((msg) => (msg.id === id ? updatedMessage : msg)),
-        loading: false,
-      }))
+      set((state) => {
+        // Mettre à jour le message et trier par date croissante
+        const updatedMessages = state.messages.map((msg) => (msg.id === id ? updatedMessage : msg))
+        const sortedMessages = updatedMessages.sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+        return {
+          messages: sortedMessages,
+          loading: false,
+        }
+      })
       toast.success('Message modifié avec succès')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la modification du message'

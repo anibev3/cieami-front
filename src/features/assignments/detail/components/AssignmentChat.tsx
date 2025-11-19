@@ -49,18 +49,80 @@ export function AssignmentChat({ assignmentId, onClose }: AssignmentChatProps) {
   const [sending, setSending] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastMessageIdRef = useRef<string | null>(null)
 
   // Charger les messages au montage et quand assignmentId change
   useEffect(() => {
     if (assignmentId) {
-      fetchMessages(assignmentId)
+      fetchMessages(assignmentId).then(() => {
+        // La référence sera mise à jour dans le useEffect suivant
+      })
+    }
+    
+    // Nettoyer le polling quand le composant se démonte ou assignmentId change
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
+  }, [assignmentId, fetchMessages])
+  
+  // Mettre à jour la référence du dernier message quand les messages changent
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage) {
+        lastMessageIdRef.current = lastMessage.id
+      }
+    }
+  }, [messages])
+
+  // Polling toutes les 30 secondes pour mettre à jour les messages
+  useEffect(() => {
+    if (!assignmentId) return
+
+    // Nettoyer l'intervalle existant
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+
+    // Créer un nouvel intervalle
+    pollingIntervalRef.current = setInterval(() => {
+      const previousLastMessageId = lastMessageIdRef.current
+      fetchMessages(assignmentId).then(() => {
+        // Vérifier si un nouveau message est arrivé en comparant avec la référence précédente
+        // La référence sera mise à jour dans le useEffect qui surveille messages
+        // Scroll automatique seulement si un nouveau message arrive
+        setTimeout(() => {
+          if (lastMessageIdRef.current !== previousLastMessageId && messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+          }
+        }, 100)
+      }).catch((error) => {
+        console.error('Erreur lors du polling des messages:', error)
+      })
+    }, 30000) // 30 secondes
+
+    // Nettoyer l'intervalle à la destruction
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
     }
   }, [assignmentId, fetchMessages])
 
   // Auto-scroll vers le bas quand de nouveaux messages arrivent
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      // Petit délai pour s'assurer que le DOM est mis à jour
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
     }
   }, [messages])
 
@@ -74,12 +136,20 @@ export function AssignmentChat({ assignmentId, onClose }: AssignmentChatProps) {
         message: messageText.trim(),
       })
       setMessageText('')
+      // Rafraîchir les messages après l'envoi pour s'assurer que tout est à jour
+      await fetchMessages(assignmentId)
+      // Scroll vers le bas après l'envoi
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 200)
     } catch (error) {
       console.error('Erreur lors de l\'envoi du message:', error)
     } finally {
       setSending(false)
     }
-  }, [messageText, assignmentId, createMessage, sending])
+  }, [messageText, assignmentId, createMessage, sending, fetchMessages])
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -125,7 +195,9 @@ export function AssignmentChat({ assignmentId, onClose }: AssignmentChatProps) {
   }, [messageToDelete, deleteMessage])
 
   const isCurrentUserMessage = useCallback((message: AssignmentMessage) => {
-    return currentUser?.id && message.created_by?.id && currentUser.id === message.created_by.id
+    if (!currentUser?.id || !message.created_by?.id) return false
+    // Comparer les IDs (peuvent être des hash IDs, donc conversion en string pour être sûr)
+    return String(currentUser.id) === String(message.created_by.id)
   }, [currentUser])
 
   const formatMessageTime = (dateString: string) => {
@@ -204,10 +276,12 @@ export function AssignmentChat({ assignmentId, onClose }: AssignmentChatProps) {
                 </p>
               </div>
             ) : (
+              // Les messages sont déjà triés par date croissante dans le store
               messages.map((message, index) => {
                 const isCurrentUser = isCurrentUserMessage(message)
                 const prevMessage = index > 0 ? messages[index - 1] : null
-                const showAvatar = !prevMessage || prevMessage.created_by?.id !== message.created_by?.id || 
+                const showAvatar = !prevMessage || 
+                  String(prevMessage.created_by?.id) !== String(message.created_by?.id) || 
                   new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime() > 300000 // 5 minutes
                 
                 return (
