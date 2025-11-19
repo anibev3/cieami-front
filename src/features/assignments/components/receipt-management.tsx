@@ -180,7 +180,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
         amount: calculatedReceipt.amount_excluding_tax
       }))
 
-      await receiptService.createMultipleReceipts(Number(assignmentId), receiptsToCreateWithCalculatedAmounts)
+      await receiptService.createMultipleReceipts(assignmentId, receiptsToCreateWithCalculatedAmounts)
       toast.success(`${calculationResult.receipts.length} quittance(s) créée(s) avec succès`)
       
       // Réinitialiser les états
@@ -199,7 +199,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
 
   // Vérifier si le type de quittance est automatique (ID = 1)
   const isAutomaticReceiptType = (receiptTypeId: string) => {
-    return receiptTypeId === 'rec_eLgoNjw3jE0MB'
+    return receiptTypeId === 'receipttype_eLgoNjw3jE0MB'
   }
 
   // Ouvrir le modal de modification
@@ -292,7 +292,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
       if (selectedReceipt) {
         // Modification
         await receiptService.updateReceipt(selectedReceipt.id, {
-          assignment_id: Number(assignmentId),
+          assignment_id: assignmentId,
           receipt_type_id: formData.receipt_type_id,
           amount: formData.amount
         })
@@ -306,7 +306,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
           return
         }
         
-        await receiptService.createMultipleReceipts(Number(assignmentId), receiptsToCreate)
+        await receiptService.createMultipleReceipts(assignmentId, receiptsToCreate)
         toast.success(`${receiptsToCreate.length} quittance(s) créée(s) avec succès`)
         setIsCreateModalOpen(false)
         setReceiptsToCreate([])
@@ -373,13 +373,13 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h4 className="font-semibold text-gray-900">{receipt.receipt_type.label}</h4>
-                      <Badge variant="outline" className="text-xs">
+                      {/* <Badge variant="outline" className="text-xs">
                         {receipt.receipt_type.code}
-                      </Badge>
+                      </Badge> */}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    {/* <div className="text-sm text-gray-600">
                       ID: {receipt.id}
-                    </div>
+                    </div> */}
                   </div>
                   
                   <div className="text-right mr-4">
@@ -427,18 +427,18 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
 
       {/* Récapitulatif */}
       {receipts.length > 0 && (
-        <Card className="shadow-none bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+        <Card className="shadow-none bg-gradient-to-r from-gray-50 to-gray-50 border-gray-200">
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-semibold text-green-800 mb-1">Récapitulatif</h4>
-                <p className="text-sm text-green-600">
+                <h4 className="font-semibold text-gray-800 mb-1">Récapitulatif</h4>
+                <p className="text-sm text-gray-600">
                   {receipts.length} quittance(s) enregistrée(s)
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Total des quittances</p>
-                <p className="text-xl font-bold text-green-600">{formatCurrency(totalReceipts)}</p>
+                <p className="text-xl font-bold text-gray-600">{formatCurrency(totalReceipts)}</p>
               </div>
             </div>
           </CardContent>
@@ -450,8 +450,8 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-full">
-                <Plus className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-gray-100 rounded-full">
+                <Plus className="h-5 w-5 text-gray-600" />
               </div>
               Ajouter des quittances
             </DialogTitle>
@@ -543,25 +543,25 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                   {receiptsToCreate.map((receipt, index) => {
                     const receiptType = receiptTypes.find(type => type && type.id === receipt.receipt_type_id)
                     return (
-                      <Card key={index} className="border-blue-200 bg-blue-50 shadow-none w-1/2 flex justify-between">
+                      <Card key={index} className="border-gray-200 bg-gray-50 shadow-none flex justify-between">
                         <CardContent className="">
                           <div className=''>
                             <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-1">
-                                <h5 className="font-semibold text-blue-800">
+                                <h5 className="font-semibold text-gray-800">
                                   {receiptType?.label || 'Type inconnu'}
                                 </h5>
-                                <Badge variant="outline" className="text-xs">
+                                {/* <Badge variant="outline" className="text-xs">
                                   {receiptType?.code || 'N/A'}
-                                </Badge>
+                                </Badge> */}
                                 {isAutomaticReceiptType(receipt.receipt_type_id) && (
                                   <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
-                                    Calcul automatique
+                                    Calcul aut.
                                   </Badge>
                                 )}
                               </div>
-                              <div className="text-sm text-blue-600">
+                              <div className="text-sm text-gray-600">
                                 Montant: {formatCurrency(receipt.amount)}
                               </div>
                             </div>
@@ -588,11 +588,11 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
             {showCalculationResults && calculationResult && (
               <div className="space-y-4">
                 <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <Calculator className="h-5 w-5 text-green-600" />
+                  <Calculator className="h-5 w-5 text-gray-600" />
                   Résultats du calcul
                 </h4>
                 
-                <Card className="border-green-200 bg-green-50 shadow-none">
+                <Card className="border-gray-200 bg-gray-50 shadow-none">
                   <CardContent className="p-4">
                     <Table>
                       <TableHeader>
@@ -620,7 +620,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                               </TableCell>
                               <TableCell>{formatCurrency(calculatedReceipt.amount_excluding_tax)}</TableCell>
                               <TableCell>{formatCurrency(calculatedReceipt.amount_tax)}</TableCell>
-                              <TableCell className="font-bold text-green-600">
+                              <TableCell className="font-bold text-gray-600">
                                 {formatCurrency(calculatedReceipt.amount)}
                               </TableCell>
                             </TableRow>
@@ -628,24 +628,25 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                         })}
                       </TableBody>
                     </Table>
+                    <div className="mt-4 pt-4 border-t border-gray-200"> </div>
                     
-                    <div className="mt-4 pt-4 border-t border-green-200">
+                    <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
                           <p className="text-sm text-gray-600">Total HT</p>
-                          <p className="text-lg font-bold text-blue-600">
+                          <p className="text-lg font-bold text-gray-600">
                             {formatCurrency(calculationResult.receipt_amount_excluding_tax)}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Total TVA</p>
-                          <p className="text-lg font-bold text-orange-600">
+                          <p className="text-lg font-bold text-gray-600">
                             {formatCurrency(calculationResult.receipt_amount_tax)}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Total TTC</p>
-                          <p className="text-xl font-bold text-green-600">
+                          <p className="text-xl font-bold text-gray-600">
                             {formatCurrency(calculationResult.receipt_amount)}
                           </p>
                         </div>
@@ -675,7 +676,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
               <Button 
                 onClick={createReceiptsAfterCalculation}
                 disabled={saving}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-gray-600 hover:bg-gray-700"
               >
                 {saving ? (
                   <>
@@ -693,7 +694,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
               <Button 
                 onClick={handleSave}
                 disabled={saving || receiptsToCreate.length === 0}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-gray-600 hover:bg-gray-700"
               >
                 {saving ? (
                   <>
@@ -717,7 +718,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-full">
+              <div className="p-2 bg-gray-100 rounded-full">
                 <Edit className="h-5 w-5 text-orange-600" />
               </div>
               Modifier la quittance
@@ -762,7 +763,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
             <Button 
               onClick={handleSave}
               disabled={saving || !formData.receipt_type_id || !formData.amount}
-              className="bg-orange-600 hover:bg-orange-700"
+              className="bg-gray-600 hover:bg-gray-700"
             >
               {saving ? (
                 <>
@@ -785,7 +786,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-full">
+              <div className="p-2 bg-gray-100 rounded-full">
                 <Eye className="h-5 w-5 text-blue-600" />
               </div>
               Détails de la quittance
@@ -862,7 +863,7 @@ export function ReceiptManagement({ assignmentId, receipts, onRefresh }: Receipt
                     <p className="text-sm text-red-600">
                       Montant: {formatCurrency(receiptToDelete.amount)}
                     </p>
-                    <p className="text-xs text-red-500">ID: {receiptToDelete.id}</p>
+                    {/* <p className="text-xs text-red-500">ID: {receiptToDelete.id}</p> */}
                   </div>
                 </div>
               </div>

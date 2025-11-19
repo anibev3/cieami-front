@@ -10,7 +10,8 @@ import {
   Download,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -41,6 +42,7 @@ export function AssignmentActions({
 }: AssignmentActionsProps) {
   const navigate = useNavigate()
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const { generateReport, loading } = useAssignmentsStore()
   const { hasAnyRole, isSystemAdmin, isAdmin } = useACL()
   const isRepairerReadOnly = hasAnyRole([UserRole.REPAIRER_ADMIN, UserRole.REPAIRER_STANDARD_USER])
@@ -179,7 +181,7 @@ export function AssignmentActions({
           label: 'Générer le rapport',
           icon: Download,
           onClick: async () => {
-            await generateReport(typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id)
+            await generateReport(assignment.id.toString())
           },
           show: true,
           destructive: false,
@@ -301,13 +303,13 @@ export function AssignmentActions({
 
   // Actions limitées pour SYSTEM_ADMIN et ADMIN : seulement Modifier et Générer le rapport
   const getLimitedAdminActions = (statusCode: string) => {
-    const assignmentId = typeof assignment.id === 'string' ? parseInt(assignment.id, 10) : assignment.id
+    const assignmentId = assignment.id
     const actions = [
       {
         key: 'view-detail',
         label: 'Voir le détail',
         icon: ExternalLink,
-        onClick: () => onViewDetail(assignmentId.toString()),
+        onClick: () => onViewDetail(assignmentId),
         show: true,
         destructive: false,
       },
@@ -394,7 +396,13 @@ export function AssignmentActions({
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={isDropdownOpen} onOpenChange={(open) => {
+        // Empêcher la fermeture du menu pendant le chargement
+        if (!open && loading) {
+          return
+        }
+        setIsDropdownOpen(open)
+      }}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">Ouvrir le menu</span>
@@ -405,15 +413,45 @@ export function AssignmentActions({
           {availableActions.map((action) => {
             const IconComponent = action.icon
             const isGenerate = action.key === 'generate-report'
+            const isLoading = isGenerate && loading
             return (
               <DropdownMenuItem
                 key={action.key}
-                onClick={action.onClick}
+                onClick={async (e) => {
+                  if (isLoading) {
+                    e.preventDefault()
+                    return
+                  }
+                  if (isGenerate) {
+                    // Garder le menu ouvert pendant le chargement
+                    e.preventDefault()
+                    await action.onClick()
+                    // Fermer le menu après la fin du chargement
+                    setIsDropdownOpen(false)
+                  } else {
+                    action.onClick()
+                  }
+                }}
                 className={action.destructive ? 'text-destructive' : ''}
-                disabled={isGenerate ? loading : false}
+                disabled={isLoading}
+                onSelect={(e) => {
+                  // Empêcher la sélection (qui ferme le menu) pendant le chargement
+                  if (isLoading) {
+                    e.preventDefault()
+                  }
+                }}
               >
-                <IconComponent className="mr-2 h-4 w-4" />
-                {action.label}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {action.label}
+                  </>
+                ) : (
+                  <>
+                    <IconComponent className="mr-2 h-4 w-4" />
+                    {action.label}
+                  </>
+                )}
               </DropdownMenuItem>
             )
           })}
