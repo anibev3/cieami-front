@@ -313,7 +313,11 @@ function AssignmentRequestDetailPageContent() {
                     {request.expert_firm && (
                       <div>
                         <p className="text-xs font-medium text-muted-foreground mb-1">Cabinet d'expertise</p>
-                        <p className="text-sm font-semibold">{request.expert_firm}</p>
+                        <p className="text-sm font-semibold">
+                          {typeof request.expert_firm === 'string' 
+                            ? request.expert_firm 
+                            : request.expert_firm.name || request.expert_firm.code}
+                        </p>
                       </div>
                     )}
                   </div>

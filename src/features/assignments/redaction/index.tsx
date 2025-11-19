@@ -56,7 +56,8 @@ import {
   Star,
   AlertTriangle,
   GripVertical,
-  List
+  List,
+  Shield
 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -90,6 +91,9 @@ import { cn } from '@/lib/utils'
 import { ShockReorderSheet, type ShockItem } from '@/features/assignments/components/shock-reorder-sheet'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
+import { useACL } from '@/hooks/useACL'
+import { AssignmentStatusEnum } from '@/types/global-types'
+import assignmentValidationService from '@/services/assignmentValidationService'
 
 interface Assignment {
   id: string
@@ -544,7 +548,7 @@ interface OtherCostType {
   description: string
 }
 
-export default function EditReportPage() {
+function EditReportContent() {
   const { id } = useParams({ strict: false }) as { id: string } 
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -643,6 +647,8 @@ export default function EditReportPage() {
   const [reorderShocksList, setReorderShocksList] = useState<ShockItem[]>([])
   
   const [sheetFocusShockId, setSheetFocusShockId] = useState<string | null>(null)
+  const [validatingEdition, setValidatingEdition] = useState(false)
+  const { isExpertAdmin } = useACL()
 
   // Fonction pour changer d'onglet et mettre à jour l'URL
   const changeActiveTab = (tab: string) => {
@@ -1129,6 +1135,23 @@ export default function EditReportPage() {
     }
   }
 
+  // Fonction pour valider l'édition
+  const handleValidateEdition = async () => {
+    if (!assignment) return
+    
+    setValidatingEdition(true)
+    try {
+      await assignmentValidationService.validateEdition(String(assignment.id))
+      toast.success('Édition validée avec succès')
+      // Rediriger vers la page de détail après validation
+      navigate({ to: `/assignments/details/${assignment.id}` })
+    } catch (_error) {
+      toast.error('Erreur lors de la validation de l\'édition')
+    } finally {
+      setValidatingEdition(false)
+    }
+  }
+
   // Fonction de sauvegarde
   const handleSave = async () => {
     setSaving(true)
@@ -1334,14 +1357,17 @@ export default function EditReportPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate({ to: '/assignments' })}
+                  // onClick={() => navigate({ to: '/assignments' })}
+                    onClick={() => {
+                    navigate({ to: `/assignments/${assignment.id}` })
+                  }}
                   className="hover:bg-gray-100"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 {!sidebarCollapsed && (
                   <div>
-                    <h1 className="text-sm font-bold">Modifier la redaction</h1>
+                    <h1 className="text-sm font-bold">Redaction du rapport</h1>
                     <p className="text-xs text-gray-500">#{assignment.reference}</p>
                   </div>
                 )}
@@ -1505,6 +1531,27 @@ export default function EditReportPage() {
 
                 <div className="space-y-4 mb-4">
                   <div className="flex items-center justify-end gap-2">
+                    {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={handleValidateEdition}
+                        disabled={validatingEdition}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {validatingEdition ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            Validation...
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="h-3 w-3 mr-2" />
+                            Valider l'édition
+                          </>
+                        )}
+                      </Button>
+                    )}
                     <Button size="sm" onClick={() => navigate({ to: `/assignments/edit/${assignment.id}` })}>
                       Modifier le dossier
                     </Button>
@@ -3664,7 +3711,7 @@ export default function EditReportPage() {
 export default function EditReportPage() {
   return (
     <ProtectedRoute requiredPermission={Permission.EDIT_ASSIGNMENT}>
-      <EditReportPageContent />
+      <EditReportContent />
     </ProtectedRoute>
   )
 }

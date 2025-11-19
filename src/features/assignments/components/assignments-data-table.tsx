@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -43,11 +44,11 @@ export function AssignmentsDataTable({ data, loading = false, onSearch }: Assign
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null)
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
   
   const { deleteAssignment } = useAssignmentsStore()
 
-  const handleViewDetail = (assignmentId: number) => {
+  const handleViewDetail = (assignmentId: string) => {
     navigate({ to: `/assignments/${assignmentId}` })
   }
 
@@ -69,7 +70,7 @@ export function AssignmentsDataTable({ data, loading = false, onSearch }: Assign
     }
   }
 
-  const handleOpenReceiptModal = async (assignmentId: number, _amount: number) => {
+  const handleOpenReceiptModal = async (assignmentId: string, _amount: number) => {
     console.log('handleOpenReceiptModal appelé avec:', { assignmentId })
     setSelectedAssignmentId(assignmentId)
     setIsReceiptModalOpen(true)

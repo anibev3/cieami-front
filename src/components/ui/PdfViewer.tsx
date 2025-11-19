@@ -13,7 +13,7 @@ interface PdfViewerProps {
 export function PdfViewer({ open, onOpenChange, url, title }: PdfViewerProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden">
+      <DialogContent className="w-full max-w-4xl p-0 overflow-hidden">
         <DialogHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
           <DialogTitle>{title || 'Document PDF'}</DialogTitle>
           {/* <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>

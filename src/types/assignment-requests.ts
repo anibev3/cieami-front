@@ -7,7 +7,22 @@ export interface AssignmentRequest {
   claim_date: string | null
   expertise_place: string | null
   new_market_value: string | null
-  expert_firm: string | null
+  expert_firm: string | {
+    id: string
+    code: string
+    name: string
+    prefix: string | null
+    suffix: string | null
+    email: string
+    telephone: string | null
+    address: string | null
+    taxpayer_account_number: string | null
+    service_description: string | null
+    footer_description: string | null
+    logo: string | null
+    created_at: string
+    updated_at: string
+  } | null
   insurer: {
     id: string
     code: string

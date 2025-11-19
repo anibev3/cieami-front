@@ -25,18 +25,18 @@ import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 
 interface ReceiptType {
-  id: number
+  id: string
   label: string
   code: string
 }
 
 interface Receipt {
-  id?: number
+  id?: string
   amount_excluding_tax: string
   amount_tax: string
   amount: string
   receipt_type: {
-    id: number
+    id: string
     code: string
     label: string
   }
@@ -45,7 +45,7 @@ interface Receipt {
 }
 
 interface ReceiptFormData {
-  receipt_type_id: number
+  receipt_type_id: string | null
   amount: number
 }
 
@@ -73,7 +73,7 @@ interface AssignmentDetail {
 
 interface ReceiptModalProps {
   isOpen: boolean
-  assignmentId: number
+  assignmentId: string
   onSave: (receipts: Receipt[]) => void
   onClose: () => void
 }
@@ -95,7 +95,7 @@ export function ReceiptModal({
   const [isCalculating, setIsCalculating] = useState(false)
   const [showCalculationResults, setShowCalculationResults] = useState(false)
   const [formData, setFormData] = useState<ReceiptFormData>({
-    receipt_type_id: 0,
+    receipt_type_id: null,
     amount: 0
   })
   
@@ -117,7 +117,11 @@ export function ReceiptModal({
         axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`)
       ])
 
-      setReceiptTypes(typesResponse.data)
+      setReceiptTypes(typesResponse.data.map((type) => ({
+        id: String(type.id),
+        label: type.label,
+        code: type.code
+      })))
       setAssignmentDetail(assignmentResponse.data.data)
       
       // Convertir les quittances existantes au format du modal
@@ -135,8 +139,8 @@ export function ReceiptModal({
   }
 
   // Vérifier si le type de quittance est automatique (ID = 1)
-  const isAutomaticReceiptType = (receiptTypeId: number) => {
-    return receiptTypeId === 1
+  const isAutomaticReceiptType = (receiptTypeId: string | null) => {
+    return receiptTypeId === '1'
   }
 
   // Formater les montants
@@ -180,7 +184,7 @@ export function ReceiptModal({
       amount_tax: '0',
       amount: receiptToAdd.amount.toString(),
       receipt_type: {
-        id: receiptType?.id || 1,
+        id: receiptType?.id || '1',
         code: receiptType?.code || '',
         label: receiptType?.label || ''
       },
@@ -188,7 +192,7 @@ export function ReceiptModal({
     }
     
     setReceipts([...receipts, newReceipt])
-    setFormData({ receipt_type_id: 0, amount: 0 })
+    setFormData({ receipt_type_id: null, amount: 0 })
   }
 
   // Fonction pour calculer les quittances
@@ -235,7 +239,7 @@ export function ReceiptModal({
       
       // Créer les quittances avec les montants calculés
       const receiptsToCreateWithCalculatedAmounts = calculationResult.receipts.map(calculatedReceipt => ({
-        receipt_type_id: Number(calculatedReceipt.receipt_type_id),
+        receipt_type_id: calculatedReceipt.receipt_type_id,
         amount: calculatedReceipt.amount_excluding_tax
       }))
 
@@ -391,7 +395,7 @@ export function ReceiptModal({
                     <ReceiptTypeSelect
                       value={formData.receipt_type_id || null}
                       onValueChange={(value) => {
-                        const newReceiptTypeId = value || 0
+                        const newReceiptTypeId = value || null
                         setFormData({ 
                           receipt_type_id: newReceiptTypeId,
                           amount: isAutomaticReceiptType(newReceiptTypeId) ? 0 : formData.amount
@@ -542,13 +546,13 @@ export function ReceiptModal({
                       </TableHeader>
                       <TableBody>
                         {calculationResult.receipts.map((calculatedReceipt, index) => {
-                          const receiptType = receiptTypes.find(type => type && type.id === Number(calculatedReceipt.receipt_type_id))
+                          const receiptType = receiptTypes.find(type => type && type.id === calculatedReceipt.receipt_type_id)
                           return (
                             <TableRow key={index}>
                               <TableCell className="font-medium">
                                 <div className="flex items-center gap-2">
                                   <span>{receiptType?.label || 'Type inconnu'}</span>
-                                  {isAutomaticReceiptType(Number(calculatedReceipt.receipt_type_id)) && (
+                                  {isAutomaticReceiptType(calculatedReceipt.receipt_type_id) && (
                                     <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
                                       Auto
                                     </Badge>

@@ -48,7 +48,7 @@ const assignmentSchema = z.object({
 })
 
 interface AssignmentMutateDialogProps {
-  id: number | null
+  id: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -64,10 +64,10 @@ export function AssignmentMutateDialog({ id, open, onOpenChange }: AssignmentMut
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
       reference: '',
-      client_id: 0,
-      vehicle_id: 0,
-      assignment_type_id: 0,
-      expert_id: 0,
+      client_id: null,
+      vehicle_id: null,
+      assignment_type_id: null,
+      expert_id: null,
       amount: 0,
       description: '',
     },

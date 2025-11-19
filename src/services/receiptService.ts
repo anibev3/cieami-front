@@ -32,7 +32,7 @@ class ReceiptService {
   /**
    * Récupérer les quittances d'une assignation
    */
-  async getReceiptsByAssignment(assignmentId: number): Promise<Receipt[]> {
+  async getReceiptsByAssignment(assignmentId: string): Promise<Receipt[]> {
     const response = await axiosInstance.get<ReceiptApiResponse[]>(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}/receipts`)
     return response.data.map(receipt => ({
       id: receipt.id,
@@ -49,9 +49,9 @@ class ReceiptService {
   /**
    * Créer une nouvelle quittance
    */
-  async createReceipt(assignmentId: number, receiptData: { receipt_type_id: string; amount: number }): Promise<ApiResponse> {
+  async createReceipt(assignmentId: string, receiptData: { receipt_type_id: string; amount: number }): Promise<ApiResponse> {
     const response = await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
-      assignment_id: assignmentId.toString(),
+      assignment_id: assignmentId,
       receipts: [{
         receipt_type_id: receiptData.receipt_type_id,
         amount: receiptData.amount
@@ -63,7 +63,7 @@ class ReceiptService {
   /**
    * Mettre à jour une quittance
    */
-  async updateReceipt(receiptId: string, receiptData: { assignment_id: number, receipt_type_id: string; amount: number }): Promise<Receipt> {
+  async updateReceipt(receiptId: string, receiptData: { assignment_id: string, receipt_type_id: string; amount: number }): Promise<Receipt> {
     const response = await axiosInstance.put<ReceiptApiResponse>(`${API_CONFIG.ENDPOINTS.RECEIPTS}/${receiptId}`, receiptData)
     
     return {
@@ -88,9 +88,9 @@ class ReceiptService {
   /**
    * Créer plusieurs quittances en une fois
    */
-  async createMultipleReceipts(assignmentId: number, receipts: { receipt_type_id: string; amount: number }[]): Promise<ApiResponse> {
+  async createMultipleReceipts(assignmentId: string, receipts: { receipt_type_id: string; amount: number }[]): Promise<ApiResponse> {
     const response = await axiosInstance.post<{ status: number; message: string; data: null }>(`${API_CONFIG.ENDPOINTS.RECEIPTS}`, {
-      assignment_id: assignmentId.toString(),
+      assignment_id: assignmentId,
       receipts: receipts.map(r => ({
         receipt_type_id: r.receipt_type_id,
         amount: r.amount

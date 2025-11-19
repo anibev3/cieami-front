@@ -50,12 +50,12 @@ interface AssignmentsState {
 interface AssignmentsActions {
   // Actions principales
   fetchAssignments: (page?: number, filters?: AssignmentFilters) => Promise<void>
-  fetchAssignment: (id: number) => Promise<void>
+  fetchAssignment: (id: string) => Promise<void>
   createAssignment: (assignmentData: AssignmentCreate) => Promise<void>
-  updateAssignment: (id: number, assignmentData: AssignmentUpdate) => Promise<void>
-  deleteAssignment: (id: number) => Promise<void>
-  changeAssignmentStatus: (id: number, statusId: number) => Promise<void>
-  generateReport: (id: number) => Promise<string>
+  updateAssignment: (id: string, assignmentData: AssignmentUpdate) => Promise<void>
+  deleteAssignment: (id: string) => Promise<void>
+  changeAssignmentStatus: (id: string, statusId: number) => Promise<void>
+  generateReport: (id: string) => Promise<string>
 
   
   // Actions de pagination
@@ -85,11 +85,11 @@ interface AssignmentsActions {
   getStatusCounts: () => Record<string, number>
   
   // Actions pour les quittances
-  fetchReceipts: (assignmentId: number) => Promise<Receipt[]>
-  createReceipt: (assignmentId: number, receiptData: { receipt_type_id: number; amount: number }) => Promise<void>
-  createMultipleReceipts: (assignmentId: number, receipts: { receipt_type_id: number; amount: number }[]) => Promise<void>
-  updateReceipt: (receiptId: number, receiptData: { assignment_id: number; receipt_type_id: number; amount: number }) => Promise<void>
-  deleteReceipt: (receiptId: number) => Promise<void>
+  fetchReceipts: (assignmentId: string) => Promise<Receipt[]>
+  createReceipt: (assignmentId: string, receiptData: { receipt_type_id: string; amount: number }) => Promise<void>
+  createMultipleReceipts: (assignmentId: string, receipts: { receipt_type_id: string; amount: number }[]) => Promise<void>
+  updateReceipt: (receiptId: string, receiptData: { assignment_id: string; receipt_type_id: string; amount: number }) => Promise<void>
+  deleteReceipt: (receiptId: string) => Promise<void>
   
   // Actions utilitaires
   setCurrentAssignment: (assignment: Assignment | null) => void
@@ -318,7 +318,7 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     set({ loading: true, error: null })
     
     try {
-      await assignmentService.changeAssignmentStatus(id, statusId)
+      await assignmentService.changeAssignmentStatus(id, statusId.toString())
       await get().fetchAssignments(get().pagination.currentPage)
       set({ loading: false })
       toast.success('Statut modifié avec succès')
@@ -332,7 +332,7 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     }
   },
 
-  generateReport: async (id: number): Promise<string> => {
+  generateReport: async (id: string): Promise<string> => {
     set({ loading: true })
     try {
       const response = await assignmentService.generateReport(id)
@@ -598,7 +598,7 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   // Actions pour les quittances
   fetchReceipts: async (assignmentId) => {
     try {
-      const receipts = await receiptService.getReceiptsByAssignment(assignmentId)
+      const receipts = await receiptService.getReceiptsByAssignment(assignmentId.toString())
       return receipts
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement des quittances'

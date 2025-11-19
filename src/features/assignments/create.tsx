@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -176,6 +176,12 @@ function CreateAssignmentPageContent() {
   const isInitialLoading = loadingData || !baseDataLoaded
   // ID de la demande d'expertise si on vient d'une demande
   const [assignmentRequestId, setAssignmentRequestId] = useState<string | null>(null)
+  
+  // Références pour empêcher les appels multiples
+  const baseDataLoadingRef = useRef(false)
+  const relationshipsLoadingRef = useRef(false)
+  const assignmentDataLoadingRef = useRef(false)
+  const assignmentRequestDataLoadingRef = useRef(false)
   
   // Récupérer le paramètre is_assignment_request depuis l'URL
   const urlParams = new URLSearchParams(window.location.search)
@@ -446,9 +452,11 @@ function CreateAssignmentPageContent() {
   // Charger les données de la demande d'expertise si on vient d'une demande
   useEffect(() => {
     const loadAssignmentRequestData = async () => {
+      if (assignmentRequestDataLoadingRef.current) return
       console.log('loadAssignmentRequestData', isFromAssignmentRequest, id, baseDataLoaded)
       if (isFromAssignmentRequest && id && baseDataLoaded) {
         try {
+          assignmentRequestDataLoadingRef.current = true
           setLoadingData(true)
           setAssignmentRequestId(id)
           
@@ -457,15 +465,14 @@ function CreateAssignmentPageContent() {
           const request = response.data
           
           // Fonction pour trouver l'ID de rattachement basé sur l'entité
-          const findRelationshipId = async (entityId: string, type: 'insurer' | 'repairer') => {
+          // Utiliser les données déjà chargées au lieu de refaire des appels API
+          const findRelationshipId = (entityId: string, type: 'insurer' | 'repairer') => {
             try {
               if (type === 'insurer') {
-                const response = await insurerRelationshipService.list(1)
-                const relationship = response.data.find((rel: any) => rel.insurer?.id?.toString() === entityId)
+                const relationship = insurerRelationships.find((rel: any) => rel.insurer?.id?.toString() === entityId)
                 return relationship?.id?.toString() || ''
               } else {
-                const response = await repairerRelationshipService.list(1)
-                const relationship = response.data.find((rel: any) => rel.repairer?.id?.toString() === entityId)
+                const relationship = repairerRelationships.find((rel: any) => rel.repairer?.id?.toString() === entityId)
                 return relationship?.id?.toString() || ''
               }
             } catch (error) {
@@ -474,15 +481,15 @@ function CreateAssignmentPageContent() {
             }
           }
 
-          // Trouver les IDs de rattachement
+          // Trouver les IDs de rattachement (utiliser les données déjà chargées)
           let insurerRelationshipId = ''
           let repairerRelationshipId = ''
           
           if (request.insurer?.id) {
-            insurerRelationshipId = await findRelationshipId(request.insurer.id.toString(), 'insurer')
+            insurerRelationshipId = findRelationshipId(request.insurer.id.toString(), 'insurer')
           }
           if (request.repairer?.id) {
-            repairerRelationshipId = await findRelationshipId(request.repairer.id.toString(), 'repairer')
+            repairerRelationshipId = findRelationshipId(request.repairer.id.toString(), 'repairer')
           }
 
           // Mapper les données de la demande d'expertise vers le formulaire
@@ -531,6 +538,7 @@ function CreateAssignmentPageContent() {
 
           toast.success('Données de la demande d\'expertise chargées avec succès')
         } catch (error: any) {
+          assignmentRequestDataLoadingRef.current = false
           handleApiError(error, 'le chargement de la demande d\'expertise')
         } finally {
           setLoadingData(false)
@@ -538,16 +546,18 @@ function CreateAssignmentPageContent() {
       }
     }
 
-    if (baseDataLoaded) {
+    if (baseDataLoaded && !assignmentRequestDataLoadingRef.current) {
       loadAssignmentRequestData()
     }
-  }, [isFromAssignmentRequest, id, baseDataLoaded, form])
+  }, [isFromAssignmentRequest, id, baseDataLoaded, form, insurerRelationships, repairerRelationships])
 
   // Charger les données existantes en mode édition
   useEffect(() => {
     const loadAssignmentData = async () => {
-      if (isEditMode && assignmentId) {
+      if (assignmentDataLoadingRef.current) return
+      if (isEditMode && assignmentId && baseDataLoaded) {
         try {
+          assignmentDataLoadingRef.current = true
           setLoadingData(true)
           const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignmentId}`)
           const assignment = response.data.data
@@ -561,15 +571,14 @@ function CreateAssignmentPageContent() {
                                     assignment.broker?.id?.toString() || ''
 
           // Fonction pour trouver l'ID de rattachement basé sur l'entité
-          const findRelationshipId = async (entityId: string, type: 'insurer' | 'repairer') => {
+          // Utiliser les données déjà chargées au lieu de refaire des appels API
+          const findRelationshipId = (entityId: string, type: 'insurer' | 'repairer') => {
             try {
               if (type === 'insurer') {
-                const response = await insurerRelationshipService.list(1)
-                const relationship = response.data.find((rel: any) => rel.insurer?.id?.toString() === entityId)
+                const relationship = insurerRelationships.find((rel: any) => rel.insurer?.id?.toString() === entityId)
                 return relationship?.id?.toString() || ''
               } else {
-                const response = await repairerRelationshipService.list(1)
-                const relationship = response.data.find((rel: any) => rel.repairer?.id?.toString() === entityId)
+                const relationship = repairerRelationships.find((rel: any) => rel.repairer?.id?.toString() === entityId)
                 return relationship?.id?.toString() || ''
               }
             } catch (error) {
@@ -583,15 +592,15 @@ function CreateAssignmentPageContent() {
           let repairerRelationshipId = assignment.repairer_relationship_id?.toString() || ''
           let additionalInsurerRelationshipId = assignment.additional_insurer_relationship_id?.toString() || ''
 
-          // Si pas d'ID de rattachement direct, chercher basé sur l'entité
+          // Si pas d'ID de rattachement direct, chercher basé sur l'entité (utiliser les données déjà chargées)
           if (!insurerRelationshipId && assignment.insurer?.id) {
-            insurerRelationshipId = await findRelationshipId(assignment.insurer.id.toString(), 'insurer')
+            insurerRelationshipId = findRelationshipId(assignment.insurer.id.toString(), 'insurer')
           }
           if (!repairerRelationshipId && assignment.repairer?.id) {
-            repairerRelationshipId = await findRelationshipId(assignment.repairer.id.toString(), 'repairer')
+            repairerRelationshipId = findRelationshipId(assignment.repairer.id.toString(), 'repairer')
           }
           if (!additionalInsurerRelationshipId && assignment.additional_insurer?.id) {
-            additionalInsurerRelationshipId = await findRelationshipId(assignment.additional_insurer.id.toString(), 'insurer')
+            additionalInsurerRelationshipId = findRelationshipId(assignment.additional_insurer.id.toString(), 'insurer')
           }
 
           const formData = {
@@ -658,6 +667,7 @@ function CreateAssignmentPageContent() {
           setExperts(expertsData)
 
         } catch (error: any) {
+          assignmentDataLoadingRef.current = false
           handleApiError(error, 'le chargement du dossier')
         } finally {
           setLoadingData(false)
@@ -667,14 +677,16 @@ function CreateAssignmentPageContent() {
 
     // Attendre que les données de base soient chargées pour garantir que les Selects
     // aient leurs options disponibles avant de réaliser le reset/pré-remplissage
-    if (baseDataLoaded) {
+    if (baseDataLoaded && !assignmentDataLoadingRef.current) {
       loadAssignmentData()
     }
-  }, [isEditMode, assignmentId, form, baseDataLoaded])
+  }, [isEditMode, assignmentId, form, baseDataLoaded, insurerRelationships, repairerRelationships])
 
   // Mémoriser la fonction de chargement des données de base
   const loadBaseData = useCallback(async () => {
+    if (baseDataLoadingRef.current) return
     try {
+      baseDataLoadingRef.current = true
       await Promise.allSettled([
         fetchUsers(),
         fetchClients(),
@@ -694,18 +706,16 @@ function CreateAssignmentPageContent() {
     } catch (_error: any) {
       // Ne pas afficher d'erreur pour le chargement des données de base
       // car cela pourrait être géré individuellement par chaque store
+      baseDataLoadingRef.current = false
     }
   }, [fetchUsers, fetchClients, fetchVehicles, fetchAssignmentTypes, fetchBrokers, fetchRepairers, fetchInsurers, fetchExpertiseTypes, fetchDocuments, fetchVehicleModels, fetchColors, fetchBodyworks, fetchBrands])
 
   // Charger les données de base (utilisateurs, véhicules, etc.)
   useEffect(() => {
     // Ne charger qu'une seule fois au montage du composant
-    if (!baseDataLoaded) {
+    if (!baseDataLoaded && !baseDataLoadingRef.current) {
       loadBaseData()
     }
-    // Charger les rattachements assureurs et réparateurs
-    loadInsurerRelationships()
-    loadRepairerRelationships()
   }, [baseDataLoaded, loadBaseData])
 
   // Log des données chargées
@@ -824,34 +834,48 @@ function CreateAssignmentPageContent() {
   }
 
   // Fonction pour charger les rattachements réparateurs par cabinet d'expertise
-  const loadRepairerRelationshipsByExpertFirm = async (expertFirmId: string) => {
+  const loadRepairerRelationshipsByExpertFirm = useCallback(async (expertFirmId: string) => {
     try {
       const response = await repairerRelationshipService.list(1, `?expert_firm_id=${expertFirmId}`)
       setRepairerRelationships(response.data)
     } catch (error) {
       console.error('Erreur lors du chargement des rattachements réparateurs:', error)
     }
-  }
+  }, [])
 
   // Fonction pour charger tous les rattachements réparateurs
-  const loadRepairerRelationships = async () => {
+  const loadRepairerRelationships = useCallback(async () => {
+    if (relationshipsLoadingRef.current) return
     try {
+      relationshipsLoadingRef.current = true
       const response = await repairerRelationshipService.list(1)
       setRepairerRelationships(response.data)
     } catch (error) {
       console.error('Erreur lors du chargement des rattachements réparateurs:', error)
+      relationshipsLoadingRef.current = false
     }
-  }
+  }, [])
 
   // Fonction pour charger les rattachements assureurs
-  const loadInsurerRelationships = async () => {
+  const loadInsurerRelationships = useCallback(async () => {
+    if (relationshipsLoadingRef.current) return
     try {
+      relationshipsLoadingRef.current = true
       const response = await insurerRelationshipService.list(1)
       setInsurerRelationships(response.data)
     } catch (error) {
       console.error('Erreur lors du chargement des rattachements assureurs:', error)
+      relationshipsLoadingRef.current = false
     }
-  }
+  }, [])
+
+  // Charger les rattachements assureurs et réparateurs une seule fois
+  useEffect(() => {
+    if (!relationshipsLoadingRef.current) {
+      loadInsurerRelationships()
+      loadRepairerRelationships()
+    }
+  }, [loadInsurerRelationships, loadRepairerRelationships])
 
   // Fonction pour ouvrir le modal des détails du réparateur (non utilisée actuellement)
   const _openRepairerDetails = (repairer: EntityType) => {
