@@ -623,13 +623,13 @@ function ExpertiseSheetPageContent() {
   const [validating, setValidating] = useState(false)
 
   // Restreindre l'accès: si expert/réparateur et le dossier n'est pas "realized", retour arrière
-  // useEffect(() => {
-  //   if (!assignment) return
-  //   if ((isExpert || isRepairer) && assignment?.status?.code !== 'realized') {
-  //     toast.error('Accès non autorisé: le dossier doit être réalisé')
-  //     window.history.back()
-  //   }
-  // }, [assignment?.status?.code, isExpert, isRepairer])
+  useEffect(() => {
+    if (!assignment) return
+    if ((isExpert || isRepairer) && assignment?.status?.code !== 'realized') {
+      toast.error('Accès non autorisé: le dossier doit être réalisé')
+      window.history.back()
+    }
+  }, [assignment?.status?.code, isExpert, isRepairer])
 
   const validateAssignment = async () => {
     if (!assignment) return
