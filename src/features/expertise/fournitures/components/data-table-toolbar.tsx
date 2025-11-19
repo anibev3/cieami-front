@@ -8,7 +8,7 @@ export function DataTableToolbar() {
   return (
     <>
       <Button onClick={() => setOpen(true)} variant="default">
-        Ajouter une fourniture
+        Créer une fourniture  
       </Button>
       <SupplyMutateDialog open={open} onOpenChange={setOpen} />
     </>

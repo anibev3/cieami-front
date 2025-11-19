@@ -127,7 +127,7 @@ function SortableRow({
       {/* Fournitures */}
       <td className="border px-3 py-2 text-xs">
         <SupplySelect
-          value={row.supply_id}
+          value={String(row.supply_id || '')}
           onValueChange={(value) => updateLocalShockWork(index, 'supply_id', value)}
           supplies={combinedSupplies}
           placeholder={!row.supply_id ? "⚠️ Sélectionner une fourniture" : "Sélectionner..."}
@@ -475,7 +475,7 @@ export function ShockSuppliesTable({
                     className="text-yellow-600 text-xs border-yellow-200 hover:bg-yellow-50"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Ajouter une fourniture
+                    Créer une fourniture
                   </Button>
           <div className="flex gap-2">
             <Button onClick={onAdd} size="xs" className="text-white text-xs">

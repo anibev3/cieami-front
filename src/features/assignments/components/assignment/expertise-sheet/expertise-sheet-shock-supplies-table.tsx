@@ -727,7 +727,7 @@ export function ExpertiseSheetShockSuppliesTable({
             className="text-yellow-600 text-xs border-yellow-200 hover:bg-yellow-50"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter une fourniture
+            Créer une fourniture  
           </Button>
           {/* <Button onClick={handleAddNewRow} size="xs" className="text-white text-xs">
             <Plus className="mr-2 h-4 w-4" />

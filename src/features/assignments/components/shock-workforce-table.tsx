@@ -441,7 +441,7 @@ export function ShockWorkforceTable({
             className="text-green-600 text-xs border-green-200 hover:bg-green-50"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter un type
+            Créer un type
           </Button>
           <Button onClick={onAdd} size="xs" className="text-white text-xs">
             <Plus className="mr-2 h-4 w-4" />

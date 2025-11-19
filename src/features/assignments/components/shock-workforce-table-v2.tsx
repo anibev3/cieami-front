@@ -1139,7 +1139,7 @@ export function ShockWorkforceTableV2({
             className="text-green-600 text-xs border-green-200 hover:bg-green-50"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter un type
+            Créer un type
           </Button>
           <Button 
             onClick={handleAddNewRow}
@@ -1192,9 +1192,9 @@ export function ShockWorkforceTableV2({
                   </div>
                 )}
                 {/* Debug info */}
-                <div className="text-[10px] text-gray-500 mt-1">
+                {/* <div className="text-[10px] text-gray-500 mt-1">
                   ID actuel: {paintTypeId} | Types disponibles: {paintTypes.length}
-                </div>
+                </div> */}
               </div>
             )}
             {hourlyRateId !== undefined && (
@@ -1231,9 +1231,9 @@ export function ShockWorkforceTableV2({
                     </div>
                   </div>
                 )}
-                <div className="text-[10px] text-gray-500 mt-1">
+                {/* <div className="text-[10px] text-gray-500 mt-1">
                   ID actuel: {hourlyRateId} | Taux horaires disponibles: {hourlyRates.length}
-                </div>
+                </div> */}
               </div>
             )}
             {withTax !== undefined && (

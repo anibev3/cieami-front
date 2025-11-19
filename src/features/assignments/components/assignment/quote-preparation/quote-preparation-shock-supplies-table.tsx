@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 // import { Label } from '@/components/ui/label'
-import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react'
+import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp, SaveAll, Loader2 } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
@@ -331,6 +331,10 @@ export function QuotePreparationShockSuppliesTable({
   const [tableExpanded, setTableExpanded] = useState(true)
   // État pour les fournitures récupérées dynamiquement
   const [fetchedSupplies, setFetchedSupplies] = useState<Map<number | string, Supply>>(new Map())
+  // État pour la validation en masse
+  const [isValidatingAll, setIsValidatingAll] = useState(false)
+  const [validationProgress, setValidationProgress] = useState({ current: 0, total: 0 })
+  const [failedValidations, setFailedValidations] = useState<Array<{ index: number; error: string; work: ShockWork }>>([])
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -340,10 +344,133 @@ export function QuotePreparationShockSuppliesTable({
     })
   )
 
-  // Mettre à jour les données locales quand les props changent
+  // Clé pour le localStorage basée sur le shockId
+  const localStorageKey = `shock-supplies-pending-${shockId || 'new'}`
+
+  // Sauvegarder les modifications dans le localStorage
   useEffect(() => {
-    setLocalShockWorks(shockWorks)
-  }, [shockWorks])
+    if (modifiedRows.size > 0 || newRows.size > 0) {
+      const pendingData = {
+        shockId,
+        localShockWorks,
+        modifiedRows: Array.from(modifiedRows),
+        newRows: Array.from(newRows),
+        timestamp: Date.now()
+      }
+      try {
+        localStorage.setItem(localStorageKey, JSON.stringify(pendingData))
+      } catch (error) {
+        console.warn('Impossible de sauvegarder dans localStorage:', error)
+      }
+    } else {
+      // Nettoyer le localStorage si tout est validé
+      try {
+        localStorage.removeItem(localStorageKey)
+      } catch (error) {
+        console.warn('Impossible de nettoyer localStorage:', error)
+      }
+    }
+  }, [localShockWorks, modifiedRows, newRows, shockId, localStorageKey])
+
+  // Restaurer les modifications depuis le localStorage au chargement
+  useEffect(() => {
+    if (!shockId) return
+    
+    try {
+      const savedData = localStorage.getItem(localStorageKey)
+      if (savedData) {
+        const parsed = JSON.parse(savedData)
+        // Vérifier que les données sont récentes (moins de 24h)
+        const isRecent = Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000
+        if (isRecent && parsed.shockId === shockId && parsed.localShockWorks) {
+          // Demander confirmation avant de restaurer
+          const shouldRestore = window.confirm(
+            'Des modifications non sauvegardées ont été détectées. Voulez-vous les restaurer ?'
+          )
+          if (shouldRestore) {
+            setLocalShockWorks(parsed.localShockWorks)
+            setModifiedRows(new Set(parsed.modifiedRows || []))
+            setNewRows(new Set(parsed.newRows || []))
+            toast.info('Modifications restaurées')
+          } else {
+            localStorage.removeItem(localStorageKey)
+          }
+        } else {
+          // Nettoyer les données anciennes
+          localStorage.removeItem(localStorageKey)
+        }
+      }
+    } catch (error) {
+      console.warn('Erreur lors de la restauration depuis localStorage:', error)
+    }
+  }, [shockId, localStorageKey])
+
+  // Mettre à jour les données locales quand les props changent
+  // Mais préserver les lignes non validées (nouvelles ou modifiées)
+  useEffect(() => {
+    // Si on a des modifications en cours, fusionner intelligemment au lieu de remplacer
+    if (modifiedRows.size > 0 || newRows.size > 0) {
+      setLocalShockWorks(prev => {
+        // Créer une map des works du serveur par leur ID pour comparaison rapide
+        const serverWorksMap = new Map<string | number, ShockWork>()
+        shockWorks.forEach(work => {
+          if (work.id) {
+            serverWorksMap.set(work.id, work)
+          }
+        })
+
+        const merged: ShockWork[] = []
+        const processedServerIds = new Set<string | number>()
+
+        // D'abord, traiter toutes les lignes locales
+        prev.forEach((localWork, localIndex) => {
+          const isModified = modifiedRows.has(localIndex)
+          const isNew = newRows.has(localIndex)
+
+          // Si c'est une nouvelle ligne (sans ID), toujours la garder
+          if (isNew && !localWork.id) {
+            merged.push(localWork)
+            return
+          }
+
+          // Si c'est une ligne modifiée ou nouvelle avec ID, garder la version locale
+          if (isModified || isNew) {
+            merged.push(localWork)
+            if (localWork.id) {
+              processedServerIds.add(localWork.id)
+            }
+            return
+          }
+
+          // Si c'est une ligne existante non modifiée, utiliser la version du serveur si disponible
+          if (localWork.id) {
+            if (serverWorksMap.has(localWork.id)) {
+              merged.push(serverWorksMap.get(localWork.id)!)
+              processedServerIds.add(localWork.id)
+            } else {
+              // Si la ligne n'existe plus sur le serveur mais n'est pas marquée comme supprimée localement, la garder
+              merged.push(localWork)
+            }
+          } else {
+            // Ligne sans ID et non marquée comme nouvelle, la garder pour éviter les pertes
+            merged.push(localWork)
+          }
+        })
+
+        // Ensuite, ajouter les nouvelles lignes du serveur qui n'existent pas encore localement
+        shockWorks.forEach(serverWork => {
+          if (serverWork.id && !processedServerIds.has(serverWork.id)) {
+            merged.push(serverWork)
+          }
+        })
+
+        return merged
+      })
+    } else {
+      // Pas de modifications en cours, on peut simplement remplacer
+      setLocalShockWorks(shockWorks)
+    }
+  }, [shockWorks, modifiedRows, newRows])
 
   // Récupérer automatiquement les fournitures manquantes
   useEffect(() => {
@@ -504,6 +631,243 @@ export function QuotePreparationShockSuppliesTable({
     onSupplyCreated?.(newSupply)
   }
 
+  // Fonction de validation en masse de toutes les lignes modifiées/nouvelles
+  const handleValidateAll = async () => {
+    const allPendingIndices = Array.from(new Set([...modifiedRows, ...newRows])).sort((a, b) => a - b)
+    
+    if (allPendingIndices.length === 0) {
+      toast.info('Aucune modification à valider')
+      return
+    }
+
+    setIsValidatingAll(true)
+    setValidationProgress({ current: 0, total: allPendingIndices.length })
+    setFailedValidations([])
+
+    const successful: number[] = []
+    const failed: Array<{ index: number; error: string; work: ShockWork }> = []
+
+    try {
+      // Séparer les nouvelles lignes et les lignes modifiées
+      const newIndices = allPendingIndices.filter(idx => newRows.has(idx))
+      const modifiedIndices = allPendingIndices.filter(idx => !newRows.has(idx))
+
+      // Traiter d'abord les nouvelles lignes (peuvent être groupées)
+      if (newIndices.length > 0) {
+        if (!shockId) {
+          toast.error('ID du choc manquant')
+          setIsValidatingAll(false)
+          return
+        }
+
+        const effectivePaintTypeId = paintTypeId || 1
+
+        // Grouper les nouvelles lignes par batch de 10 pour éviter les timeouts
+        const batchSize = 10
+        for (let i = 0; i < newIndices.length; i += batchSize) {
+          const batch = newIndices.slice(i, i + batchSize)
+          
+          try {
+            const payload = {
+              shock_id: shockId.toString(),
+              paint_type_id: effectivePaintTypeId.toString(),
+              shock_works: batch.map(index => {
+                const work = localShockWorks[index]
+                return {
+                  supply_id: work.supply_id.toString(),
+                  disassembly: work.disassembly,
+                  replacement: work.replacement,
+                  repair: work.repair,
+                  paint: work.paint,
+                  obsolescence: work.obsolescence || false,
+                  control: work.control,
+                  obsolescence_rate: Number(work.obsolescence_rate),
+                  recovery_amount: Number(work.recovery_amount || 0),
+                  discount: Number(work.discount),
+                  amount: Number(work.amount),
+                  comment: work.comment || ""
+                }
+              })
+            }
+
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 30000)
+            )
+
+            await Promise.race([
+              axiosInstance.post(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}`, payload),
+              timeoutPromise
+            ])
+
+            // Marquer toutes les lignes du batch comme réussies
+            batch.forEach(index => {
+              successful.push(index)
+              setValidationProgress(prev => ({ ...prev, current: prev.current + 1 }))
+            })
+          } catch (error: any) {
+            // En cas d'erreur sur un batch, marquer toutes les lignes comme échouées
+            batch.forEach(index => {
+              failed.push({
+                index,
+                error: error.message || 'Erreur lors de la création',
+                work: localShockWorks[index]
+              })
+            })
+          }
+        }
+      }
+
+      // Traiter les lignes modifiées individuellement
+      for (const index of modifiedIndices) {
+        try {
+          const work = localShockWorks[index]
+          await onUpdate(index, work)
+          await onValidateRow(index)
+          successful.push(index)
+          setValidationProgress(prev => ({ ...prev, current: prev.current + 1 }))
+        } catch (error: any) {
+          failed.push({
+            index,
+            error: error.message || 'Erreur lors de la mise à jour',
+            work: localShockWorks[index]
+          })
+        }
+      }
+
+      // Mettre à jour les états
+      const successfulSet = new Set(successful)
+      setModifiedRows(prev => {
+        const newSet = new Set(prev)
+        successfulSet.forEach(idx => newSet.delete(idx))
+        return newSet
+      })
+      setNewRows(prev => {
+        const newSet = new Set(prev)
+        successfulSet.forEach(idx => newSet.delete(idx))
+        return newSet
+      })
+
+      // Afficher les résultats
+      if (failed.length === 0) {
+        // toast.success(`Toutes les ${successful.length} modification(s) ont été validées avec succès`)
+        // Rafraîchir les données
+        if (onAssignmentRefresh) {
+          onAssignmentRefresh()
+        }
+        // Nettoyer le localStorage
+        try {
+          localStorage.removeItem(localStorageKey)
+        } catch (error) {
+          console.warn('Erreur lors du nettoyage localStorage:', error)
+        }
+      } else {
+        setFailedValidations(failed)
+        toast.warning(
+          `${successful.length} modification(s) validée(s), ${failed.length} échec(s)`,
+          { duration: 5000 }
+        )
+      }
+    } catch (error: any) {
+      toast.error('Erreur lors de la validation en masse')
+      console.error('Erreur validation en masse:', error)
+    } finally {
+      setIsValidatingAll(false)
+      setValidationProgress({ current: 0, total: 0 })
+    }
+  }
+
+  // Fonction pour réessayer les validations échouées
+  const handleRetryFailed = async () => {
+    if (failedValidations.length === 0) return
+
+    setIsValidatingAll(true)
+    setValidationProgress({ current: 0, total: failedValidations.length })
+
+    const retrySuccessful: number[] = []
+    const retryFailed: Array<{ index: number; error: string; work: ShockWork }> = []
+
+    for (const { index, work } of failedValidations) {
+      try {
+        if (newRows.has(index)) {
+          // Nouvelle ligne
+          if (!shockId) {
+            retryFailed.push({ index, error: 'ID du choc manquant', work })
+            continue
+          }
+
+          const effectivePaintTypeId = paintTypeId || 1
+          const payload = {
+            shock_id: shockId.toString(),
+            paint_type_id: effectivePaintTypeId.toString(),
+            shock_works: [{
+              supply_id: work.supply_id.toString(),
+              disassembly: work.disassembly,
+              replacement: work.replacement,
+              repair: work.repair,
+              paint: work.paint,
+              obsolescence: work.obsolescence || false,
+              control: work.control,
+              obsolescence_rate: Number(work.obsolescence_rate),
+              recovery_amount: Number(work.recovery_amount || 0),
+              discount: Number(work.discount),
+              amount: Number(work.amount),
+              comment: work.comment || ""
+            }]
+          }
+
+          await axiosInstance.post(`${API_CONFIG.ENDPOINTS.SHOCK_WORKS}`, payload)
+        } else {
+          // Ligne modifiée
+          await onUpdate(index, work)
+          await onValidateRow(index)
+        }
+
+        retrySuccessful.push(index)
+        setValidationProgress(prev => ({ ...prev, current: prev.current + 1 }))
+      } catch (error: any) {
+        retryFailed.push({
+          index,
+          error: error.message || 'Erreur lors de la nouvelle tentative',
+          work
+        })
+      }
+    }
+
+    // Mettre à jour les états
+    const successfulSet = new Set(retrySuccessful)
+    setModifiedRows(prev => {
+      const newSet = new Set(prev)
+      successfulSet.forEach(idx => newSet.delete(idx))
+      return newSet
+    })
+    setNewRows(prev => {
+      const newSet = new Set(prev)
+      successfulSet.forEach(idx => newSet.delete(idx))
+      return newSet
+    })
+
+    if (retryFailed.length === 0) {
+      toast.success('Toutes les tentatives de réessai ont réussi')
+      setFailedValidations([])
+      if (onAssignmentRefresh) {
+        onAssignmentRefresh()
+      }
+      try {
+        localStorage.removeItem(localStorageKey)
+      } catch (error) {
+        console.warn('Erreur lors du nettoyage localStorage:', error)
+      }
+    } else {
+      setFailedValidations(retryFailed)
+      toast.warning(
+        `${retrySuccessful.length} réessai(s) réussi(s), ${retryFailed.length} échec(s) restant(s)`
+      )
+    }
+
+    setIsValidatingAll(false)
+    setValidationProgress({ current: 0, total: 0 })
+  }
+
   // Fonction de validation d'une ligne
   const handleValidateRow = async (index: number) => {
     setValidatingRows(prev => new Set([...prev, index]))
@@ -554,6 +918,18 @@ export function QuotePreparationShockSuppliesTable({
         
         toast.success('Fourniture créée avec succès')
         
+        // Marquer comme non modifié et non nouveau
+        setModifiedRows(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(index)
+          return newSet
+        })
+        setNewRows(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(index)
+          return newSet
+        })
+        
         // Rafraîchir les données du dossier
         if (onAssignmentRefresh) {
           onAssignmentRefresh()
@@ -562,19 +938,14 @@ export function QuotePreparationShockSuppliesTable({
         // Ligne existante - utiliser la logique existante
         await onUpdate(index, shockWork)
         await onValidateRow(index)
+        
+        // Marquer comme non modifié
+        setModifiedRows(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(index)
+          return newSet
+        })
       }
-      
-      // Marquer comme non modifié et non nouveau
-      setModifiedRows(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(index)
-        return newSet
-      })
-      setNewRows(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(index)
-        return newSet
-      })
     } catch (error: any) {
       if (error.message === 'Timeout') {
         toast.error('Délai d\'attente dépassé. Le dossier contient beaucoup de données.')
@@ -714,6 +1085,28 @@ export function QuotePreparationShockSuppliesTable({
           </Button>
         </div>
         <div className="flex gap-2 items-center">
+          {/* Bouton de validation en masse */}
+          {(modifiedRows.size > 0 || newRows.size > 0) && (
+            <Button 
+              variant="default" 
+              size="xs"
+              onClick={handleValidateAll}
+              disabled={isValidatingAll}
+              className="bg-green-600 hover:bg-green-700 text-white text-xs"
+            >
+              {isValidatingAll ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validation... ({validationProgress.current}/{validationProgress.total})
+                </>
+              ) : (
+                <>
+                  <SaveAll className="mr-2 h-4 w-4" />
+                  Valider toutes les ({modifiedRows.size + newRows.size}) ligne(s)
+                </>
+              )}
+            </Button>
+          )}
           {/* Bouton de réorganisation */}
           {(hasLocalReorderChanges || hasReorderChanges) && shockId && (
             <Button 
@@ -733,11 +1126,7 @@ export function QuotePreparationShockSuppliesTable({
             className="text-yellow-600 text-xs border-yellow-200 hover:bg-yellow-50"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter une fourniture
-          </Button>
-          <Button onClick={handleAddNewRow} size="xs" className="text-white text-xs">
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter une ligne de fourniture
+            Créer une fourniture  
           </Button>
         </div>
       </div>
@@ -885,6 +1274,43 @@ export function QuotePreparationShockSuppliesTable({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Affichage des erreurs de validation */}
+      {failedValidations.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h5 className="text-sm font-semibold text-red-800">
+              {failedValidations.length} validation(s) échouée(s)
+            </h5>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="xs"
+                onClick={handleRetryFailed}
+                disabled={isValidatingAll}
+                className="text-red-600 border-red-200 hover:bg-red-100"
+              >
+                Réessayer
+              </Button>
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => setFailedValidations([])}
+                className="text-red-600 hover:bg-red-100"
+              >
+                Ignorer
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-1 max-h-32 overflow-y-auto">
+            {failedValidations.map(({ index, error, work }) => (
+              <div key={index} className="text-xs text-red-700">
+                <span className="font-medium">Ligne {index + 1}:</span> {work.supply_label || work.supply_id} - {error}
+              </div>
+            ))}
           </div>
         </div>
       )}
