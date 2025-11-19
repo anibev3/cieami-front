@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -344,6 +344,11 @@ export function ShockWorkforceTableV2({
   const [hasLocalReorderChanges, setHasLocalReorderChanges] = useState(false)
   const [tableExpanded, setTableExpanded] = useState(true)
   const [refreshTimeout, setRefreshTimeout] = useState<NodeJS.Timeout | null>(null)
+  
+  // Références pour éviter les appels multiples
+  const dataLoadedRef = useRef(false)
+  const isUpdatingRef = useRef(false)
+  const lastWorkforcesRef = useRef<Workforce[]>([])
 
   // Senseurs pour le drag and drop
   const sensors = useSensors(
@@ -363,10 +368,49 @@ export function ShockWorkforceTableV2({
   const hourlyRates = externalHourlyRates || storeHourlyRates
   const paintTypes = externalPaintTypes || storePaintTypes
 
-  // Mettre à jour les données locales quand les props changent
+  // Mettre à jour les données locales quand les props changent (avec merge intelligent)
   useEffect(() => {
-    setLocalWorkforces(workforces)
-  }, [workforces])
+    // Éviter les mises à jour inutiles si les données n'ont pas vraiment changé
+    if (JSON.stringify(workforces) === JSON.stringify(lastWorkforcesRef.current)) {
+      return
+    }
+    
+    // Merge intelligent : préserver les modifications locales
+    setLocalWorkforces(prev => {
+      const prevMap = new Map<string, Workforce>()
+      prev.forEach((w, idx) => {
+        const key = w.id || w.uid || String(idx)
+        prevMap.set(key, w)
+      })
+      
+      // Créer un nouveau tableau en préservant les modifications locales
+      const merged = workforces.map((w, idx) => {
+        const key = w.id || String(idx)
+        const localW = prevMap.get(key)
+        
+        // Si c'est une ligne modifiée ou nouvelle, préserver les modifications locales
+        if (localW && (modifiedRows.has(idx) || newRows.has(idx))) {
+          return localW
+        }
+        
+        // Sinon, utiliser les données du serveur
+        return w
+      })
+      
+      // Ajouter les nouvelles lignes qui n'existent pas encore sur le serveur
+      prev.forEach((w, idx) => {
+        if (newRows.has(idx) && !w.id) {
+          const exists = merged.some(mw => mw.uid === w.uid)
+          if (!exists) {
+            merged.push(w)
+          }
+        }
+      })
+      
+      lastWorkforcesRef.current = workforces
+      return merged
+    })
+  }, [workforces, modifiedRows, newRows])
 
   // Synchroniser les données locales avec les props externes (paintTypeId, hourlyRateId)
   useEffect(() => {
@@ -410,32 +454,70 @@ export function ShockWorkforceTableV2({
     }
   }, [withTax])
 
-  // Charger les données nécessaires seulement si pas fournies en props
+  // Charger les données nécessaires seulement si pas fournies en props (une seule fois)
   useEffect(() => {
+    // Éviter les appels multiples
+    if (dataLoadedRef.current) {
+      return
+    }
+    
     const loadData = async () => {
-      if (!externalWorkforceTypes || !externalHourlyRates || !externalPaintTypes) {
-        try {
-          // Ajouter un timeout pour éviter le blocage
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 10000)
-          )
-          
+      // Vérifier si les données externes sont fournies ET non vides
+      const hasExternalWorkforceTypes = externalWorkforceTypes && externalWorkforceTypes.length > 0
+      const hasExternalHourlyRates = externalHourlyRates && externalHourlyRates.length > 0
+      const hasExternalPaintTypes = externalPaintTypes && externalPaintTypes.length > 0
+      
+      // Si toutes les données externes sont fournies, ne pas charger depuis les stores
+      if (hasExternalWorkforceTypes && hasExternalHourlyRates && hasExternalPaintTypes) {
+        dataLoadedRef.current = true
+        return
+      }
+      
+      // Éviter les appels multiples simultanés
+      if (isUpdatingRef.current) {
+        return
+      }
+      
+      try {
+        isUpdatingRef.current = true
+        
+        // Ajouter un timeout pour éviter le blocage
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 10000)
+        )
+        
+        const promises = []
+        if (!hasExternalWorkforceTypes) {
+          promises.push(fetchWorkforceTypes())
+        }
+        if (!hasExternalHourlyRates) {
+          promises.push(fetchHourlyRates())
+        }
+        if (!hasExternalPaintTypes) {
+          promises.push(fetchPaintTypes())
+        }
+        
+        if (promises.length > 0) {
           await Promise.race([
-            Promise.all([
-              !externalWorkforceTypes && fetchWorkforceTypes(),
-              !externalHourlyRates && fetchHourlyRates(),
-              !externalPaintTypes && fetchPaintTypes()
-            ].filter(Boolean)),
+            Promise.all(promises),
             timeoutPromise
           ])
-        } catch (_error) {
-          toast.error('Erreur lors du chargement des données (timeout)')
         }
+        
+        dataLoadedRef.current = true
+      } catch (_error) {
+        // Ne pas afficher d'erreur si c'est juste un timeout ou si les données sont déjà chargées
+        if (hasExternalWorkforceTypes && hasExternalHourlyRates && hasExternalPaintTypes) {
+          dataLoadedRef.current = true
+        }
+      } finally {
+        isUpdatingRef.current = false
       }
     }
 
     loadData()
-  }, [fetchWorkforceTypes, fetchHourlyRates, fetchPaintTypes, externalWorkforceTypes, externalHourlyRates, externalPaintTypes])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Exécuter une seule fois au montage
 
   // Nettoyer le timeout à la destruction du composant
   useEffect(() => {
@@ -485,20 +567,20 @@ export function ShockWorkforceTableV2({
   }
 
   // Fonction pour rafraîchir les données avec délai pour éviter les appels trop fréquents
-  const delayedRefresh = () => {
+  const delayedRefresh = useCallback(() => {
     if (refreshTimeout) {
       clearTimeout(refreshTimeout)
     }
     
     const timeout = setTimeout(() => {
-      if (onAssignmentRefresh) {
+      if (onAssignmentRefresh && !isUpdatingRef.current) {
         onAssignmentRefresh()
       }
       setRefreshTimeout(null)
     }, 2000) // Délai de 2 secondes pour éviter les appels trop fréquents
     
     setRefreshTimeout(timeout)
-  }
+  }, [refreshTimeout, onAssignmentRefresh])
 
   // Fonction pour mettre à jour une ligne localement
   const updateLocalWorkforce = (index: number, field: keyof Workforce, value: any) => {
@@ -647,10 +729,8 @@ export function ShockWorkforceTableV2({
       
       toast.success('Main d\'œuvre mise à jour avec succès')
       
-      // Rafraîchir les données du dossier
-      if (onAssignmentRefresh) {
-        onAssignmentRefresh()
-      }
+      // Rafraîchir les données du dossier avec délai pour éviter les appels multiples
+      delayedRefresh()
     } catch (_error) {
       toast.error('Erreur lors de la mise à jour de la main d\'œuvre')
       

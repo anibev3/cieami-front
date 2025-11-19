@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -649,6 +649,11 @@ function EditReportContent() {
   const [sheetFocusShockId, setSheetFocusShockId] = useState<string | null>(null)
   const [validatingEdition, setValidatingEdition] = useState(false)
   const { isExpertAdmin } = useACL()
+  
+  // Références pour éviter les appels multiples et les rafraîchissements inutiles
+  const isRefreshingRef = useRef(false)
+  const lastRefreshTimeRef = useRef<number>(0)
+  const refreshCooldownRef = useRef(2000) // 2 secondes de cooldown entre les rafraîchissements
 
   // Fonction pour changer d'onglet et mettre à jour l'URL
   const changeActiveTab = (tab: string) => {
@@ -877,9 +882,23 @@ function EditReportContent() {
     }
   }
 
-  // Fonction pour rafraîchir les données du dossier
-  const refreshAssignment = async () => {
+  // Fonction pour rafraîchir les données du dossier (mémorisée pour éviter les re-créations)
+  const refreshAssignment = useCallback(async (force = false) => {
+    // Éviter les appels multiples simultanés
+    if (isRefreshingRef.current && !force) {
+      return
+    }
+    
+    // Éviter les rafraîchissements trop fréquents (cooldown)
+    const now = Date.now()
+    if (!force && (now - lastRefreshTimeRef.current) < refreshCooldownRef.current) {
+      return
+    }
+    
     try {
+      isRefreshingRef.current = true
+      lastRefreshTimeRef.current = now
+      
       const response = await assignmentService.getAssignment(id)
       
       if (response && typeof response === 'object' && 'data' in response) {
@@ -890,32 +909,43 @@ function EditReportContent() {
     } catch (err) {
       console.log(err)
       toast.error('Erreur lors du rafraîchissement du dossier')
+    } finally {
+      isRefreshingRef.current = false
     }
-  }
+  }, [id])
+
+  // Mémoriser les tableaux transformés pour éviter les recréations inutiles
+  const memoizedPaintTypes = useMemo(() => {
+    return (paintTypes || []).map(pt => ({ ...pt, id: String(pt.id) }))
+  }, [paintTypes])
+
+  const memoizedHourlyRates = useMemo(() => {
+    return (hourlyRates || []).map(hr => ({ ...hr, id: String(hr.id) }))
+  }, [hourlyRates])
 
   // Fonction pour réorganiser les fournitures d'un choc
-  const handleReorderShockWorks = async (shockId: string, shockWorkIds: string[]) => {
+  const handleReorderShockWorks = useCallback(async (shockId: string, shockWorkIds: string[]) => {
     try {
       await assignmentService.reorderShockWorks(shockId, shockWorkIds)
-      await refreshAssignment()
+      await refreshAssignment(true) // Force refresh après réorganisation
       toast.success('Ordre des fournitures mis à jour')
     } catch (error) {
       console.error('Erreur lors de la réorganisation des fournitures:', error)
       toast.error('Erreur lors de la réorganisation des fournitures')
     }
-  }
+  }, [refreshAssignment])
 
   // Fonction pour réorganiser les main d'œuvre d'un choc
-  const handleReorderWorkforces = async (shockId: string, workforceIds: string[]) => {
+  const handleReorderWorkforces = useCallback(async (shockId: string, workforceIds: string[]) => {
     try {
       await assignmentService.reorderWorkforces(shockId, workforceIds)
-      await refreshAssignment()
+      await refreshAssignment(true) // Force refresh après réorganisation
       toast.success('Ordre des main d\'œuvre mis à jour')
     } catch (error) {
       console.error('Erreur lors de la réorganisation des main d\'œuvre:', error)
       toast.error('Erreur lors de la réorganisation des main d\'œuvre')
     }
-  }
+  }, [refreshAssignment])
 
   // Fonction pour ajouter un point de choc
   const handleAddShock = async (shockPointId: string) => {
@@ -1217,7 +1247,7 @@ function EditReportContent() {
         await axiosInstance.put(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS_EDITE_ELEMENTS}/${String(assignment.id)}`, cleanPayload)
       }
       toast.success('Modifications sauvegardées avec succès')
-      refreshAssignment()
+      refreshAssignment(true) // Force refresh après sauvegarde
     } catch (err) {
       console.error('Erreur lors de la sauvegarde:', err)
       toast.error('Erreur lors de la sauvegarde')
@@ -2372,6 +2402,7 @@ function EditReportContent() {
                               {/* Permettre l'affichage même si les données ne sont pas complètement chargées */}
                               {/* Le composant peut s'afficher avec des données partielles */}
                               <ShockWorkforceTableV2
+                                key={shock?.id} // Key pour forcer le remontage si le shock change
                                 shockId={shock?.id}
                                 workforces={(shock.workforces || []).filter(w => w.id !== undefined).map((w: any) => ({
                                   id: w.id!, // ID réel de l'API pour la réorganisation
@@ -2390,14 +2421,18 @@ function EditReportContent() {
                                   paint_type_id: shock?.paint_type?.id,
                                   hourly_rate_id: shock?.hourly_rate?.id
                                 }))}
-                                paintTypes={(paintTypes || []).map(pt => ({ ...pt, id: String(pt.id) }))}
-                                hourlyRates={(hourlyRates || []).map(hr => ({ ...hr, id: String(hr.id) }))}
+                                paintTypes={memoizedPaintTypes}
+                                hourlyRates={memoizedHourlyRates}
                                 onUpdate={(updatedWorkforces) => {
                                   // Mettre à jour les données locales
+                                  if (!assignment) return
                                   const updatedAssignment = { ...assignment }
                                   const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
-                                  if (shockIndex !== -1) {
-                                    updatedAssignment.shocks[shockIndex].workforces = updatedWorkforces as any
+                                  if (shockIndex !== -1 && updatedAssignment.shocks) {
+                                    updatedAssignment.shocks[shockIndex] = {
+                                      ...updatedAssignment.shocks[shockIndex],
+                                      workforces: updatedWorkforces as any
+                                    }
                                     setAssignment(updatedAssignment)
                                   }
                                 }}
@@ -2419,7 +2454,7 @@ function EditReportContent() {
                                     
                                     await axiosInstance.post(`${API_CONFIG.ENDPOINTS.WORKFORCES}`, payload)
                                     toast.success('Main d\'œuvre ajoutée')
-                                    refreshAssignment()
+                                    refreshAssignment(true) // Force refresh après ajout
                                   } catch (err) {
                                     toast.error("Erreur lors de l'ajout de la main d'œuvre")
                                   }
@@ -2433,20 +2468,24 @@ function EditReportContent() {
                                 onPaintTypeChange={async (value: string) => {
                                   try {
                                     // Mettre à jour l'état local du shock pour que le Select affiche la nouvelle valeur
+                                    if (!assignment) return
                                     const updatedAssignment = { ...assignment }
                                     const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
-                                    if (shockIndex !== -1 && updatedAssignment.shocks[shockIndex]) {
+                                    if (shockIndex !== -1 && updatedAssignment.shocks && updatedAssignment.shocks[shockIndex]) {
                                       // Trouver le paint type sélectionné dans la liste
                                       const selectedPaintType = paintTypes?.find(pt => String(pt.id) === value)
                                       if (selectedPaintType) {
-                                        updatedAssignment.shocks[shockIndex].paint_type = {
-                                          id: String(selectedPaintType.id),
-                                          code: selectedPaintType.code || selectedPaintType.label,
-                                          label: selectedPaintType.label,
-                                          description: selectedPaintType.description || selectedPaintType.label,
-                                          deleted_at: null,
-                                          created_at: new Date().toISOString(),
-                                          updated_at: new Date().toISOString()
+                                        updatedAssignment.shocks[shockIndex] = {
+                                          ...updatedAssignment.shocks[shockIndex],
+                                          paint_type: {
+                                            id: String(selectedPaintType.id),
+                                            code: selectedPaintType.code || selectedPaintType.label,
+                                            label: selectedPaintType.label,
+                                            description: selectedPaintType.description || selectedPaintType.label,
+                                            deleted_at: null,
+                                            created_at: new Date().toISOString(),
+                                            updated_at: new Date().toISOString()
+                                          }
                                         }
                                         setAssignment(updatedAssignment)
                                       }
@@ -2460,20 +2499,24 @@ function EditReportContent() {
                                 onHourlyRateChange={async (value: string) => {
                                   try {
                                     // Mettre à jour l'état local du shock pour que le Select affiche la nouvelle valeur
+                                    if (!assignment) return
                                     const updatedAssignment = { ...assignment }
                                     const shockIndex = updatedAssignment?.shocks?.findIndex(s => s?.id === shock?.id)
-                                    if (shockIndex !== -1 && updatedAssignment.shocks[shockIndex]) {
+                                    if (shockIndex !== -1 && updatedAssignment.shocks && updatedAssignment.shocks[shockIndex]) {
                                       // Trouver le taux horaire sélectionné dans la liste
                                       const selectedHourlyRate = hourlyRates?.find(hr => String(hr.id) === value)
                                       if (selectedHourlyRate) {
-                                        updatedAssignment.shocks[shockIndex].hourly_rate = {
-                                          id: String(selectedHourlyRate.id),
-                                          value: selectedHourlyRate.value || selectedHourlyRate.label,
-                                          label: selectedHourlyRate.label,
-                                          description: selectedHourlyRate.description || selectedHourlyRate.label,
-                                          deleted_at: null,
-                                          created_at: new Date().toISOString(),
-                                          updated_at: new Date().toISOString()
+                                        updatedAssignment.shocks[shockIndex] = {
+                                          ...updatedAssignment.shocks[shockIndex],
+                                          hourly_rate: {
+                                            id: String(selectedHourlyRate.id),
+                                            value: selectedHourlyRate.value || selectedHourlyRate.label,
+                                            label: selectedHourlyRate.label,
+                                            description: selectedHourlyRate.description || selectedHourlyRate.label,
+                                            deleted_at: null,
+                                            created_at: new Date().toISOString(),
+                                            updated_at: new Date().toISOString()
+                                          }
                                         }
                                         setAssignment(updatedAssignment)
                                       }
@@ -2484,7 +2527,7 @@ function EditReportContent() {
                                     toast.error('Erreur lors de la mise à jour du taux horaire')
                                   }
                                 }}
-                                onReorderSave={async (workforceIds) => {
+                                onReorderSave={async (workforceIds: string[]) => {
                                   if (shock?.id) {
                                     await handleReorderWorkforces(shock.id, workforceIds)
                                   }
