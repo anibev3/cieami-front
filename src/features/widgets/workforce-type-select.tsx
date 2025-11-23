@@ -123,9 +123,9 @@ export function WorkforceTypeSelect({
                       )}
                     </div>
                     {workforceType.hourly_rate && (
-                      <div className="ml-auto text-xs text-muted-foreground">
-                        {workforceType.hourly_rate} FCFA/h
-                      </div>
+                    <div className="ml-auto text-xs text-muted-foreground">
+                      {workforceType.hourly_rate} FCFA/h
+                    </div>
                     )}
                   </CommandItem>
                 ))}
@@ -173,9 +173,9 @@ export function WorkforceTypeSelect({
             )}
           </div>
           {selectedWorkforceType.hourly_rate && (
-            <div className="text-xs text-gray-600">
-              Taux horaire: {selectedWorkforceType.hourly_rate} FCFA/h
-            </div>
+          <div className="text-xs text-gray-600">
+            Taux horaire: {selectedWorkforceType.hourly_rate} FCFA/h
+          </div>
           )}
         </div>
       )}

@@ -823,7 +823,7 @@ function QuotePreparationPageContent() {
         } else {
           console.error('Erreur lors du chargement des taux horaires:', hourlyRatesResponse.status)
         }
-
+        
         // Charger les types de main d'œuvre
         const workforceTypesResponse = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.WORKFORCE_TYPES}?per_page=50`)
         if (workforceTypesResponse.status === 200) {

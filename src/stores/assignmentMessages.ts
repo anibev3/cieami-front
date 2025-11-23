@@ -72,11 +72,11 @@ export const useAssignmentMessagesStore = create<AssignmentMessagesStore>((set, 
         )
         return {
           messages: updatedMessages,
-          pagination: {
-            ...state.pagination,
-            totalItems: state.pagination.totalItems + 1,
-          },
-          loading: false,
+        pagination: {
+          ...state.pagination,
+          totalItems: state.pagination.totalItems + 1,
+        },
+        loading: false,
         }
       })
       toast.success('Message envoyé avec succès')
@@ -99,7 +99,7 @@ export const useAssignmentMessagesStore = create<AssignmentMessagesStore>((set, 
         )
         return {
           messages: sortedMessages,
-          loading: false,
+        loading: false,
         }
       })
       toast.success('Message modifié avec succès')

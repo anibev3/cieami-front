@@ -448,8 +448,8 @@ export function AssignmentActions({
                   </>
                 ) : (
                   <>
-                    <IconComponent className="mr-2 h-4 w-4" />
-                    {action.label}
+                <IconComponent className="mr-2 h-4 w-4" />
+                {action.label}
                   </>
                 )}
               </DropdownMenuItem>

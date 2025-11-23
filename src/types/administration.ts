@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Types pour les documents transmis
 export interface DocumentTransmitted {
   id: number
@@ -52,7 +53,7 @@ export interface UserEntity {
 }
 
 export interface User {
-  id: number
+  id: number | string
   hash_id: string
   email: string
   username: string
@@ -67,6 +68,7 @@ export interface User {
   status: Status
   signature: string | null
   code: string
+  permissions?: string[] // Permissions de l'utilisateur (tableau de noms de permissions)
   created_at: string
   updated_at: string
 }
@@ -86,6 +88,60 @@ export interface UserResponse {
     links: Array<{
       url: string | null
       label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+// Nouveau type pour l'API /users/list/all
+export interface UserListUser {
+  id: string
+  code: string
+  email: string
+  username: string
+  name: string
+  last_name: string
+  first_name: string
+  telephone: string
+  entity: UserEntity
+  client: null | any 
+  photo_url: string
+  pending_verification: boolean
+  role: {
+    id: string | null
+    name: string
+    label: string
+    description: string
+    created_at: string
+    updated_at: string
+  }
+  permissions: string[] // Tableau de noms de permissions
+  signature: string | null
+  status: Status
+  created_at: string
+  updated_at: string
+}
+
+export interface UserListResponse {
+  data: UserListUser[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      page: number | null
       active: boolean
     }>
     path: string

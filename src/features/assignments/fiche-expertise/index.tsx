@@ -582,16 +582,16 @@ function ExpertiseSheetPageContent() {
         const newUrl = new URL(window.location.href)
         newUrl.search = urlParams.toString()
         window.history.replaceState({}, '', newUrl.toString())
-        setTimeout(() => {
-          const shockElement = document.querySelector(`[data-shock-id="${shockIdNum}"]`)
-          if (shockElement) {
-            shockElement.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center',
-              inline: 'nearest'
-            })
-          }
-          setTimeout(() => {
+            setTimeout(() => {
+              const shockElement = document.querySelector(`[data-shock-id="${shockIdNum}"]`)
+              if (shockElement) {
+                shockElement.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'center',
+                  inline: 'nearest'
+                })
+              }
+            setTimeout(() => {
             setHighlightedShockId(null)
           }, 30000)
         }, 500)

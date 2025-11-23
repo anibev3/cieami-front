@@ -84,3 +84,35 @@ fanebakary@bca-ci.com
 
 git@github.com:anibev3/expert-auto.git
 git@github.com:anibev3/cieami-front.git
+
+{
+"status": 201,
+"message": "Shock created successfully",
+"data": {
+"id": "shock_qZwENz9BDLvVQ",
+"position": 4,
+"with_tax": false,
+"is_before_quote": false,
+"is_validated": false,
+"obsolescence_amount_excluding_tax": null,
+"obsolescence_amount_tax": null,
+"obsolescence_amount": null,
+"recovery_amount_excluding_tax": null,
+"recovery_amount_tax": null,
+"recovery_amount": null,
+"new_amount_excluding_tax": null,
+"new_amount_tax": null,
+"new_amount": null,
+"workforce_amount_excluding_tax": null,
+"workforce_amount_tax": null,
+"workforce_amount": null,
+"amount_excluding_tax": null,
+"amount_tax": null,
+"amount": null,
+"deleted_at": null,
+"created_at": "2025-11-19 02:52:28",
+"updated_at": "2025-11-19 02:52:28"
+}
+}
+
+voici le retour de l'api quand j'ajoute un point de choc, actuellement quand j'ajoute un point de choc le modal reste toujour affiché

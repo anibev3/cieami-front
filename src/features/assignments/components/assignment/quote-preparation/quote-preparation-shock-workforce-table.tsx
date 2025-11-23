@@ -492,7 +492,7 @@ export function QuotePreparationShockWorkforceTable({
       })
     } else {
       // Pas de modifications en cours, on peut simplement remplacer
-      setLocalWorkforces(workforces)
+    setLocalWorkforces(workforces)
     }
   }, [workforces, modifiedRows, newRows])
 
@@ -561,20 +561,20 @@ export function QuotePreparationShockWorkforceTable({
       // Charger seulement les données manquantes
       try {
         dataLoadedRef.current = true
-        // Ajouter un timeout pour éviter le blocage
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 10000)
-        )
-        
-        await Promise.race([
-          Promise.all([
+          // Ajouter un timeout pour éviter le blocage
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          )
+          
+          await Promise.race([
+            Promise.all([
             !hasExternalWorkforceTypes && fetchWorkforceTypes(),
             !hasExternalHourlyRates && fetchHourlyRates(),
             !hasExternalPaintTypes && fetchPaintTypes()
-          ].filter(Boolean)),
-          timeoutPromise
-        ])
-      } catch (_error) {
+            ].filter(Boolean)),
+            timeoutPromise
+          ])
+        } catch (_error) {
         // Ne pas afficher d'erreur si les données sont déjà disponibles via les stores
         if (!hasExternalWorkforceTypes || !hasExternalHourlyRates || !hasExternalPaintTypes) {
           // toast.error('Erreur lors du chargement des données (timeout)')
@@ -1742,8 +1742,8 @@ export function QuotePreparationShockWorkforceTable({
               </SortableContext>
             </table>
           </div>
-          </DndContext>
-          
+        </DndContext>
+
           {/* Affichage des erreurs de validation */}
           {failedValidations.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -1827,7 +1827,7 @@ export function QuotePreparationShockWorkforceTable({
         </>
       ) : (
         // Vue réduite avec informations compactes
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
             <p className="text-xs text-green-700">Lignes</p>

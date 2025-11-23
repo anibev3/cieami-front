@@ -1,7 +1,8 @@
 import axiosInstance from '@/lib/axios'
 import { 
   User, 
-  UserResponse, 
+  UserResponse,
+  UserListResponse,
   CreateUserData, 
   UpdateUserData,
   UserFilters 
@@ -60,12 +61,34 @@ class UserService {
     if (filters?.page) {
       params.append('page', filters.page.toString())
     }
-    // if (filters?.per_page) {
-    //   params.append('per_page', filters.per_page.toString())
-    // }
+    if (filters?.per_page) {
+      params.append('per_page', filters.per_page.toString())
+    }
 
     const response = await axiosInstance.get<UserResponse>(
-      `${this.baseUrl}?${params.toString()}&per_page=1000000`
+      `${this.baseUrl}?${params.toString()}`
+    )
+    return response.data
+  }
+
+  /**
+   * Récupérer tous les utilisateurs avec le nouvel endpoint /list/all
+   */
+  async getAllFromList(filters?: { search?: string; page?: number; per_page?: number }): Promise<UserListResponse> {
+    const params = new URLSearchParams()
+    
+    if (filters?.search) {
+      params.append('search', filters.search)
+    }
+    if (filters?.page) {
+      params.append('page', filters.page.toString())
+    }
+    if (filters?.per_page) {
+      params.append('per_page', filters.per_page.toString())
+    }
+
+    const response = await axiosInstance.get<UserListResponse>(
+      `${this.baseUrl}/list/all?${params.toString()}`
     )
     return response.data
   }

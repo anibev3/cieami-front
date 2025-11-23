@@ -481,11 +481,11 @@ export function ShockWorkforceTableV2({
       try {
         isUpdatingRef.current = true
         
-        // Ajouter un timeout pour éviter le blocage
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 10000)
-        )
-        
+          // Ajouter un timeout pour éviter le blocage
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          )
+          
         const promises = []
         if (!hasExternalWorkforceTypes) {
           promises.push(fetchWorkforceTypes())
@@ -505,7 +505,7 @@ export function ShockWorkforceTableV2({
         }
         
         dataLoadedRef.current = true
-      } catch (_error) {
+        } catch (_error) {
         // Ne pas afficher d'erreur si c'est juste un timeout ou si les données sont déjà chargées
         if (hasExternalWorkforceTypes && hasExternalHourlyRates && hasExternalPaintTypes) {
           dataLoadedRef.current = true

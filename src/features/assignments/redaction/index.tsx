@@ -2478,13 +2478,13 @@ function EditReportContent() {
                                         updatedAssignment.shocks[shockIndex] = {
                                           ...updatedAssignment.shocks[shockIndex],
                                           paint_type: {
-                                            id: String(selectedPaintType.id),
-                                            code: selectedPaintType.code || selectedPaintType.label,
-                                            label: selectedPaintType.label,
-                                            description: selectedPaintType.description || selectedPaintType.label,
-                                            deleted_at: null,
-                                            created_at: new Date().toISOString(),
-                                            updated_at: new Date().toISOString()
+                                          id: String(selectedPaintType.id),
+                                          code: selectedPaintType.code || selectedPaintType.label,
+                                          label: selectedPaintType.label,
+                                          description: selectedPaintType.description || selectedPaintType.label,
+                                          deleted_at: null,
+                                          created_at: new Date().toISOString(),
+                                          updated_at: new Date().toISOString()
                                           }
                                         }
                                         setAssignment(updatedAssignment)
@@ -2509,13 +2509,13 @@ function EditReportContent() {
                                         updatedAssignment.shocks[shockIndex] = {
                                           ...updatedAssignment.shocks[shockIndex],
                                           hourly_rate: {
-                                            id: String(selectedHourlyRate.id),
-                                            value: selectedHourlyRate.value || selectedHourlyRate.label,
-                                            label: selectedHourlyRate.label,
-                                            description: selectedHourlyRate.description || selectedHourlyRate.label,
-                                            deleted_at: null,
-                                            created_at: new Date().toISOString(),
-                                            updated_at: new Date().toISOString()
+                                          id: String(selectedHourlyRate.id),
+                                          value: selectedHourlyRate.value || selectedHourlyRate.label,
+                                          label: selectedHourlyRate.label,
+                                          description: selectedHourlyRate.description || selectedHourlyRate.label,
+                                          deleted_at: null,
+                                          created_at: new Date().toISOString(),
+                                          updated_at: new Date().toISOString()
                                           }
                                         }
                                         setAssignment(updatedAssignment)

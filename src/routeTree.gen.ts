@@ -82,6 +82,7 @@ import { Route as AuthenticatedAdministrationVehicleModelsImport } from './route
 import { Route as AuthenticatedAdministrationUsersImport } from './routes/_authenticated/administration/users'
 import { Route as AuthenticatedAdministrationStatutsImport } from './routes/_authenticated/administration/statuts'
 import { Route as AuthenticatedAdministrationStatusesImport } from './routes/_authenticated/administration/statuses'
+import { Route as AuthenticatedAdministrationPermissionsImport } from './routes/_authenticated/administration/permissions'
 import { Route as AuthenticatedAdministrationGeneralStatesImport } from './routes/_authenticated/administration/general-states'
 import { Route as AuthenticatedAdministrationEtatsImport } from './routes/_authenticated/administration/etats'
 import { Route as AuthenticatedAdministrationEntityTypesImport } from './routes/_authenticated/administration/entity-types'
@@ -616,6 +617,13 @@ const AuthenticatedAdministrationStatusesRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedAdministrationPermissionsRoute =
+  AuthenticatedAdministrationPermissionsImport.update({
+    id: '/administration/permissions',
+    path: '/administration/permissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedAdministrationGeneralStatesRoute =
   AuthenticatedAdministrationGeneralStatesImport.update({
     id: '/administration/general-states',
@@ -1136,6 +1144,13 @@ declare module '@tanstack/react-router' {
       path: '/administration/general-states'
       fullPath: '/administration/general-states'
       preLoaderRoute: typeof AuthenticatedAdministrationGeneralStatesImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/administration/permissions': {
+      id: '/_authenticated/administration/permissions'
+      path: '/administration/permissions'
+      fullPath: '/administration/permissions'
+      preLoaderRoute: typeof AuthenticatedAdministrationPermissionsImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/administration/statuses': {
@@ -1939,6 +1954,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdministrationEntityTypesRoute: typeof AuthenticatedAdministrationEntityTypesRoute
   AuthenticatedAdministrationEtatsRoute: typeof AuthenticatedAdministrationEtatsRoute
   AuthenticatedAdministrationGeneralStatesRoute: typeof AuthenticatedAdministrationGeneralStatesRoute
+  AuthenticatedAdministrationPermissionsRoute: typeof AuthenticatedAdministrationPermissionsRoute
   AuthenticatedAdministrationStatusesRoute: typeof AuthenticatedAdministrationStatusesRoute
   AuthenticatedAdministrationStatutsRoute: typeof AuthenticatedAdministrationStatutsRoute
   AuthenticatedAdministrationUsersRoute: typeof AuthenticatedAdministrationUsersRoute
@@ -2027,6 +2043,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdministrationEtatsRoute: AuthenticatedAdministrationEtatsRoute,
   AuthenticatedAdministrationGeneralStatesRoute:
     AuthenticatedAdministrationGeneralStatesRoute,
+  AuthenticatedAdministrationPermissionsRoute:
+    AuthenticatedAdministrationPermissionsRoute,
   AuthenticatedAdministrationStatusesRoute:
     AuthenticatedAdministrationStatusesRoute,
   AuthenticatedAdministrationStatutsRoute:
@@ -2217,6 +2235,7 @@ export interface FileRoutesByFullPath {
   '/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
   '/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
+  '/administration/permissions': typeof AuthenticatedAdministrationPermissionsRoute
   '/administration/statuses': typeof AuthenticatedAdministrationStatusesRoute
   '/administration/statuts': typeof AuthenticatedAdministrationStatutsRoute
   '/administration/users': typeof AuthenticatedAdministrationUsersRoute
@@ -2336,6 +2355,7 @@ export interface FileRoutesByTo {
   '/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
   '/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
+  '/administration/permissions': typeof AuthenticatedAdministrationPermissionsRoute
   '/administration/statuses': typeof AuthenticatedAdministrationStatusesRoute
   '/administration/statuts': typeof AuthenticatedAdministrationStatutsRoute
   '/administration/users': typeof AuthenticatedAdministrationUsersRoute
@@ -2461,6 +2481,7 @@ export interface FileRoutesById {
   '/_authenticated/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/_authenticated/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
   '/_authenticated/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
+  '/_authenticated/administration/permissions': typeof AuthenticatedAdministrationPermissionsRoute
   '/_authenticated/administration/statuses': typeof AuthenticatedAdministrationStatusesRoute
   '/_authenticated/administration/statuts': typeof AuthenticatedAdministrationStatutsRoute
   '/_authenticated/administration/users': typeof AuthenticatedAdministrationUsersRoute
@@ -2586,6 +2607,7 @@ export interface FileRouteTypes {
     | '/administration/entity-types'
     | '/administration/etats'
     | '/administration/general-states'
+    | '/administration/permissions'
     | '/administration/statuses'
     | '/administration/statuts'
     | '/administration/users'
@@ -2704,6 +2726,7 @@ export interface FileRouteTypes {
     | '/administration/entity-types'
     | '/administration/etats'
     | '/administration/general-states'
+    | '/administration/permissions'
     | '/administration/statuses'
     | '/administration/statuts'
     | '/administration/users'
@@ -2827,6 +2850,7 @@ export interface FileRouteTypes {
     | '/_authenticated/administration/entity-types'
     | '/_authenticated/administration/etats'
     | '/_authenticated/administration/general-states'
+    | '/_authenticated/administration/permissions'
     | '/_authenticated/administration/statuses'
     | '/_authenticated/administration/statuts'
     | '/_authenticated/administration/users'
@@ -2994,6 +3018,7 @@ export const routeTree = rootRoute
         "/_authenticated/administration/entity-types",
         "/_authenticated/administration/etats",
         "/_authenticated/administration/general-states",
+        "/_authenticated/administration/permissions",
         "/_authenticated/administration/statuses",
         "/_authenticated/administration/statuts",
         "/_authenticated/administration/users",
@@ -3182,6 +3207,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/administration/general-states": {
       "filePath": "_authenticated/administration/general-states.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/administration/permissions": {
+      "filePath": "_authenticated/administration/permissions.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/administration/statuses": {

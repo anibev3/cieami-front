@@ -337,7 +337,7 @@ export const sidebarData: SidebarData = {
           items: [
             {
               title: 'Statistiques des dossiers',
-              url: '/comptabilite/statistics/assignments',
+              url: '/assignments/statistics-assignments',
               icon: IconWallet,
               requiredPermission: Permission.ASSIGNMENT_STATISTICS,
             }
@@ -532,6 +532,12 @@ export const sidebarData: SidebarData = {
           requiredPermission: Permission.VIEW_USER,
         },
         {
+          title: 'Rôles et Permissions',
+          url: '/administration/permissions',
+          icon: IconShield,
+          requiredPermission: Permission.VIEW_ROLE,
+        },
+        {
           title: 'Documents',
           icon: IconFileText,
           items: [
@@ -592,7 +598,7 @@ export const sidebarData: SidebarData = {
           ],
         },
         {
-          title: 'Types d\'affectation',
+          title: 'Types de missions',
           url: '/administration/assignment-types',
           icon: IconFileText,
           requiredPermission: Permission.VIEW_ASSIGNMENT_TYPE,

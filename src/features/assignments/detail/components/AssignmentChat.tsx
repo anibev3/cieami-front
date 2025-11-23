@@ -119,8 +119,8 @@ export function AssignmentChat({ assignmentId, onClose }: AssignmentChatProps) {
     if (messagesEndRef.current) {
       // Petit délai pour s'assurer que le DOM est mis à jour
       setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
         }
       }, 100)
     }

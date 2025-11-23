@@ -1,7 +1,7 @@
 /**
  * List of available font names (visit the url`/settings/appearance`).
  * This array is used to generate Tailwind's `safelist` inside 'tailwind.config.js' and 'appearance-form.tsx'
- * to prevent dynamic font classes (e.g., `font-inter`, `font-manrope`) from being removed during purging.
+ * to prevent dynamic font classes (e.g., `font-quicksand`) from being removed during purging.
  *
  * 📝 How to Add a New Font:
  * 1. Add the font name here.
@@ -17,12 +17,11 @@
  *   // other configs
  *   extend: {
  *      fontFamily: {
- *        inter: ['Inter', ...fontFamily.sans],
- *        manrope: ['Manrope', ...fontFamily.sans],
+ *        quicksand: ['Quicksand', ...fontFamily.sans],
  *        roboto: ['Roboto', ...fontFamily.sans], // Add new font here
  *      }
  *   }
  * }
  * ```
  */
-export const fonts = ['inter', 'manrope', 'system'] as const
+export const fonts = ['quicksand', 'system'] as const
