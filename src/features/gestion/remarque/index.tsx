@@ -12,6 +12,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
+import { PermissionGate } from '@/components/ui/permission-gate'
 
 function RemarquePageContent() {
   const { fetchRemarks } = useRemarkStore()
@@ -76,24 +77,26 @@ function RemarquePageContent() {
         </div>
       </Main>
 
-      <RemarkDialogs 
-        isCreateOpen={isCreateOpen}
-        isEditOpen={isEditOpen}
-        isViewOpen={isViewOpen}
-        isDeleteOpen={isDeleteOpen}
-        selectedRemark={selectedRemark}
-        onCloseCreate={() => setIsCreateOpen(false)}
-        onCloseEdit={() => setIsEditOpen(false)}
-        onCloseView={() => setIsViewOpen(false)}
-        onCloseDelete={() => setIsDeleteOpen(false)}
-      />
+      <PermissionGate permissions={[Permission.VIEW_REMARK, Permission.CREATE_REMARK, Permission.UPDATE_REMARK, Permission.DELETE_REMARK]}>
+        <RemarkDialogs 
+          isCreateOpen={isCreateOpen}
+          isEditOpen={isEditOpen}
+          isViewOpen={isViewOpen}
+          isDeleteOpen={isDeleteOpen}
+          selectedRemark={selectedRemark}
+          onCloseCreate={() => setIsCreateOpen(false)}
+          onCloseEdit={() => setIsEditOpen(false)}
+          onCloseView={() => setIsViewOpen(false)}
+          onCloseDelete={() => setIsDeleteOpen(false)}
+        />
+      </PermissionGate>
     </>
   )
 }
 
 export default function RemarquePage() {
   return (
-    <ProtectedRoute requiredPermission={Permission.VIEW_ASSIGNMENT}>
+    <ProtectedRoute requiredPermission={Permission.VIEW_REMARK}>
       <RemarquePageContent />
     </ProtectedRoute>
   )

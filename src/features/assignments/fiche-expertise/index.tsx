@@ -32,6 +32,7 @@ import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { FicheExpertisePageSkeleton } from '../components/skeletons/fiche-expertise-page-skeleton'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
 import { assignmentService } from '@/services/assignmentService'
@@ -821,10 +822,7 @@ function ExpertiseSheetPageContent() {
           </div>
         </Header>
         <Main>
-          <div className="flex items-center justify-center h-96">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
-            <span className="ml-2 text-gray-600">Chargement du dossier...</span>
-          </div>
+          <FicheExpertisePageSkeleton />
         </Main>
       </>
     )

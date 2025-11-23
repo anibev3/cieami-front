@@ -86,6 +86,7 @@ import { AssignmentStatusEnum, EntityTypeEnum } from '@/types/global-types'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import assignmentValidationService from '@/services/assignmentValidationService'
 import { useUser } from '@/stores/authStore'
+import { DetailPageSkeleton } from './components/skeletons/detail-page-skeleton'
 
 interface AssignmentDetail {
   id: number
@@ -2542,12 +2543,18 @@ function AssignmentDetailPageContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Chargement du dossier...</p>
-        </div>
-      </div>
+      <>
+        <Header fixed>
+          <Search />
+          <div className='ml-auto flex items-center space-x-4'>
+            <ThemeSwitch />
+            <ProfileDropdown />
+          </div>
+        </Header>
+        <Main>
+          <DetailPageSkeleton />
+        </Main>
+      </>
     )
   }
 

@@ -1,0 +1,11 @@
+export { StatusCardSkeleton } from './status-card-skeleton'
+export { AssignmentsTableSkeleton } from './assignments-table-skeleton'
+export { AssignmentsPageSkeleton } from './assignments-page-skeleton'
+export { RealizePageSkeleton } from './realize-page-skeleton'
+export { DetailPageSkeleton } from './detail-page-skeleton'
+export { CreatePageSkeleton } from './create-page-skeleton'
+export { RedactionPageSkeleton } from './redaction-page-skeleton'
+export { FicheExpertisePageSkeleton } from './fiche-expertise-page-skeleton'
+export { QuotePreparationPageSkeleton } from './quote-preparation-page-skeleton'
+export { CostOfSupplyPageSkeleton } from './cost-of-supply-page-skeleton'
+

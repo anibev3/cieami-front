@@ -41,6 +41,7 @@ import { useUser } from '@/stores/authStore'
 import { UserRole, Permission } from '@/types/auth'
 import { useAssignmentRealizationStore } from '@/stores/assignmentRealizationStore'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { RealizePageSkeleton } from './components/skeletons/realize-page-skeleton'
 
 // Schéma de validation pour la réalisation
 const realizeSchema = z.object({
@@ -192,9 +193,18 @@ function RealizeAssignmentPageContent() {
 
   if (loading && !assignment) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <>
+        <Header fixed>
+          <Search />
+          <div className='ml-auto flex items-center space-x-4'>
+            <ThemeSwitch />
+            <ProfileDropdown />
+          </div>
+        </Header>
+        <Main>
+          <RealizePageSkeleton />
+        </Main>
+      </>
     )
   }
 

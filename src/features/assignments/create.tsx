@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ArrowLeft, Save, Loader2, FileText, Wrench, Plus, User, Car, Building, FileType, Info, Search, AlertCircle, Eye, CheckCircle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ClientSelect } from '@/features/widgets/client-select'
 import { VehicleSelect } from '@/features/widgets/vehicle-select'
 import { InsurerRelationshipSelect, RepairerRelationshipSelect, RepairerRelationshipSelectForInsurer, AdditionalInsurerSelect, SelectionDetailsCard } from '@/features/widgets'
@@ -48,6 +49,7 @@ import {
 } from '@/components/ui/dialog'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
+import { CreatePageSkeleton } from './components/skeletons/create-page-skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -3784,37 +3786,14 @@ function CreateAssignmentPageContent() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de chargement initial - seulement en mode édition */}
-      <Dialog open={isEditMode && isInitialLoading} onOpenChange={() => {}}>
-        <DialogContent className="w-1/3">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-              Chargement des données
-            </DialogTitle>
-            <DialogDescription>
-              Veuillez patienter pendant le chargement des informations du formulaire...
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
-            </div>
-            <p className="mt-4 text-sm text-gray-600 text-center">
-              Préparation du formulaire en cours...
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Skeleton pendant le chargement initial - seulement en mode édition */}
+      {isEditMode && isInitialLoading && (
+        <CreatePageSkeleton />
+      )}
 
-      {/* Indicateur de chargement discret - seulement en mode création */}
+      {/* Skeleton pendant le chargement initial - seulement en mode création */}
       {!isEditMode && isInitialLoading && (
-        <div className="fixed top-4 right-4 z-50">
-          <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3">
-            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-            <span className="text-sm text-gray-700">Chargement des données...</span>
-          </div>
-        </div>
+        <CreatePageSkeleton />
       )}
 
       {/* Modal de création en cours */}

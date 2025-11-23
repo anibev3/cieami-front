@@ -150,12 +150,23 @@ export enum Permission {
   CREATE_ASSIGNMENT = 'assignment.create',
   UPDATE_ASSIGNMENT = 'assignment.update',
   REALIZE_ASSIGNMENT = 'assignment.realize',
+  UPDATE_REALIZED_ASSIGNMENT = 'assignment.update_realized',
   CREATE_WORKSHEET_ASSIGNMENT = 'assignment.create_worksheet',
+  VALIDATE_WORK_SHEET_BY_EXPERT_ASSIGNMENT = 'assignment.validate_work_sheet_by_expert',
+  UNVALIDATE_WORK_SHEET_BY_EXPERT_ASSIGNMENT = 'assignment.unvalidate_work_sheet_by_expert',
   CREATE_QUOTE_ASSIGNMENT = 'assignment.create_quote',
   VALIDATE_QUOTE_ASSIGNMENT = 'assignment.validate_quote',
+  VALIDATE_QUOTE_WITH_CONDITION_ASSIGNMENT = 'assignment.validate_quote_with_condition',
+  UNVALIDATE_QUOTE_ASSIGNMENT = 'assignment.unvalidate_quote',
   CANCEL_QUOTE_ASSIGNMENT = 'assignment.cancel_quote',
   EDIT_ASSIGNMENT = 'assignment.edit',
+  UPDATE_EDITED_ASSIGNMENT = 'assignment.update_edited',
   VALIDATE_ASSIGNMENT = 'assignment.validate',
+  UNVALIDATE_ASSIGNMENT = 'assignment.unvalidate',
+  VALIDATE_BY_REPAIRER_ASSIGNMENT = 'assignment.validate_by_repairer',
+  UNVALIDATE_BY_REPAIRER_ASSIGNMENT = 'assignment.unvalidate_by_repairer',
+  VALIDATE_BY_EXPERT_ASSIGNMENT = 'assignment.validate_by_expert',
+  UNVALIDATE_BY_EXPERT_ASSIGNMENT = 'assignment.unvalidate_by_expert',
   CLOSE_ASSIGNMENT = 'assignment.close',
   CANCEL_ASSIGNMENT = 'assignment.cancel',
   GENERATE_ASSIGNMENT = 'assignment.generate',
@@ -196,6 +207,8 @@ export enum Permission {
   CREATE_SHOCK_POINT = 'shock_point.create',
   UPDATE_SHOCK_POINT = 'shock_point.update',
   DELETE_SHOCK_POINT = 'shock_point.delete',
+  ENABLE_SHOCK_POINT = 'shock_point.enable',
+  DISABLE_SHOCK_POINT = 'shock_point.disable',
 
   // Workforce permissions
   VIEW_WORKFORCE = 'workforce.view',
@@ -498,7 +511,7 @@ export enum Permission {
   DISABLE_REPAIRER_RELATIONSHIP = 'repairer_relationship.disable',
 
   // Assignment message permissions
-  ASSIGNMENT_MESSAGE = 'assignment_message.view',
+  VIEW_ASSIGNMENT_MESSAGE = 'assignment_message.view',
   CREATE_ASSIGNMENT_MESSAGE = 'assignment_message.create',
   UPDATE_ASSIGNMENT_MESSAGE = 'assignment_message.update',
   DELETE_ASSIGNMENT_MESSAGE = 'assignment_message.delete',
@@ -576,6 +589,14 @@ export enum Permission {
   DELETE_USER_ACTION_TYPE = 'user_action_type.delete',
   ENABLE_USER_ACTION_TYPE = 'user_action_type.enable',
   DISABLE_USER_ACTION_TYPE = 'user_action_type.disable',
+
+  // Remark permissions
+  VIEW_REMARK = 'remark.view',
+  CREATE_REMARK = 'remark.create',
+  UPDATE_REMARK = 'remark.update',
+  DELETE_REMARK = 'remark.delete',
+  ENABLE_REMARK = 'remark.enable',
+  DISABLE_REMARK = 'remark.disable',
 
   // Dashboard permissions
   DASHBOARD = 'dashboard.view',

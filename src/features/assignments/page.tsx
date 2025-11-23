@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { AssignmentsDataTable } from './components/assignments-data-table'
 import { Pagination } from './components/pagination'
+import { AssignmentsPageSkeleton } from './components/skeletons/assignments-page-skeleton'
 import { useAssignmentsStore, getAllStatusTabs } from '@/stores/assignments'
 import { toast } from 'sonner'
 import { Header } from '@/components/layout/header'
@@ -264,6 +265,26 @@ function AssignmentsPageContent() {
       clearError()
     }
   }, [error, clearError])
+
+  // Afficher le skeleton pendant le chargement initial
+  if (loading && !isInitialized) {
+    return (
+      <>
+        <Header fixed>
+          <SearchComponent />
+          <div className='ml-auto flex items-center space-x-4'>
+            <ThemeSwitch />
+            <ProfileDropdown />
+          </div>
+        </Header>
+        <Main>
+          <div className="mx-auto">
+            <AssignmentsPageSkeleton />
+          </div>
+        </Main>
+      </>
+    )
+  }
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)

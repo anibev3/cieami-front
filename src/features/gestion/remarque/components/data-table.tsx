@@ -24,6 +24,8 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { PermissionGate } from '@/components/ui/permission-gate'
+import { Permission } from '@/types/auth'
 
 interface DataTableProps {
   onView: (remark: Remark) => void
@@ -68,10 +70,12 @@ export function DataTable({ onView, onEdit, onDelete, onCreate }: DataTableProps
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Remarques experts ({remarks.length})</CardTitle>
-          <Button onClick={onCreate} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Ajouter
-          </Button>
+          <PermissionGate permission={Permission.CREATE_REMARK}>
+            <Button onClick={onCreate} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Ajouter
+            </Button>
+          </PermissionGate>
         </div>
         <div className="flex items-center space-x-2">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -130,15 +134,18 @@ export function DataTable({ onView, onEdit, onDelete, onCreate }: DataTableProps
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onView(remark)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
+                      <PermissionGate permission={Permission.VIEW_REMARK}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onView(remark)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </PermissionGate>
+                      <PermissionGate permission={Permission.UPDATE_REMARK}>
+                        <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onEdit(remark)}
@@ -146,6 +153,8 @@ export function DataTable({ onView, onEdit, onDelete, onCreate }: DataTableProps
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                  </PermissionGate>
+                  <PermissionGate permission={Permission.DELETE_REMARK}>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -153,7 +162,8 @@ export function DataTable({ onView, onEdit, onDelete, onCreate }: DataTableProps
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
-                      </Button>
+                  </Button>
+                  </PermissionGate>
                     </div>
                   </TableCell>
                 </TableRow>

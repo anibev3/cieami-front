@@ -382,7 +382,7 @@ export const sidebarData: SidebarData = {
           title: 'Remarques experts',
           url: '/gestion/remarque',
           icon: IconFileText,
-          requiredPermission: Permission.VIEW_ASSIGNMENT,
+          requiredPermission: Permission.VIEW_REMARK,
         },
       ],
     },

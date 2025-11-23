@@ -65,6 +65,7 @@ import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
+import { RedactionPageSkeleton } from '../components/skeletons/redaction-page-skeleton'
 import { assignmentService } from '@/services/assignmentService'
 import { ShockWorkforceTableV2 } from '@/features/assignments/components/shock-workforce-table-v2'
 import { ShockSuppliesEditTable } from '@/features/assignments/components/shock-supplies-edit-table'
@@ -1330,10 +1331,7 @@ function EditReportContent() {
           </div>
         </Header>
         <Main>
-          <div className="flex items-center justify-center h-96">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-600" />
-            <span className="ml-2 text-gray-600">Chargement du dossier...</span>
-          </div>
+          <RedactionPageSkeleton />
         </Main>
       </>
     )
