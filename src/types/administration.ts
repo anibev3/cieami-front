@@ -295,6 +295,10 @@ export interface Entity {
   email: string
   telephone: string | null
   address: string | null
+  prefix: string | null | undefined
+  suffix: string | null | undefined
+  service_description: string | null | undefined
+  footer_description: string | null | undefined
   status?: Status
   entity_type?: EntityType
   created_at: string

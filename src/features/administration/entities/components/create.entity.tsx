@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import axiosInstance from '@/lib/axios'
 import { useEntityTypesStore } from '@/stores/entityTypesStore'
@@ -35,6 +36,10 @@ function EntityCreatePageContent() {
     telephone: '',
     address: '',
     entity_type_code: '',
+    prefix: '',
+    suffix: '',
+    service_description: '',
+    footer_description: '',
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [existingPhotoUrl, setExistingPhotoUrl] = useState<string | null>(null)
@@ -97,6 +102,10 @@ function EntityCreatePageContent() {
           address: loadedEntity.address || '',
           // entity_type_code peut venir de la réponse directement ou depuis entity_type
           entity_type_code: loadedEntity.entity_type_code || loadedEntity.entity_type?.code || '',
+          prefix: loadedEntity.prefix || '',
+          suffix: loadedEntity.suffix || '',
+          service_description: loadedEntity.service_description || '',
+          footer_description: loadedEntity.footer_description || '',
         })
         
         // Si l'entité a un logo, on peut l'afficher
@@ -131,6 +140,10 @@ function EntityCreatePageContent() {
       if (form.telephone) fd.append('telephone', form.telephone)
       if (form.address) fd.append('address', form.address)
       fd.append('entity_type_code', form.entity_type_code)
+      if (form.prefix) fd.append('prefix', form.prefix)
+      if (form.suffix) fd.append('suffix', form.suffix)
+      if (form.service_description) fd.append('service_description', form.service_description)
+      if (form.footer_description) fd.append('footer_description', form.footer_description)
       if (photoFile && photoFile instanceof File) {
         fd.append('logo', photoFile)
       }
@@ -321,6 +334,102 @@ function EntityCreatePageContent() {
                             onChange={e => setForm({ ...form, address: e.target.value })} 
                             placeholder="123 Rue Exemple, 75000 Paris"
                           />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Section Préfixe et Suffixe */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2">
+                        <Hash className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">Préfixe et Suffixe</h3>
+                      </div>
+                      <Separator />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="prefix" className="flex items-center gap-2">
+                            <Hash className="h-4 w-4 text-muted-foreground" />
+                            Préfixe
+                          </Label>
+                          <Input 
+                            id="prefix"
+                            value={form.prefix} 
+                            onChange={e => setForm({ ...form, prefix: e.target.value })} 
+                            placeholder="Ex: ENT"
+                            maxLength={255}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Préfixe optionnel pour l'entité (max 255 caractères)
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="suffix" className="flex items-center gap-2">
+                            <Hash className="h-4 w-4 text-muted-foreground" />
+                            Suffixe
+                          </Label>
+                          <Input 
+                            id="suffix"
+                            value={form.suffix} 
+                            onChange={e => setForm({ ...form, suffix: e.target.value })} 
+                            placeholder="Ex: SARL"
+                            maxLength={255}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Suffixe optionnel pour l'entité (max 255 caractères)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Section Descriptions */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">Descriptions</h3>
+                      </div>
+                      <Separator />
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="service_description" className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            Description du service
+                          </Label>
+                          <Textarea 
+                            id="service_description"
+                            value={form.service_description} 
+                            onChange={e => setForm({ ...form, service_description: e.target.value })} 
+                            placeholder="Décrivez les services offerts par cette entité..."
+                            rows={4}
+                            className="resize-none"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Description optionnelle des services proposés
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="footer_description" className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            Description du pied de page
+                          </Label>
+                          <Textarea 
+                            id="footer_description"
+                            value={form.footer_description} 
+                            onChange={e => setForm({ ...form, footer_description: e.target.value })} 
+                            placeholder="Texte à afficher dans le pied de page des documents..."
+                            rows={4}
+                            className="resize-none"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Description optionnelle pour le pied de page des documents
+                          </p>
                         </div>
                       </div>
                     </div>

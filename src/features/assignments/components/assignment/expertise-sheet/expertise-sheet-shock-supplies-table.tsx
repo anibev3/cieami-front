@@ -2,9 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-// import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp, SaveAll, Loader2 } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
@@ -159,13 +156,6 @@ function ExpertiseSheetSortableSupplyRow({
           onCreateNew={() => handleCreateSupply(index)}
         />
       </td>
-      {/* Actions basées sur isEvaluation */}
-      <td className="border text-center text-[10px]">
-        <Checkbox 
-          checked={isEvaluation ? row.control : row.disassembly} 
-          onCheckedChange={v => updateLocalShockWork(index, isEvaluation ? 'control' : 'disassembly', v)} 
-        />
-      </td>
       <td className="border text-center text-[10px]">
         <Checkbox 
           checked={row.replacement} 
@@ -184,6 +174,19 @@ function ExpertiseSheetSortableSupplyRow({
           onCheckedChange={v => updateLocalShockWork(index, 'paint', v)} 
         />
       </td>
+      {/* Actions basées sur isEvaluation */}
+      {/* <td className="border text-center text-[10px]">
+        <Checkbox 
+          checked={isEvaluation ? row.control : row.disassembly} 
+          onCheckedChange={v => updateLocalShockWork(index, isEvaluation ? 'control' : 'disassembly', v)} 
+        />
+      </td> */}
+      <td className="border text-center text-[10px]">
+        <Checkbox 
+          checked={row.control} 
+          onCheckedChange={v => updateLocalShockWork(index, 'control', v)} 
+        />
+      </td>
       {!isEvaluation && (
         <td className="border text-center text-[10px]">
           <Checkbox 
@@ -193,46 +196,46 @@ function ExpertiseSheetSortableSupplyRow({
         </td>
       )}
       {/* Montant HT */}
-      <td className="border px-2 text-center text-[10px] w-40">
+      {/* <td className="border px-2 text-center text-[10px] w-40">
         <Input
           type="number"
           className="w-full rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
           value={row.amount}
           onChange={e => updateLocalShockWork(index, 'amount', Number(e.target.value))}
         />
-      </td>
+      </td> */}
       {/* Remise */}
-      <td className="border px-2 py-2 text-center text-[10px]">
+      {/* <td className="border px-2 py-2 text-center text-[10px]">
         <Input
           type="number"
           className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
           value={row.discount}
           onChange={e => updateLocalShockWork(index, 'discount', Number(e.target.value))}
         />
-      </td>
+      </td> */}
       {/* Remise Calculé */}
-      <td className="border px-2 py-2 text-center text-[10px] w-40">
+      {/* <td className="border px-2 py-2 text-center text-[10px] w-40">
         <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
           {_formatCurrency(row.amount - (row.discount_amount_excluding_tax || 0))}
         </div>
-      </td>
+      </td> */}
       {/* Vétuste (%) */}
-      <td className="border px-2 text-center text-[10px]">
+      {/* <td className="border px-2 text-center text-[10px]">
         <Input
           type="number"
           className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
           value={row.obsolescence_rate}
           onChange={e => updateLocalShockWork(index, 'obsolescence_rate', Number(e.target.value))}
         />
-      </td>
+      </td> */}
       {/* Vétuste calculée */}
-      <td className="border px-2 text-center text-[10px] w-40">
+      {/* <td className="border px-2 text-center text-[10px] w-40">
         <div className="text-gray-600 font-medium">
           {_formatCurrency(row.new_amount_excluding_tax || 0)}
         </div>
-      </td>
+      </td> */}
       {/* Montant TTC */}
-      <td className="border px-2 py-2 text-center text-[10px] w-35">
+      {/* <td className="border px-2 py-2 text-center text-[10px] w-35">
         <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
           <Input
             type="number"
@@ -241,7 +244,7 @@ function ExpertiseSheetSortableSupplyRow({
             onChange={e => updateLocalShockWork(index, 'recovery_amount', Number(e.target.value))}
           />
         </div>
-      </td>
+      </td> */}
       {/* Actions */}
       <td className="border px-2 py-2 text-center text-[10px]">
         <div className="flex items-center justify-center gap-1">
@@ -1157,9 +1160,7 @@ export function ExpertiseSheetShockSuppliesTable({
                   <th className="border px-3 py-2 text-left font-medium text-[10px]">
                     Fournitures
                   </th>
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                    {isEvaluation ? 'Ctrl' : 'D/p'}
-                  </th>
+                  
                   <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Remp
                   </th>
@@ -1169,29 +1170,35 @@ export function ExpertiseSheetShockSuppliesTable({
                   <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Peint
                   </th>
+                  {/* <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    {isEvaluation ? 'Ctrl' : 'D/p'}
+                  </th> */}
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Ctrl
+                  </th>
                   {!isEvaluation && (
                     <th className="border px-2 py-2 text-center font-medium text-[10px]">
                       Vét
                     </th>
                   )}
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  {/* <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Montant HT
-                  </th>
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  </th> */}
+                  {/* <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Remise
-                  </th>
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  </th> */}
+                  {/* <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Remise Calculé
-                  </th>
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  </th> */}
+                  {/* <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Vétuste (%)
-                  </th>
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                  </th> */}
+                  {/* <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Vétuste calculée
-                  </th>
-                  <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
+                  </th> */}
+                  {/* <th className="border px-2 py-2 text-center font-medium text-purple-600 text-[10px]">
                     Montant TTC
-                  </th>
+                  </th> */}
                   <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Actions
                   </th>

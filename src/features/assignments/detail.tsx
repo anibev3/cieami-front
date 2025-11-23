@@ -82,7 +82,7 @@ import {
 } from './components'
 import { useACL } from '@/hooks/useACL'
 import { UserRole, Permission } from '@/types/auth'
-import { AssignmentStatusEnum, EntityTypeEnum } from '@/types/global-types'
+import { AssignmentStatusEnum, AssignmentStatusesWithDescription, EntityTypeEnum } from '@/types/global-types'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import assignmentValidationService from '@/services/assignmentValidationService'
 import { useUser } from '@/stores/authStore'
@@ -2655,12 +2655,14 @@ function AssignmentDetailPageContent() {
                       )}
                       
                       {/* Bouton "Préparation de devis" : masquer aux statuts 'in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed' */}
-                      {![ AssignmentStatusEnum.IN_EDITING, AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT, AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID, AssignmentStatusEnum.CLOSED ].includes(assignment.status.code as AssignmentStatusEnum) && (
-                        <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
-                          <FileDown className="h-3 w-3 mr-2" />
-                           Voir le devis de réparation
-                        </Button>
-                      )}
+                        {/* {![ AssignmentStatusEnum.IN_EDITING, AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT, AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID, AssignmentStatusEnum.CLOSED ].includes(assignment.status.code as AssignmentStatusEnum) && ( */}
+                        {assignment?.work_sheet_established_at !== null && (
+                          <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
+                            <FileDown className="h-3 w-3 mr-2" />
+                            Voir le devis de réparation
+                          </Button>
+                        )}
+                      {/* // )} */}
                       
                       {/* Actions basées sur le statut */}
                       {renderActionsToolbar(getAvailableActions(assignment))}
@@ -2951,17 +2953,19 @@ function AssignmentDetailPageContent() {
             <div className="flex-1">
                 {(() => {
                 const steps = [
-                  { code: 'pending', label: 'Création' },
-                  { code: 'opened', label: 'Ouvert' },
-                  { code: 'realized', label: 'Réalisé' },
-                  { code: 'pending_for_repairer_invoice', label: 'En attente facture réparateur' },
-                  { code: 'pending_for_repairer_invoice_validation', label: 'Facture réparateur validée' },
-                  { code: 'in_editing', label: 'En édition' },
-                  { code: 'edited', label: 'Rédigé' },
+                  { code: AssignmentStatusEnum.PENDING, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING] },
+                  { code: AssignmentStatusEnum.OPENED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.OPENED] },
+                  { code: AssignmentStatusEnum.REALIZED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.REALIZED] },
+                  { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE] },
+                  { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE_VALIDATION] },
+                  { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE] },
+                  { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION] },
+                  { code: AssignmentStatusEnum.IN_EDITING, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.IN_EDITING] },
+                  { code: AssignmentStatusEnum.EDITED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.EDITED] },
                   // { code: 'in_payment', label: 'En paiement' },
-                  { code: 'validated', label: 'Validé' },
-                  { code: 'paid', label: 'Payé' },
-                  { code: 'closed', label: 'Clôturé' }
+                  { code: AssignmentStatusEnum.VALIDATED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.VALIDATED] },
+                  { code: AssignmentStatusEnum.PAID, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PAID] },
+                  { code: AssignmentStatusEnum.CLOSED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.CLOSED] }
                 ]
                 const currentIndex = Math.max(0, steps.findIndex(s => s.code === assignment.status.code))
                 return (

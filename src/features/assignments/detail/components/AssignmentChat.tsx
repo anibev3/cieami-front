@@ -228,8 +228,8 @@ export function AssignmentChat({ assignmentId, onClose }: AssignmentChatProps) {
   }
 
   return (
-    <Card className="h-full flex flex-col shadow-sm border-l bg-background w-full">
-      <CardHeader className="pb-3 px-4 sm:px-6 border-b bg-muted/30 flex-shrink-0">
+    <Card className="h-full flex flex-col shadow-sm border-l bg-background w-full py-0">
+      <CardHeader className="px-4 sm:px-6 py-3 bg-muted/30 flex-shrink-0 gap-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
@@ -380,7 +380,7 @@ export function AssignmentChat({ assignmentId, onClose }: AssignmentChatProps) {
         </ScrollArea>
 
         {/* Zone de saisie */}
-        <div className="border-t bg-background p-0 px-3 sm:px-4 pt-3 flex-shrink-0">
+        <div className="border-t bg-background p-0 px-3 sm:px-4 py-3 flex-shrink-0">
           <div className="flex gap-2 items-end">
             <div className="flex-1 relative">
               <Textarea

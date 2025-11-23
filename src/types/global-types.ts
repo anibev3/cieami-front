@@ -1,11 +1,15 @@
 // Statuts des dossiers
 export enum AssignmentStatusEnum {
-  PENDING = 'pending',
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   OPENED = 'opened',
   REALIZED = 'realized',
+  PENDING_FOR_REPAIRER_QUOTE = 'pending_for_repairer_quote',
+  PENDING_FOR_REPAIRER_QUOTE_VALIDATION = 'pending_for_repairer_quote_validation',
+  IN_EDITING = 'in_editing',
   EDITED = 'edited',
+  PENDING_FOR_REPAIRER_VALIDATION = 'pending_for_repairer_validation',
+  PENDING_FOR_EXPERT_VALIDATION = 'pending_for_expert_validation',
   VALIDATED = 'validated',
   IN_PAYMENT = 'in_payment',
   PAID = 'paid',
@@ -16,7 +20,11 @@ export enum AssignmentStatusEnum {
   DRAFT = 'draft',
   PENDING_FOR_REPAIRER_INVOICE = 'pending_for_repairer_invoice',
   PENDING_FOR_REPAIRER_INVOICE_VALIDATION = 'pending_for_repairer_invoice_validation',
-  IN_EDITING = 'in_editing',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
 }
 
 // Rôles des utilisateurs
@@ -55,4 +63,32 @@ export enum AssignmentRequestStatusEnum {
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
   CANCELLED = 'cancelled',
+}
+
+export const AssignmentStatusesWithDescription = {
+  [AssignmentStatusEnum.ACTIVE]: 'Actif',
+  [AssignmentStatusEnum.INACTIVE]: 'Inactif',
+  [AssignmentStatusEnum.OPENED]: 'Ouvert',
+  [AssignmentStatusEnum.REALIZED]: 'Réalisé',
+  [AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE]: 'En attente de devis réparateur',
+  [AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE_VALIDATION]: 'Devis réparateur validé',
+  [AssignmentStatusEnum.IN_EDITING]: 'En édition',
+  [AssignmentStatusEnum.EDITED]: 'Rédigé',
+  [AssignmentStatusEnum.PENDING_FOR_REPAIRER_VALIDATION]: 'En attente de validation réparateur',
+  [AssignmentStatusEnum.PENDING_FOR_EXPERT_VALIDATION]: 'En attente de validation expert',
+  [AssignmentStatusEnum.VALIDATED]: 'Validé',
+  [AssignmentStatusEnum.IN_PAYMENT]: 'En paiement',
+  [AssignmentStatusEnum.PAID]: 'Payé',
+  [AssignmentStatusEnum.CLOSED]: 'Clôturé',
+  [AssignmentStatusEnum.CANCELLED]: 'Annulé',
+  [AssignmentStatusEnum.DELETED]: 'Supprimé',
+  [AssignmentStatusEnum.ARCHIVED]: 'Archivé',
+  [AssignmentStatusEnum.DRAFT]: 'Brouillon',
+  [AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE]: 'En attente de facture réparateur',
+  [AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION]: 'Facture réparateur validée',
+  [AssignmentStatusEnum.SUCCESS]: 'Succès',
+  [AssignmentStatusEnum.FAILED]: 'Échec',
+  [AssignmentStatusEnum.PENDING]: 'En attente',
+  [AssignmentStatusEnum.ACCEPTED]: 'Accepté',
+  [AssignmentStatusEnum.REJECTED]: 'Rejeté',
 }
