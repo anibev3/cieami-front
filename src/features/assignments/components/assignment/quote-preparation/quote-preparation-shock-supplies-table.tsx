@@ -161,13 +161,14 @@ function QuotePreparationSortableSupplyRow({
           onCreateNew={() => handleCreateSupply(index)}
         />
       </td>
-      {/* Actions basées sur isEvaluation */}
-      <td className="border text-center text-[10px]">
-        <Checkbox 
-          checked={isEvaluation ? row.control : row.disassembly} 
-          onCheckedChange={v => updateLocalShockWork(index, isEvaluation ? 'control' : 'disassembly', v)} 
-        />
-      </td>
+      {!isEvaluation && (
+        <td className="border text-center text-[10px]">
+          <Checkbox
+            checked={row.disassembly}
+            onCheckedChange={v => updateLocalShockWork(index, 'disassembly', v)}
+          />
+        </td>
+      )}
       <td className="border text-center text-[10px]">
         <Checkbox 
           checked={row.replacement} 
@@ -184,6 +185,13 @@ function QuotePreparationSortableSupplyRow({
         <Checkbox 
           checked={row.paint} 
           onCheckedChange={v => updateLocalShockWork(index, 'paint', v)} 
+        />
+      </td>
+      {/* Actions basées sur isEvaluation */}
+      <td className="border text-center text-[10px]">
+        <Checkbox 
+          checked={row.control} 
+          onCheckedChange={v => updateLocalShockWork(index, 'control', v)} 
         />
       </td>
       {!isEvaluation && (
@@ -1149,18 +1157,25 @@ export function QuotePreparationShockSuppliesTable({
                   <th className="border px-3 py-2 text-left font-medium text-[10px]">
                     Fournitures
                   </th>
-                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
-                    {isEvaluation ? 'Ctrl' : 'D/p'}
-                  </th>
+                  {!isEvaluation && (
+                    <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                      D/p
+                    </th>
+                  )}
                   <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Remp
                   </th>
+                  
                   <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Rep
                   </th>
                   <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Peint
                   </th>
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Ctrl
+                  </th>
+
                   {!isEvaluation && (
                     <th className="border px-2 py-2 text-center font-medium text-[10px]">
                       Vét

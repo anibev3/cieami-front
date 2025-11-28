@@ -28,6 +28,7 @@ import { Route as ClerkAuthenticatedRouteImport } from './routes/clerk/_authenti
 import { Route as ClerkauthRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedComptabiliteRouteImport } from './routes/_authenticated/comptabilite/route'
+import { Route as AuthenticatedWorkflowIndexImport } from './routes/_authenticated/workflow/index'
 import { Route as AuthenticatedSettingsIndexImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRelationshipIndexImport } from './routes/_authenticated/relationship/index'
 import { Route as AuthenticatedHelpCenterIndexImport } from './routes/_authenticated/help-center/index'
@@ -237,6 +238,14 @@ const AuthenticatedComptabiliteRouteRoute =
     path: '/comptabilite',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+
+const AuthenticatedWorkflowIndexRoute = AuthenticatedWorkflowIndexImport.update(
+  {
+    id: '/workflow/',
+    path: '/workflow/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any,
+)
 
 const AuthenticatedSettingsIndexRoute = AuthenticatedSettingsIndexImport.update(
   {
@@ -1531,6 +1540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexImport
       parentRoute: typeof AuthenticatedSettingsRouteImport
     }
+    '/_authenticated/workflow/': {
+      id: '/_authenticated/workflow/'
+      path: '/workflow'
+      fullPath: '/workflow'
+      preLoaderRoute: typeof AuthenticatedWorkflowIndexImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/administration/constat/type': {
       id: '/_authenticated/administration/constat/type'
       path: '/administration/constat/type'
@@ -1993,6 +2009,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsIndexRoute: typeof AuthenticatedAssignmentsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedRelationshipIndexRoute: typeof AuthenticatedRelationshipIndexRoute
+  AuthenticatedWorkflowIndexRoute: typeof AuthenticatedWorkflowIndexRoute
   AuthenticatedAdministrationConstatTypeRoute: typeof AuthenticatedAdministrationConstatTypeRoute
   AuthenticatedAdministrationEntitiesNewRoute: typeof AuthenticatedAdministrationEntitiesNewRoute
   AuthenticatedAdministrationVehicleCreateRoute: typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2105,6 +2122,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssignmentsIndexRoute: AuthenticatedAssignmentsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedRelationshipIndexRoute: AuthenticatedRelationshipIndexRoute,
+  AuthenticatedWorkflowIndexRoute: AuthenticatedWorkflowIndexRoute,
   AuthenticatedAdministrationConstatTypeRoute:
     AuthenticatedAdministrationConstatTypeRoute,
   AuthenticatedAdministrationEntitiesNewRoute:
@@ -2290,6 +2308,7 @@ export interface FileRoutesByFullPath {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/relationship': typeof AuthenticatedRelationshipIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/workflow': typeof AuthenticatedWorkflowIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
   '/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2410,6 +2429,7 @@ export interface FileRoutesByTo {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/relationship': typeof AuthenticatedRelationshipIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/workflow': typeof AuthenticatedWorkflowIndexRoute
   '/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
   '/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2536,6 +2556,7 @@ export interface FileRoutesById {
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/relationship/': typeof AuthenticatedRelationshipIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/workflow/': typeof AuthenticatedWorkflowIndexRoute
   '/_authenticated/administration/constat/type': typeof AuthenticatedAdministrationConstatTypeRoute
   '/_authenticated/administration/entities/new': typeof AuthenticatedAdministrationEntitiesNewRoute
   '/_authenticated/administration/vehicle/create': typeof AuthenticatedAdministrationVehicleCreateRoute
@@ -2662,6 +2683,7 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/relationship'
     | '/settings/'
+    | '/workflow'
     | '/administration/constat/type'
     | '/administration/entities/new'
     | '/administration/vehicle/create'
@@ -2781,6 +2803,7 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/relationship'
     | '/settings'
+    | '/workflow'
     | '/administration/constat/type'
     | '/administration/entities/new'
     | '/administration/vehicle/create'
@@ -2905,6 +2928,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help-center/'
     | '/_authenticated/relationship/'
     | '/_authenticated/settings/'
+    | '/_authenticated/workflow/'
     | '/_authenticated/administration/constat/type'
     | '/_authenticated/administration/entities/new'
     | '/_authenticated/administration/vehicle/create'
@@ -3057,6 +3081,7 @@ export const routeTree = rootRoute
         "/_authenticated/assignments/",
         "/_authenticated/help-center/",
         "/_authenticated/relationship/",
+        "/_authenticated/workflow/",
         "/_authenticated/administration/constat/type",
         "/_authenticated/administration/entities/new",
         "/_authenticated/administration/vehicle/create",
@@ -3432,6 +3457,10 @@ export const routeTree = rootRoute
     "/_authenticated/settings/": {
       "filePath": "_authenticated/settings/index.tsx",
       "parent": "/_authenticated/settings"
+    },
+    "/_authenticated/workflow/": {
+      "filePath": "_authenticated/workflow/index.tsx",
+      "parent": "/_authenticated"
     },
     "/_authenticated/administration/constat/type": {
       "filePath": "_authenticated/administration/constat/type.tsx",

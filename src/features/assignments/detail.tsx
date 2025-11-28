@@ -75,6 +75,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { useAssignmentsStore } from '@/stores/assignments'
 import { 
@@ -89,7 +98,11 @@ import { useUser } from '@/stores/authStore'
 import { DetailPageSkeleton } from './components/skeletons/detail-page-skeleton'
 
 interface AssignmentDetail {
-  id: number
+  id: string  
+  quote_validated: boolean
+  agreement_for_work_subject_to_conditions: boolean | null
+  quote_validated_by_repairer_at: boolean | null
+  quote_validated_by_expert_at: boolean | null
   reference: string
   policy_number: string | null
   claim_number: string | null
@@ -662,6 +675,7 @@ function AssignmentDetailPageContent() {
   const [unvalidating, setUnvalidating] = useState(false)
   const [validatingEdition, setValidatingEdition] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
+  const [showValidationWithConditionsModal, setShowValidationWithConditionsModal] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
   const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin, isMainOrganization, isInsurerEntity, isRepairerEntity, isSystemAdmin, isAdmin } = useACL()
   const currentUser = useUser()
@@ -2246,6 +2260,14 @@ function AssignmentDetailPageContent() {
   const handleValidateEdition = async () => {
     if (!assignment) return
     
+    // Vérifier si le dossier a été validé sous réserve
+    if (assignment.agreement_for_work_subject_to_conditions === true) {
+      // Afficher le modal d'information
+      setShowValidationWithConditionsModal(true)
+      return
+    }
+    
+    // Validation normale si pas de condition
     setValidatingEdition(true)
     try {
       await assignmentValidationService.validateEdition(String(assignment.id))
@@ -2266,6 +2288,13 @@ function AssignmentDetailPageContent() {
     } finally {
       setValidatingEdition(false)
     }
+  }
+
+  const handleValidateDefinitively = () => {
+    if (!assignment) return
+    setShowValidationWithConditionsModal(false)
+    // Rediriger vers la page de quote-preparation avec un paramètre
+    window.location.href = `/assignments/quote-preparation/${assignment.id}?validate_definitively=true`
   }
 
   // Fonction pour déterminer les actions disponibles selon le statut
@@ -2467,7 +2496,7 @@ function AssignmentDetailPageContent() {
     return actions
   }
 
-  // Barre d'actions: affichage propre, groupé et responsive sur plusieurs lignes si nécessaire
+  // Barre d'actions: nouveau design avec dropdown menu pour organiser les actions
   const renderActionsToolbar = (actions: any[]) => {
     // Filtrer les actions pour ne garder que celles qui ne sont pas désactivées
     const enabledActions = actions.filter(action => !(action.loading || action.disabled))
@@ -2477,9 +2506,11 @@ function AssignmentDetailPageContent() {
       return null
     }
     
-    const primaryKeys = new Set(['generate-report', 'validate', 'realize', 'write-report'])
-    const secondaryKeys = new Set(['edit', 'edit-realization', 'edit-report'])
-    const dangerKeys = new Set(['unvalidate', 'delete'])
+    // Catégoriser les actions
+    const criticalActions = new Set(['validate', 'unvalidate', 'generate-report'])
+    const editActions = new Set(['edit', 'edit-realization', 'edit-report', 'write-report'])
+    const workflowActions = new Set(['realize'])
+    const dangerActions = new Set(['delete'])
 
     const sortOrder: Record<string, number> = {
       'validate': 1,
@@ -2493,11 +2524,30 @@ function AssignmentDetailPageContent() {
       'delete': 9,
     }
 
-    const primary = enabledActions.filter(a => primaryKeys.has(a.key)).sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
-    const secondary = enabledActions.filter(a => secondaryKeys.has(a.key)).sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
-    const danger = enabledActions.filter(a => dangerKeys.has(a.key)).sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
+    // Actions critiques (affichées comme boutons principaux)
+    const critical = enabledActions
+      .filter(a => criticalActions.has(a.key))
+      .sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
+    
+    // Actions d'édition (dans le dropdown)
+    const edit = enabledActions
+      .filter(a => editActions.has(a.key))
+      .sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
+    
+    // Actions de workflow (dans le dropdown)
+    const workflow = enabledActions
+      .filter(a => workflowActions.has(a.key))
+      .sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
+    
+    // Actions de danger (dans le dropdown)
+    const danger = enabledActions
+      .filter(a => dangerActions.has(a.key))
+      .sort((a, b) => (sortOrder[a.key] ?? 99) - (sortOrder[b.key] ?? 99))
 
-    const renderButton = (action: any) => {
+    // Actions pour le menu dropdown (toutes sauf les critiques)
+    const dropdownActions = [...edit, ...workflow, ...danger]
+
+    const renderButton = (action: any, showIconOnly = false) => {
       const IconComponent = action.icon
       return (
         <Button
@@ -2510,34 +2560,112 @@ function AssignmentDetailPageContent() {
           title={action.label}
           aria-label={action.label}
         >
-          <IconComponent className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">{action.loading ? 'Chargement...' : action.label}</span>
-          <span className="sm:hidden">{action.loading ? '...' : action.label.split(' ')[0]}</span>
+          <IconComponent className="h-4 w-4" />
+          {!showIconOnly && (
+            <>
+              <span className="hidden sm:inline ml-2">{action.loading ? 'Chargement...' : action.label}</span>
+              <span className="sm:hidden ml-2">{action.loading ? '...' : action.label.split(' ')[0]}</span>
+            </>
+          )}
         </Button>
       )
     }
 
     return (
-      <>
-        {/* Actions primaires */}
-        {primary.map(renderButton)}
+      <div className="flex items-center gap-2">
+        {/* Actions critiques - toujours visibles */}
+        {critical.map(action => renderButton(action))}
         
-        {/* Séparateur après primaires si nécessaire */}
-        {primary.length > 0 && (secondary.length > 0 || danger.length > 0) && (
-          <Separator orientation="vertical" className="h-6 hidden lg:block" />
+        {/* Menu dropdown pour les autres actions */}
+        {dropdownActions.length > 0 && (
+          <>
+            {critical.length > 0 && (
+              <Separator orientation="vertical" className="h-6 hidden sm:block" />
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden sm:inline">Plus d'actions</span>
+                  <span className="sm:hidden">Actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {/* Actions d'édition */}
+                {edit.length > 0 && (
+                  <>
+                    <DropdownMenuLabel>Modification</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      {edit.map((action) => {
+                        const IconComponent = action.icon
+                        return (
+                          <DropdownMenuItem
+                            key={action.key}
+                            onClick={action.onClick}
+                            disabled={action.loading}
+                            className="cursor-pointer"
+                          >
+                            <IconComponent className="h-4 w-4 mr-2" />
+                            {action.loading ? 'Chargement...' : action.label}
+                          </DropdownMenuItem>
+                        )
+                      })}
+                    </DropdownMenuGroup>
+                    {(workflow.length > 0 || danger.length > 0) && <DropdownMenuSeparator />}
+                  </>
+                )}
+
+                {/* Actions de workflow */}
+                {workflow.length > 0 && (
+                  <>
+                    <DropdownMenuLabel>Workflow</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      {workflow.map((action) => {
+                        const IconComponent = action.icon
+                        return (
+                          <DropdownMenuItem
+                            key={action.key}
+                            onClick={action.onClick}
+                            disabled={action.loading}
+                            className="cursor-pointer"
+                          >
+                            <IconComponent className="h-4 w-4 mr-2" />
+                            {action.loading ? 'Chargement...' : action.label}
+                          </DropdownMenuItem>
+                        )
+                      })}
+                    </DropdownMenuGroup>
+                    {danger.length > 0 && <DropdownMenuSeparator />}
+                  </>
+                )}
+
+                {/* Actions de danger */}
+                {danger.length > 0 && (
+                  <>
+                    <DropdownMenuLabel className="text-destructive">Actions dangereuses</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      {danger.map((action) => {
+                        const IconComponent = action.icon
+                        return (
+                          <DropdownMenuItem
+                            key={action.key}
+                            onClick={action.onClick}
+                            disabled={action.loading}
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <IconComponent className="h-4 w-4 mr-2" />
+                            {action.loading ? 'Chargement...' : action.label}
+                          </DropdownMenuItem>
+                        )
+                      })}
+                    </DropdownMenuGroup>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         )}
-        
-        {/* Actions secondaires */}
-        {secondary.map(renderButton)}
-        
-        {/* Séparateur avant danger si nécessaire */}
-        {secondary.length > 0 && danger.length > 0 && (
-          <Separator orientation="vertical" className="h-6 hidden lg:block" />
-        )}
-        
-        {/* Actions de danger */}
-        {danger.map(renderButton)}
-      </>
+      </div>
     )
   }
 
@@ -2595,83 +2723,109 @@ function AssignmentDetailPageContent() {
                 <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate">Dossier {assignment.reference}</h1>
                 <p className="text-xs text-muted-foreground">Détails complets du dossier d'expertise</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Statut : </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Statut : </p>
+                </div>
+                <Badge className={getStatusColor(assignment.status.code) + 'flex items-center gap-1.5 px-3 py-1.5 animate-pulse'}>
+                  
+                  <span className="font-semibold text-xs sm:text-sm">{assignment.status.label}</span>
+                </Badge>
               </div>
-                <Badge className={getStatusColor(assignment.status.code)}>
-                {assignment.status.label}
-              </Badge>
-              {/* <Badge className={getStatusColor(assignment.status.code) + ' bg-green-50 text-green-500 border-green-500'}>
-                        {assignment.status.label}
-                      </Badge> */}
+              {/* Indicateur "Validé sous réserve" */}
+              {assignment.agreement_for_work_subject_to_conditions === true && (
+                <Badge 
+                  variant="outline" 
+                  className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700 flex items-center gap-1.5 px-3 py-1.5 animate-pulse"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span className="font-semibold text-xs sm:text-sm">Validé sous réserve</span>
+                </Badge>
+              )}
             </div>
              
             </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
-            {/* Gestion des boutons selon le type d'entité */}
-            {!isReadOnlyUser && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                <div className="flex items-center gap-2 flex-nowrap min-w-max">
-                  {isRepairerUser ? (
-                    // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
-                    // Masquer ce bouton aux statuts : 'in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed'
-                    ![ AssignmentStatusEnum.IN_EDITING, AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT, AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID, AssignmentStatusEnum.CLOSED ].includes(assignment.status.code as AssignmentStatusEnum) ? (
-                      <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
-                        <FileDown className="h-3 w-3 mr-2" />
-                        Préparation de devis
+          {/* Zone d'actions - Design amélioré */}
+          {!isReadOnlyUser && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                {isRepairerUser ? (
+                  // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
+                  assignment?.quote_validated === false && assignment?.quote_validated != null && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
+                      className="gap-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      <span className="hidden sm:inline">Préparation de devis</span>
+                      <span className="sm:hidden">Devis</span>
+                    </Button>
+                  )
+                ) : (
+                  // Autres utilisateurs : actions organisées
+                  <>
+                    {/* Actions spécifiques aux experts admin */}
+                    {isExpertAdmin() && (assignment?.status?.code === AssignmentStatusEnum.REALIZED) && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}
+                        className="gap-2"
+                      >
+                        <FileDown className="h-4 w-4" />
+                        <span className="hidden sm:inline">Rédaction fiche travaux</span>
+                        <span className="sm:hidden">Fiche</span>
                       </Button>
-                    ) : null
-                  ) : (
-                    // Autres utilisateurs : tous les boutons disponibles
-                    <>
-                      {isExpertAdmin() && (assignment?.status?.code === AssignmentStatusEnum.REALIZED) && (
-                        <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}>
-                          <FileDown className="h-3 w-3 mr-2" />
-                          Redaction de la fiche de traveaux
-                        </Button>
-                      )}
+                    )}
 
-                      {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
-                        <Button 
-                          variant="default" 
-                          size="sm" 
-                          onClick={handleValidateEdition}
-                          disabled={validatingEdition}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {validatingEdition ? (
-                            <>
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
-                              Validation...
-                            </>
-                          ) : (
-                            <>
-                              <Shield className="h-3 w-3 mr-2" />
-                              Valider l'édition
-                            </>
-                          )}
-                        </Button>
-                      )}
-                      
-                      {/* Bouton "Préparation de devis" : masquer aux statuts 'in_editing', 'edited', 'in_payment', 'validated', 'paid', 'closed' */}
-                        {/* {![ AssignmentStatusEnum.IN_EDITING, AssignmentStatusEnum.EDITED, AssignmentStatusEnum.IN_PAYMENT, AssignmentStatusEnum.VALIDATED, AssignmentStatusEnum.PAID, AssignmentStatusEnum.CLOSED ].includes(assignment.status.code as AssignmentStatusEnum) && ( */}
-                        {assignment?.work_sheet_established_at !== null && (
-                          <Button variant="outline" size="sm" onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}>
-                            <FileDown className="h-3 w-3 mr-2" />
-                            Voir le devis de réparation
-                          </Button>
+                    {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={handleValidateEdition}
+                        disabled={validatingEdition}
+                        className="bg-green-600 hover:bg-green-700 gap-2"
+                      >
+                        {validatingEdition ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span className="hidden sm:inline">Validation...</span>
+                            <span className="sm:hidden">...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="h-4 w-4" />
+                            <span className="hidden sm:inline">Valider l'édition</span>
+                            <span className="sm:hidden">Valider</span>
+                          </>
                         )}
-                      {/* // )} */}
-                      
-                      {/* Actions basées sur le statut */}
-                      {renderActionsToolbar(getAvailableActions(assignment))}
-                    </>
-                  )}
-                </div>
+                      </Button>
+                    )}
+
+                    {/* Bouton pour voir le devis de réparation */}
+                    {assignment?.quote_validated_by_repairer_at !== null && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
+                        className="gap-2"
+                      >
+                        <FileDown className="h-4 w-4" />
+                        <span className="hidden sm:inline">Voir le devis</span>
+                        <span className="sm:hidden">Devis</span>
+                      </Button>
+                    )}
+                    
+                    {/* Actions principales organisées */}
+                    {renderActionsToolbar(getAvailableActions(assignment))}
+                  </>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Layout avec sidebar et contenu */}
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
@@ -2714,8 +2868,24 @@ function AssignmentDetailPageContent() {
               <div className="w-full">
                 {/* Suivi & Statuts */}
                 {activeSection != 'chat' && (
-                  <Card className={`bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none py-2 ${assignment.status.code === 'validated' ? 'bg-green-50' : ''}`}>
+                  <Card className={`bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 shadow-none py-2 ${assignment.status.code === 'validated' ? 'bg-green-50' : ''} ${assignment.agreement_for_work_subject_to_conditions === true ? 'border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950 dark:to-yellow-950' : ''}`}>
                     <CardContent className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6 items-center px-3 sm:px-6">
+                      {/* Alerte "Validé sous réserve" - Affichage proéminent */}
+                      {assignment.agreement_for_work_subject_to_conditions === true && (
+                        <div className="w-full sm:w-auto flex items-center justify-center sm:justify-start">
+                          <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-100 dark:bg-amber-900/30 border-2 border-amber-400 dark:border-amber-600 rounded-lg shadow-sm">
+                            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 animate-pulse" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-amber-800 dark:text-amber-200">
+                                Validé sous réserve
+                              </span>
+                              <span className="text-xs text-amber-700 dark:text-amber-300">
+                                Le dossier a été validé sous réserve
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {/* Si l'un des statuts est "done", afficher seulement "Validé" */}
                       {/* {(assignment.edition_status === 'done' || assignment.recovery_status === 'done') ? (
                         <div className="flex items-center">
@@ -2946,6 +3116,54 @@ function AssignmentDetailPageContent() {
         </DialogContent>
       </Dialog>
 
+      {/* Modal d'information - Dossier validé sous réserve */}
+      <Dialog open={showValidationWithConditionsModal} onOpenChange={setShowValidationWithConditionsModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              Dossier validé sous réserve
+            </DialogTitle>
+            <DialogDescription className="text-sm space-y-3 pt-2">
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700 rounded-lg">
+                <p className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                  ⚠️ Attention importante
+                </p>
+                <p className="text-amber-700 dark:text-amber-300">
+                  Ce dossier a été <strong>validé sous réserve</strong>. Pour finaliser la validation, 
+                  vous devez accéder à la page de préparation de devis pour valider le devis du réparateur.
+                </p>
+              </div>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Prochaines étapes :</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>Accéder à la page de préparation de devis</li>
+                  <li>Vérifier et valider le devis du réparateur</li>
+                  <li>Ou modifier les informations si nécessaire</li>
+                </ul>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowValidationWithConditionsModal(false)} 
+              className="w-full sm:w-auto"
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleValidateDefinitively}
+              className="bg-amber-600 hover:bg-amber-700 text-white w-full sm:w-auto"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Valider définitivement</span>
+              <span className="sm:hidden">Valider</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Bottom Sticky Timeline Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg ml-70">
         <div className="px-10 sm:px-10 py-10"> 
@@ -2953,15 +3171,16 @@ function AssignmentDetailPageContent() {
             <div className="flex-1">
                 {(() => {
                 const steps = [
-                  { code: AssignmentStatusEnum.PENDING, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING] },
+                  // { code: AssignmentStatusEnum.PENDING, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING] },
                   { code: AssignmentStatusEnum.OPENED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.OPENED] },
                   { code: AssignmentStatusEnum.REALIZED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.REALIZED] },
                   { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE] },
                   { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE_VALIDATION] },
-                  { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE] },
-                  { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION] },
+                  // { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE] },
+                  // { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION] },
                   { code: AssignmentStatusEnum.IN_EDITING, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.IN_EDITING] },
-                  { code: AssignmentStatusEnum.EDITED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.EDITED] },
+                  { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_VALIDATION] },
+                  // { code: AssignmentStatusEnum.EDITED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.EDITED] },
                   // { code: 'in_payment', label: 'En paiement' },
                   { code: AssignmentStatusEnum.VALIDATED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.VALIDATED] },
                   { code: AssignmentStatusEnum.PAID, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PAID] },

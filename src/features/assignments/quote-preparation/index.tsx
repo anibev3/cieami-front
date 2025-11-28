@@ -12,6 +12,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
@@ -110,6 +111,8 @@ interface Assignment {
   total_amount_tax: string
   total_amount: string
   emails: string | null
+  quote_validated_by_expert: boolean | null
+  quote_validated_by_repairer: boolean | null
   qr_codes: string | null
   insurer: {
     id: number
@@ -567,6 +570,7 @@ function QuotePreparationPageContent() {
   const [marketIncidenceRateEval, setMarketIncidenceRateEval] = useState<number | null>(null)
   const [marketIncidence, setMarketIncidence] = useState<number | null>(null)
   const [vehicleMarketValue, setVehicleMarketValue] = useState<number | null>(null)
+  const [validatingQuoteWithConditionsByExpert, setValidatingQuoteWithConditionsByExpert] = useState(false)
 
   // États pour le modal d'ajout de point de choc
   const [showShockModal, setShowShockModal] = useState(false)
@@ -596,10 +600,12 @@ function QuotePreparationPageContent() {
 
   const [validating, setValidating] = useState(false)
   const [validatingRepairerInvoiceByExpert, setValidatingRepairerInvoiceByExpert] = useState(false)
+  const [showValidationInstructionsModal, setShowValidationInstructionsModal] = useState(false)
   
   // Refs pour éviter les appels API multiples
   const referenceDataLoadedRef = useRef(false)
   const assignmentLoadedRef = useRef(false)
+  const validationModalShownRef = useRef(false)
 
   // Restreindre l'accès: si expert/réparateur et le dossier n'est pas "realized", retour arrière
   // useEffect(() => {
@@ -611,25 +617,33 @@ function QuotePreparationPageContent() {
   // }, [assignment?.status?.code, isExpert, isRepairer])
 
   const validateAssignment = async () => {
+    console.log("================================================");
+    console.log('++++++ validateAssignment', assignment)
+    console.log("================================================");
     if (!assignment) return
     setValidating(true)
     try {
+
+
       if (isExpert) {
         console.log("================================================");
         console.log('++++++ validateByExpert isExpert', assignment.id)
         console.log("================================================");
-        await assignmentValidationService.validateByExpert(String(assignment.id))
+        // await assignmentValidationService.validateByExpert(String(assignment.id))
+        await assignmentValidationService.validateQuoteByExpert(String(assignment.id))
       }
       if (isRepairer) {
         console.log("================================================");
         console.log('++++++ validateByRepairer isRepairer', assignment.id)
         console.log("================================================");
-        await assignmentValidationService.validateByRepairer(String(assignment.id))
+        // await assignmentValidationService.validateByRepairer(String(assignment.id))
+        await assignmentValidationService.validateQuoteByRepairer(String(assignment.id))
       }
       toast.success('Dossier validé')
       await refreshAssignment()
-    } catch (_e) {
-      toast.error('Erreur lors de la validation')
+    } catch (_e) {      console.log("================================================");
+      console.log('++++++ error', _e)
+      console.log("================================================");
     } finally {
       setValidating(false)
     }
@@ -643,13 +657,13 @@ function QuotePreparationPageContent() {
         console.log("================================================");
         console.log('++++++ unvalidateByExpert isExpert', assignment.id)
         console.log("================================================");
-        await assignmentValidationService.unvalidateByExpert(String(assignment.id))
+        await assignmentValidationService.unvalidateQuoteByExpert(String(assignment.id))
       }
       if (isRepairer) {
         console.log("================================================");
         console.log('++++++ unvalidateByRepairer isRepairer', assignment.id)
         console.log("================================================");
-        await assignmentValidationService.unvalidateByRepairer(String(assignment.id))
+        await assignmentValidationService.unvalidateQuoteByRepairer(String(assignment.id))
       }
       toast.success('Validation annulée')
       await refreshAssignment()
@@ -750,6 +764,57 @@ function QuotePreparationPageContent() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Vérifier le paramètre validate_definitively au chargement initial
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const validateDefinitively = urlParams.get('validate_definitively')
+    
+    if (validateDefinitively === 'true') {
+      console.log('Paramètre validate_definitively détecté dans l\'URL')
+      // On attendra que l'assignment soit chargé pour afficher le modal
+    }
+  }, [])
+
+  // Gérer le paramètre validate_definitively pour afficher le modal d'instructions
+  useEffect(() => {
+    // Vérifier le paramètre dans l'URL directement
+    const urlParams = new URLSearchParams(window.location.search)
+    const validateDefinitively = urlParams.get('validate_definitively')
+    
+    console.log('Vérification modal instructions:', { 
+      validateDefinitively, 
+      hasAssignment: !!assignment, 
+      loading, 
+      alreadyShown: validationModalShownRef.current 
+    })
+    
+    // Afficher le modal seulement si :
+    // 1. Le paramètre est présent
+    // 2. L'assignment est chargé
+    // 3. Le chargement est terminé
+    // 4. Le modal n'a pas déjà été affiché
+    if (
+      validateDefinitively === 'true' && 
+      assignment && 
+      !loading && 
+      !validationModalShownRef.current
+    ) {
+      // Petit délai pour s'assurer que tout est bien chargé
+      const timer = setTimeout(() => {
+        console.log('Affichage du modal d\'instructions pour validation définitive')
+        validationModalShownRef.current = true
+        setShowValidationInstructionsModal(true)
+        // Nettoyer l'URL en supprimant le paramètre
+        urlParams.delete('validate_definitively')
+        const newUrl = new URL(window.location.href)
+        newUrl.search = urlParams.toString()
+        window.history.replaceState({}, '', newUrl.toString())
+      }, 500)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [assignment, loading])
 
 
   // Charger les données du dossier
@@ -1164,12 +1229,17 @@ function QuotePreparationPageContent() {
     if (!assignment) return
     setValidatingRepairerInvoiceByExpert(true)
     try {
-      await assignmentValidationService.validateByRepairerInvoiceByExpert(String(assignment.id))
+     const response = await assignmentValidationService.validateQuoteByExpert(String(assignment.id))
       setTimeout(() => {
         setValidatingRepairerInvoiceByExpert(false)
       }, 2000)
-      toast.success('Devis du réparateur validé avec succès')
-      refreshAssignment()
+      if (response.status === 200 || response.status === 201) { 
+        toast.success('Devis du réparateur validé avec succès')
+        refreshAssignment()
+        window.history.back()
+      } else {
+        toast.error('Erreur lors de la validation du devis du réparateur')
+      }
     } catch (err) {
       console.error('Erreur lors de la validation du devis du réparateur:', err)
       toast.error('Erreur lors de la validation du devis du réparateur')
@@ -1178,6 +1248,28 @@ function QuotePreparationPageContent() {
     }
   }
 
+  const validateRepairerInvoiceAssignmentByExpertWithConditions = async () => {
+    if (!assignment) return
+    setValidatingQuoteWithConditionsByExpert(true)
+    try {
+     const response = await assignmentValidationService.validateQuoteWithConditionsByExpert(String(assignment.id))
+     console.log("================================================");
+     console.log('++++++ response', response)
+     console.log("================================================");
+     if (response.status === 200) {
+      toast.success('Devis du réparateur validé avec succès')
+       refreshAssignment()
+       window.history.back()
+     } else {
+      toast.error('Erreur lors de la validation du devis du réparateur')
+     }
+    } catch (err) {
+      console.error('Erreur lors de la validation du devis du réparateur:', err)
+      toast.error('Erreur lors de la validation du devis du réparateur')
+    } finally {
+      setValidatingQuoteWithConditionsByExpert(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -1259,7 +1351,7 @@ function QuotePreparationPageContent() {
                       <h2 className="text-xl font-bold text-gray-900">Préparation de devis</h2>
                       </div>
                       <div className="flex items-center gap-3">
-                        {isRepairer && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE && (
+                        {isRepairer && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE && (
                           <>
                             <Button onClick={validateAssignment} disabled={validating} className="bg-green-600 hover:bg-green-700">
                               {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
@@ -1267,16 +1359,26 @@ function QuotePreparationPageContent() {
                             </Button>
                           </>
                       )}
-                      {isExpert && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION && (
+                      {isExpert && (
                         <>
-                          <Button onClick={validateRepairerInvoiceAssignmentByExpert} disabled={ validatingRepairerInvoiceByExpert} className="bg-green-600 hover:bg-green-700">
-                              {validatingRepairerInvoiceByExpert ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
-                              Valider le devis du réparateur
+                          {!assignment?.quote_validated_by_expert && (
+                            <Button onClick={validateRepairerInvoiceAssignmentByExpert} disabled={ validatingRepairerInvoiceByExpert} className="bg-green-600 hover:bg-green-700">
+                                {validatingRepairerInvoiceByExpert ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                                Valider le devis
                             </Button>
+                          )}
+                          {!assignment?.quote_validated_by_expert && (
+                            <Button onClick={validateRepairerInvoiceAssignmentByExpertWithConditions} disabled={ validatingQuoteWithConditionsByExpert} className="bg-green-600 hover:bg-green-700">
+                                {validatingQuoteWithConditionsByExpert ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                                Valider le devis sous réserve
+                            </Button>
+                          )}
+                          {assignment?.quote_validated_by_expert && (
                             <Button variant="outline" onClick={unvalidateAssignment} disabled={validating} className="bg-red-600 hover:bg-red-700 text-white">
                               {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldX className="h-4 w-4 mr-2 text-white" />}
                               Dévalider le devis
                             </Button>
+                          )}
                           </>
                         )}
                         {assignment.shocks && assignment.shocks.length > 0 && (
@@ -2233,6 +2335,94 @@ function QuotePreparationPageContent() {
         onConfirm={(ids) => handleConfirmReorderShocks(ids)}
         title="Réorganiser les points de choc"
       />
+
+      {/* Modal d'instructions pour validation définitive */}
+      <Dialog open={showValidationInstructionsModal} onOpenChange={setShowValidationInstructionsModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              Instructions de validation
+            </DialogTitle>
+            <DialogDescription className="text-sm space-y-4 pt-2">
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700 rounded-lg">
+                <p className="font-semibold text-amber-800 dark:text-amber-200 mb-3">
+                  ⚠️ Dossier validé sous réserve
+                </p>
+                <p className="text-amber-700 dark:text-amber-300 mb-3">
+                  Ce dossier a été validé sous réserve. Pour finaliser la validation, vous devez suivre les étapes suivantes :
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm mt-0.5">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                      Dévalider le devis si nécessaire
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Si le devis a déjà été validé, vous devez d'abord le dévalider pour pouvoir le modifier ou le revalider.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-sm mt-0.5">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                      Modifier les informations si nécessaire
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      Vérifiez tous les éléments du devis (chocs, fournitures, main d'œuvre) et modifiez-les si nécessaire.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-sm mt-0.5">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-purple-900 dark:text-purple-100 mb-1">
+                      Valider le devis
+                    </p>
+                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                      Une fois toutes les vérifications effectuées, validez le devis du réparateur pour finaliser la validation du dossier.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowValidationInstructionsModal(false)} 
+              className="w-full sm:w-auto"
+            >
+              J'ai compris
+            </Button>
+            {assignment?.quote_validated_by_expert && (
+              <Button 
+                onClick={() => {
+                  setShowValidationInstructionsModal(false)
+                  unvalidateAssignment()
+                }}
+                variant="default"
+                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+              >
+                <ShieldX className="h-4 w-4 mr-2" />
+                Dévalider le devis
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
