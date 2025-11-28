@@ -46,7 +46,7 @@ export const useACL = () => {
     isSystemAdmin: () => aclStore.hasRole(UserRole.SYSTEM_ADMIN),
     isAdmin: () => aclStore.hasRole(UserRole.ADMIN),
     isExpertAdmin: () => aclStore.hasRole(UserRole.EXPERT_ADMIN),
-    isExpert: () => aclStore.hasRole(UserRole.EXPERT),
+    isExpert: () => aclStore.hasAnyRole([UserRole.EXPERT, UserRole.EXPERT_ADMIN]),
     isExpertManager: () => aclStore.hasRole(UserRole.EXPERT_MANAGER),
     isEditorManager: () => aclStore.hasRole(UserRole.EDITOR_MANAGER),
     isAccountant: () => aclStore.hasRole(UserRole.ACCOUNTANT),

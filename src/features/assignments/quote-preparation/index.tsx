@@ -1373,7 +1373,7 @@ function QuotePreparationPageContent() {
                                 Valider le devis sous réserve
                             </Button>
                           )}
-                          {assignment?.quote_validated_by_expert && (
+                          {assignment?.quote_validated_by_expert || assignment?.quote_validated_by_repairer && (
                             <Button variant="outline" onClick={unvalidateAssignment} disabled={validating} className="bg-red-600 hover:bg-red-700 text-white">
                               {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldX className="h-4 w-4 mr-2 text-white" />}
                               Dévalider le devis
@@ -1646,7 +1646,34 @@ function QuotePreparationPageContent() {
                                             discount_amount_excluding_tax: Number(work?.discount_amount_excluding_tax) || 0,
                                             discount_amount_tax: Number(work?.discount_amount_tax) || 0,
                                             amount_excluding_tax: Number(work?.amount_excluding_tax) || 0,
-                                            amount_tax: Number(work?.amount_tax) || 0
+                                            amount_tax: Number(work?.amount_tax) || 0,
+                                            // Champs old_* pour le suivi des modifications
+                                            old_disassembly: work?.old_disassembly,
+                                            old_replacement: work?.old_replacement,
+                                            old_repair: work?.old_repair,
+                                            old_paint: work?.old_paint,
+                                            old_control: work?.old_control,
+                                            old_obsolescence: work?.old_obsolescence,
+                                            old_comment: work?.old_comment,
+                                            old_obsolescence_rate: work?.old_obsolescence_rate,
+                                            old_recovery_amount: work?.old_recovery_amount,
+                                            old_discount: work?.old_discount,
+                                            old_amount: work?.old_amount,
+                                            old_obsolescence_amount_excluding_tax: work?.old_obsolescence_amount_excluding_tax,
+                                            old_obsolescence_amount_tax: work?.old_obsolescence_amount_tax,
+                                            old_obsolescence_amount: work?.old_obsolescence_amount,
+                                            old_recovery_amount_excluding_tax: work?.old_recovery_amount_excluding_tax,
+                                            old_recovery_amount_tax: work?.old_recovery_amount_tax,
+                                            old_new_amount_excluding_tax: work?.old_new_amount_excluding_tax,
+                                            old_new_amount_tax: work?.old_new_amount_tax,
+                                            old_new_amount: work?.old_new_amount,
+                                            old_discount_amount_excluding_tax: work?.old_discount_amount_excluding_tax,
+                                            old_discount_amount_tax: work?.old_discount_amount_tax,
+                                            old_discount_amount: work?.old_discount_amount,
+                                            old_amount_excluding_tax: work?.old_amount_excluding_tax,
+                                            old_amount_tax: work?.old_amount_tax,
+                                            is_before_quote: work?.is_before_quote,
+                                            quote_validated: work?.quote_validated
                                           }
                                         }).filter((work): work is NonNullable<typeof work> => work !== null)}
                                         onUpdate={async (index, updatedWork) => {

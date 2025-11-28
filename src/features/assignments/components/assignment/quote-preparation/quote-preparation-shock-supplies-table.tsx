@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Checkbox } from '@/components/ui/checkbox'
@@ -5,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 // import { Label } from '@/components/ui/label'
-import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp, SaveAll, Loader2 } from 'lucide-react'
+import { Trash2, Plus, Calculator, Check, GripVertical, ArrowUpDown, ChevronDown, ChevronUp, SaveAll, Loader2, AlertCircle, History } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
 import { SupplySelect } from '@/features/widgets/supply-select'
@@ -88,6 +90,190 @@ interface ShockWork {
   discount_amount_tax?: number
   amount_excluding_tax?: number
   amount_tax?: number
+  // Champs "old_*" pour le suivi des modifications
+  old_disassembly?: boolean
+  old_replacement?: boolean
+  old_repair?: boolean
+  old_paint?: boolean
+  old_control?: boolean
+  old_obsolescence?: boolean
+  old_comment?: string | null
+  old_obsolescence_rate?: number | string
+  old_discount?: number | string
+  old_amount?: number | string
+  old_obsolescence_amount_excluding_tax?: number | string
+  old_obsolescence_amount_tax?: number | string
+  old_obsolescence_amount?: number | string
+  old_recovery_amount_excluding_tax?: number | string
+  old_recovery_amount_tax?: number | string
+  old_recovery_amount?: number | string
+  old_new_amount_excluding_tax?: number | string
+  old_new_amount_tax?: number | string
+  old_new_amount?: number | string
+  old_discount_amount_excluding_tax?: number | string
+  old_discount_amount_tax?: number | string
+  old_discount_amount?: number | string
+  old_amount_excluding_tax?: number | string | null
+  old_amount_tax?: number | string | null
+  is_before_quote?: boolean
+  quote_validated?: boolean
+}
+
+// Type pour les modifications détectées
+interface FieldChange {
+  field: string
+  oldValue: any
+  newValue: any
+  fieldLabel: string
+}
+
+// Fonction utilitaire pour détecter les modifications dans un ShockWork
+const detectChanges = (work: ShockWork): FieldChange[] => {
+  const changes: FieldChange[] = []
+  
+  // Mapping des champs avec leurs labels
+  const fieldLabels: Record<string, string> = {
+    disassembly: 'Démontage',
+    replacement: 'Remplacement',
+    repair: 'Réparation',
+    paint: 'Peinture',
+    control: 'Contrôle',
+    obsolescence: 'Vétusté',
+    comment: 'Commentaire',
+    obsolescence_rate: 'Taux de vétusté (%)',
+    // recovery_amount: 'Montant de récupération',
+    discount: 'Remise (%)',
+    amount: 'Montant HT',
+    obsolescence_amount_excluding_tax: 'Vétusté HT',
+    obsolescence_amount_tax: 'Vétusté TVA',
+    obsolescence_amount: 'Vétusté TTC',
+    recovery_amount_excluding_tax: 'Récupération HT',
+    recovery_amount_tax: 'Récupération TVA',
+    recovery_amount: 'Récupération TTC',
+    new_amount_excluding_tax: 'Montant neuf HT',
+    new_amount_tax: 'Montant neuf TVA',
+    new_amount: 'Montant neuf TTC',
+    discount_amount_excluding_tax: 'Remise HT',
+    discount_amount_tax: 'Remise TVA',
+    discount_amount: 'Remise TTC',
+    amount_excluding_tax: 'Montant HT',
+    amount_tax: 'Montant TVA'
+  }
+  
+  // Vérifier chaque champ
+  Object.keys(fieldLabels).forEach(field => {
+    const oldField = `old_${field}` as keyof ShockWork
+    const currentField = field as keyof ShockWork
+    
+    const oldValue = work[oldField]
+    const newValue = work[currentField]
+    
+    // Comparer les valeurs (gérer les cas null/undefined et les conversions de type)
+    const oldVal = oldValue === null || oldValue === undefined ? null : String(oldValue)
+    const newVal = newValue === null || newValue === undefined ? null : String(newValue)
+    
+    // Pour les booléens, comparer directement
+    if (field === 'disassembly' || field === 'replacement' || field === 'repair' || 
+        field === 'paint' || field === 'control' || field === 'obsolescence') {
+      if (work[oldField] !== undefined && work[oldField] !== work[currentField]) {
+        changes.push({
+          field,
+          oldValue: work[oldField],
+          newValue: work[currentField],
+          fieldLabel: fieldLabels[field]
+        })
+      }
+    } else if (oldVal !== null && oldVal !== undefined && oldVal !== '') {
+      // Pour les nombres et strings, comparer après conversion
+      const oldNum = parseFloat(oldVal) || 0
+      const newNum = parseFloat(newVal || '0') || 0
+      
+      // Ne considérer comme modification que si:
+      // 1. L'ancienne valeur n'était pas 0 (ou 0.00) ET la nouvelle est différente
+      // 2. OU si l'ancienne valeur était 0 mais la nouvelle est significativement différente (> 0.01)
+      const wasZero = Math.abs(oldNum) < 0.01
+      const isSignificantlyDifferent = Math.abs(oldNum - newNum) > 0.01
+      
+      if ((!wasZero && isSignificantlyDifferent) || (wasZero && newNum > 0.01)) {
+        changes.push({
+          field,
+          oldValue: work[oldField],
+          newValue: work[currentField],
+          fieldLabel: fieldLabels[field]
+        })
+      }
+    }
+  })
+  
+  return changes
+}
+
+// Composant d'indicateur de modification avec tooltip
+interface ChangeIndicatorProps {
+  changes: FieldChange[]
+  field: string
+  currentValue: any
+  formatValue?: (value: any) => string
+}
+
+function ChangeIndicator({ changes, field, currentValue, formatValue }: ChangeIndicatorProps) {
+  const change = changes.find(c => c.field === field)
+  
+  if (!change) return null
+  
+  const format = formatValue || ((v: any) => {
+    if (typeof v === 'boolean') return v ? 'Oui' : 'Non'
+    if (v === null || v === undefined || v === '') return 'Non renseigné'
+    if (typeof v === 'number' || !isNaN(parseFloat(String(v)))) {
+      const num = parseFloat(String(v))
+      if (num === 0) return '0'
+      return new Intl.NumberFormat('fr-FR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(num)
+    }
+    return String(v)
+  })
+  
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="relative inline-flex items-center">
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white animate-pulse" />
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white animate-ping" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 pb-2 border-b">
+              <History className="h-4 w-4 text-amber-600" />
+              <span className="font-semibold text-sm">Modification détectée</span>
+            </div>
+            <div className="space-y-1.5">
+              <div>
+                <span className="text-xs font-medium text-muted-foreground">Valeur précédente:</span>
+                <div className="text-sm font-semibold text-red-600 line-through">
+                  {format(change.oldValue)}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs font-medium text-muted-foreground">Valeur actuelle:</span>
+                <div className="text-sm font-semibold text-green-600">
+                  {format(change.newValue)}
+                </div>
+              </div>
+              <div className="pt-1 mt-1 border-t">
+                <span className="text-xs text-muted-foreground">
+                  Modifié par: {change.oldValue !== undefined ? 'Réparateur' : 'Expert'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
 }
 
 // Composant pour une ligne triable
@@ -103,6 +289,7 @@ interface QuotePreparationSortableSupplyRowProps {
   handleValidateRow: (index: number) => Promise<void>
   onRemove: (index: number) => void
   _formatCurrency: (amount: number) => string
+  changes?: FieldChange[] // Changements détectés pour cette ligne
 }
 
 function QuotePreparationSortableSupplyRow({
@@ -116,7 +303,8 @@ function QuotePreparationSortableSupplyRow({
   handleCreateSupply,
   handleValidateRow,
   onRemove,
-  _formatCurrency
+  _formatCurrency,
+  changes = []
 }: QuotePreparationSortableSupplyRowProps) {
   // Convertir les IDs en string pour SupplySelect
   const normalizedSupplies = supplies.map(s => ({ ...s, id: String(s.id) }))
@@ -134,12 +322,20 @@ function QuotePreparationSortableSupplyRow({
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
+  
+  // Détecter les changements pour cette ligne si non fournis
+  const detectedChanges = changes.length > 0 ? changes : detectChanges(row)
+  const hasChanges = detectedChanges.length > 0
 
   return (
     <tr
       ref={setNodeRef}
       style={style}
-      className={`hover:bg-gray-50 transition-colors ${modifiedRows.has(index) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''} ${newRows.has(index) ? 'bg-green-50 border-l-4 border-l-green-400' : ''} ${isDragging ? 'z-10 bg-white shadow-lg' : ''}`}
+      className={`hover:bg-gray-50 transition-colors ${
+        hasChanges ? 'bg-amber-50/30 border-l-4 border-l-amber-400' : ''
+      } ${modifiedRows.has(index) ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : ''} ${
+        newRows.has(index) ? 'bg-green-50 border-l-4 border-l-green-400' : ''
+      } ${isDragging ? 'z-10 bg-white shadow-lg' : ''}`}
     >
       {/* Drag Handle */}
       <td className="border px-2 py-2 text-center text-[10px] w-8">
@@ -162,93 +358,170 @@ function QuotePreparationSortableSupplyRow({
         />
       </td>
       {!isEvaluation && (
-        <td className="border text-center text-[10px]">
-          <Checkbox
-            checked={row.disassembly}
-            onCheckedChange={v => updateLocalShockWork(index, 'disassembly', v)}
-          />
+        <td className="border text-center text-[10px] relative">
+          <div className="flex items-center justify-center gap-1">
+            <Checkbox
+              checked={row.disassembly}
+              onCheckedChange={v => updateLocalShockWork(index, 'disassembly', v)}
+            />
+            <ChangeIndicator changes={detectedChanges} field="disassembly" currentValue={row.disassembly} />
+          </div>
         </td>
       )}
-      <td className="border text-center text-[10px]">
-        <Checkbox 
-          checked={row.replacement} 
-          onCheckedChange={v => updateLocalShockWork(index, 'replacement', v)} 
-        />
+      <td className="border text-center text-[10px] relative">
+        <div className="flex items-center justify-center gap-1">
+          <Checkbox 
+            checked={row.replacement} 
+            onCheckedChange={v => updateLocalShockWork(index, 'replacement', v)} 
+          />
+          <ChangeIndicator changes={detectedChanges} field="replacement" currentValue={row.replacement} />
+        </div>
       </td>
-      <td className="border text-center text-[10px]">
-        <Checkbox 
-          checked={row.repair} 
-          onCheckedChange={v => updateLocalShockWork(index, 'repair', v)} 
-        />
+      <td className="border text-center text-[10px] relative">
+        <div className="flex items-center justify-center gap-1">
+          <Checkbox 
+            checked={row.repair} 
+            onCheckedChange={v => updateLocalShockWork(index, 'repair', v)} 
+          />
+          <ChangeIndicator changes={detectedChanges} field="repair" currentValue={row.repair} />
+        </div>
       </td>
-      <td className="border text-center text-[10px]">
-        <Checkbox 
-          checked={row.paint} 
-          onCheckedChange={v => updateLocalShockWork(index, 'paint', v)} 
-        />
+      <td className="border text-center text-[10px] relative">
+        <div className="flex items-center justify-center gap-1">
+          <Checkbox 
+            checked={row.paint} 
+            onCheckedChange={v => updateLocalShockWork(index, 'paint', v)} 
+          />
+          <ChangeIndicator changes={detectedChanges} field="paint" currentValue={row.paint} />
+        </div>
       </td>
       {/* Actions basées sur isEvaluation */}
-      <td className="border text-center text-[10px]">
-        <Checkbox 
-          checked={row.control} 
-          onCheckedChange={v => updateLocalShockWork(index, 'control', v)} 
-        />
+      <td className="border text-center text-[10px] relative">
+        <div className="flex items-center justify-center gap-1">
+          <Checkbox 
+            checked={row.control} 
+            onCheckedChange={v => updateLocalShockWork(index, 'control', v)} 
+          />
+          <ChangeIndicator changes={detectedChanges} field="control" currentValue={row.control} />
+        </div>
       </td>
       {!isEvaluation && (
-        <td className="border text-center text-[10px]">
-          <Checkbox 
-            checked={row.obsolescence}
-            onCheckedChange={v => updateLocalShockWork(index, 'obsolescence', v)} 
-          />
+        <td className="border text-center text-[10px] relative">
+          <div className="flex items-center justify-center gap-1">
+            <Checkbox 
+              checked={row.obsolescence}
+              onCheckedChange={v => updateLocalShockWork(index, 'obsolescence', v)} 
+            />
+            <ChangeIndicator changes={detectedChanges} field="obsolescence" currentValue={row.obsolescence} />
+          </div>
         </td>
       )}
       {/* Montant HT */}
-      <td className="border px-2 text-center text-[10px] w-40">
-        <Input
-          type="number"
-          className="w-full rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
-          value={row.amount}
-          onChange={e => updateLocalShockWork(index, 'amount', Number(e.target.value))}
-        />
+      <td className="border px-2 text-center text-[10px] w-40 relative">
+        <div className="flex items-center justify-center gap-1">
+          <Input
+            type="number"
+            className={`w-full rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px] ${
+              detectedChanges.find(c => c.field === 'amount') ? 'bg-amber-50 border border-amber-300' : ''
+            }`}
+            value={row.amount}
+            onChange={e => updateLocalShockWork(index, 'amount', Number(e.target.value))}
+          />
+          <ChangeIndicator 
+            changes={detectedChanges} 
+            field="amount" 
+            currentValue={row.amount}
+            formatValue={(v) => _formatCurrency(Number(v) || 0)}
+          />
+        </div>
       </td>
       {/* Remise */}
-      <td className="border px-2 py-2 text-center text-[10px]">
-        <Input
-          type="number"
-          className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
-          value={row.discount}
-          onChange={e => updateLocalShockWork(index, 'discount', Number(e.target.value))}
-        />
+      <td className="border px-2 py-2 text-center text-[10px] relative">
+        <div className="flex items-center justify-center gap-1">
+          <Input
+            type="number"
+            className={`rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px] ${
+              detectedChanges.find(c => c.field === 'discount') ? 'bg-amber-50 border border-amber-300' : ''
+            }`}
+            value={row.discount}
+            onChange={e => updateLocalShockWork(index, 'discount', Number(e.target.value))}
+          />
+          <ChangeIndicator 
+            changes={detectedChanges} 
+            field="discount" 
+            currentValue={row.discount}
+            formatValue={(v) => `${v}%`}
+          />
+        </div>
       </td>
       {/* Remise Calculé */}
-      <td className="border px-2 py-2 text-center text-[10px] w-40">
-        <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-          {_formatCurrency(row.amount - (row.discount_amount_excluding_tax || 0))}
+      <td className="border px-2 py-2 text-center text-[10px] w-40 relative">
+        <div className="flex items-center justify-center gap-1">
+          <div className={`font-bold ${(row.new_amount_excluding_tax || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+            {_formatCurrency(row.amount - (row.discount_amount_excluding_tax || 0))}
+          </div>
+          {(detectedChanges.find(c => c.field === 'discount_amount_excluding_tax') || 
+            detectedChanges.find(c => c.field === 'discount')) && (
+            <ChangeIndicator 
+              changes={detectedChanges} 
+              field="discount_amount_excluding_tax" 
+              currentValue={row.discount_amount_excluding_tax}
+              formatValue={(v) => _formatCurrency(Number(v) || 0)}
+            />
+          )}
         </div>
       </td>
       {/* Vétuste (%) */}
-      <td className="border px-2 text-center text-[10px]">
-        <Input
-          type="number"
-          className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
-          value={row.obsolescence_rate}
-          onChange={e => updateLocalShockWork(index, 'obsolescence_rate', Number(e.target.value))}
-        />
+      <td className="border px-2 text-center text-[10px] relative">
+        <div className="flex items-center justify-center gap-1">
+          <Input
+            type="number"
+            className={`rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px] ${
+              detectedChanges.find(c => c.field === 'obsolescence_rate') ? 'bg-amber-50 border border-amber-300' : ''
+            }`}
+            value={row.obsolescence_rate}
+            onChange={e => updateLocalShockWork(index, 'obsolescence_rate', Number(e.target.value))}
+          />
+          <ChangeIndicator 
+            changes={detectedChanges} 
+            field="obsolescence_rate" 
+            currentValue={row.obsolescence_rate}
+            formatValue={(v) => `${v}%`}
+          />
+        </div>
       </td>
       {/* Vétuste calculée */}
-      <td className="border px-2 text-center text-[10px] w-40">
-        <div className="text-gray-600 font-medium">
-          {_formatCurrency(row.new_amount_excluding_tax || 0)}
+      <td className="border px-2 text-center text-[10px] w-40 relative">
+        <div className="flex items-center justify-center gap-1">
+          <div className="text-gray-600 font-medium">
+            {_formatCurrency(row.new_amount_excluding_tax || 0)}
+          </div>
+          <ChangeIndicator 
+            changes={detectedChanges} 
+            field="new_amount_excluding_tax" 
+            currentValue={row.new_amount_excluding_tax}
+            formatValue={(v) => _formatCurrency(Number(v) || 0)}
+          />
         </div>
       </td>
       {/* Montant TTC */}
-      <td className="border px-2 py-2 text-center text-[10px] w-35">
-        <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-          <Input
-            type="number"
-            className="rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px]"
-            value={row.recovery_amount || 0}
-            onChange={e => updateLocalShockWork(index, 'recovery_amount', Number(e.target.value))}
+      <td className="border px-2 py-2 text-center text-[10px] w-35 relative">
+        <div className="flex items-center justify-center gap-1">
+          <div className={`font-bold ${(row.new_amount || 0) >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+            <Input
+              type="number"
+              className={`rounded p-1 text-center border-none focus:border-none focus:ring-0 text-[10px] ${
+                detectedChanges.find(c => c.field === 'recovery_amount') ? 'bg-amber-50 border border-amber-300' : ''
+              }`}
+              value={row.recovery_amount || 0}
+              onChange={e => updateLocalShockWork(index, 'recovery_amount', Number(e.target.value))}
+            />
+          </div>
+          <ChangeIndicator 
+            changes={detectedChanges} 
+            field="recovery_amount" 
+            currentValue={row.recovery_amount}
+            formatValue={(v) => _formatCurrency(Number(v) || 0)}
           />
         </div>
       </td>
@@ -1142,11 +1415,53 @@ export function QuotePreparationShockSuppliesTable({
      
 
       {tableExpanded ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
+        <>
+          {/* Résumé des modifications détectées */}
+          {(() => {
+            const allChanges = localShockWorks.map(work => detectChanges(work)).flat()
+            const totalChanges = allChanges.length
+            const modifiedRowsCount = localShockWorks.filter(work => detectChanges(work).length > 0).length
+            
+            if (totalChanges === 0) return null
+            
+            return (
+              <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg shadow-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="p-2 bg-amber-100 rounded-lg">
+                      <AlertCircle className="h-5 w-5 text-amber-700" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-amber-900 mb-1 flex items-center gap-2">
+                        <span>Modifications détectées</span>
+                        <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs font-bold">
+                          {totalChanges}
+                        </span>
+                      </h4>
+                      <p className="text-sm text-amber-700">
+                        {modifiedRowsCount} ligne{modifiedRowsCount > 1 ? 's' : ''} modifiée{modifiedRowsCount > 1 ? 's' : ''} par le réparateur. 
+                        Passez la souris sur les indicateurs <span className="inline-flex items-center gap-1">
+                          <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                        </span> pour voir les valeurs précédentes.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-right">
+                      <div className="text-xs text-amber-600 font-medium">Lignes modifiées</div>
+                      <div className="text-lg font-bold text-amber-800">{modifiedRowsCount}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+          
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
           <div className="overflow-x-auto">
             <table className="min-w-full border text-[10px]">
               <thead>
@@ -1216,27 +1531,32 @@ export function QuotePreparationShockSuppliesTable({
                       </td>
                     </tr>
                   )}
-                  {localShockWorks.map((row, i) => (
-                    <QuotePreparationSortableSupplyRow
-                      key={row.uid}
-                      row={row}
-                      index={i}
-                      supplies={combinedSupplies}
-                      modifiedRows={modifiedRows}
-                      newRows={newRows}
-                      isEvaluation={isEvaluation}
-                      updateLocalShockWork={updateLocalShockWork}
-                      handleCreateSupply={handleCreateSupply}
-                      handleValidateRow={handleValidateRow}
-                      onRemove={handleRemoveRow}
-                      _formatCurrency={formatCurrency}
-                    />
-                  ))}
+                  {localShockWorks.map((row, i) => {
+                    const rowChanges = detectChanges(row)
+                    return (
+                      <QuotePreparationSortableSupplyRow
+                        key={row.uid}
+                        row={row}
+                        index={i}
+                        supplies={combinedSupplies}
+                        modifiedRows={modifiedRows}
+                        newRows={newRows}
+                        isEvaluation={isEvaluation}
+                        updateLocalShockWork={updateLocalShockWork}
+                        handleCreateSupply={handleCreateSupply}
+                        handleValidateRow={handleValidateRow}
+                        onRemove={handleRemoveRow}
+                        _formatCurrency={formatCurrency}
+                        changes={rowChanges}
+                      />
+                    )
+                  })}
                 </tbody>
               </SortableContext>
             </table>
           </div>
         </DndContext>
+        </>
       ) : (
         // Vue réduite avec informations compactes et design moderne
         <div className="space-y-4">

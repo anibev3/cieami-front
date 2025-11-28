@@ -545,10 +545,10 @@ function ExpertiseSheetPageContent() {
     setValidating(true)
     try {
       if (isExpert) {
-        await assignmentValidationService.validateByExpert(String(assignment.id))
+        await assignmentValidationService.validateWorkSheetByExpert(String(assignment.id))
       }
       if (isRepairer) {
-        await assignmentValidationService.validateByRepairer(String(assignment.id))
+        await assignmentValidationService.validateWorkSheetByRepairer(String(assignment.id))
       }
       toast.success('Dossier validé')
       navigate({ to: `/assignments/details/${assignment.id}` })

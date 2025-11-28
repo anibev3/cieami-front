@@ -31,11 +31,18 @@ class AssignmentValidationService {
     return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/unvalidate-quote-by-repairer/${assignmentId}`)
   }
 
-  async validateByExpert(assignmentId: string) {
+  async validateWorkSheetByExpert(assignmentId: string) {
     console.log("================================================");
     console.log('validateByExpert', assignmentId)
     console.log("================================================");
     return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/validate-work-sheet-by-expert/${assignmentId}`)
+  }
+
+    async validateWorkSheetByRepairer(assignmentId: string) {
+    console.log("================================================");
+    console.log('validateWorkSheetByRepairer', assignmentId)
+    console.log("================================================");
+    return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/validate-work-sheet-by-repairer/${assignmentId}`)
   }
 
   async validateQuoteByExpert(assignmentId: string) {
@@ -67,7 +74,10 @@ class AssignmentValidationService {
     return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/unvalidate-quote-by-expert/${assignmentId}`)
   }
 
-  async validateByRepairerInvoiceByExpert(assignmentId: string) {
+  async validateByExpert(assignmentId: string) {
+    console.log("================================================");
+    console.log('validateByExpert', assignmentId)
+    console.log("================================================");
     return axiosInstance.put(`${API_CONFIG.BASE_URL}/assignments/validate-by-expert/${assignmentId}`)
   }
 

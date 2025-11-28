@@ -674,6 +674,8 @@ function AssignmentDetailPageContent() {
   const [validating, setValidating] = useState(false)
   const [unvalidating, setUnvalidating] = useState(false)
   const [validatingEdition, setValidatingEdition] = useState(false)
+  const [validatingByRepairer, setValidatingByRepairer] = useState(false)
+  const [validatingByExpert, setValidatingByExpert] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const [showValidationWithConditionsModal, setShowValidationWithConditionsModal] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
@@ -2297,6 +2299,56 @@ function AssignmentDetailPageContent() {
     window.location.href = `/assignments/quote-preparation/${assignment.id}?validate_definitively=true`
   }
 
+  const handleValidateByRepairer = async () => {
+    if (!assignment) return
+    
+    setValidatingByRepairer(true)
+    try {
+      await assignmentValidationService.validateByRepairer(String(assignment.id))
+      toast.success('Dossier validé avec succès')
+      
+      // Mettre à jour tout le dossier avec une requête API de détail
+      try {
+        const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignment.id}`)
+        if (response.status === 200 || response.status === 201) {
+          setAssignment(response.data.data)
+        }
+      } catch (detailError) {
+        console.error('Erreur lors de la récupération des détails:', detailError)
+      }
+    } catch (error) {
+      console.error('Erreur lors de la validation par le réparateur:', error)
+      toast.error('Erreur lors de la validation du dossier')
+    } finally {
+      setValidatingByRepairer(false)
+    }
+  }
+
+  const handleValidateByExpert = async () => {
+    if (!assignment) return
+    
+    setValidatingByExpert(true)
+    try {
+      await assignmentValidationService.validateByExpert(String(assignment.id))
+      toast.success('Dossier validé avec succès')
+      
+      // Mettre à jour tout le dossier avec une requête API de détail
+      try {
+        const response = await axiosInstance.get(`${API_CONFIG.ENDPOINTS.ASSIGNMENTS}/${assignment.id}`)
+        if (response.status === 200 || response.status === 201) {
+          setAssignment(response.data.data)
+        }
+      } catch (detailError) {
+        console.error('Erreur lors de la récupération des détails:', detailError)
+      }
+    } catch (error) {
+      console.error('Erreur lors de la validation par l\'expert:', error)
+      toast.error('Erreur lors de la validation du dossier')
+    } finally {
+      setValidatingByExpert(false)
+    }
+  }
+
   // Fonction pour déterminer les actions disponibles selon le statut
   const getAvailableActions = (assignment: AssignmentDetail) => {
     const statusCode = assignment.status.code
@@ -2751,19 +2803,46 @@ function AssignmentDetailPageContent() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
               <div className="flex items-center gap-2 flex-wrap">
                 {isRepairerUser ? (
-                  // Utilisateurs réparateurs : uniquement le bouton "Préparation de devis"
-                  assignment?.quote_validated === false && assignment?.quote_validated != null && (
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
-                      className="gap-2"
-                    >
-                      <FileDown className="h-4 w-4" />
-                      <span className="hidden sm:inline">Préparation de devis</span>
-                      <span className="sm:hidden">Devis</span>
-                    </Button>
-                  )
+                  // Utilisateurs réparateurs : boutons spécifiques selon le statut
+                  <>
+                    {/* Bouton "Valider le dossier" si le statut est PENDING_FOR_REPAIRER_VALIDATION */}
+                    {assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_VALIDATION && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={handleValidateByRepairer}
+                        disabled={validatingByRepairer}
+                        className="bg-green-600 hover:bg-green-700 gap-2"
+                      >
+                        {validatingByRepairer ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span className="hidden sm:inline">Validation...</span>
+                            <span className="sm:hidden">...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="h-4 w-4" />
+                            <span className="hidden sm:inline">Valider le dossier</span>
+                            <span className="sm:hidden">Valider</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {/* Bouton "Préparation de devis" si le devis n'est pas validé */}
+                    {assignment?.quote_validated === false && assignment?.quote_validated != null && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
+                        className="gap-2"
+                      >
+                        <FileDown className="h-4 w-4" />
+                        <span className="hidden sm:inline">Préparation de devis</span>
+                        <span className="sm:hidden">Devis</span>
+                      </Button>
+                    )}
+                  </>
                 ) : (
                   // Autres utilisateurs : actions organisées
                   <>
@@ -2799,6 +2878,30 @@ function AssignmentDetailPageContent() {
                           <>
                             <Shield className="h-4 w-4" />
                             <span className="hidden sm:inline">Valider l'édition</span>
+                            <span className="sm:hidden">Valider</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {/* Bouton "Valider le dossier" pour les experts si le statut est PENDING_FOR_EXPERT_VALIDATION */}
+                    {isExpert() && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_EXPERT_VALIDATION && (
+                      <Button 
+                        variant="default"
+                        size="sm" 
+                        onClick={handleValidateByExpert}
+                        disabled={validatingByExpert}
+                        className="bg-green-600 hover:bg-green-700 gap-2"
+                      >
+                        {validatingByExpert ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span className="hidden sm:inline">Validation...</span>
+                            <span className="sm:hidden">...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Shield className="h-4 w-4" />
+                            <span className="hidden sm:inline">Valider le dossier</span>
                             <span className="sm:hidden">Valider</span>
                           </>
                         )}
@@ -3180,6 +3283,7 @@ function AssignmentDetailPageContent() {
                   // { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_INVOICE_VALIDATION] },
                   { code: AssignmentStatusEnum.IN_EDITING, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.IN_EDITING] },
                   { code: AssignmentStatusEnum.PENDING_FOR_REPAIRER_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_REPAIRER_VALIDATION] },
+                  { code: AssignmentStatusEnum.PENDING_FOR_EXPERT_VALIDATION, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.PENDING_FOR_EXPERT_VALIDATION] },
                   // { code: AssignmentStatusEnum.EDITED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.EDITED] },
                   // { code: 'in_payment', label: 'En paiement' },
                   { code: AssignmentStatusEnum.VALIDATED, label: AssignmentStatusesWithDescription[AssignmentStatusEnum.VALIDATED] },

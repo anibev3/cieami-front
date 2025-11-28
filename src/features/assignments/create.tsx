@@ -751,6 +751,7 @@ function CreateAssignmentPageContent() {
     setCreatedAssignmentId(null)
     // Réinitialiser le formulaire
     form.reset()
+    window.location.reload()
     // Scroll vers le haut
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
