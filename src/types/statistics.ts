@@ -16,6 +16,7 @@ export interface AmountByMonth extends BaseStatisticsData {
 export interface AssignmentStatistics {
   assignments_by_year_and_month_count: CountByMonth[]
   assignments_by_year_and_month_amount: AmountByMonth[]
+  assignments_total_shock_amount_by_year_and_month?: AmountByMonth[]
   export_url?: string
 }
 

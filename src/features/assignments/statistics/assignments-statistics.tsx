@@ -12,7 +12,7 @@ import {
   AssignmentStatisticsFilters
 } from '@/types/statistics'
 import { UnifiedAdvancedFilters } from './components/unified-advanced-filters'
-import { UnifiedStatisticsDisplay } from './components/unified-statistics-display'
+import { AssignmentsStatisticsDisplay } from './components/assignments-statistics-display'
 import { useStatisticsStore } from '@/stores/statisticsStore'
 import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
@@ -472,8 +472,7 @@ function AssignmentsStatisticsPageContent() {
 
           {/* Affichage des statistiques */}
           {statistics && (
-            <UnifiedStatisticsDisplay
-              type="assignments"
+            <AssignmentsStatisticsDisplay
               statistics={statistics}
               onDownloadExport={downloadExport}
             />
