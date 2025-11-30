@@ -209,7 +209,39 @@ export interface SupplyPriceRequest {
   date?: string | null
 }
 
+// Nouveau format de réponse avec pagination et statistiques
+export interface ShockWorksPagination {
+  current_page: number
+  data: SupplyPrice[]
+  first_page_url: string
+  from: number | null
+  last_page: number
+  last_page_url: string
+  links: Array<{
+    url: string | null
+    label: string
+    page: number | null
+    active: boolean
+  }>
+  next_page_url: string | null
+  path: string
+  per_page: number
+  prev_page_url: string | null
+  to: number | null
+  total: number
+}
+
 export interface SupplyPriceResponse {
+  data: {
+    shockWorks: ShockWorksPagination
+    shockWorks_avg: string | null
+    shockWorks_max: string | null
+    shockWorks_min: string | null
+  }
+}
+
+// Ancien format (pour compatibilité si nécessaire)
+export interface SupplyPriceResponseLegacy {
   data: SupplyPrice[]
   links: {
     first: string

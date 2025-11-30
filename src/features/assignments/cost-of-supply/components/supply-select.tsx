@@ -47,7 +47,9 @@ export function SupplySelect({
       setLoading(true)
       try {
         const response = await getSuppliesByVehicleModel(vehicleModelId)
-        setSupplies(response.data)
+        // Nouveau format : les données sont dans data.shockWorks.data
+        const shockWorks = response.data.shockWorks
+        setSupplies(shockWorks?.data || [])
       } catch (_error) {
         // Erreur lors du chargement des fournitures
         setSupplies([])
@@ -59,7 +61,7 @@ export function SupplySelect({
     fetchSupplies()
   }, [vehicleModelId])
 
-  const selectedSupply = supplies.find(supply => supply.supply.id.toString() === value)
+  const selectedSupply = Array.isArray(supplies) ? supplies.find(supply => supply.supply.id.toString() === value) : undefined
 
   const formatCurrency = (amount: string) => {
     return parseFloat(amount).toLocaleString('fr-FR', { 
@@ -149,7 +151,7 @@ export function SupplySelect({
               <div className="flex items-center justify-center py-6 text-muted-foreground">
                 Sélectionnez un modèle
               </div>
-            ) : supplies.length === 0 ? (
+            ) : !Array.isArray(supplies) || supplies.length === 0 ? (
               <CommandEmpty>Aucune fourniture trouvée pour ce modèle.</CommandEmpty>
             ) : (
               // <CommandGroup>

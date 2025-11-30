@@ -46,6 +46,10 @@ interface SupplyPricesState {
   total: number
   page: number
   perPage: number
+  // Statistiques
+  average: string | null
+  max: string | null
+  min: string | null
   fetchSupplyPrices: (data: SupplyPriceRequest) => Promise<void>
   fetchSupplyPricesWithFilters: (filters: SupplyPriceFilters) => Promise<void>
   setSelectedSupplyPrice: (supplyPrice: SupplyPrice | null) => void
@@ -176,16 +180,24 @@ export const useSupplyPricesStore = create<SupplyPricesState>((set) => ({
   total: 0,
   page: 1,
   perPage: 20,
+  average: null,
+  max: null,
+  min: null,
 
   fetchSupplyPrices: async (data: SupplyPriceRequest) => {
     try {
       set({ loading: true, error: null })
       const response = await suppliesService.getSupplyPrices(data)
+      // Nouveau format : les données sont dans data.shockWorks.data
+      const shockWorks = response.data.shockWorks
       set({
-        supplyPrices: response.data,
-        total: response.meta.total,
-        page: response.meta.current_page,
-        perPage: response.meta.per_page,
+        supplyPrices: shockWorks.data || [],
+        total: shockWorks.total || 0,
+        page: shockWorks.current_page || 1,
+        perPage: shockWorks.per_page || 20,
+        average: response.data.shockWorks_avg,
+        max: response.data.shockWorks_max,
+        min: response.data.shockWorks_min,
         loading: false,
       })
     } catch (error) {
@@ -201,11 +213,16 @@ export const useSupplyPricesStore = create<SupplyPricesState>((set) => ({
     try {
       set({ loading: true, error: null })
       const response = await suppliesService.getSupplyPricesWithFilters(filters)
+      // Nouveau format : les données sont dans data.shockWorks.data
+      const shockWorks = response.data.shockWorks
       set({
-        supplyPrices: response.data,
-        total: response.meta.total,
-        page: response.meta.current_page,
-        perPage: response.meta.per_page,
+        supplyPrices: shockWorks.data || [],
+        total: shockWorks.total || 0,
+        page: shockWorks.current_page || 1,
+        perPage: shockWorks.per_page || 20,
+        average: response.data.shockWorks_avg,
+        max: response.data.shockWorks_max,
+        min: response.data.shockWorks_min,
         loading: false,
       })
     } catch (error) {

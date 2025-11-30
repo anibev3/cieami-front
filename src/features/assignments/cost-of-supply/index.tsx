@@ -25,7 +25,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
 
 function CostOfSupplyPageContent() {
-  const { supplyPrices, loading, fetchSupplyPrices } = useSupplyPricesStore()
+  const { supplyPrices, loading, fetchSupplyPrices, average, max, min, total } = useSupplyPricesStore()
   const { fetchSupplies } = useSuppliesStore()
   
   const [formData, setFormData] = useState<SupplyPriceRequest>({
@@ -300,6 +300,65 @@ function CostOfSupplyPageContent() {
             onClearFilters={clearFilters}
           />
         </div> */}
+
+        {/* Statistiques */}
+        {supplyPrices.length > 0 && (average !== null || max !== null || min !== null) && (
+          <div className="mb-6">
+            <Card className="shadow-none">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Statistiques des prix</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-muted-foreground mb-1">Total</span>
+                    <span className="text-lg font-semibold">{total.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">fourniture(s)</span>
+                  </div>
+                  {average !== null && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground mb-1">Moyenne</span>
+                      <span className="text-lg font-semibold text-blue-600">
+                        {parseFloat(average).toLocaleString('fr-FR', {
+                          style: 'currency',
+                          currency: 'XOF',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {max !== null && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground mb-1">Maximum</span>
+                      <span className="text-lg font-semibold text-green-600">
+                        {parseFloat(max).toLocaleString('fr-FR', {
+                          style: 'currency',
+                          currency: 'XOF',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {min !== null && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground mb-1">Minimum</span>
+                      <span className="text-lg font-semibold text-orange-600">
+                        {parseFloat(min).toLocaleString('fr-FR', {
+                          style: 'currency',
+                          currency: 'XOF',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Data Table */}
         <DataTable
