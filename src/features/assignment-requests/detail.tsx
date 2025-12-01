@@ -34,16 +34,9 @@ import { assignmentRequestService } from '@/services/assignmentRequestService'
 import { toast } from 'sonner'
 import { formatDate } from '@/utils/format-date'
 import { useACL } from '@/hooks/useACL'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
+import { RejectAssignmentRequestDialog } from './components/reject-assignment-request-dialog'
 
 function AssignmentRequestDetailPageContent() {
   const { id } = useParams({ strict: false }) as { id: string }
@@ -107,12 +100,12 @@ function AssignmentRequestDetailPageContent() {
     }
   }
 
-  const handleReject = async () => {
+  const handleReject = async (reason: string) => {
     if (!request) return
     
     try {
       setRejecting(true)
-      await assignmentRequestService.rejectAssignmentRequest(request.id)
+      await assignmentRequestService.rejectAssignmentRequest(request.id, reason)
       toast.success('Demande d\'expertise rejetée avec succès')
       setRejectDialogOpen(false)
       // Recharger les données
@@ -121,6 +114,7 @@ function AssignmentRequestDetailPageContent() {
     } catch (error) {
       console.error('Erreur lors du rejet:', error)
       toast.error('Erreur lors du rejet de la demande d\'expertise')
+      throw error // Re-throw pour que le dialog puisse gérer l'erreur
     } finally {
       setRejecting(false)
     }
@@ -733,25 +727,13 @@ function AssignmentRequestDetailPageContent() {
         </div>
 
         {/* Dialog de confirmation de rejet */}
-        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Rejeter la demande d'expertise</DialogTitle>
-              <DialogDescription>
-                Êtes-vous sûr de vouloir rejeter la demande d'expertise{' '}
-                <strong>{request?.reference}</strong> ? Cette action changera le statut de la demande.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-                Annuler
-              </Button>
-              <Button variant="destructive" onClick={handleReject} disabled={rejecting}>
-                {rejecting ? 'Rejet en cours...' : 'Rejeter'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <RejectAssignmentRequestDialog
+          open={rejectDialogOpen}
+          onOpenChange={setRejectDialogOpen}
+          onConfirm={handleReject}
+          requestReference={request?.reference}
+          loading={rejecting}
+        />
       </Main>
     </>
   )

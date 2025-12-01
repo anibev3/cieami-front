@@ -22,18 +22,11 @@ import {
   Calendar as CalendarIcon,
   Users
 } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { AssignmentRequestsDataTable } from './components/assignment-requests-data-table'
 import { Pagination } from '@/features/assignments/components/pagination'
 import { useAssignmentRequestsStore } from '@/stores/assignmentRequests'
 import { AssignmentRequest } from '@/types/assignment-requests'
+import { assignmentRequestService } from '@/services/assignmentRequestService'
 import { toast } from 'sonner'
 import { Header } from '@/components/layout/header'
 import { ThemeSwitch } from '@/components/theme-switch'
@@ -44,6 +37,7 @@ import { useACL } from '@/hooks/useACL'
 import { Permission } from '@/types/auth'
 import { PermissionGate } from '@/components/ui/permission-gate'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { RejectAssignmentRequestDialog } from './components/reject-assignment-request-dialog'
 
 function AssignmentRequestsPageContent() {
   const navigate = useNavigate()
@@ -63,7 +57,6 @@ function AssignmentRequestsPageContent() {
     goToNextPage,
     goToPreviousPage,
     clearError,
-    rejectAssignmentRequest,
   } = useAssignmentRequestsStore()
   
   // Vérifier les permissions
@@ -148,13 +141,32 @@ function AssignmentRequestsPageContent() {
     }
   }, [assignmentRequests])
 
-  const handleConfirmReject = useCallback(async () => {
+  const handleConfirmReject = useCallback(async (reason: string) => {
     if (requestToReject) {
-      await rejectAssignmentRequest(requestToReject.id)
-      setRejectDialogOpen(false)
-      setRequestToReject(null)
+      try {
+        await assignmentRequestService.rejectAssignmentRequest(requestToReject.id, reason)
+        toast.success('Demande d\'expertise rejetée avec succès')
+        setRejectDialogOpen(false)
+        setRequestToReject(null)
+        // Recharger la liste
+        const currentFilters = {
+          ...filters,
+          search: searchQuery,
+          client_id: selectedClient ? Number(selectedClient) : undefined,
+          insurer_id: selectedInsurer ? Number(selectedInsurer) : undefined,
+          repairer_id: selectedRepairer ? Number(selectedRepairer) : undefined,
+          vehicle_id: selectedVehicle ? Number(selectedVehicle) : undefined,
+          date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+          date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined,
+        }
+        await fetchAssignmentRequests(pagination.currentPage, currentFilters)
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur lors du rejet de la demande'
+        toast.error(errorMessage)
+        throw error // Re-throw pour que le dialog puisse gérer l'erreur
+      }
     }
-  }, [requestToReject, rejectAssignmentRequest])
+  }, [requestToReject, filters, searchQuery, selectedClient, selectedInsurer, selectedRepairer, selectedVehicle, dateRange, pagination.currentPage, fetchAssignmentRequests])
 
   const handleRefresh = useCallback(() => {
     const currentFilters = {
@@ -435,25 +447,13 @@ function AssignmentRequestsPageContent() {
 
         {/* Dialog de confirmation de rejet */}
         <PermissionGate permission={Permission.REJECT_ASSIGNMENT_REQUEST}>
-          <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Rejeter la demande d'expertise</DialogTitle>
-              <DialogDescription>
-                Êtes-vous sûr de vouloir rejeter la demande d'expertise{' '}
-                <strong>{requestToReject?.reference}</strong> ? Cette action changera le statut de la demande.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-                Annuler
-              </Button>
-              <Button variant="destructive" onClick={handleConfirmReject} disabled={loading}>
-                Rejeter
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          <RejectAssignmentRequestDialog
+            open={rejectDialogOpen}
+            onOpenChange={setRejectDialogOpen}
+            onConfirm={handleConfirmReject}
+            requestReference={requestToReject?.reference}
+            loading={loading}
+          />
         </PermissionGate>
       </Main>
     </>

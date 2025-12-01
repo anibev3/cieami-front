@@ -70,9 +70,12 @@ class AssignmentRequestService {
   /**
    * Rejeter une demande d'expertise
    */
-  async rejectAssignmentRequest(id: string): Promise<AssignmentRequest> {
+  async rejectAssignmentRequest(id: string, reason: string): Promise<AssignmentRequest> {
     const response = await axiosInstance.put<AssignmentRequest>(
-      `${API_CONFIG.ENDPOINTS.ASSIGNMENT_REQUESTS}/${id}/reject`
+      `${API_CONFIG.ENDPOINTS.ASSIGNMENT_REQUESTS}/${id}/reject`,
+      {
+        assignment_request_reject_reason: reason
+      }
     )
     return response.data
   }
