@@ -116,11 +116,11 @@ export function WorkforceTypeSelect({
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
                       <span>{workforceType.label}</span>
-                      {workforceType.code && (
+                      {/* {workforceType.code && (
                         <Badge variant="outline" className="text-xs">
                           {workforceType.code}
                         </Badge>
-                      )}
+                      )} */}
                     </div>
                     {workforceType.hourly_rate && (
                     <div className="ml-auto text-xs text-muted-foreground">
@@ -130,7 +130,7 @@ export function WorkforceTypeSelect({
                   </CommandItem>
                 ))}
               </CommandGroup>
-              {onCreateNew && (
+              {/* {onCreateNew && (
                 <div className="border-t p-2">
                   <Button
                     variant="outline"
@@ -142,7 +142,7 @@ export function WorkforceTypeSelect({
                     Créer un nouveau type de main d'œuvre
                   </Button>
                 </div>
-              )}
+              )} */}
             </CommandList>
           </Command>
         </PopoverContent>

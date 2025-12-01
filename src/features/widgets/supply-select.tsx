@@ -174,7 +174,7 @@ export function SupplySelect({
                   </CommandItem>
                 ))}
               </CommandGroup>
-              {onCreateNew && (
+              {/* {onCreateNew && (
                 <div className="border-t p-2">
                   <Button
                     variant="outline"
@@ -189,7 +189,7 @@ export function SupplySelect({
                     Créer une nouvelle fourniture
                   </Button>
                 </div>
-              )}
+              )} */}
             </CommandList>
           </Command>
         </PopoverContent>

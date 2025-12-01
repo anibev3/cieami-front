@@ -8,6 +8,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -35,7 +37,8 @@ import {
   AlertTriangle,
   List,
   ShieldCheck,
-  ShieldX
+  ShieldX,
+  Settings
 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -51,6 +54,14 @@ import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
 import { ShockPointSelect } from '@/features/widgets/shock-point-select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { ShockPointCreateModal } from '@/components/modals'
 import { ShockPointMutateDialog } from '@/features/expertise/points-de-choc/components/shock-point-mutate-dialog'
@@ -576,6 +587,7 @@ function QuotePreparationPageContent() {
   const [showShockModal, setShowShockModal] = useState(false)
   const [selectedShockPointId, setSelectedShockPointId] = useState('')
   const [showCreateShockPointModal, setShowCreateShockPointModal] = useState(false)
+  const [addingShock, setAddingShock] = useState(false)
   
   // État pour gérer les chocs collapsés (par défaut tous ouverts)
   const [collapsedShocks, setCollapsedShocks] = useState<Set<number>>(new Set())
@@ -601,6 +613,11 @@ function QuotePreparationPageContent() {
   const [validating, setValidating] = useState(false)
   const [validatingRepairerInvoiceByExpert, setValidatingRepairerInvoiceByExpert] = useState(false)
   const [showValidationInstructionsModal, setShowValidationInstructionsModal] = useState(false)
+  const [showValidationDialog, setShowValidationDialog] = useState(false)
+  const [validationType, setValidationType] = useState<'normal' | 'withConditions' | 'repairer' | null>(null)
+  const [showUnvalidateDialog, setShowUnvalidateDialog] = useState(false)
+  const [unvalidateReason, setUnvalidateReason] = useState('')
+  const [unvalidateError, setUnvalidateError] = useState<string | null>(null)
   
   // Refs pour éviter les appels API multiples
   const referenceDataLoadedRef = useRef(false)
@@ -623,33 +640,34 @@ function QuotePreparationPageContent() {
     if (!assignment) return
     setValidating(true)
     try {
-
-
-      if (isExpert) {
-        console.log("================================================");
-        console.log('++++++ validateByExpert isExpert', assignment.id)
-        console.log("================================================");
-        // await assignmentValidationService.validateByExpert(String(assignment.id))
-        await assignmentValidationService.validateQuoteByExpert(String(assignment.id))
-      }
       if (isRepairer) {
         console.log("================================================");
         console.log('++++++ validateByRepairer isRepairer', assignment.id)
         console.log("================================================");
-        // await assignmentValidationService.validateByRepairer(String(assignment.id))
         await assignmentValidationService.validateQuoteByRepairer(String(assignment.id))
       }
       toast.success('Dossier validé')
+      setShowValidationDialog(false)
       await refreshAssignment()
-    } catch (_e) {      console.log("================================================");
+      // Retourner à la page précédente après un court délai pour laisser le temps au toast de s'afficher
+      setTimeout(() => {
+        window.history.back()
+      }, 500)
+    } catch (_e) {
+      console.log("================================================");
       console.log('++++++ error', _e)
       console.log("================================================");
+      toast.error('Erreur lors de la validation')
     } finally {
       setValidating(false)
     }
   }
 
-  const unvalidateAssignment = async () => {
+  const handleUnvalidateClick = () => {
+    setShowUnvalidateDialog(true)
+  }
+
+  const unvalidateAssignment = async (reason: string) => {
     if (!assignment) return
     setValidating(true)
     try {
@@ -657,21 +675,34 @@ function QuotePreparationPageContent() {
         console.log("================================================");
         console.log('++++++ unvalidateByExpert isExpert', assignment.id)
         console.log("================================================");
-        await assignmentValidationService.unvalidateQuoteByExpert(String(assignment.id))
+        await assignmentValidationService.unvalidateQuoteByExpert(String(assignment.id), reason)
       }
       if (isRepairer) {
         console.log("================================================");
         console.log('++++++ unvalidateByRepairer isRepairer', assignment.id)
         console.log("================================================");
-        await assignmentValidationService.unvalidateQuoteByRepairer(String(assignment.id))
+        await assignmentValidationService.unvalidateQuoteByRepairer(String(assignment.id), reason)
       }
       toast.success('Validation annulée')
+      setShowUnvalidateDialog(false)
+      setUnvalidateReason('')
+      setUnvalidateError(null)
       await refreshAssignment()
     } catch (_e) {
       toast.error('Erreur lors de l\'annulation')
     } finally {
       setValidating(false)
     }
+  }
+
+  const handleConfirmUnvalidate = async () => {
+    if (!unvalidateReason.trim()) {
+      setUnvalidateError('La raison de dévalidation est obligatoire')
+      return
+    }
+
+    setUnvalidateError(null)
+    await unvalidateAssignment(unvalidateReason.trim())
   }
 
   // Fonction pour changer d'onglet et mettre à jour l'URL
@@ -984,6 +1015,7 @@ function QuotePreparationPageContent() {
   const handleAddShock = async (shockPointId: string) => {
     if (!assignment) return
 
+    setAddingShock(true)
     try {
       const payload = {
         assignment_id: assignment.id.toString(),
@@ -997,9 +1029,14 @@ function QuotePreparationPageContent() {
       await axiosInstance.post(`${API_CONFIG.ENDPOINTS.ADD_SHOCK_IN_MODIF}`, payload)
       await refreshAssignment()
       toast.success('Point de choc ajouté avec succès')
+      // Fermer le modal et réinitialiser la sélection après succès
+      setShowShockModal(false)
+      setSelectedShockPointId('')
     } catch (error) {
       console.error('Erreur lors de l\'ajout du point de choc:', error)
       toast.error('Erreur lors de l\'ajout du point de choc')
+    } finally {
+      setAddingShock(false)
     }
   }
 
@@ -1229,14 +1266,15 @@ function QuotePreparationPageContent() {
     if (!assignment) return
     setValidatingRepairerInvoiceByExpert(true)
     try {
-     const response = await assignmentValidationService.validateQuoteByExpert(String(assignment.id))
-      setTimeout(() => {
-        setValidatingRepairerInvoiceByExpert(false)
-      }, 2000)
+      const response = await assignmentValidationService.validateQuoteByExpert(String(assignment.id))
       if (response.status === 200 || response.status === 201) { 
         toast.success('Devis du réparateur validé avec succès')
-        refreshAssignment()
-        window.history.back()
+        setShowValidationDialog(false)
+        await refreshAssignment()
+        // Retourner à la page précédente après un court délai pour laisser le temps au toast de s'afficher
+        setTimeout(() => {
+          window.history.back()
+        }, 500)
       } else {
         toast.error('Erreur lors de la validation du devis du réparateur')
       }
@@ -1252,22 +1290,47 @@ function QuotePreparationPageContent() {
     if (!assignment) return
     setValidatingQuoteWithConditionsByExpert(true)
     try {
-     const response = await assignmentValidationService.validateQuoteWithConditionsByExpert(String(assignment.id))
-     console.log("================================================");
-     console.log('++++++ response', response)
-     console.log("================================================");
-     if (response.status === 200) {
-      toast.success('Devis du réparateur validé avec succès')
-       refreshAssignment()
-       window.history.back()
-     } else {
-      toast.error('Erreur lors de la validation du devis du réparateur')
-     }
+      const response = await assignmentValidationService.validateQuoteWithConditionsByExpert(String(assignment.id))
+      console.log("================================================");
+      console.log('++++++ response', response)
+      console.log("================================================");
+      if (response.status === 200) {
+        toast.success('Devis du réparateur validé avec succès')
+        setShowValidationDialog(false)
+        await refreshAssignment()
+        // Retourner à la page précédente après un court délai pour laisser le temps au toast de s'afficher
+        setTimeout(() => {
+          window.history.back()
+        }, 500)
+      } else {
+        toast.error('Erreur lors de la validation du devis du réparateur')
+      }
     } catch (err) {
       console.error('Erreur lors de la validation du devis du réparateur:', err)
       toast.error('Erreur lors de la validation du devis du réparateur')
     } finally {
       setValidatingQuoteWithConditionsByExpert(false)
+    }
+  }
+
+  const handleValidationClick = (type: 'normal' | 'withConditions' | 'repairer') => {
+    setValidationType(type)
+    setShowValidationDialog(true)
+  }
+
+  const handleConfirmValidation = async () => {
+    if (!validationType) return
+    
+    switch (validationType) {
+      case 'normal':
+        await validateRepairerInvoiceAssignmentByExpert()
+        break
+      case 'withConditions':
+        await validateRepairerInvoiceAssignmentByExpertWithConditions()
+        break
+      case 'repairer':
+        await validateAssignment()
+        break
     }
   }
 
@@ -1343,95 +1406,136 @@ function QuotePreparationPageContent() {
 
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => navigate({ to: `/assignments/details/${assignment.id}` })}>
-                        <ArrowLeft className="h-4 w-4" />
-                      </Button>
-                      <h2 className="text-xl font-bold text-gray-900">Préparation de devis</h2>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => navigate({ to: `/assignments/details/${assignment.id}` })}>
+                          <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <h2 className="text-xl font-bold text-gray-900">Préparation de devis</h2>
                       </div>
-                      <div className="flex items-center gap-3">
-                        {isRepairer && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE && (
-                          <>
-                            <Button onClick={validateAssignment} disabled={validating} className="bg-green-600 hover:bg-green-700">
-                              {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
-                              Valider le devis
-                            </Button>
-                          </>
-                      )}
-                      {isExpert && (
-                        <>
-                          {!assignment?.quote_validated_by_expert && (
-                            <Button onClick={validateRepairerInvoiceAssignmentByExpert} disabled={ validatingRepairerInvoiceByExpert} className="bg-green-600 hover:bg-green-700">
-                                {validatingRepairerInvoiceByExpert ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
-                                Valider le devis
-                            </Button>
-                          )}
-                          {!assignment?.quote_validated_by_expert && (
-                            <Button onClick={validateRepairerInvoiceAssignmentByExpertWithConditions} disabled={ validatingQuoteWithConditionsByExpert} className="bg-green-600 hover:bg-green-700">
-                                {validatingQuoteWithConditionsByExpert ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
-                                Valider le devis sous réserve
-                            </Button>
-                          )}
-                          {assignment?.quote_validated_by_expert || assignment?.quote_validated_by_repairer && (
-                            <Button variant="outline" onClick={unvalidateAssignment} disabled={validating} className="bg-red-600 hover:bg-red-700 text-white">
-                              {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldX className="h-4 w-4 mr-2 text-white" />}
-                              Dévalider le devis
-                            </Button>
-                          )}
-                          </>
-                        )}
-                        {assignment.shocks && assignment.shocks.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const allShockIds = assignment.shocks.map(s => s.id)
-                                const allCollapsed = allShockIds.every(id => collapsedShocks.has(id))
-                                if (allCollapsed) {
-                                  // Expand all
-                                  setCollapsedShocks(new Set())
-                                } else {
-                                  // Collapse all
-                                  setCollapsedShocks(new Set(allShockIds))
-                                }
-                              }}
-                              className="text-xs"
-                            >
-                              {assignment.shocks.every(s => collapsedShocks.has(s.id)) ? (
-                                <>
-                                  <ChevronDown className="mr-1 h-3 w-3" />
-                                  Tout développer
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronUp className="mr-1 h-3 w-3" />
-                                  Tout réduire
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
-                        {assignment.shocks && assignment.shocks.length > 1 && (
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenReorderSheet()}
-                            title="Réorganiser les chocs"
-                          >
-                            <List className="mr-2 h-4 w-4" />
-                            Réorganiser les points de choc
-                          </Button>
-                        )}
-                        {/* Bouton existant Ajouter un point de choc */}
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Bouton principal : Ajouter un point de choc */}
                         <Button 
                           onClick={() => setShowShockModal(true)}
                           className="bg-blue-600 hover:bg-blue-700"
+                          size="sm"
                         >
                           <Plus className="mr-2 h-4 w-4" />
-                          Ajouter un point de choc
+                          {!isMobile && "Ajouter un point de choc"}
+                          {isMobile && "Ajouter"}
                         </Button>
+
+                        {/* Dropdown pour les actions sur les chocs */}
+                        {assignment.shocks && assignment.shocks.length > 0 && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Settings className="h-4 w-4 mr-2" />
+                                {!isMobile && "Actions"}
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuLabel>Actions sur les chocs</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const allShockIds = assignment.shocks.map(s => s.id)
+                                  const allCollapsed = allShockIds.every(id => collapsedShocks.has(id))
+                                  if (allCollapsed) {
+                                    setCollapsedShocks(new Set())
+                                  } else {
+                                    setCollapsedShocks(new Set(allShockIds))
+                                  }
+                                }}
+                              >
+                                {assignment.shocks.every(s => collapsedShocks.has(s.id)) ? (
+                                  <>
+                                    <ChevronDown className="mr-2 h-4 w-4" />
+                                    Tout développer
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronUp className="mr-2 h-4 w-4" />
+                                    Tout réduire
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              {assignment.shocks.length > 1 && (
+                                <DropdownMenuItem onClick={() => handleOpenReorderSheet()}>
+                                  <List className="mr-2 h-4 w-4" />
+                                  Réorganiser les points de choc
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+
+                        {/* Dropdown pour les actions de validation */}
+                        {(isRepairer || isExpert) && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                className="bg-green-600 hover:bg-green-700"
+                                size="sm"
+                                disabled={validating || validatingRepairerInvoiceByExpert || validatingQuoteWithConditionsByExpert}
+                              >
+                                {(validating || validatingRepairerInvoiceByExpert || validatingQuoteWithConditionsByExpert) ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    {!isMobile && "Validation..."}
+                                  </>
+                                ) : (
+                                  <>
+                                    <ShieldCheck className="h-4 w-4 mr-2" />
+                                    {!isMobile && "Valider"}
+                                  </>
+                                )}
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-64">
+                              <DropdownMenuLabel>Actions de validation</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {isRepairer && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_QUOTE && (
+                                <DropdownMenuItem onClick={() => handleValidationClick('repairer')}>
+                                  <ShieldCheck className="mr-2 h-4 w-4" />
+                                  Valider le devis
+                                </DropdownMenuItem>
+                              )}
+                              {isExpert && (
+                                <>
+                                  {!assignment?.quote_validated_by_expert && (
+                                    <>
+                                      <DropdownMenuItem onClick={() => handleValidationClick('normal')}>
+                                        <ShieldCheck className="mr-2 h-4 w-4" />
+                                        Valider le devis
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleValidationClick('withConditions')}>
+                                        <ShieldCheck className="mr-2 h-4 w-4" />
+                                        Valider le devis sous réserve
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                  {(assignment?.quote_validated_by_expert || assignment?.quote_validated_by_repairer) && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        onClick={handleUnvalidateClick}
+                                        variant="destructive"
+                                        className="text-red-600 focus:text-red-600"
+                                      >
+                                        <ShieldX className="mr-2 h-4 w-4" />
+                                        Dévalider le devis
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </div>
 
@@ -2263,7 +2367,13 @@ function QuotePreparationPageContent() {
       {/* Modal d'ajout de point de choc */}
       <ShockPointCreateModal
         open={showShockModal}
-        onOpenChange={setShowShockModal}
+        onOpenChange={(open) => {
+          setShowShockModal(open)
+          if (!open) {
+            // Réinitialiser la sélection quand le modal se ferme
+            setSelectedShockPointId('')
+          }
+        }}
         selectedShockPointId={selectedShockPointId}
         onSelectedShockPointIdChange={setSelectedShockPointId}
         shockPoints={shockPoints}
@@ -2273,6 +2383,7 @@ function QuotePreparationPageContent() {
         })) || []}
         onCreateShockPoint={handleCreateShockPoint}
         onAddShock={handleAddShock}
+        loading={addingShock}
       />
 
       {/* Modal de création de point de choc */}
@@ -2363,6 +2474,149 @@ function QuotePreparationPageContent() {
         title="Réorganiser les points de choc"
       />
 
+      {/* Dialog de confirmation de validation */}
+      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-green-600" />
+              Confirmer la validation
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider le devis pour le dossier{' '}
+              <strong>{assignment?.reference}</strong> ? 
+              {validationType === 'withConditions' && ' Cette validation sera effectuée sous réserve.'}
+              {validationType !== 'withConditions' && ' Cette action est définitive et changera le statut du dossier.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Avertissement si aucun point de choc */}
+          {(!assignment?.shocks || assignment.shocks.length === 0) && (
+            <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-1">
+                    Aucun point de choc enregistré
+                  </h4>
+                  <p className="text-sm text-orange-800 dark:text-orange-200">
+                    Aucun point de choc n'a été ajouté à ce devis. Êtes-vous sûr de vouloir continuer la validation sans point de choc ?
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowValidationDialog(false)
+                setValidationType(null)
+              }}
+              disabled={validating || validatingRepairerInvoiceByExpert || validatingQuoteWithConditionsByExpert}
+              className="w-full sm:w-auto"
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleConfirmValidation}
+              disabled={validating || validatingRepairerInvoiceByExpert || validatingQuoteWithConditionsByExpert}
+              className={(!assignment?.shocks || assignment.shocks.length === 0) 
+                ? "bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" 
+                : "bg-green-600 hover:bg-green-700 w-full sm:w-auto"}
+            >
+              {(validating || validatingRepairerInvoiceByExpert || validatingQuoteWithConditionsByExpert) ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validation en cours...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  {validationType === 'withConditions' ? 'Confirmer la validation sous réserve' : 'Confirmer la validation'}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de dévalidation avec raison obligatoire */}
+      <Dialog open={showUnvalidateDialog} onOpenChange={(open) => {
+        setShowUnvalidateDialog(open)
+        if (!open) {
+          setUnvalidateReason('')
+          setUnvalidateError(null)
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldX className="h-5 w-5 text-red-600" />
+              Dévalider le devis
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir dévalider le devis pour le dossier{' '}
+              <strong>{assignment?.reference}</strong> ? 
+              Cette action changera le statut du devis. Veuillez indiquer la raison de la dévalidation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="unvalidate-reason">
+                Raison de la dévalidation <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="unvalidate-reason"
+                placeholder="Saisissez la raison de la dévalidation du devis..."
+                value={unvalidateReason}
+                onChange={(e) => {
+                  setUnvalidateReason(e.target.value)
+                  if (unvalidateError) setUnvalidateError(null)
+                }}
+                rows={4}
+                className={unvalidateError ? 'border-destructive' : ''}
+              />
+              {unvalidateError && (
+                <p className="text-sm text-destructive">{unvalidateError}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowUnvalidateDialog(false)
+                setUnvalidateReason('')
+                setUnvalidateError(null)
+              }}
+              disabled={validating}
+            >
+              Annuler
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmUnvalidate}
+              disabled={validating || !unvalidateReason.trim()}
+            >
+              {validating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Dévalidation en cours...
+                </>
+              ) : (
+                <>
+                  <ShieldX className="mr-2 h-4 w-4" />
+                  Dévalider le devis
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal d'instructions pour validation définitive */}
       <Dialog open={showValidationInstructionsModal} onOpenChange={setShowValidationInstructionsModal}>
         <DialogContent className="sm:max-w-lg">
@@ -2438,7 +2692,7 @@ function QuotePreparationPageContent() {
               <Button 
                 onClick={() => {
                   setShowValidationInstructionsModal(false)
-                  unvalidateAssignment()
+                  handleUnvalidateClick()
                 }}
                 variant="default"
                 className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"

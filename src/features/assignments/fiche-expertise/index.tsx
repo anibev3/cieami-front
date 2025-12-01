@@ -530,6 +530,7 @@ function ExpertiseSheetPageContent() {
   const isRepairer = hasAnyRole([UserRole.REPAIRER_ADMIN, UserRole.REPAIRER_STANDARD_USER, UserRole.REPAIRER_ADMIN])
 
   const [validating, setValidating] = useState(false)
+  const [showValidationDialog, setShowValidationDialog] = useState(false)
 
   // Restreindre l'accès: si expert/réparateur et le dossier n'est pas "realized", retour arrière
   useEffect(() => {
@@ -551,6 +552,7 @@ function ExpertiseSheetPageContent() {
         await assignmentValidationService.validateWorkSheetByRepairer(String(assignment.id))
       }
       toast.success('Dossier validé')
+      setShowValidationDialog(false)
       navigate({ to: `/assignments/details/${assignment.id}` })
     } catch (_e) {
       toast.error('Erreur lors de la validation')
@@ -888,8 +890,8 @@ function ExpertiseSheetPageContent() {
                     <div className="flex items-center gap-3">
                       {(isExpert) && assignment?.status?.code === 'realized' && (
                         <>
-                          <Button  onClick={validateAssignment} disabled={validating} className="bg-green-600 hover:bg-green-700">
-                            {validating ? <Loader2 className="h-3 w-3 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                          <Button  onClick={() => setShowValidationDialog(true)} disabled={validating} className="bg-green-600 hover:bg-green-700">
+                            <ShieldCheck className="h-4 w-4 mr-2" />
                             Valider la fiche de travaux
                           </Button>
                         </>
@@ -1370,6 +1372,69 @@ function ExpertiseSheetPageContent() {
         onConfirm={(ids) => handleConfirmReorderShocks(ids.map(String))}
         title="Réorganiser les points de choc"
       />
+
+      {/* Dialog de confirmation de validation */}
+      <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-green-600" />
+              Confirmer la validation
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider la fiche de travaux pour le dossier{' '}
+              <strong>{assignment?.reference}</strong> ? Cette action est définitive et changera le statut du dossier.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Avertissement si aucun point de choc */}
+          {(!assignment?.shocks || assignment.shocks.length === 0) && (
+            <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-1">
+                    Aucun point de choc enregistré
+                  </h4>
+                  <p className="text-sm text-orange-800 dark:text-orange-200">
+                    Aucun point de choc n'a été ajouté à cette fiche de travaux. Êtes-vous sûr de vouloir continuer la validation sans point de choc ?
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowValidationDialog(false)}
+              disabled={validating}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="default"
+              onClick={validateAssignment}
+              disabled={validating}
+              className={(!assignment?.shocks || assignment.shocks.length === 0) 
+                ? "bg-orange-600 hover:bg-orange-700" 
+                : "bg-green-600 hover:bg-green-700"}
+            >
+              {validating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validation en cours...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Confirmer la validation
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

@@ -1109,7 +1109,8 @@ export function ExpertiseSheetShockSuppliesTable({
               ) : (
                 <>
                   <SaveAll className="mr-2 h-4 w-4" />
-                  Valider toutes les ({modifiedRows.size + newRows.size}) ligne(s)
+                  {/* Valider toutes les ({modifiedRows.size + newRows.size}) ligne(s) */}
+                  Valider les ligne(s)
                 </>
               )}
             </Button>
@@ -1126,7 +1127,7 @@ export function ExpertiseSheetShockSuppliesTable({
               Réorganiser
             </Button>
           )}
-          <Button 
+          {/* <Button 
             variant="outline" 
             size="xs"
             onClick={() => handleCreateSupply(-1)}
@@ -1134,7 +1135,7 @@ export function ExpertiseSheetShockSuppliesTable({
           >
             <Plus className="mr-2 h-4 w-4" />
             Créer une fourniture  
-          </Button>
+          </Button> */}
           {/* <Button onClick={handleAddNewRow} size="xs" className="text-white text-xs">
             <Plus className="mr-2 h-4 w-4" />
             Ajouter une ligne de fourniture

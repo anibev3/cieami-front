@@ -1383,7 +1383,7 @@ export function QuotePreparationShockSuppliesTable({
               ) : (
                 <>
                   <SaveAll className="mr-2 h-4 w-4" />
-                  Valider toutes les ({modifiedRows.size + newRows.size}) ligne(s)
+                  Valider les ligne(s)
                 </>
               )}
             </Button>
@@ -1400,7 +1400,7 @@ export function QuotePreparationShockSuppliesTable({
               Réorganiser
             </Button>
           )}
-          <Button 
+          {/* <Button 
             variant="outline" 
             size="xs"
             onClick={() => handleCreateSupply(-1)}
@@ -1408,7 +1408,7 @@ export function QuotePreparationShockSuppliesTable({
           >
             <Plus className="mr-2 h-4 w-4" />
             Créer une fourniture  
-          </Button>
+          </Button> */}
         </div>
       </div>
 

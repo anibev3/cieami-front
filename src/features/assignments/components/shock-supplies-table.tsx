@@ -468,7 +468,7 @@ export function ShockSuppliesTable({
         </h4>
         <div className="flex gap-2">
           
-         <Button 
+         {/* <Button 
                     variant="outline" 
                     size="xs"
                     onClick={() => handleCreateSupply(-1)}
@@ -476,7 +476,7 @@ export function ShockSuppliesTable({
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Créer une fourniture
-                  </Button>
+                  </Button> */}
           <div className="flex gap-2">
             <Button onClick={onAdd} size="xs" className="text-white text-xs">
               <Plus className="mr-2 h-4 w-4" />

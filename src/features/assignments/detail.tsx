@@ -48,10 +48,11 @@ import {
   AlertTriangle,
   Shield,
   Check,
-  Trash2,
-  Menu,
   Navigation,
-  MessageSquare
+  MessageSquare,
+  ChevronDown,
+  ShieldCheck,
+  Loader2
 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { API_CONFIG } from '@/config/api'
@@ -678,6 +679,8 @@ function AssignmentDetailPageContent() {
   const [validatingByExpert, setValidatingByExpert] = useState(false)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const [showValidationWithConditionsModal, setShowValidationWithConditionsModal] = useState(false)
+  const [showValidateByRepairerDialog, setShowValidateByRepairerDialog] = useState(false)
+  const [showValidateByExpertDialog, setShowValidateByExpertDialog] = useState(false)
   const { generateReport, loading: loadingGenerate, currentAssignment: storeAssignment } = useAssignmentsStore()
   const { isCEO, isValidator, isExpertManager, hasAnyRole, isExpert, isInsurerAdmin, isInsurerStandardUser, isRepairerAdmin, isRepairerStandardUser, isExpertAdmin, isMainOrganization, isInsurerEntity, isRepairerEntity, isSystemAdmin, isAdmin } = useACL()
   const currentUser = useUser()
@@ -2299,6 +2302,10 @@ function AssignmentDetailPageContent() {
     window.location.href = `/assignments/quote-preparation/${assignment.id}?validate_definitively=true`
   }
 
+  const handleValidateByRepairerClick = () => {
+    setShowValidateByRepairerDialog(true)
+  }
+
   const handleValidateByRepairer = async () => {
     if (!assignment) return
     
@@ -2306,6 +2313,7 @@ function AssignmentDetailPageContent() {
     try {
       await assignmentValidationService.validateByRepairer(String(assignment.id))
       toast.success('Dossier validé avec succès')
+      setShowValidateByRepairerDialog(false)
       
       // Mettre à jour tout le dossier avec une requête API de détail
       try {
@@ -2324,6 +2332,10 @@ function AssignmentDetailPageContent() {
     }
   }
 
+  const handleValidateByExpertClick = () => {
+    setShowValidateByExpertDialog(true)
+  }
+
   const handleValidateByExpert = async () => {
     if (!assignment) return
     
@@ -2331,6 +2343,7 @@ function AssignmentDetailPageContent() {
     try {
       await assignmentValidationService.validateByExpert(String(assignment.id))
       toast.success('Dossier validé avec succès')
+      setShowValidateByExpertDialog(false)
       
       // Mettre à jour tout le dossier avec une requête API de détail
       try {
@@ -2798,19 +2811,19 @@ function AssignmentDetailPageContent() {
             </div>
              
             </div>
-          {/* Zone d'actions - Design amélioré */}
+          {/* Zone d'actions - Design amélioré avec dropdowns */}
           {!isReadOnlyUser && (
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 {isRepairerUser ? (
-                  // Utilisateurs réparateurs : boutons spécifiques selon le statut
+                  // Utilisateurs réparateurs : actions organisées
                   <>
-                    {/* Bouton "Valider le dossier" si le statut est PENDING_FOR_REPAIRER_VALIDATION */}
+                    {/* Dropdown pour les actions de validation */}
                     {assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_REPAIRER_VALIDATION && (
                       <Button 
                         variant="default" 
                         size="sm" 
-                        onClick={handleValidateByRepairer}
+                        onClick={handleValidateByRepairerClick}
                         disabled={validatingByRepairer}
                         className="bg-green-600 hover:bg-green-700 gap-2"
                       >
@@ -2823,104 +2836,114 @@ function AssignmentDetailPageContent() {
                         ) : (
                           <>
                             <Shield className="h-4 w-4" />
-                            <span className="hidden sm:inline">Valider le dossier</span>
-                            <span className="sm:hidden">Valider</span>
+                            <span className="hidden sm:inline">Valider</span>
                           </>
                         )}
                       </Button>
                     )}
-                    {/* Bouton "Préparation de devis" si le devis n'est pas validé */}
-                    {assignment?.quote_validated === false && assignment?.quote_validated != null && (
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
-                        className="gap-2"
-                      >
-                        <FileDown className="h-4 w-4" />
-                        <span className="hidden sm:inline">Préparation de devis</span>
-                        <span className="sm:hidden">Devis</span>
-                      </Button>
+                    
+                    {/* Dropdown pour les actions de navigation */}
+                    {(assignment?.quote_validated === false && assignment?.quote_validated != null) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <FileDown className="h-4 w-4" />
+                            <span className="hidden sm:inline">Devis</span>
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel>Actions sur le devis</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
+                          >
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Préparation de devis
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </>
                 ) : (
-                  // Autres utilisateurs : actions organisées
+                  // Autres utilisateurs : actions organisées avec dropdowns
                   <>
-                    {/* Actions spécifiques aux experts admin */}
-                    {isExpertAdmin() && (assignment?.status?.code === AssignmentStatusEnum.REALIZED) && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}
-                        className="gap-2"
-                      >
-                        <FileDown className="h-4 w-4" />
-                        <span className="hidden sm:inline">Rédaction fiche travaux</span>
-                        <span className="sm:hidden">Fiche</span>
-                      </Button>
-                    )}
+                    {/* Dropdown pour les actions de validation */}
+                    {(isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING) ||
+                     (isExpert() && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_EXPERT_VALIDATION) ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            className="bg-green-600 hover:bg-green-700"
+                            size="sm"
+                            disabled={validatingEdition || validatingByExpert}
+                          >
+                            {(validatingEdition || validatingByExpert) ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                <span className="hidden sm:inline">Validation...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Shield className="h-4 w-4 mr-2" />
+                                <span className="hidden sm:inline">Valider</span>
+                              </>
+                            )}
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-64">
+                          <DropdownMenuLabel>Actions de validation</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
+                            <DropdownMenuItem onClick={handleValidateEdition}>
+                              <Shield className="mr-2 h-4 w-4" />
+                              Valider l'édition
+                            </DropdownMenuItem>
+                          )}
+                          {isExpert() && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_EXPERT_VALIDATION && (
+                            <DropdownMenuItem onClick={handleValidateByExpertClick}>
+                              <Shield className="mr-2 h-4 w-4" />
+                              Valider le dossier
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
 
-                    {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.IN_EDITING && (
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        onClick={handleValidateEdition}
-                        disabled={validatingEdition}
-                        className="bg-green-600 hover:bg-green-700 gap-2"
-                      >
-                        {validatingEdition ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span className="hidden sm:inline">Validation...</span>
-                            <span className="sm:hidden">...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Shield className="h-4 w-4" />
-                            <span className="hidden sm:inline">Valider l'édition</span>
-                            <span className="sm:hidden">Valider</span>
-                          </>
-                        )}
-                      </Button>
-                    )}
-                    {/* Bouton "Valider le dossier" pour les experts si le statut est PENDING_FOR_EXPERT_VALIDATION */}
-                    {isExpert() && assignment?.status?.code === AssignmentStatusEnum.PENDING_FOR_EXPERT_VALIDATION && (
-                      <Button 
-                        variant="default"
-                        size="sm" 
-                        onClick={handleValidateByExpert}
-                        disabled={validatingByExpert}
-                        className="bg-green-600 hover:bg-green-700 gap-2"
-                      >
-                        {validatingByExpert ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span className="hidden sm:inline">Validation...</span>
-                            <span className="sm:hidden">...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Shield className="h-4 w-4" />
-                            <span className="hidden sm:inline">Valider le dossier</span>
-                            <span className="sm:hidden">Valider</span>
-                          </>
-                        )}
-                      </Button>
-                    )}
-
-                    {/* Bouton pour voir le devis de réparation */}
-                    {assignment?.quote_validated_by_repairer_at !== null && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
-                        className="gap-2"
-                      >
-                        <FileDown className="h-4 w-4" />
-                        <span className="hidden sm:inline">Voir le devis</span>
-                        <span className="sm:hidden">Devis</span>
-                      </Button>
-                    )}
+                    {/* Dropdown pour les actions de navigation/édition */}
+                    {(isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.REALIZED) ||
+                     (assignment?.quote_validated_by_repairer_at !== null) ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <FileDown className="h-4 w-4" />
+                            <span className="hidden sm:inline">Navigation</span>
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {isExpertAdmin() && assignment?.status?.code === AssignmentStatusEnum.REALIZED && (
+                            <DropdownMenuItem
+                              onClick={() => navigate({ to: `/assignments/expertise-sheet/${assignment.id}` })}
+                            >
+                              <FileDown className="mr-2 h-4 w-4" />
+                              Rédaction fiche travaux
+                            </DropdownMenuItem>
+                          )}
+                          {assignment?.quote_validated_by_repairer_at !== null && (
+                            <DropdownMenuItem
+                              onClick={() => navigate({ to: `/assignments/quote-preparation/${assignment.id}` })}
+                            >
+                              <FileDown className="mr-2 h-4 w-4" />
+                              Voir le devis
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
                     
                     {/* Actions principales organisées */}
                     {renderActionsToolbar(getAvailableActions(assignment))}
@@ -3134,6 +3157,95 @@ function AssignmentDetailPageContent() {
         </div>
       </Main>
 
+      {/* Modal de confirmation pour validation par réparateur */}
+      <Dialog open={showValidateByRepairerDialog} onOpenChange={setShowValidateByRepairerDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-green-600" />
+              Confirmer la validation
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider le dossier{' '}
+              <strong>{assignment?.reference}</strong> ? 
+              Cette action est définitive et changera le statut du dossier.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowValidateByRepairerDialog(false)}
+              disabled={validatingByRepairer}
+              className="w-full sm:w-auto"
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleValidateByRepairer}
+              disabled={validatingByRepairer}
+              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+            >
+              {validatingByRepairer ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validation en cours...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Confirmer la validation
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de confirmation pour validation par expert */}
+      <Dialog open={showValidateByExpertDialog} onOpenChange={setShowValidateByExpertDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-green-600" />
+              Confirmer la validation
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir valider le dossier{' '}
+              <strong>{assignment?.reference}</strong> ? 
+              Cette action est définitive et changera le statut du dossier.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowValidateByExpertDialog(false)}
+              disabled={validatingByExpert}
+              className="w-full sm:w-auto"
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleValidateByExpert}
+              disabled={validatingByExpert}
+              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+            >
+              {validatingByExpert ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validation en cours...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Confirmer la validation
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de validation */}
 

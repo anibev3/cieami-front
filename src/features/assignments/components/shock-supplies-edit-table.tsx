@@ -729,7 +729,7 @@ export function ShockSuppliesEditTable({
               Réorganiser
             </Button>
           )}
-          <Button 
+          {/* <Button 
             variant="outline" 
             size="xs"
             onClick={() => handleCreateSupply(-1)}
@@ -737,7 +737,7 @@ export function ShockSuppliesEditTable({
           >
             <Plus className="mr-2 h-4 w-4" />
             Créer une fourniture
-          </Button>
+          </Button> */}
           <Button onClick={handleAddNewRow} size="xs" className="text-white text-xs">
             <Plus className="mr-2 h-4 w-4" />
             Ajouter une ligne de fourniture

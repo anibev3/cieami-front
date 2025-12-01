@@ -1496,7 +1496,7 @@ export function QuotePreparationShockWorkforceTable({
               ) : (
                 <>
                   <SaveAll className="mr-2 h-4 w-4" />
-                  Valider toutes ({modifiedRows.size + newRows.size})
+                  Valider les ligne(s)
                 </>
               )}
             </Button>
@@ -1513,7 +1513,7 @@ export function QuotePreparationShockWorkforceTable({
               Réorganiser
             </Button>
           )}
-          <Button 
+          {/* <Button 
             variant="outline" 
             size="xs"
             onClick={() => handleCreateWorkforceType(-1)}
@@ -1521,7 +1521,7 @@ export function QuotePreparationShockWorkforceTable({
           >
             <Plus className="mr-2 h-4 w-4" />
             Créer un type 
-          </Button>
+          </Button> */}
         </div>
       </div>
 
