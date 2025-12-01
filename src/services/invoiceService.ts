@@ -21,11 +21,11 @@ class InvoiceService {
     if (filters?.search) {
       params.append('search', filters.search)
     }
-    if (filters?.date_from) {
-      params.append('date_from', filters.date_from)
+    if (filters?.start_date) {
+      params.append('start_date', filters.start_date)
     }
-    if (filters?.date_to) {
-      params.append('date_to', filters.date_to)
+    if (filters?.end_date) {
+      params.append('end_date', filters.end_date)
     }
     if (filters?.status) {
       params.append('status', filters.status)
@@ -94,7 +94,7 @@ class InvoiceService {
    * Récupérer les factures par date
    */
   async getByDateRange(dateFrom: string, dateTo: string): Promise<InvoiceResponse> {
-    return this.getAll({ date_from: dateFrom, date_to: dateTo })
+    return this.getAll({ start_date: dateFrom, end_date: dateTo })
   }
 
   /**

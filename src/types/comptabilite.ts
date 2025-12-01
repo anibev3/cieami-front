@@ -375,8 +375,8 @@ export interface PaymentFilters {
   assignment_id?: string
   payment_type_id?: string
   payment_method_id?: string
-  date_from?: string
-  date_to?: string
+  start_date?: string
+  end_date?: string
   page?: number
   per_page?: number
 }
@@ -385,8 +385,8 @@ export interface CheckFilters {
   search?: string
   payment_id?: string
   bank_id?: string
-  date_from?: string
-  date_to?: string
+  start_date?: string
+  end_date?: string
   page?: number
   per_page?: number
 }
@@ -582,8 +582,8 @@ export interface UpdateInvoiceData {
 
 export interface InvoiceFilters {
   search?: string
-  date_from?: string
-  date_to?: string
+  start_date?: string
+  end_date?: string
   status?: string
   assignment_reference?: string
   amount_min?: string

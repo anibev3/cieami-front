@@ -147,8 +147,8 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
   //     assignment_id: assignmentId || undefined,
   //     payment_type_id: selectedPaymentType || undefined,
   //     payment_method_id: selectedPaymentMethod || undefined,
-  //     date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-  //     date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+  //     start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+  //     end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
   //   }
   //   fetchPayments(1, perPage, searchQuery, filters)
   // }, [searchQuery, selectedPaymentType, selectedPaymentMethod, dateRange, fetchPayments])
@@ -161,8 +161,8 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
       //  assignment_id: selectedAssignment || undefined,
       payment_type_id: typeId || undefined,
       payment_method_id: selectedPaymentMethod || undefined,
-      date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
     }
     fetchPayments(1, perPage, searchQuery, filters)
   }, [searchQuery, selectedPaymentMethod, dateRange, fetchPayments])
@@ -175,8 +175,8 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
       // assignment_id: selectedAssignment || undefined,
       payment_type_id: selectedPaymentType || undefined,
       payment_method_id: methodId || undefined,
-      date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
+      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined
     }
     fetchPayments(1, perPage, searchQuery, filters)
   }, [searchQuery, selectedPaymentType, dateRange, fetchPayments])
@@ -192,8 +192,8 @@ export default function PaymentsPage({ onButtonClick }: PaymentsPageProps) {
       // assignment_id: selectedAssignment || undefined,
       payment_type_id: selectedPaymentType || undefined,
       payment_method_id: selectedPaymentMethod || undefined,
-      date_from: values.range.from.toISOString().split('T')[0],
-      date_to: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined
+      start_date: values.range.from.toISOString().split('T')[0],
+      end_date: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined
     }
     fetchPayments(1, perPage, searchQuery, filters)
   }, [searchQuery, selectedPaymentType, selectedPaymentMethod, fetchPayments])

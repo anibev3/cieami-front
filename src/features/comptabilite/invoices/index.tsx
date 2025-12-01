@@ -138,8 +138,8 @@ function InvoicesPageContent() {
       const baseFilters = {
         search: searchTerm,
         assignment_reference: selectedAssignment,
-        date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-        date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined,
+        start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+        end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined,
         status: filters.status === 'all' ? '' : filters.status,
         amount_min: filters.amount_min,
         amount_max: filters.amount_max,
@@ -182,8 +182,8 @@ function InvoicesPageContent() {
     const filterParams = {
       search: searchTerm,
       assignment_reference: assignmentId || undefined,
-      date_from: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      date_to: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined,
+      start_date: dateRange.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      end_date: dateRange.to ? dateRange.to.toISOString().split('T')[0] : undefined,
       status: filters.status === 'all' ? '' : filters.status,
       amount_min: filters.amount_min,
       amount_max: filters.amount_max,
@@ -201,8 +201,8 @@ function InvoicesPageContent() {
     const filterParams = {
       search: searchTerm,
       assignment_reference: selectedAssignment || undefined,
-      date_from: values.range.from.toISOString().split('T')[0],
-      date_to: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined,
+      start_date: values.range.from.toISOString().split('T')[0],
+      end_date: values.range.to ? values.range.to.toISOString().split('T')[0] : undefined,
       status: filters.status === 'all' ? '' : filters.status,
       amount_min: filters.amount_min,
       amount_max: filters.amount_max,

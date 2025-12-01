@@ -28,11 +28,11 @@ class PaymentService {
     if (filters?.payment_method_id) {
       params.append('payment_method_id', filters.payment_method_id)
     }
-    if (filters?.date_from) {
-      params.append('date_from', filters.date_from)
+    if (filters?.start_date) {
+      params.append('start_date', filters.start_date)
     }
-    if (filters?.date_to) {
-      params.append('date_to', filters.date_to)
+    if (filters?.end_date) {
+      params.append('end_date', filters.end_date)
     }
     if (filters?.page) {
       params.append('page', filters.page.toString())
@@ -110,7 +110,7 @@ class PaymentService {
    * Récupérer les paiements par période
    */
   async getByDateRange(dateFrom: string, dateTo: string): Promise<PaymentResponse> {
-    return this.getAll({ date_from: dateFrom, date_to: dateTo })
+    return this.getAll({ start_date: dateFrom, end_date: dateTo })
   }
 }
 

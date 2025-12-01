@@ -64,10 +64,10 @@ export default function PermissionsPage() {
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-2xl font-bold">Gestion des Permissions</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-xl font-bold">Gestion des Permissions</h1>
+                {/* <p className="text-sm text-muted-foreground">
                   Gérez les rôles et permissions du système
-                </p>
+                </p> */}
               </div>
             </div>
             <div className="flex items-center gap-2">
