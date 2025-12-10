@@ -66,6 +66,8 @@ function CreateInvoicePageContent() {
   const [invoiceObject, setInvoiceObject] = useState('')
   const [address, setAddress] = useState('')
   const [taxpayerAccountNumber, setTaxpayerAccountNumber] = useState('')
+  const [invoiceType, setInvoiceType] = useState<'sale' | 'credit_bill'>('sale')
+  const [invoiceReference, setInvoiceReference] = useState('')
   const [creating, setCreating] = useState(false)
   const [filteredAssignments, setFilteredAssignments] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -156,13 +158,18 @@ function CreateInvoicePageContent() {
       return
     }
 
+    if (invoiceType === 'credit_bill' && !invoiceReference.trim()) {
+      toast.error('Veuillez saisir la référence de la facture')
+      return
+    }
 
     setCreating(true)
     try {
       const invoiceData: any = {
         assignment_id: selectedAssignment.id.toString(),
         date: invoiceDate,
-        object: invoiceObject.trim()
+        object: invoiceObject.trim(),
+        type: invoiceType
       }
 
       if (address.trim()) {
@@ -171,6 +178,10 @@ function CreateInvoicePageContent() {
 
       if (taxpayerAccountNumber.trim()) {
         invoiceData.taxpayer_account_number = taxpayerAccountNumber.trim()
+      }
+
+      if (invoiceType === 'credit_bill' && invoiceReference.trim()) {
+        invoiceData.invoice_reference = invoiceReference.trim()
       }
 
       await createInvoice(invoiceData)
@@ -667,6 +678,44 @@ function CreateInvoicePageContent() {
                       className="mt-2"
                     />
                   </div>
+
+                  {/* Type de facture */}
+                  <div>
+                    <Label htmlFor="invoice-type" className="text-sm font-medium text-gray-700">
+                      Type de facture<span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={invoiceType} onValueChange={(value: 'sale' | 'credit_bill') => {
+                      setInvoiceType(value)
+                      if (value === 'sale') {
+                        setInvoiceReference('')
+                      }
+                    }}>
+                      <SelectTrigger id="invoice-type" className="mt-2">
+                        <SelectValue placeholder="Sélectionner le type de facture" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sale">Vente</SelectItem>
+                        <SelectItem value="credit_bill">Avoir</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Référence de la facture (affichée uniquement pour credit_bill) */}
+                  {invoiceType === 'credit_bill' && (
+                    <div>
+                      <Label htmlFor="invoice-reference" className="text-sm font-medium text-gray-700">
+                        Référence de la facture<span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="invoice-reference"
+                        type="text"
+                        value={invoiceReference}
+                        onChange={(e) => setInvoiceReference(e.target.value)}
+                        placeholder="Ex: FACT-2024-001"
+                        className="mt-2"
+                      />
+                    </div>
+                  )}
 
                   {/* Adresse */}
                   <div>

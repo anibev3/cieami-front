@@ -343,6 +343,7 @@ interface Assignment {
       paint: boolean
       obsolescence: boolean
       control: boolean
+      in_order: boolean
       comment: string | null
       obsolescence_rate: string
       obsolescence_amount_excluding_tax: string
@@ -1733,6 +1734,7 @@ function QuotePreparationPageContent() {
                                             paint: work?.paint || false,
                                             control: work?.control || false,
                                             obsolescence: work?.obsolescence || false,
+                                            in_order: work?.in_order || false,
                                             comment: work?.comment || '',
                                             obsolescence_rate: Number(work?.obsolescence_rate) || 0,
                                             recovery_amount: Number(work?.recovery_amount) || 0,
@@ -1758,6 +1760,7 @@ function QuotePreparationPageContent() {
                                             old_paint: work?.old_paint,
                                             old_control: work?.old_control,
                                             old_obsolescence: work?.old_obsolescence,
+                                            old_in_order: work?.old_in_order,
                                             old_comment: work?.old_comment,
                                             old_obsolescence_rate: work?.old_obsolescence_rate,
                                             old_recovery_amount: work?.old_recovery_amount,
@@ -1793,6 +1796,7 @@ function QuotePreparationPageContent() {
                                                 paint: updatedWork?.paint,
                                                 control: updatedWork?.control,
                                                 obsolescence: updatedWork?.obsolescence,
+                                                in_order: updatedWork?.in_order,
                                                 comment: updatedWork?.comment,
                                                 obsolescence_rate: updatedWork?.obsolescence_rate,
                                                 recovery_amount: updatedWork?.recovery_amount,
@@ -1821,6 +1825,7 @@ function QuotePreparationPageContent() {
                                                 paint: Boolean(shockWorkData?.paint || false),
                                                 control: Boolean(shockWorkData?.control || false),
                                                 obsolescence: Boolean(shockWorkData?.obsolescence || false),
+                                                in_order: Boolean(shockWorkData?.in_order || false),
                                                 comment: shockWorkData?.comment || null,
                                                 obsolescence_rate: Number(shockWorkData?.obsolescence_rate || 0),
                                                 recovery_amount: Number(shockWorkData?.recovery_amount || 0),

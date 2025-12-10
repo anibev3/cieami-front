@@ -70,6 +70,7 @@ interface ShockWork {
   paint: boolean
   control: boolean
   obsolescence?: boolean
+  in_order: boolean
   comment: string
   obsolescence_rate: number
   recovery_amount?: number
@@ -97,6 +98,7 @@ interface ShockWork {
   old_paint?: boolean
   old_control?: boolean
   old_obsolescence?: boolean
+  old_in_order?: boolean
   old_comment?: string | null
   old_obsolescence_rate?: number | string
   old_discount?: number | string
@@ -139,6 +141,7 @@ const detectChanges = (work: ShockWork): FieldChange[] => {
     paint: 'Peinture',
     control: 'Contrôle',
     obsolescence: 'Vétusté',
+    in_order: 'En commande',
     comment: 'Commentaire',
     obsolescence_rate: 'Taux de vétusté (%)',
     // recovery_amount: 'Montant de récupération',
@@ -174,7 +177,7 @@ const detectChanges = (work: ShockWork): FieldChange[] => {
     
     // Pour les booléens, comparer directement
     if (field === 'disassembly' || field === 'replacement' || field === 'repair' || 
-        field === 'paint' || field === 'control' || field === 'obsolescence') {
+        field === 'paint' || field === 'control' || field === 'obsolescence' || field === 'in_order') {
       if (work[oldField] !== undefined && work[oldField] !== work[currentField]) {
         changes.push({
           field,
@@ -416,6 +419,15 @@ function QuotePreparationSortableSupplyRow({
           </div>
         </td>
       )}
+      <td className="border text-center text-[10px] relative">
+        <div className="flex items-center justify-center gap-1">
+          <Checkbox 
+            checked={row.in_order} 
+            onCheckedChange={v => updateLocalShockWork(index, 'in_order', v)} 
+          />
+          <ChangeIndicator changes={detectedChanges} field="in_order" currentValue={row.in_order} />
+        </div>
+      </td>
       {/* Montant HT */}
       <td className="border px-2 text-center text-[10px] w-40 relative">
         <div className="flex items-center justify-center gap-1">
@@ -877,6 +889,7 @@ export function QuotePreparationShockSuppliesTable({
       paint: false,
       control: false,
       obsolescence: false,
+      in_order: false,
       comment: '',
       obsolescence_rate: 0,
       recovery_amount: 0,
@@ -962,6 +975,7 @@ export function QuotePreparationShockSuppliesTable({
                   paint: work.paint,
                   obsolescence: work.obsolescence || false,
                   control: work.control,
+                  in_order: work.in_order || false,
                   obsolescence_rate: Number(work.obsolescence_rate),
                   recovery_amount: Number(work.recovery_amount || 0),
                   discount: Number(work.discount),
@@ -1088,6 +1102,7 @@ export function QuotePreparationShockSuppliesTable({
               paint: work.paint,
               obsolescence: work.obsolescence || false,
               control: work.control,
+              in_order: work.in_order || false,
               obsolescence_rate: Number(work.obsolescence_rate),
               recovery_amount: Number(work.recovery_amount || 0),
               discount: Number(work.discount),
@@ -1178,6 +1193,7 @@ export function QuotePreparationShockSuppliesTable({
               paint: shockWork.paint,
               obsolescence: shockWork.obsolescence || false,
               control: shockWork.control,
+              in_order: shockWork.in_order || false,
               obsolescence_rate: Number(shockWork.obsolescence_rate),
               recovery_amount: Number(shockWork.recovery_amount || 0),
               discount: Number(shockWork.discount),
@@ -1496,6 +1512,9 @@ export function QuotePreparationShockSuppliesTable({
                       Vét
                     </th>
                   )}
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Cmd
+                  </th>
                   <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Montant HT
                   </th>

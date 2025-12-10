@@ -75,6 +75,7 @@ interface ApiShockWork {
   repair: boolean
   paint: boolean
   control: boolean
+  in_order: boolean
   comment: string | null
   obsolescence_rate: string
   obsolescence_amount_excluding_tax: string
@@ -208,6 +209,7 @@ export function useEditAssignment(assignmentId: string) {
         repair: work.repair || false,
         paint: work.paint || false,
         control: work.control || false,
+        in_order: work.in_order || false,
         comment: work.comment || '',
         obsolescence_rate: parseFloat(work.obsolescence_rate) || 0,
         recovery_amoun: parseFloat(work.recovery_amoun) || 0,

@@ -29,6 +29,7 @@ interface ShockWork {
   paint: boolean
   obsolescence: boolean
   control: boolean
+  in_order: boolean
   comment: string | null
   amount: string
   obsolescence_rate: string
@@ -341,6 +342,9 @@ function ShockContent({
                 Vétusté
               </th>
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                Cmd
+              </th>
+              <th className="border px-2 py-2 text-center font-medium text-[10px]">
                 Montant HT
               </th>
               <th className="border px-2 py-2 text-center font-medium text-[10px]">
@@ -413,6 +417,14 @@ function ShockContent({
                   {work?.obsolescence ? (
                     <Badge variant="destructive" className="text-[10px]">
                       <RotateCcw className="h-2 w-2" />
+                    </Badge>
+                  ) : '-'}
+                </td>
+                {/* En commande */}
+                <td className="border px-2 py-2 text-center text-[10px]">
+                  {work?.in_order ? (
+                    <Badge variant="secondary" className="text-[10px]">
+                      ✓
                     </Badge>
                   ) : '-'}
                 </td>

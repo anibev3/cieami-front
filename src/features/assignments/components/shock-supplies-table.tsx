@@ -45,6 +45,7 @@ interface ShockWork {
   paint: boolean
   control: boolean
   obsolescence?: boolean
+  in_order: boolean
   comment: string
   obsolescence_rate: number
   recovery_amount?: number
@@ -171,6 +172,13 @@ function SortableRow({
           />
         </td>
       )}
+      {/* En commande */}
+      <td className="border px-2 py-2 text-center text-xs">
+        <Checkbox 
+          checked={row.in_order} 
+          onCheckedChange={v => updateLocalShockWork(index, 'in_order', v)} 
+        />
+      </td>
       {/* Montant HT */}
       <td className="border px-2 text-center text-xs w-40">
         <Input
@@ -519,6 +527,9 @@ export function ShockSuppliesTable({
                 Vétusté
               </th>
               )}
+              <th className="border px-2 py-2 text-center font-medium text-xs">
+                Cmd
+              </th>
               <th className="border px-2 py-2 text-center font-medium text-xs">
                 Montant HT
               </th>

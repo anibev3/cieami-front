@@ -9,6 +9,7 @@ export interface ShockWork {
   paint: boolean
   control: boolean
   obsolescence?: boolean
+  in_order: boolean
   comment: string
   obsolescence_rate: number
   recovery_amount?: number
@@ -101,6 +102,7 @@ export function useShockManagement(initialShocks?: Shock[]) {
       paint: false,
       control: false,
       obsolescence: false,
+      in_order: false,
       comment: '',
       obsolescence_rate: 0,
       recovery_amount: 0,

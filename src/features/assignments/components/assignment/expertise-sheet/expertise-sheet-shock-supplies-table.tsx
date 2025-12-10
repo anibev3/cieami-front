@@ -65,6 +65,7 @@ interface ShockWork {
   paint: boolean
   control: boolean
   obsolescence?: boolean
+  in_order: boolean
   comment: string
   obsolescence_rate: number
   recovery_amount?: number
@@ -195,6 +196,12 @@ function ExpertiseSheetSortableSupplyRow({
           />
         </td>
       )}
+      <td className="border text-center text-[10px]">
+        <Checkbox 
+          checked={row.in_order} 
+          onCheckedChange={v => updateLocalShockWork(index, 'in_order', v)} 
+        />
+      </td>
       {/* Montant HT */}
       {/* <td className="border px-2 text-center text-[10px] w-40">
         <Input
@@ -608,6 +615,7 @@ export function ExpertiseSheetShockSuppliesTable({
       paint: false,
       control: false,
       obsolescence: false,
+      in_order: false,
       comment: '',
       obsolescence_rate: 0,
       recovery_amount: 0,
@@ -691,6 +699,7 @@ export function ExpertiseSheetShockSuppliesTable({
                   paint: work.paint,
                   obsolescence: work.obsolescence || false,
                   control: work.control,
+                  in_order: work.in_order || false,
                   obsolescence_rate: Number(work.obsolescence_rate),
                   recovery_amount: Number(work.recovery_amount || 0),
                   discount: Number(work.discount),
@@ -906,6 +915,7 @@ export function ExpertiseSheetShockSuppliesTable({
               paint: shockWork.paint,
               obsolescence: shockWork.obsolescence || false,
               control: shockWork.control,
+              in_order: shockWork.in_order || false,
               obsolescence_rate: Number(shockWork.obsolescence_rate),
               recovery_amount: Number(shockWork.recovery_amount || 0),
               discount: Number(shockWork.discount),
@@ -1182,6 +1192,9 @@ export function ExpertiseSheetShockSuppliesTable({
                       Vét
                     </th>
                   )}
+                  <th className="border px-2 py-2 text-center font-medium text-[10px]">
+                    Cmd
+                  </th>
                   {/* <th className="border px-2 py-2 text-center font-medium text-[10px]">
                     Montant HT
                   </th> */}
