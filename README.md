@@ -120,21 +120,3 @@ voici le retour de l'api quand j'ajoute un point de choc, actuellement quand j'a
 
 
 
-1) Créer un délai de statut
-
-curl --location 'https://chambre-hub.roomcodetraining.com/api/v1/status-deadlines' \
---header 'Accept: application/json' \
---header 'Content-Type: application/json' \
---header 'Authorization: Bearer 3|h3jGt6TRkj7EayY15GvdwffGuMg0zIO5Ah6Sx7A240f03955' \
---data '{
-  "time_limit": 50,
-  "general_status_deadline_id": "generalstatusdeadline_wAYKX728zr39E"
-}'
-
-reponse : 
-2) Lister tous les délais de statuts
-3) Afficher un délai de statut
-4) Mettre à jour un délai de statut
-5) Supprimer un délai de statut​
-6) Activer un délai de statut​
-7) Désactiver un délai de statut​

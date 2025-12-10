@@ -45,19 +45,19 @@ export const sidebarTwoPanelData: SidebarTwoPanelData = {
           title: 'Gestion des dossiers',
           items: [
             {
-              title: 'Liste des dossiers',
+              title: 'Liste',
               url: '/assignments',
               icon: IconFolder,
               requiredPermission: Permission.VIEW_ASSIGNMENT,
             },
             {
-              title: 'Dossiers édition expirés',
+              title: 'Édition expirés',
               url: '/assignments/edition-expired',
               icon: IconFolder,
               requiredPermission: Permission.VIEW_ASSIGNMENT,
             },
             {
-              title: 'Dossiers recouvrement expirés',
+              title: 'Recouvrement expirés',
               url: '/assignments/recovery-expired',
               icon: IconFolder,
               requiredPermission: Permission.VIEW_ASSIGNMENT,
@@ -86,13 +86,13 @@ export const sidebarTwoPanelData: SidebarTwoPanelData = {
           title: 'Rattachements',
           items: [
             {
-              title: 'Rattachements assureurs',
+              title: 'Assureurs',
               url: '/relationship',
               icon: IconBuilding,
               requiredPermission: Permission.VIEW_INSURER_RELATIONSHIP,
             },
             {
-              title: 'Rattachements réparateurs',
+              title: 'Réparateurs',
               url: '/relationship/repairers',
               icon: IconTool,
               requiredPermission: Permission.VIEW_REPAIRER_RELATIONSHIP,
@@ -126,7 +126,7 @@ export const sidebarTwoPanelData: SidebarTwoPanelData = {
           title: 'Tableaux de dépréciation',
           items: [
             {
-              title: 'Liste tous les tableaux',
+              title: 'Liste',
               url: '/gestion/depreciation-tables',
               icon: IconPalette,
               requiredPermission: Permission.VIEW_DEPRECIATION_TABLE,
@@ -472,7 +472,7 @@ export const sidebarTwoPanelData: SidebarTwoPanelData = {
     },
     {
       id: 'administration',
-      title: 'Administration',
+      title: 'Admin',
       icon: IconShield,
       sections: [
         {

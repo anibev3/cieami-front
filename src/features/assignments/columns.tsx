@@ -612,116 +612,116 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail, onSe
       )
     },
   },
-  {
-    accessorKey: 'insurer',
-    header: 'Assureur',
-    cell: ({ row }) => {
-      const insurer = row?.getValue('insurer') as Assignment['insurer']
-      const assignment = row?.original || {}
-      const isEditionDone = assignment?.edition_status === 'done'
-      const isRecoveryDone = assignment?.recovery_status === 'done'
-      const isDone = isEditionDone || isRecoveryDone
+  // {
+  //   accessorKey: 'insurer',
+  //   header: 'Assureur',
+  //   cell: ({ row }) => {
+  //     const insurer = row?.getValue('insurer') as Assignment['insurer']
+  //     const assignment = row?.original || {}
+  //     const isEditionDone = assignment?.edition_status === 'done'
+  //     const isRecoveryDone = assignment?.recovery_status === 'done'
+  //     const isDone = isEditionDone || isRecoveryDone
       
-      if (!insurer) {
-        return <div className="text-muted-foreground text-sm">-</div>
-      }
+  //     if (!insurer) {
+  //       return <div className="text-muted-foreground text-sm">-</div>
+  //     }
       
-      return (
-        <div className={isDone ? 'bg-green-50' : ''}>
-          <div 
-            className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
-            onClick={() => onSearch(insurer.name)}
-            title="Cliquer pour rechercher cet assureur"
-          >
-            {insurer.name}
-          </div>
-        </div>
-      )
-    },
-  },
+  //     return (
+  //       <div className={isDone ? 'bg-green-50' : ''}>
+  //         <div 
+  //           className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
+  //           onClick={() => onSearch(insurer.name)}
+  //           title="Cliquer pour rechercher cet assureur"
+  //         >
+  //           {insurer.name}
+  //         </div>
+  //       </div>
+  //     )
+  //   },
+  // },
 
-  {
-    accessorKey: 'additional_insurer',
-    header: 'Assureur additionnel',
-    cell: ({ row }) => {
-      const additionalInsurer = row?.getValue('additional_insurer') as Assignment['additional_insurer']
-      const assignment = row?.original
-      const isEditionDone = assignment?.edition_status === 'done'
-      const isRecoveryDone = assignment?.recovery_status === 'done'
-      const isDone = isEditionDone || isRecoveryDone
+  // {
+  //   accessorKey: 'additional_insurer',
+  //   header: 'Assureur additionnel',
+  //   cell: ({ row }) => {
+  //     const additionalInsurer = row?.getValue('additional_insurer') as Assignment['additional_insurer']
+  //     const assignment = row?.original
+  //     const isEditionDone = assignment?.edition_status === 'done'
+  //     const isRecoveryDone = assignment?.recovery_status === 'done'
+  //     const isDone = isEditionDone || isRecoveryDone
       
-      if (!additionalInsurer) {
-        return <div className="text-muted-foreground text-sm">-</div>
-      }
+  //     if (!additionalInsurer) {
+  //       return <div className="text-muted-foreground text-sm">-</div>
+  //     }
       
-      return (
-        <div className={isDone ? 'bg-green-50' : ''}>
-          <div 
-            className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
-            onClick={() => onSearch(additionalInsurer?.name || '')}
-            title="Cliquer pour rechercher cet assureur additionnel"
-          >
-            {additionalInsurer?.name || ''}
-          </div>
-        </div>
-      )
-    },
-  },
+  //     return (
+  //       <div className={isDone ? 'bg-green-50' : ''}>
+  //         <div 
+  //           className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
+  //           onClick={() => onSearch(additionalInsurer?.name || '')}
+  //           title="Cliquer pour rechercher cet assureur additionnel"
+  //         >
+  //           {additionalInsurer?.name || ''}
+  //         </div>
+  //       </div>
+  //     )
+  //   },
+  // },
   
-  {
-    accessorKey: 'broker',
-    header: 'Courtier',
-    cell: ({ row }) => {
-      const broker = row?.getValue('broker') as Assignment['broker']
-      const assignment = row.original
-      const isEditionDone = assignment.edition_status === 'done'
-      const isRecoveryDone = assignment.recovery_status === 'done'
-      const isDone = isEditionDone || isRecoveryDone
+  // {
+  //   accessorKey: 'broker',
+  //   header: 'Courtier',
+  //   cell: ({ row }) => {
+  //     const broker = row?.getValue('broker') as Assignment['broker']
+  //     const assignment = row.original
+  //     const isEditionDone = assignment.edition_status === 'done'
+  //     const isRecoveryDone = assignment.recovery_status === 'done'
+  //     const isDone = isEditionDone || isRecoveryDone
       
-      if (!broker) {
-        return <div className="text-muted-foreground text-sm">-</div>
-      }
+  //     if (!broker) {
+  //       return <div className="text-muted-foreground text-sm">-</div>
+  //     }
       
-      return (
-        <div className={isDone ? 'bg-green-50' : ''}>
-          <div 
-            className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
-            onClick={() => onSearch(broker.name)}
-            title="Cliquer pour rechercher ce courtier"
-          >
-            {broker.name}
-          </div>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: 'repairer',
-    header: 'Reparateur',
-    cell: ({ row }) => {
-      const repairman = row.getValue('repairer') as Assignment['repairer']
-      const assignment = row.original
-      const isEditionDone = assignment.edition_status === 'done'
-      const isRecoveryDone = assignment.recovery_status === 'done'
-      const isDone = isEditionDone || isRecoveryDone
+  //     return (
+  //       <div className={isDone ? 'bg-green-50' : ''}>
+  //         <div 
+  //           className="font-medium cursor-pointer hover:text-primary hover:underline transition-colors text-center"
+  //           onClick={() => onSearch(broker.name)}
+  //           title="Cliquer pour rechercher ce courtier"
+  //         >
+  //           {broker.name}
+  //         </div>
+  //       </div>
+  //     )
+  //   },
+  // },
+  // {
+  //   accessorKey: 'repairer',
+  //   header: 'Reparateur',
+  //   cell: ({ row }) => {
+  //     const repairman = row.getValue('repairer') as Assignment['repairer']
+  //     const assignment = row.original
+  //     const isEditionDone = assignment.edition_status === 'done'
+  //     const isRecoveryDone = assignment.recovery_status === 'done'
+  //     const isDone = isEditionDone || isRecoveryDone
       
-      if (!repairman) {
-        return <div className="text-muted-foreground text-sm">-</div>
-      }
+  //     if (!repairman) {
+  //       return <div className="text-muted-foreground text-sm">-</div>
+  //     }
       
-      return (
-        <div className={isDone ? 'bg-green-50' : ''}>
-          <div 
-            className="text-sm cursor-pointer hover:text-primary hover:underline transition-colors"
-            onClick={() => onSearch(repairman.name)}
-            title="Cliquer pour rechercher ce réparateur"
-          >
-            {repairman.name}
-          </div>
-        </div>
-      )
-    },
-  },
+  //     return (
+  //       <div className={isDone ? 'bg-green-50' : ''}>
+  //         <div 
+  //           className="text-sm cursor-pointer hover:text-primary hover:underline transition-colors"
+  //           onClick={() => onSearch(repairman.name)}
+  //           title="Cliquer pour rechercher ce réparateur"
+  //         >
+  //           {repairman.name}
+  //         </div>
+  //       </div>
+  //     )
+  //   },
+  // },
   // {
   //   accessorKey: 'assignment_type',
   //   header: 'Type',
@@ -738,30 +738,30 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail, onSe
   //     )
   //   },
   // },
-  {
-    accessorKey: 'expertise_type',
-    header: 'Type d\'expertise',
-    cell: ({ row }) => {
-      const expertiseType = row.getValue('expertise_type') as Assignment['expertise_type']
-      const assignment = row.original
-      const isEditionDone = assignment.edition_status === 'done'
-      const isRecoveryDone = assignment.recovery_status === 'done'
-      const isDone = isEditionDone || isRecoveryDone
+  // { // C'était là
+  //   accessorKey: 'expertise_type',
+  //   header: 'Type d\'expertise',
+  //   cell: ({ row }) => {
+  //     const expertiseType = row.getValue('expertise_type') as Assignment['expertise_type']
+  //     const assignment = row.original
+  //     const isEditionDone = assignment.edition_status === 'done'
+  //     const isRecoveryDone = assignment.recovery_status === 'done'
+  //     const isDone = isEditionDone || isRecoveryDone
       
-      if (!expertiseType) {
-        return <div className="text-muted-foreground text-sm">-</div>
-      }
+  //     if (!expertiseType) {
+  //       return <div className="text-muted-foreground text-sm">-</div>
+  //     }
       
-      return (
-        <div 
-        // className={isDone ? 'bg-green-50' : ''}
-        >
-          <div className="font-medium">{expertiseType.label}</div>
-          {/* <div className="text-sm text-muted-foreground">{expertiseType.code}</div> */}
-        </div>
-      )
-    },
-  },
+  //     return (
+  //       <div 
+  //       // className={isDone ? 'bg-green-50' : ''}
+  //       >
+  //         <div className="font-medium">{expertiseType.label}</div>
+  //         {/* <div className="text-sm text-muted-foreground">{expertiseType.code}</div> */}
+  //       </div>
+  //     )
+  //   },
+  // },
   // {
   //   accessorKey: 'total_amount',
   //   header: 'Montant total',
@@ -879,23 +879,23 @@ export const createColumns = ({ onDelete, onOpenReceiptModal, onViewDetail, onSe
       )
     },
   },
-  {
-    accessorKey: 'created_by',
-    header: 'Créé par',
-    cell: ({ row }) => {
-      const createdBy = row.getValue('created_by') as Assignment['created_by']
+  // {
+  //   accessorKey: 'created_by',
+  //   header: 'Créé par',
+  //   cell: ({ row }) => {
+  //     const createdBy = row.getValue('created_by') as Assignment['created_by']
       
-      if (!createdBy) {
-        return <div className="text-muted-foreground text-sm">-</div>
-      }
+  //     if (!createdBy) {
+  //       return <div className="text-muted-foreground text-sm">-</div>
+  //     }
       
-      return (
-        <div className="text-sm text-muted-foreground">
-          {createdBy.name}
-        </div>
-      )
-    },
-  },
+  //     return (
+  //       <div className="text-sm text-muted-foreground">
+  //         {createdBy.name}
+  //       </div>
+  //     )
+  //   },
+  // },
   {
     accessorKey: 'edition_countdown',
     header: 'Délai d\'édition',
