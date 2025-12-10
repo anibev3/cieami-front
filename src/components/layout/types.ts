@@ -69,4 +69,40 @@ interface SidebarData {
   navGroups: NavGroup[]
 }
 
+// Types pour la sidebar à deux panneaux
+export interface SidebarMenuItem {
+  title: string
+  url: LinkProps['to']
+  icon?: React.ElementType
+  requiredPermission?: Permission
+  requiredPermissions?: Permission[]
+  requireAllPermissions?: boolean
+  requiredRole?: UserRole
+  requiredRoles?: UserRole[]
+  requireAllRoles?: boolean
+}
+
+export interface SidebarSection {
+  title: string
+  items: SidebarMenuItem[]
+}
+
+export interface SidebarMainCategory {
+  id: string
+  title: string
+  icon: React.ElementType
+  sections?: SidebarSection[]
+  url?: LinkProps['to']
+  requiredPermission?: Permission
+  requiredPermissions?: Permission[]
+  requireAllPermissions?: boolean
+  requiredRole?: UserRole
+  requiredRoles?: UserRole[]
+  requireAllRoles?: boolean
+}
+
+export interface SidebarTwoPanelData {
+  mainCategories: SidebarMainCategory[]
+}
+
 export type { SidebarData, NavGroup, NavItem, NavCollapsible, NavLink }

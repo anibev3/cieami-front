@@ -32,7 +32,7 @@ export function AuthenticatedLayout({ children }: Props) {
       <SearchProvider>
         <SidebarProvider defaultOpen={defaultOpen}
           style={{
-            '--sidebar-width': '18rem',
+            '--sidebar-width': '25rem', // 400px pour la sidebar à deux panneaux (80px gauche + 320px droite)
             '--sidebar-width-mobile': '20rem',
           } as React.CSSProperties}
         >
