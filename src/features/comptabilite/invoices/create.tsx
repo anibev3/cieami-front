@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
@@ -68,6 +69,9 @@ function CreateInvoicePageContent() {
   const [taxpayerAccountNumber, setTaxpayerAccountNumber] = useState('')
   const [invoiceType, setInvoiceType] = useState<'sale' | 'credit_bill'>('sale')
   const [invoiceReference, setInvoiceReference] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'check' | 'mobile-money' | 'transfer' | 'deferred'>('cash')
+  const [template, setTemplate] = useState<'B2C' | 'B2B' | 'B2F' | 'B2G'>('B2C')
+  const [isFne, setIsFne] = useState<boolean>(false)
   const [creating, setCreating] = useState(false)
   const [filteredAssignments, setFilteredAssignments] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -158,6 +162,16 @@ function CreateInvoicePageContent() {
       return
     }
 
+    if (!paymentMethod) {
+      toast.error('Veuillez sélectionner une méthode de paiement')
+      return
+    }
+
+    if (!template) {
+      toast.error('Veuillez sélectionner un template')
+      return
+    }
+
     if (invoiceType === 'credit_bill' && !invoiceReference.trim()) {
       toast.error('Veuillez saisir la référence de la facture')
       return
@@ -169,7 +183,9 @@ function CreateInvoicePageContent() {
         assignment_id: selectedAssignment.id.toString(),
         date: invoiceDate,
         object: invoiceObject.trim(),
-        type: invoiceType
+        type: invoiceType,
+        payment_method: paymentMethod,
+        template: template
       }
 
       if (address.trim()) {
@@ -182,6 +198,10 @@ function CreateInvoicePageContent() {
 
       if (invoiceType === 'credit_bill' && invoiceReference.trim()) {
         invoiceData.invoice_reference = invoiceReference.trim()
+      }
+
+      if (isFne !== undefined && isFne !== null) {
+        invoiceData.is_fne = isFne
       }
 
       await createInvoice(invoiceData)
@@ -716,6 +736,63 @@ function CreateInvoicePageContent() {
                       />
                     </div>
                   )}
+
+                  {/* Méthode de paiement */}
+                  <div>
+                    <Label htmlFor="payment-method" className="text-sm font-medium text-gray-700">
+                      Méthode de paiement<span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={paymentMethod} onValueChange={(value: 'cash' | 'card' | 'check' | 'mobile-money' | 'transfer' | 'deferred') => {
+                      setPaymentMethod(value)
+                    }}>
+                      <SelectTrigger id="payment-method" className="mt-2">
+                        <SelectValue placeholder="Sélectionner une méthode de paiement" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Espèces</SelectItem>
+                        <SelectItem value="card">Carte</SelectItem>
+                        <SelectItem value="check">Chèque</SelectItem>
+                        <SelectItem value="mobile-money">Mobile Money</SelectItem>
+                        <SelectItem value="transfer">Virement</SelectItem>
+                        <SelectItem value="deferred">Différé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Template */}
+                  <div>
+                    <Label htmlFor="template" className="text-sm font-medium text-gray-700">
+                      Template<span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={template} onValueChange={(value: 'B2C' | 'B2B' | 'B2F' | 'B2G') => {
+                      setTemplate(value)
+                    }}>
+                      <SelectTrigger id="template" className="mt-2">
+                        <SelectValue placeholder="Sélectionner un template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="B2C">B2C</SelectItem>
+                        <SelectItem value="B2B">B2B</SelectItem>
+                        <SelectItem value="B2F">B2F</SelectItem>
+                        <SelectItem value="B2G">B2G</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Is FNE */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="is-fne"
+                      checked={isFne}
+                      onCheckedChange={(checked) => setIsFne(checked === true)}
+                    />
+                    <Label
+                      htmlFor="is-fne"
+                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                    >
+                      FNE
+                    </Label>
+                  </div>
 
                   {/* Adresse */}
                   <div>

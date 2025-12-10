@@ -221,6 +221,25 @@ function InvoiceDetailContent() {
                         {invoice.status?.label || 'Statut inconnu'}
                       </Badge>
                     </div>
+                    {invoice.payment_method && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Méthode de paiement</p>
+                        <p className="text-sm font-semibold">
+                          {invoice.payment_method === 'cash' && 'Espèces'}
+                          {invoice.payment_method === 'card' && 'Carte'}
+                          {invoice.payment_method === 'check' && 'Chèque'}
+                          {invoice.payment_method === 'mobile-money' && 'Mobile Money'}
+                          {invoice.payment_method === 'transfer' && 'Virement'}
+                          {invoice.payment_method === 'deferred' && 'Différé'}
+                        </p>
+                      </div>
+                    )}
+                    {invoice.template && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Template</p>
+                        <p className="text-sm font-semibold">{invoice.template}</p>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-4">
                     <div>

@@ -279,6 +279,168 @@ export interface StatusFilters {
   per_page?: number
 }
 
+// Types pour les délais de statuts généraux
+export interface GeneralStatusDeadlineStatus {
+  id: string
+  code: string
+  label: string
+  description: string
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface GeneralStatusDeadline {
+  id: string
+  label: string
+  description: string
+  time_limit: number
+  target_status: GeneralStatusDeadlineStatus
+  status: GeneralStatusDeadlineStatus
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface GeneralStatusDeadlineResponse {
+  data: GeneralStatusDeadline[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+export interface CreateGeneralStatusDeadlineData {
+  label: string
+  description: string
+  time_limit: number
+  target_status_id: string
+}
+
+export interface UpdateGeneralStatusDeadlineData {
+  label?: string
+  description?: string
+  time_limit?: number
+  target_status_id?: string
+}
+
+// Types pour les délais de statuts
+export interface StatusDeadline {
+  id: string
+  time_limit: number
+  general_status_deadline: GeneralStatusDeadline
+  status: GeneralStatusDeadlineStatus
+  deleted_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface StatusDeadlineResponse {
+  data: StatusDeadline[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+export interface CreateStatusDeadlineData {
+  time_limit: number
+  general_status_deadline_id: string
+}
+
+export interface UpdateStatusDeadlineData {
+  time_limit?: number
+  general_status_deadline_id?: string
+}
+
+// Types pour les paramètres FNE
+export interface FNESetting {
+  id: string
+  point_sale: string
+  establishment: string
+  commercial_message: string | null
+  footer: string | null
+  token: string
+  entity: Entity
+  status: GeneralStatusDeadlineStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface FNESettingResponse {
+  data: FNESetting[]
+  links: {
+    first: string
+    last: string
+    prev: string | null
+    next: string | null
+  }
+  meta: {
+    current_page: number
+    from: number
+    last_page: number
+    links: Array<{
+      url: string | null
+      label: string
+      active: boolean
+    }>
+    path: string
+    per_page: number
+    to: number
+    total: number
+  }
+}
+
+export interface CreateFNESettingData {
+  point_sale: string
+  establishment: string
+  commercial_message?: string | null
+  footer?: string | null
+  token: string
+  entity_id: string
+}
+
+export interface UpdateFNESettingData {
+  point_sale?: string
+  establishment?: string
+  commercial_message?: string | null
+  footer?: string | null
+  token?: string
+  entity_id?: string
+}
+
 export interface StatusActions {
   create: (data: CreateStatusData) => Promise<void>
   update: (id: number, data: UpdateStatusData) => Promise<void>

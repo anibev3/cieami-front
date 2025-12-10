@@ -22,6 +22,7 @@ import {
   IconUserCog,
   IconHelp,
   IconDownload,
+  IconStopwatch,
 } from '@tabler/icons-react'
 import { Permission } from '@/types/auth'
 import { type SidebarTwoPanelData } from '../types'
@@ -555,6 +556,34 @@ export const sidebarTwoPanelData: SidebarTwoPanelData = {
               url: '/administration/assignment-types',
               icon: IconFileText,
               requiredPermission: Permission.VIEW_ASSIGNMENT_TYPE,
+            },
+          ],
+        },
+        {
+          title: 'Délais de statuts généraux',
+          items: [
+            {
+              title: 'Délais de statuts généraux',
+              url: '/administration/general-status-deadlines',
+              icon: IconStopwatch,
+              requiredPermission: Permission.VIEW_GENERAL_STATE,
+            },
+            {
+              title: 'Délais de statuts',
+              url: '/administration/status-deadlines',
+              icon: IconStopwatch,
+              requiredPermission: Permission.VIEW_GENERAL_STATE,
+            },
+          ],
+        },
+        {
+          title: 'Paramètres FNE',
+          items: [
+            {
+              title: 'Paramètres FNE',
+              url: '/administration/fne-settings',
+              icon: IconSettings,
+              requiredPermission: Permission.VIEW_GENERAL_STATE,
             },
           ],
         },

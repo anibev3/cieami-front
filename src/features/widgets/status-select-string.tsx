@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useState } from 'react'
 import { Check, ChevronsUpDown, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,55 +16,38 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { useStatusesStore } from '@/stores/statusesStore'
-import { Status } from '@/types/administration'
-import { useEffect, useState } from 'react'
+import { GeneralStatusDeadlineStatus } from '@/types/administration'
 
-export interface StatusSelectProps {
-  value?: number | string | null
-  onValueChange: (value: number | string | null) => void
+export interface StatusSelectStringProps {
+  value?: string | null
+  onValueChange: (value: string | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string
   showDescription?: boolean
-  autoFetch?: boolean
-  statuses?: Status[]
+  statuses: GeneralStatusDeadlineStatus[]
+  loading?: boolean
 }
 
-export function StatusSelect({
+export function StatusSelectString({
   value,
   onValueChange,
   placeholder = 'Sélectionner un statut...',
   disabled = false,
   className,
   showDescription = false,
-  autoFetch = true,
-  statuses: externalStatuses,
-}: StatusSelectProps) {
+  statuses,
+  loading = false,
+}: StatusSelectStringProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   
-  const { statuses: storeStatuses, loading, fetchStatuses } = useStatusesStore()
-  
-  // Utiliser les statuts externes si fournis, sinon utiliser ceux du store
-  const statuses = externalStatuses || storeStatuses
-  
-  // Charger les statuts si autoFetch est activé et qu'aucun statut externe n'est fourni
-  useEffect(() => {
-    if (autoFetch && !externalStatuses && storeStatuses.length === 0) {
-      fetchStatuses()
-    }
-  }, [autoFetch, externalStatuses, storeStatuses.length, fetchStatuses])
+  // Normaliser la valeur pour la comparaison
+  const normalizedValue = value !== null && value !== undefined ? String(value) : null
+  const selectedStatus = statuses.find(status => String(status.id) === normalizedValue)
 
-  // Normaliser la valeur pour la comparaison (gérer number et string)
-  const normalizedValue = value !== null && value !== undefined ? value : null
-  const selectedStatus = statuses.find(status => {
-    // Comparer en convertissant les deux en string pour gérer number et string
-    return String(status.id) === String(normalizedValue)
-  })
-
-  const handleSelect = (statusId: number | string) => {
-    if (String(normalizedValue) === String(statusId)) {
+  const handleSelect = (statusId: string) => {
+    if (normalizedValue === String(statusId)) {
       onValueChange(null)
     } else {
       onValueChange(statusId)
@@ -149,7 +133,7 @@ export function StatusSelect({
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          String(normalizedValue) === String(status.id)
+                          normalizedValue === String(status.id)
                             ? 'opacity-100'
                             : 'opacity-0'
                         )}
@@ -157,11 +141,11 @@ export function StatusSelect({
                       <div className="flex flex-col flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{status.label}</span>
-                          {status.code && (
+                          {/* {status.code && (
                             <span className="text-xs text-muted-foreground font-mono">
                               {status.code}
                             </span>
-                          )}
+                          )} */}
                         </div>
                         {showDescription && status.description && (
                           <span className="text-xs text-muted-foreground mt-0.5">

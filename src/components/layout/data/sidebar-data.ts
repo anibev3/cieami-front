@@ -518,7 +518,7 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
-      title: 'Administration',
+      title: 'Admin',
       // requiredRoles: [UserRole.SYSTEM_ADMIN],
       items: [
         {

@@ -83,8 +83,11 @@ import { Route as AuthenticatedAdministrationVehicleModelsImport } from './route
 import { Route as AuthenticatedAdministrationUsersImport } from './routes/_authenticated/administration/users'
 import { Route as AuthenticatedAdministrationStatutsImport } from './routes/_authenticated/administration/statuts'
 import { Route as AuthenticatedAdministrationStatusesImport } from './routes/_authenticated/administration/statuses'
+import { Route as AuthenticatedAdministrationStatusDeadlinesImport } from './routes/_authenticated/administration/status-deadlines'
 import { Route as AuthenticatedAdministrationPermissionsImport } from './routes/_authenticated/administration/permissions'
+import { Route as AuthenticatedAdministrationGeneralStatusDeadlinesImport } from './routes/_authenticated/administration/general-status-deadlines'
 import { Route as AuthenticatedAdministrationGeneralStatesImport } from './routes/_authenticated/administration/general-states'
+import { Route as AuthenticatedAdministrationFneSettingsImport } from './routes/_authenticated/administration/fne-settings'
 import { Route as AuthenticatedAdministrationEtatsImport } from './routes/_authenticated/administration/etats'
 import { Route as AuthenticatedAdministrationEntityTypesImport } from './routes/_authenticated/administration/entity-types'
 import { Route as AuthenticatedAdministrationDocumentsImport } from './routes/_authenticated/administration/documents'
@@ -626,6 +629,13 @@ const AuthenticatedAdministrationStatusesRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedAdministrationStatusDeadlinesRoute =
+  AuthenticatedAdministrationStatusDeadlinesImport.update({
+    id: '/administration/status-deadlines',
+    path: '/administration/status-deadlines',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedAdministrationPermissionsRoute =
   AuthenticatedAdministrationPermissionsImport.update({
     id: '/administration/permissions',
@@ -633,10 +643,24 @@ const AuthenticatedAdministrationPermissionsRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
+const AuthenticatedAdministrationGeneralStatusDeadlinesRoute =
+  AuthenticatedAdministrationGeneralStatusDeadlinesImport.update({
+    id: '/administration/general-status-deadlines',
+    path: '/administration/general-status-deadlines',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
 const AuthenticatedAdministrationGeneralStatesRoute =
   AuthenticatedAdministrationGeneralStatesImport.update({
     id: '/administration/general-states',
     path: '/administration/general-states',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+
+const AuthenticatedAdministrationFneSettingsRoute =
+  AuthenticatedAdministrationFneSettingsImport.update({
+    id: '/administration/fne-settings',
+    path: '/administration/fne-settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -1148,6 +1172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministrationEtatsImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/administration/fne-settings': {
+      id: '/_authenticated/administration/fne-settings'
+      path: '/administration/fne-settings'
+      fullPath: '/administration/fne-settings'
+      preLoaderRoute: typeof AuthenticatedAdministrationFneSettingsImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/administration/general-states': {
       id: '/_authenticated/administration/general-states'
       path: '/administration/general-states'
@@ -1155,11 +1186,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministrationGeneralStatesImport
       parentRoute: typeof AuthenticatedRouteImport
     }
+    '/_authenticated/administration/general-status-deadlines': {
+      id: '/_authenticated/administration/general-status-deadlines'
+      path: '/administration/general-status-deadlines'
+      fullPath: '/administration/general-status-deadlines'
+      preLoaderRoute: typeof AuthenticatedAdministrationGeneralStatusDeadlinesImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
     '/_authenticated/administration/permissions': {
       id: '/_authenticated/administration/permissions'
       path: '/administration/permissions'
       fullPath: '/administration/permissions'
       preLoaderRoute: typeof AuthenticatedAdministrationPermissionsImport
+      parentRoute: typeof AuthenticatedRouteImport
+    }
+    '/_authenticated/administration/status-deadlines': {
+      id: '/_authenticated/administration/status-deadlines'
+      path: '/administration/status-deadlines'
+      fullPath: '/administration/status-deadlines'
+      preLoaderRoute: typeof AuthenticatedAdministrationStatusDeadlinesImport
       parentRoute: typeof AuthenticatedRouteImport
     }
     '/_authenticated/administration/statuses': {
@@ -1969,8 +2014,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdministrationDocumentsRoute: typeof AuthenticatedAdministrationDocumentsRoute
   AuthenticatedAdministrationEntityTypesRoute: typeof AuthenticatedAdministrationEntityTypesRoute
   AuthenticatedAdministrationEtatsRoute: typeof AuthenticatedAdministrationEtatsRoute
+  AuthenticatedAdministrationFneSettingsRoute: typeof AuthenticatedAdministrationFneSettingsRoute
   AuthenticatedAdministrationGeneralStatesRoute: typeof AuthenticatedAdministrationGeneralStatesRoute
+  AuthenticatedAdministrationGeneralStatusDeadlinesRoute: typeof AuthenticatedAdministrationGeneralStatusDeadlinesRoute
   AuthenticatedAdministrationPermissionsRoute: typeof AuthenticatedAdministrationPermissionsRoute
+  AuthenticatedAdministrationStatusDeadlinesRoute: typeof AuthenticatedAdministrationStatusDeadlinesRoute
   AuthenticatedAdministrationStatusesRoute: typeof AuthenticatedAdministrationStatusesRoute
   AuthenticatedAdministrationStatutsRoute: typeof AuthenticatedAdministrationStatutsRoute
   AuthenticatedAdministrationUsersRoute: typeof AuthenticatedAdministrationUsersRoute
@@ -2058,10 +2106,16 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdministrationEntityTypesRoute:
     AuthenticatedAdministrationEntityTypesRoute,
   AuthenticatedAdministrationEtatsRoute: AuthenticatedAdministrationEtatsRoute,
+  AuthenticatedAdministrationFneSettingsRoute:
+    AuthenticatedAdministrationFneSettingsRoute,
   AuthenticatedAdministrationGeneralStatesRoute:
     AuthenticatedAdministrationGeneralStatesRoute,
+  AuthenticatedAdministrationGeneralStatusDeadlinesRoute:
+    AuthenticatedAdministrationGeneralStatusDeadlinesRoute,
   AuthenticatedAdministrationPermissionsRoute:
     AuthenticatedAdministrationPermissionsRoute,
+  AuthenticatedAdministrationStatusDeadlinesRoute:
+    AuthenticatedAdministrationStatusDeadlinesRoute,
   AuthenticatedAdministrationStatusesRoute:
     AuthenticatedAdministrationStatusesRoute,
   AuthenticatedAdministrationStatutsRoute:
@@ -2252,8 +2306,11 @@ export interface FileRoutesByFullPath {
   '/administration/documents': typeof AuthenticatedAdministrationDocumentsRoute
   '/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
+  '/administration/fne-settings': typeof AuthenticatedAdministrationFneSettingsRoute
   '/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
+  '/administration/general-status-deadlines': typeof AuthenticatedAdministrationGeneralStatusDeadlinesRoute
   '/administration/permissions': typeof AuthenticatedAdministrationPermissionsRoute
+  '/administration/status-deadlines': typeof AuthenticatedAdministrationStatusDeadlinesRoute
   '/administration/statuses': typeof AuthenticatedAdministrationStatusesRoute
   '/administration/statuts': typeof AuthenticatedAdministrationStatutsRoute
   '/administration/users': typeof AuthenticatedAdministrationUsersRoute
@@ -2373,8 +2430,11 @@ export interface FileRoutesByTo {
   '/administration/documents': typeof AuthenticatedAdministrationDocumentsRoute
   '/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
+  '/administration/fne-settings': typeof AuthenticatedAdministrationFneSettingsRoute
   '/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
+  '/administration/general-status-deadlines': typeof AuthenticatedAdministrationGeneralStatusDeadlinesRoute
   '/administration/permissions': typeof AuthenticatedAdministrationPermissionsRoute
+  '/administration/status-deadlines': typeof AuthenticatedAdministrationStatusDeadlinesRoute
   '/administration/statuses': typeof AuthenticatedAdministrationStatusesRoute
   '/administration/statuts': typeof AuthenticatedAdministrationStatutsRoute
   '/administration/users': typeof AuthenticatedAdministrationUsersRoute
@@ -2500,8 +2560,11 @@ export interface FileRoutesById {
   '/_authenticated/administration/documents': typeof AuthenticatedAdministrationDocumentsRoute
   '/_authenticated/administration/entity-types': typeof AuthenticatedAdministrationEntityTypesRoute
   '/_authenticated/administration/etats': typeof AuthenticatedAdministrationEtatsRoute
+  '/_authenticated/administration/fne-settings': typeof AuthenticatedAdministrationFneSettingsRoute
   '/_authenticated/administration/general-states': typeof AuthenticatedAdministrationGeneralStatesRoute
+  '/_authenticated/administration/general-status-deadlines': typeof AuthenticatedAdministrationGeneralStatusDeadlinesRoute
   '/_authenticated/administration/permissions': typeof AuthenticatedAdministrationPermissionsRoute
+  '/_authenticated/administration/status-deadlines': typeof AuthenticatedAdministrationStatusDeadlinesRoute
   '/_authenticated/administration/statuses': typeof AuthenticatedAdministrationStatusesRoute
   '/_authenticated/administration/statuts': typeof AuthenticatedAdministrationStatutsRoute
   '/_authenticated/administration/users': typeof AuthenticatedAdministrationUsersRoute
@@ -2627,8 +2690,11 @@ export interface FileRouteTypes {
     | '/administration/documents'
     | '/administration/entity-types'
     | '/administration/etats'
+    | '/administration/fne-settings'
     | '/administration/general-states'
+    | '/administration/general-status-deadlines'
     | '/administration/permissions'
+    | '/administration/status-deadlines'
     | '/administration/statuses'
     | '/administration/statuts'
     | '/administration/users'
@@ -2747,8 +2813,11 @@ export interface FileRouteTypes {
     | '/administration/documents'
     | '/administration/entity-types'
     | '/administration/etats'
+    | '/administration/fne-settings'
     | '/administration/general-states'
+    | '/administration/general-status-deadlines'
     | '/administration/permissions'
+    | '/administration/status-deadlines'
     | '/administration/statuses'
     | '/administration/statuts'
     | '/administration/users'
@@ -2872,8 +2941,11 @@ export interface FileRouteTypes {
     | '/_authenticated/administration/documents'
     | '/_authenticated/administration/entity-types'
     | '/_authenticated/administration/etats'
+    | '/_authenticated/administration/fne-settings'
     | '/_authenticated/administration/general-states'
+    | '/_authenticated/administration/general-status-deadlines'
     | '/_authenticated/administration/permissions'
+    | '/_authenticated/administration/status-deadlines'
     | '/_authenticated/administration/statuses'
     | '/_authenticated/administration/statuts'
     | '/_authenticated/administration/users'
@@ -3041,8 +3113,11 @@ export const routeTree = rootRoute
         "/_authenticated/administration/documents",
         "/_authenticated/administration/entity-types",
         "/_authenticated/administration/etats",
+        "/_authenticated/administration/fne-settings",
         "/_authenticated/administration/general-states",
+        "/_authenticated/administration/general-status-deadlines",
         "/_authenticated/administration/permissions",
+        "/_authenticated/administration/status-deadlines",
         "/_authenticated/administration/statuses",
         "/_authenticated/administration/statuts",
         "/_authenticated/administration/users",
@@ -3230,12 +3305,24 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/administration/etats.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/administration/fne-settings": {
+      "filePath": "_authenticated/administration/fne-settings.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/administration/general-states": {
       "filePath": "_authenticated/administration/general-states.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/administration/general-status-deadlines": {
+      "filePath": "_authenticated/administration/general-status-deadlines.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/administration/permissions": {
       "filePath": "_authenticated/administration/permissions.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/administration/status-deadlines": {
+      "filePath": "_authenticated/administration/status-deadlines.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/administration/statuses": {

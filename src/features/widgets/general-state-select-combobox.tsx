@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Check, ChevronsUpDown, Loader2, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Check, ChevronsUpDown, Loader2, X, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -15,74 +16,84 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { useStatusesStore } from '@/stores/statusesStore'
-import { Status } from '@/types/administration'
-import { useEffect, useState } from 'react'
+import { useGeneralStatesStore } from '@/stores/generalStatesStore'
+import { GeneralState } from '@/types/administration'
 
-export interface StatusSelectProps {
+export interface GeneralStateSelectComboboxProps {
   value?: number | string | null
-  onValueChange: (value: number | string | null) => void
+  onValueChange: (value: number | null) => void
   placeholder?: string
   disabled?: boolean
   className?: string
   showDescription?: boolean
   autoFetch?: boolean
-  statuses?: Status[]
+  generalStates?: GeneralState[]
+  filterByStatus?: boolean // Filtrer uniquement les états actifs
 }
 
-export function StatusSelect({
+export function GeneralStateSelectCombobox({
   value,
   onValueChange,
-  placeholder = 'Sélectionner un statut...',
+  placeholder = 'Sélectionner un état général...',
   disabled = false,
   className,
   showDescription = false,
   autoFetch = true,
-  statuses: externalStatuses,
-}: StatusSelectProps) {
+  generalStates: externalGeneralStates,
+  filterByStatus = true,
+}: GeneralStateSelectComboboxProps) {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   
-  const { statuses: storeStatuses, loading, fetchStatuses } = useStatusesStore()
+  const { generalStates: storeGeneralStates, loading, fetchGeneralStates } = useGeneralStatesStore()
   
-  // Utiliser les statuts externes si fournis, sinon utiliser ceux du store
-  const statuses = externalStatuses || storeStatuses
+  // Utiliser les états généraux externes si fournis, sinon utiliser ceux du store
+  const generalStates = externalGeneralStates || storeGeneralStates
   
-  // Charger les statuts si autoFetch est activé et qu'aucun statut externe n'est fourni
+  // Charger les états généraux si autoFetch est activé et qu'aucun état externe n'est fourni
   useEffect(() => {
-    if (autoFetch && !externalStatuses && storeStatuses.length === 0) {
-      fetchStatuses()
+    if (autoFetch && !externalGeneralStates && storeGeneralStates.length === 0) {
+      fetchGeneralStates()
     }
-  }, [autoFetch, externalStatuses, storeStatuses.length, fetchStatuses])
+  }, [autoFetch, externalGeneralStates, storeGeneralStates.length, fetchGeneralStates])
+
+  // Filtrer les états généraux selon le statut si demandé
+  const filteredGeneralStates = React.useMemo(() => {
+    let states = generalStates
+    
+    // Filtrer uniquement les états actifs si demandé
+    if (filterByStatus) {
+      states = states.filter(state => !state.deleted_by && state.status?.code === 'active')
+    }
+    
+    return states
+  }, [generalStates, filterByStatus])
 
   // Normaliser la valeur pour la comparaison (gérer number et string)
-  const normalizedValue = value !== null && value !== undefined ? value : null
-  const selectedStatus = statuses.find(status => {
-    // Comparer en convertissant les deux en string pour gérer number et string
-    return String(status.id) === String(normalizedValue)
-  })
+  const normalizedValue = value !== null && value !== undefined ? Number(value) : null
+  const selectedGeneralState = filteredGeneralStates.find(state => state.id === normalizedValue)
 
-  const handleSelect = (statusId: number | string) => {
-    if (String(normalizedValue) === String(statusId)) {
+  const handleSelect = (stateId: number) => {
+    if (normalizedValue === stateId) {
       onValueChange(null)
     } else {
-      onValueChange(statusId)
+      onValueChange(stateId)
     }
     setOpen(false)
     setSearchQuery('')
   }
 
-  // Filtrer les statuts selon la recherche
-  const filteredStatuses = React.useMemo(() => {
-    if (!searchQuery.trim()) return statuses
+  // Filtrer les états généraux selon la recherche
+  const searchFilteredStates = React.useMemo(() => {
+    if (!searchQuery.trim()) return filteredGeneralStates
     
     const query = searchQuery.toLowerCase()
-    return statuses.filter(status =>
-      status.label.toLowerCase().includes(query) ||
-      status.code.toLowerCase().includes(query) ||
-      (status.description && status.description.toLowerCase().includes(query))
+    return filteredGeneralStates.filter(state =>
+      state.label.toLowerCase().includes(query) ||
+      state.code.toLowerCase().includes(query) ||
+      (state.description && state.description.toLowerCase().includes(query))
     )
-  }, [statuses, searchQuery])
+  }, [filteredGeneralStates, searchQuery])
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
@@ -94,7 +105,7 @@ export function StatusSelect({
             aria-expanded={open}
             className={cn(
               'w-full justify-between',
-              !selectedStatus && 'text-muted-foreground',
+              !selectedGeneralState && 'text-muted-foreground',
               disabled && 'cursor-not-allowed opacity-50'
             )}
             disabled={disabled || loading}
@@ -104,17 +115,21 @@ export function StatusSelect({
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Chargement...
               </>
-            ) : selectedStatus ? (
+            ) : selectedGeneralState ? (
               <div className="flex items-center gap-2">
-                <span className="font-medium">{selectedStatus.label}</span>
-                {selectedStatus.code && (
+                <Shield className="h-4 w-4 text-blue-600" />
+                <span className="font-medium">{selectedGeneralState.label}</span>
+                {selectedGeneralState.code && (
                   <span className="text-xs text-muted-foreground">
-                    ({selectedStatus.code})
+                    ({selectedGeneralState.code})
                   </span>
                 )}
               </div>
             ) : (
-              <span>{placeholder}</span>
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                <span>{placeholder}</span>
+              </div>
             )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -122,7 +137,7 @@ export function StatusSelect({
         <PopoverContent className="w-full p-0" align="start">
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Rechercher un statut..."
+              placeholder="Rechercher un état général..."
               value={searchQuery}
               onValueChange={setSearchQuery}
             />
@@ -130,42 +145,43 @@ export function StatusSelect({
               {loading ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Chargement des statuts...
+                  Chargement des états généraux...
                 </div>
-              ) : filteredStatuses.length === 0 ? (
+              ) : searchFilteredStates.length === 0 ? (
                 <CommandEmpty>
                   {searchQuery
-                    ? 'Aucun statut trouvé pour cette recherche.'
-                    : 'Aucun statut disponible.'}
+                    ? 'Aucun état général trouvé pour cette recherche.'
+                    : 'Aucun état général disponible.'}
                 </CommandEmpty>
               ) : (
                 <CommandGroup>
-                  {filteredStatuses.map((status) => (
+                  {searchFilteredStates.map((state) => (
                     <CommandItem
-                      key={status.id}
-                      value={`${status.label} ${status.code} ${status.description || ''}`}
-                      onSelect={() => handleSelect(status.id)}
+                      key={state.id}
+                      value={`${state.label} ${state.code} ${state.description || ''}`}
+                      onSelect={() => handleSelect(state.id)}
                     >
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          String(normalizedValue) === String(status.id)
+                          normalizedValue === state.id
                             ? 'opacity-100'
                             : 'opacity-0'
                         )}
                       />
                       <div className="flex flex-col flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{status.label}</span>
-                          {status.code && (
+                          <Shield className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium">{state.label}</span>
+                          {state.code && (
                             <span className="text-xs text-muted-foreground font-mono">
-                              {status.code}
+                              {state.code}
                             </span>
                           )}
                         </div>
-                        {showDescription && status.description && (
-                          <span className="text-xs text-muted-foreground mt-0.5">
-                            {status.description}
+                        {showDescription && state.description && (
+                          <span className="text-xs text-muted-foreground mt-0.5 ml-6">
+                            {state.description}
                           </span>
                         )}
                       </div>

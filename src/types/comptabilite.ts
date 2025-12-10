@@ -525,6 +525,8 @@ export interface Invoice {
   reference: string
   date: string
   amount: string | null
+  payment_method?: 'cash' | 'card' | 'check' | 'mobile-money' | 'transfer' | 'deferred'
+  template?: 'B2C' | 'B2B' | 'B2F' | 'B2G'
   assignment: InvoiceAssignment
   status: InvoiceStatus
   created_by: InvoiceUser
@@ -571,13 +573,20 @@ export interface CreateInvoiceData {
   assignment_id: string
   date: string
   object: string
+  payment_method: 'cash' | 'card' | 'check' | 'mobile-money' | 'transfer' | 'deferred'
+  template: 'B2C' | 'B2B' | 'B2F' | 'B2G'
+  is_fne?: boolean
   address?: string
   taxpayer_account_number?: string
+  type?: 'sale' | 'credit_bill'
+  invoice_reference?: string
 }
 
 export interface UpdateInvoiceData {
   assignment_id: string
   date: string
+  payment_method?: 'cash' | 'card' | 'check' | 'mobile-money' | 'transfer' | 'deferred'
+  template?: 'B2C' | 'B2B' | 'B2F' | 'B2G'
 }
 
 export interface InvoiceFilters {
