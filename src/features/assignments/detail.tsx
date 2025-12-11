@@ -3380,7 +3380,7 @@ function AssignmentDetailPageContent() {
       </Dialog>
 
       {/* Bottom Sticky Timeline Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg ml-70">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200/60 shadow-lg ml-83">
         <div className="px-10 sm:px-10 py-10"> 
           <div className="flex items-center gap-3">
             <div className="flex-1">
