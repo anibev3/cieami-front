@@ -134,7 +134,7 @@ export function AppSidebarTwoPanel({ className }: AppSidebarTwoPanelProps) {
   return (
     <div className={cn('flex h-full bg-white border-r border-gray-200', className)}>
       {/* Panneau gauche - Icônes principales */}
-      <div className="w-20 bg-gray-50/50 border-r border-gray-200 flex flex-col items-center py-4 space-y-3 overflow-y-auto">
+      <div className="bg-gray-100 border-r border-gray-200 flex flex-col items-center py-4 space-y-3 overflow-y-auto px-1">
         {filteredCategories.map((category) => {
           const Icon = category.icon
           const isActive = activeCategoryId === category.id
@@ -156,19 +156,19 @@ export function AppSidebarTwoPanel({ className }: AppSidebarTwoPanelProps) {
                 }
               }}
               className={cn(
-                'w-16 h-16 flex flex-col items-center justify-center rounded-lg transition-all duration-200 group relative',
+                'h-12 w-16 flex flex-col items-center justify-center rounded-lg transition-all duration-200 group relative',
                 isActive
-                  ? 'bg-blue-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+                  ? 'bg-blue-600 text-white scale-105 pb-1'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )}
               title={category.title}
             >
               <Icon className={cn(
-                'h-6 w-6 transition-transform duration-200',
+                'h-6 w-4 transition-transform duration-200',
                 isActive && 'scale-110'
               )} />
               <span className={cn(
-                'text-[10px] mt-1.5 font-medium text-center leading-tight max-w-full px-1',
+                'mt-1 text-[10px] font-medium text-center leading-tight max-w-full px-1',
                 isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-900'
               )}>
                 {category.title}
@@ -182,7 +182,7 @@ export function AppSidebarTwoPanel({ className }: AppSidebarTwoPanelProps) {
       </div>
 
       {/* Panneau droit - Menus et sous-menus */}
-      <div className="flex-1 w-70 bg-white overflow-y-auto flex flex-col">
+      <div className="flex-1 w-60 bg-white overflow-y-auto flex flex-col">
         {/* Header avec titre de la catégorie active */}
         {activeCategory && (
           <div className="px-5 py-4 border-b border-gray-200 bg-gray-50/50">
@@ -239,7 +239,7 @@ export function AppSidebarTwoPanel({ className }: AppSidebarTwoPanelProps) {
                   </CollapsibleTrigger>
                   
                   <CollapsibleContent className="CollapsibleContent">
-                    <div className="ml-6 mt-1 space-y-0.5 pl-4 border-l border-gray-200">
+                    <div className="ml-6 mt-1 space-y-0.5 border-l border-gray-200 px-2">
                       {filteredItems.map((item) => {
                         const ItemIcon = item.icon
                         const isActive = isItemActive(item.url)
@@ -256,7 +256,7 @@ export function AppSidebarTwoPanel({ className }: AppSidebarTwoPanelProps) {
                             )}
                           >
                             {isActive && (
-                              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-0.5 h-6 bg-blue-600 rounded-full" />
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 -translate-x-4 w-0.5 h-6 bg-blue-600 rounded-full" />  
                             )}
                             {ItemIcon && (
                               <ItemIcon className={cn(
