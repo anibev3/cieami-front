@@ -46,7 +46,7 @@ export function CommandMenu() {
   return (
     <CommandDialog modal open={open} onOpenChange={setOpen}>
       <CommandInput 
-        placeholder='Type a command or search...' 
+        placeholder='Rechercher une page...'
         className="border-primary/20 focus:border-primary bg-gradient-to-r from-primary/5 to-primary/10"
       />
       <CommandList className="bg-gradient-to-b from-primary/5 to-white">
