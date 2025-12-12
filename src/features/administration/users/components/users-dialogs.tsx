@@ -11,7 +11,7 @@ import { Calendar, Mail, Phone, Building, User as UserIcon, Shield, AlertTriangl
 import { useUsersStore } from '@/stores/usersStore'
 import { useEntitiesStore } from '@/stores/entitiesStore'
 import { User, CreateUserData, UpdateUserData } from '@/types/administration'
-import { toast } from 'sonner'
+// import { toast } from 'sonner'
 import { EntityTypeEnum, useACL } from '@/hooks/useACL'
 import { useUser } from '@/stores/authStore'
 
@@ -77,9 +77,9 @@ export function UsersDialogs({
     first_name: '',
     last_name: '',
     telephone: '',
-    entity_id: 0,
-    role: ''
-    // code: '',
+    entity_id: 'entity_MqNmdDWyjQk4A',
+    role: '',
+    code: '',
   })
 
   const [editForm, setEditForm] = useState<UpdateUserData>({})
@@ -103,9 +103,9 @@ export function UsersDialogs({
         first_name: '',
         last_name: '',
         telephone: '',
-        entity_id: initialEntityId,
-        role: ''
-        // code: '',
+        entity_id: "entity_MqNmdDWyjQk4A",
+        role: '',
+        code: 'entikllk',
       })
     }
   }, [isCreateOpen, isExternalEntity, currentUserEntityId])
@@ -131,9 +131,10 @@ export function UsersDialogs({
         first_name: selectedUser.first_name,
         last_name: selectedUser.last_name,
         telephone: selectedUser.telephone,
-        entity_id: entityId,
+        // entity_id: entityId,
+        entity_id: "entity_MqNmdDWyjQk4A",
         role: selectedUser.role.name,
-        // code: selectedUser.code,
+        code: "",
       })
     }
   }, [isEditOpen, selectedUser, isExternalEntity, currentUserEntityId])
@@ -141,10 +142,10 @@ export function UsersDialogs({
   // Handlers pour la création
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!createForm.entity_id || !createForm.role) {
-      toast.error('Veuillez sélectionner une entité et un rôle')
-      return
-    }
+    // if (!createForm.entity_id || !createForm) {
+    //   toast.error('Veuillez sélectionner une entité et un rôle')
+    //   return
+    // }
     try {
       await createUser(createForm)
       onCloseCreate()

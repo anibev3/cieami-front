@@ -157,9 +157,9 @@ export interface CreateUserData {
   first_name: string
   last_name: string
   telephone: string
-  entity_id: number
+  entity_id:  string
   role: string
-  // code: string
+  code: string
 }
 
 export interface UpdateUserData {
