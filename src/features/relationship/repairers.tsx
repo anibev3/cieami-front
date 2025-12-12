@@ -129,7 +129,7 @@ function RepairerRelationshipsPageContent() {
                         value={selectedRepairerCode} 
                         onValueChange={setSelectedRepairerCode} 
                         placeholder="Sélectionner un réparateur..." 
-                        valueKey="code" 
+                        valueKey="id" 
                       />
                     </div>
                   </div>
