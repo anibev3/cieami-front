@@ -128,7 +128,7 @@ export default function AssignmentsEditionExpiredPage() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <SearchComponent />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

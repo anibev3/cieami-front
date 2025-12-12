@@ -50,7 +50,7 @@ function TarificationHonorairePageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

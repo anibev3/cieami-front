@@ -62,7 +62,7 @@ function AscertainmentDetailPageContent() {
   if (loading) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -86,7 +86,7 @@ function AscertainmentDetailPageContent() {
   if (!currentAscertainment) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -112,7 +112,7 @@ function AscertainmentDetailPageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

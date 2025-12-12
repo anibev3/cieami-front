@@ -73,7 +73,7 @@ function PaymentDetailContent() {
   if (loading) {
     return (
       <>
-        {/* <Header fixed>
+        {/* <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -95,7 +95,7 @@ function PaymentDetailContent() {
   if (error || !selectedPayment) {
     return (
       <>
-        {/* <Header fixed>
+        {/* <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -125,7 +125,7 @@ function PaymentDetailContent() {
 
   return (
     <>
-      {/* <Header fixed>
+      {/* <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

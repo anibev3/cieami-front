@@ -49,7 +49,7 @@ export default function Dashboard() {
   if (loading && !stats) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -67,7 +67,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -94,7 +94,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

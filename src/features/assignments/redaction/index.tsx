@@ -1324,7 +1324,7 @@ function EditReportContent() {
   if (loading) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
             <ProfileDropdown />
@@ -1340,7 +1340,7 @@ function EditReportContent() {
   if (error || !assignment) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
             <ProfileDropdown />
@@ -1365,7 +1365,7 @@ function EditReportContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />
           <ProfileDropdown />

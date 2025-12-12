@@ -204,7 +204,7 @@ function AssignmentRequestsPageContent() {
   if (isInitialized && !canView) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <SearchComponent />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -227,7 +227,7 @@ function AssignmentRequestsPageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <SearchComponent />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

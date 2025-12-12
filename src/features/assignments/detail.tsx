@@ -2737,7 +2737,7 @@ function AssignmentDetailPageContent() {
   if (loading) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -2769,7 +2769,7 @@ function AssignmentDetailPageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

@@ -332,7 +332,7 @@ function SectionCard({
 export default function WorkflowPage() {
   return (
     <>
-      <Header fixed>
+      <Header>
         <div className='flex items-center gap-2'>
           <h1 className='text-lg font-semibold'>Workflow de Traitement des Dossiers</h1>
         </div>

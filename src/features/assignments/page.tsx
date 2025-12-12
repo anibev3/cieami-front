@@ -271,7 +271,7 @@ function AssignmentsPageContent() {
   if (loading && !isInitialized) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <SearchComponent />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -486,7 +486,7 @@ function AssignmentsPageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <SearchComponent />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

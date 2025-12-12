@@ -1338,7 +1338,7 @@ function QuotePreparationPageContent() {
   if (loading) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
             <ProfileDropdown />
@@ -1354,7 +1354,7 @@ function QuotePreparationPageContent() {
   if (error || !assignment) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
             <ProfileDropdown />
@@ -1379,7 +1379,7 @@ function QuotePreparationPageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />
           <ProfileDropdown />

@@ -86,7 +86,7 @@ function ClientDetailsPageContent() {
   if (loading) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -105,7 +105,7 @@ function ClientDetailsPageContent() {
   if (error || !selectedClient) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -128,7 +128,7 @@ function ClientDetailsPageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

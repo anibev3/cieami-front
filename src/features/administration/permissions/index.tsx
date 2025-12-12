@@ -60,7 +60,7 @@ export default function PermissionsPage() {
   return (
     <ProtectedRoute>
       <>
-        <Header fixed>
+        <Header>
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-4">
               <div>

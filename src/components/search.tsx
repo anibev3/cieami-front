@@ -9,7 +9,7 @@ interface Props {
   placeholder?: string
 }
 
-export function Search({ className = '', placeholder = 'Search' }: Props) {
+export function Search({ className = '', placeholder = 'Rechercher une page' }: Props) {
   const { setOpen } = useSearch()
   return (
     <Button

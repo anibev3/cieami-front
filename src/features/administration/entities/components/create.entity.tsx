@@ -167,7 +167,7 @@ function EntityCreatePageContent() {
   if (loading || (isEditMode && !initialized)) {
     return (
       <>
-        <Header fixed>
+        <Header>
           <Search />
           <div className='ml-auto flex items-center space-x-4'>
             <ThemeSwitch />
@@ -190,7 +190,7 @@ function EntityCreatePageContent() {
 
   return (
     <>
-      <Header fixed>
+      <Header>
         <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />

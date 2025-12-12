@@ -17,6 +17,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Main } from '@/components/layout/main'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Permission } from '@/types/auth'
+import { Search } from '@/components/search'
 
 function InsurerRelationshipsPageContent() {
   const [loading, setLoading] = useState(false)
@@ -84,7 +85,7 @@ function InsurerRelationshipsPageContent() {
         <>
       {/* ===== Top Heading ===== */}
       <Header>
-        {/* <Search /> */}
+        <Search />
         <div className='ml-auto flex items-center space-x-4'>
           <ThemeSwitch />
           <ProfileDropdown />
