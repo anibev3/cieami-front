@@ -159,9 +159,9 @@ function RepairerRelationshipsPageContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((item) => (
+                {rows.map((item, index) => (
                   <TableRow key={item.id}>
-                    <TableCell>{item.id}</TableCell>
+                    <TableCell>{ index + 1 }</TableCell>
                     <TableCell>{item.repairer?.name}</TableCell>
                     <TableCell>{item.expert_firm?.name}</TableCell>
                     <TableCell>
